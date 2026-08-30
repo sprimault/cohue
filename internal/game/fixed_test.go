@@ -144,6 +144,29 @@ func TestConversionsAllerRetour(t *testing.T) {
 	}
 }
 
+// TestFromFloatSatureHorsPlage vérifie qu'une valeur de manifeste trop grande
+// sature au lieu de changer de signe.
+//
+// Le cas est atteignable : rien n'empêche d'écrire quarante mille dans un
+// champ de tuiles, et la conversion directe rendait alors le plus petit int32 —
+// une distance positive devenue la plus grande distance négative. Pire, la
+// spécification Go laisse ce résultat à l'implémentation : deux binaires publiés
+// divergeraient sur la même donnée.
+func TestFromFloatSatureHorsPlage(t *testing.T) {
+	cas := map[float64]Fixed{
+		40000:  math.MaxInt32,
+		-40000: math.MinInt32,
+		1e9:    math.MaxInt32,
+		-1e9:   math.MinInt32,
+	}
+	for tuiles, attendu := range cas {
+		if obtenu := FromFloat(tuiles); obtenu != attendu {
+			t.Errorf("FromFloat(%v) = %d, attendu la saturation à %d",
+				tuiles, obtenu, attendu)
+		}
+	}
+}
+
 // TestDivSatureAuLieuDeDeborder vérifie qu'une division par une longueur
 // minuscule sature au lieu de changer de signe.
 //

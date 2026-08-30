@@ -225,7 +225,7 @@ de mise à jour : un log par image traverse le disque soixante fois par seconde.
 
 Les entités de jeu vivent dans des bassins préalloués, jamais dans des slices
 qui croissent. Le motif est le même pour les ennemis, les projectiles, les
-gemmes, les caisses et les particules :
+gemmes, les caisses, les particules et les cadavres :
 
 ```go
 type Pool struct {
@@ -283,13 +283,36 @@ dans la suite par défaut : le rendu se juge à l'œil.
 ### Le test qui vend le projet
 
 ```
-graine -> run simulée sans rendu -> état identique à chaque exécution
+graine -> run simulée sans rendu -> état identique sur toutes les cibles
 ```
 
-Une run se joue en mémoire, sans fenêtre, sur un nombre d'images fixé : mêmes
+Une run se joue en mémoire, sans fenêtre, sur un nombre de ticks fixé : mêmes
 apparitions, mêmes trajectoires, même état final. Sans lui, l'équilibrage n'est
 pas comparable d'une version à l'autre et une mort injuste n'est pas
 reproductible.
+
+**Sur toutes les cibles, et pas seulement deux fois de suite ici.** Le job des
+tests natifs exécute la suite sur windows/amd64, darwin/arm64 et linux/arm64 :
+c'est là que se vérifie ce que la virgule fixe achète, et c'est ce qui sépare un
+invariant d'une discipline. Un déterminisme qui ne tiendrait que sur la machine
+qui l'a écrit ne porterait ni le classement par graine, ni le partage d'un défi.
+
+L'empreinte comparée porte sur l'**état** — positions, points de vie,
+générations, état de chaque flux aléatoire, parcourus dans l'ordre des index du
+bassin — et jamais sur un résumé. Un compte d'entités vivantes ou un score
+passerait au vert alors que deux trajectoires ont divergé puis se sont
+recroisées, ce qui est exactement le cas recherché. L'ordre du parcours fait
+partie de ce qui doit être stable : l'échange à la suppression le casse, donc
+l'empreinte se calcule sur les index, jamais sur un parcours de `map`.
+
+**Elle énumère ce qu'elle inclut, jamais ce qu'elle écarte.** Les champs
+cosmétiques en sont exclus — la teinte d'un vêtement ne décide de rien, et un
+second test l'exige en jouant deux fois la même graine avec des teintes forcées
+différentes. Une liste de champs à ignorer se périmerait au premier champ
+ajouté, et le test échouerait pour une raison sans rapport avec ce qu'il garde ;
+une liste de ce qui compte laisse un champ nouveau dehors par défaut, ce qui
+affaiblit le test au lieu de le casser. Des deux erreurs possibles, c'est celle
+qui se rattrape.
 
 Son jumeau, sur le budget : mille itérations à 300 entités sans une allocation.
 `testing.AllocsPerRun` le dit en un chiffre, et c'est l'invariant le plus facile
@@ -317,9 +340,13 @@ Chaque règle qui peut se contredire a son test. Sur ce jeu, la liste de départ
   pousse dans le décor ;
 - caisse détruite pendant qu'un ennemi la traverse — le champ de flux se
   rafraîchit sous ses pieds ;
-- cône de visée vide, l'arme ne doit pas tirer derrière ;
+- aucune cible à portée, l'arme ne doit pas tirer ni consommer sa cadence ;
+- le joueur pris entre un Vigile et un mur, seul cas où un corps ennemi l'arrête ;
 - sortie atteinte avant l'objectif : la porte reste fermée ;
-- bassin plein au moment d'une vague, le spawner ne doit ni allouer ni écraser.
+- bassin plein au moment d'une vague, le spawner ne doit ni allouer ni écraser ;
+- deux projectiles atteignant le même ennemi dans le même tick : une seule mort,
+  un seul butin, une seule explosion — et le second va chercher derrière ;
+- bassin de cadavres plein : le plus ancien cède sa place, sans allocation.
 
 ### Un test se vérifie en le faisant échouer
 

@@ -21,7 +21,6 @@ bras avancé se lit tout de suite.
 """
 
 import argparse
-import json
 import math
 from pathlib import Path
 
@@ -166,13 +165,27 @@ PROFILS = {
 CHEVEUX = (58, 44, 38)
 
 
-def _matiere(nom, teinte):
-    """Enregistre une matière à la volée : dessus, deux flancs, arête claire."""
+def _teinter(teinte, facteur):
+    """Assombrit ou éclaircit une teinte sans quitter sa dominante."""
+    if facteur <= 1:
+        return tuple(round(c * facteur) for c in teinte)
+    return tuple(round(c + (255 - c) * (facteur - 1)) for c in teinte)
+
+
+def _matiere(nom, teinte, contraste=1.0):
+    """Enregistre une matière à la volée : dessus, deux flancs, arête claire.
+
+    `contraste` atténue l'ombrage des flancs. Sur un visage, l'ombrage normal
+    d'un volume produit une masse sombre sous les yeux qui se lit comme une
+    barbe : une tête doit rester presque plate.
+    """
     def melange(cible, force):
         return tuple(round(c + (t - c) * force) for c, t in zip(teinte, cible))
 
-    prim.MATIERES[nom] = (teinte, melange((0, 0, 0), 0.28), melange((0, 0, 0), 0.44),
-                           melange((255, 255, 255), 0.30))
+    prim.MATIERES[nom] = (teinte,
+                          melange((0, 0, 0), 0.28 * contraste),
+                          melange((0, 0, 0), 0.44 * contraste),
+                          melange((255, 255, 255), 0.30))
     return nom
 
 
@@ -184,7 +197,7 @@ def _bloc(largeur, hauteur, matiere, arrondi=True):
     crâne — restent taillés au carré alors que ce sont eux qu'on regarde.
     """
     bloc = prim.volume(elevation=hauteur, matiere=matiere, largeur_tuile=largeur,
-                        bandes=2)
+                       bandes=2)
     if arrondi and largeur >= 10:
         _adoucir(bloc)
     return bloc
@@ -194,7 +207,6 @@ def _coller(fond, piece, cx, cy):
     """Colle une pièce en visant le milieu de sa base."""
     fond.alpha_composite(piece, (round(cx - piece.width / 2),
                                  round(cy - piece.height)))
-
 
 
 def _adoucir(img, passes=1):
@@ -257,7 +269,7 @@ def _quadrupede(cycle, image, total, img, contexte):
     _coller(img, ombre, cx, sol + ombre.height // 2)
 
     h_pattes = max(2, 8 - ecrase)
-    for rang, (cote, avant) in enumerate(((-1, 1), (1, -1), (-1, -1), (1, 1))):
+    for cote, avant in ((-1, 1), (1, -1), (-1, -1), (1, 1)):
         phase = foulee if (cote * avant) > 0 else -foulee
         dx, dy = _avant(lateral, profondeur, avant * 7)
         patte = _bloc(5, max(2, h_pattes + round(2 * phase)), habit)
@@ -317,7 +329,7 @@ def _rampant(cycle, image, total, img, contexte):
             _coller(img, patte, cx + dx + cote * 10, sol + dy)
 
     corps = prim.volume(tx=0.30, ty=0.24, elevation=max(3, 6 - ecrase),
-                         matiere=habit, bandes=2)
+                        matiere=habit, bandes=2)
     _coller(img, corps, cx, sol - 9)
     haut = sol - 9 - corps.height
 
@@ -351,11 +363,11 @@ def _bulbe(cycle, image, total, img, contexte):
     _coller(img, ombre, cx, sol + ombre.height // 2)
 
     socle = prim.volume(tx=0.40, ty=0.36, elevation=max(2, 5 - ecrase),
-                         matiere=habit, bandes=2)
+                        matiere=habit, bandes=2)
     _coller(img, socle, cx, sol)
 
     corps = prim.volume(tx=0.28, ty=0.24, elevation=max(3, 15 - ecrase - souffle),
-                         matiere=habit, bandes=3)
+                        matiere=habit, bandes=3)
     _coller(img, corps, cx, sol - 4)
     haut = sol - 4 - corps.height
 
@@ -390,7 +402,7 @@ def _gonfle(cycle, image, total, img, contexte):
         _coller(img, _bloc(6, max(2, 8 - ecrase), habit), cx + cote * 7, sol)
 
     corps = prim.volume(tx=0.42 + palpite * 0.01, ty=0.36,
-                         elevation=max(4, 12 - ecrase), matiere=habit, bandes=3)
+                        elevation=max(4, 12 - ecrase), matiere=habit, bandes=3)
     _coller(img, corps, cx, sol - 7)
     haut = sol - 7 - corps.height
 
@@ -429,7 +441,7 @@ def _elan(image, total):
         return 6
     if total == 2:
         return (-3, 7)[image]
-    return (-3, 7) [image] if image < 2 else 5
+    return (-3, 7)[image] if image < 2 else 5
 
 
 def figurine(profil, direction, cycle, image, total, variante=0):
@@ -438,8 +450,16 @@ def figurine(profil, direction, cycle, image, total, variante=0):
     teintes = reglages.get("variantes", [reglages["habit"]])
     teinte_habit = teintes[variante % len(teintes)]
     habit = _matiere(f"_habit_{profil}_{variante % len(teintes)}", teinte_habit)
-    peau = _matiere(f"_peau_{profil}", reglages["peau"])
+    peau = _matiere(f"_peau_{profil}", reglages["peau"], contraste=0.35)
     cheveux = _matiere("_cheveux", CHEVEUX)
+
+    # Zones de couleur dérivées de l'habit. C'est ce qui distingue une figurine
+    # d'un bonhomme monochrome : le regard sépare les membres avant de lire la
+    # silhouette. Elles se dérivent plutôt que de se déclarer — six variantes
+    # de Badaud donneraient sinon dix-huit teintes à tenir à la main.
+    pantalon = _matiere(f"_pantalon_{profil}_{variante % len(teintes)}",
+                        _teinter(teinte_habit, 0.58))
+    chaussures = _matiere("_chaussures", (48, 44, 42))
     carrure = reglages["carrure"]
 
     avancement = image / max(1, total - 1) if total > 1 else 0.0
@@ -474,22 +494,30 @@ def figurine(profil, direction, cycle, image, total, variante=0):
         return prim.reduire(prim.contour(_adoucir(img), force=0.40), couleurs=20)
 
     ombre = prim.volume(tx=0.30 * carrure, ty=0.30, elevation=0, matiere="bitume",
-                         arete=False)
+                        arete=False)
     ombre.putalpha(ombre.getchannel("A").point(lambda v: 80 if v else 0))
     _coller(img, ombre, cx, sol + ombre.height // 2)
 
-    # Proportions, mesurées depuis le sol. Le tassement écrase le personnage sur
-    # place plutôt que de le faire descendre : c'est ce qui rend une mort lisible
-    # à cette taille.
-    h_jambes = max(3, 13 - tassement)
-    h_torse = max(4, 16 - tassement)
-    l_torse = round(17 * carrure)
+    # Proportions de figurine plutôt que d'humain : la tête vaut le quart de la
+    # hauteur, les jambes sont courtes et larges. À 64 pixels, une silhouette
+    # réaliste devient un bâton — les têtes, elles, restent lisibles.
+    #
+    # Le tassement écrase le personnage sur place plutôt que de le faire
+    # descendre : c'est ce qui rend une mort lisible à cette taille.
+    h_jambes = max(3, 11 - tassement)
+    h_torse = max(4, 14 - tassement)
+    l_torse = round(19 * carrure)
 
-    # Jambes : un écart franc, sinon elles se lisent comme un socle unique.
+    # Jambes en deux pièces : la chaussure ancre la figurine au sol et sépare le
+    # corps de son ombre, ce qu'une jambe d'une seule teinte ne fait pas.
+    h_chaussure = 3 if h_jambes > 6 else 0
     for cote in (-1, 1):
         avance = round(cote * pas)
-        jambe = _bloc(round(7 * carrure), h_jambes, habit)
-        _coller(img, jambe, cx + cote * round(5 * carrure) + avance, sol)
+        x = cx + cote * round(5 * carrure) + avance
+        if h_chaussure:
+            _coller(img, _bloc(round(8 * carrure), h_chaussure, chaussures), x, sol)
+        _coller(img, _bloc(round(7 * carrure), h_jambes - h_chaussure, pantalon),
+                x, sol - h_chaussure)
 
     epaules = sol - h_jambes - h_torse
 
@@ -507,10 +535,11 @@ def figurine(profil, direction, cycle, image, total, variante=0):
             # peine. Les décalages restent petits : au-delà de quatre pixels le
             # bras se détache du torse et flotte à côté du corps.
             frappe = max(-2, min(4, round(allonge * (0.45 if devant else -0.15))))
-            bras = _bloc(round(5 * carrure), max(3, h_torse - 6), habit)
-            _coller(img, bras,
-                    cx + cote * round(l_torse * 0.34) + avance + frappe,
-                    sol - h_jambes + 1 + oscille - max(0, allonge) // 3)
+            x = cx + cote * round(l_torse * 0.34) + avance + frappe
+            y = sol - h_jambes + 1 + oscille - max(0, allonge) // 3
+            h_bras = max(3, h_torse - 6)
+            _coller(img, _bloc(round(5 * carrure), 3, peau), x, y)
+            _coller(img, _bloc(round(5 * carrure), h_bras - 3, habit), x, y - 3)
 
     # De dos, les bras passent derrière le torse : c'est le seul indice
     # d'orientation qui survive quand le visage n'est plus visible.
@@ -524,12 +553,17 @@ def figurine(profil, direction, cycle, image, total, variante=0):
     if gabarit == "colosse":
         _colosse_epaules(img, contexte, h_torse, sol, h_jambes)
 
+    # Col : deux pixels de peau entre le torse et la tête. Sans lui la tête
+    # semble encastrée dans les épaules, ce qui est le défaut le plus visible
+    # d'un empilement de boîtes.
+    _coller(img, _bloc(round(8 * carrure), 2, peau), cx, epaules + 3)
+
     # Tête posée sur les épaules, décalée vers l'avant du regard. Le repère
     # vertical se prend sur l'image collée : un volume est plus haut que son
     # élévation, du losange de sa face supérieure.
     penche = round(lateral * 2)
-    largeur_tete = round(11 * carrure)
-    tete = _bloc(largeur_tete, 9, peau)
+    largeur_tete = round(14 * carrure)
+    tete = _bloc(largeur_tete, 11, peau)
     base_tete = epaules + 1
     _coller(img, tete, cx + penche + round(allonge * 0.4 * lateral),
             base_tete - max(0, allonge) // 4)
@@ -537,14 +571,16 @@ def figurine(profil, direction, cycle, image, total, variante=0):
     sommet = base_tete - tete.height
     visage = sommet + largeur_tete // 2 - 1      # juste sous le losange du crâne
 
-    calotte = _bloc(largeur_tete + 2, 2, cheveux)
-    _coller(img, calotte, cx + penche + round(allonge * 0.4 * lateral), visage + 1)
+    # La calotte se pose sur le crâne, pas sur le front : posée un pixel trop
+    # bas, elle mange le visage et la figurine perd son regard.
+    calotte = _bloc(largeur_tete, 2, cheveux)
+    _coller(img, calotte, cx + penche + round(allonge * 0.4 * lateral), visage - 1)
 
     if de_dos:
-        # Nuque : sans elle, une figurine de dos ressemble à une figurine de
-        # face à qui il manque les yeux.
-        nuque = _bloc(largeur_tete, 4, cheveux)
-        _coller(img, nuque, cx + penche + allonge // 4, base_tete - 1)
+        # De dos, les cheveux couvrent tout le crâne : sans cela la nuque flotte
+        # sous une calotte et le visage reste visible en négatif.
+        nuque = _bloc(largeur_tete, 7, cheveux)
+        _coller(img, nuque, cx + penche + round(allonge * 0.4 * lateral), visage + 3)
     else:
         oeil = Image.new("RGBA", (2, 2), (26, 26, 30, 255))
         base = cx + penche + round(lateral * 3)
@@ -567,12 +603,8 @@ def figurine(profil, direction, cycle, image, total, variante=0):
     return prim.reduire(prim.contour(_adoucir(img), force=0.40), couleurs=20)
 
 
-def sens_bras(cote):
-    """Les deux bras oscillent en opposition, comme les jambes."""
-    return cote
-
-
 def bande(profil, direction, cycle, images, variante=0):
+    """Un cycle entier, ses images côte à côte dans une seule planche."""
     planche = Image.new("RGBA", (COTE * images, COTE), (0, 0, 0, 0))
     for i in range(images):
         planche.alpha_composite(
@@ -598,6 +630,7 @@ def apercu(profil, echelle=4):
 
 
 def main():
+    """Écrit les bandes de tous les profils, ou seulement les planches d'aperçu."""
     a = argparse.ArgumentParser(description=__doc__)
     a.add_argument("--sortie", type=Path, default=Path("assets/personnages"))
     a.add_argument("--apercu", action="store_true")

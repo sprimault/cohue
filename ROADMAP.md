@@ -203,6 +203,33 @@ pause fige, quand on écrit sur le disque, ce qui persiste d'une run à l'autre.
 Cette étape ne porte que le contenu, et elle existe pour qu'il ne soit pas une
 dette sans domicile.
 
+## 16 — Le catalogue de lieux
+
+L'écran de démarrage énumère les lieux et laisse en choisir un. Après l'étape 12
+parce qu'un catalogue sans lieux téléchargeables n'a rien à énumérer : la
+dépendance est réelle, pas seulement chronologique.
+
+**Traversé une fois par session, jamais par run.** Le chapitre 2 proscrit la
+sélection de campagne parmi les quatre frictions de la relance, et fixe « même
+configuration » : la mort rejoue le lieu en cours sans rien redemander. Un écran
+au premier lancement ne coûte rien, y repasser après chaque mort coûte les
+relances.
+
+**La clé d'une entrée est le couple source et identifiant**, et un lieu
+téléchargé ne masque pas le lieu livré du même nom. Les deux s'affichent avec
+leur provenance : si le téléchargé masquait l'autre, le supprimer ferait changer
+« son » lieu de contenu sans que rien n'ait touché à l'original.
+
+**L'énumération est triée explicitement**, par source puis par identifiant, et
+non rendue dans l'ordre de parcours du système de fichiers — qui n'est stable ni
+d'une plateforme à l'autre, ni toujours d'un lancement au suivant. Une liste qui
+change d'ordre toute seule donne l'impression d'un jeu instable.
+
+**Un lieu invalide s'affiche barré, avec son motif.** Ni disparu en silence, où
+son auteur ne comprendrait pas ce qui lui arrive, ni bloquant pour la liste
+entière, où un fichier de trop empêcherait de jouer. C'est ce que la validation
+sait déjà dire, porté à l'écran.
+
 ---
 
 ## Hors périmètre v1

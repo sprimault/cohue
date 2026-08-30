@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
+
+	"github.com/sprimault/cohue/internal/manifest"
 )
 
 // manifesteDecor bâtit un manifeste de décor autour de formes données.
@@ -48,9 +50,9 @@ func TestDecorRefuseLesCoutsContradictoires(t *testing.T) {
 	if err == nil {
 		t.Fatal("manifeste contradictoire accepté")
 	}
-	invalide, ok := err.(*Invalide)
+	invalide, ok := err.(*manifest.Invalide)
 	if !ok {
-		t.Fatalf("erreur %T, attendu *Invalide : %v", err, err)
+		t.Fatalf("erreur %T, attendu *manifest.Invalide : %v", err, err)
 	}
 	if len(invalide.Manques) != 2 {
 		t.Fatalf("%d manquement(s), attendu 2 :\n%v", len(invalide.Manques), invalide.Manques)

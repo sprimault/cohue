@@ -11,6 +11,7 @@ import (
 	"testing/fstest"
 
 	"github.com/sprimault/cohue/internal/game"
+	"github.com/sprimault/cohue/internal/manifest"
 )
 
 // couts est le catalogue que le manifeste du décor fournira ; les tests en
@@ -121,9 +122,9 @@ func TestManquementsListesEnUneFois(t *testing.T) {
 	if err == nil {
 		t.Fatal("un lieu invalide s'est chargé")
 	}
-	var invalide *Invalide
+	var invalide *manifest.Invalide
 	if !errors.As(err, &invalide) {
-		t.Fatalf("erreur de type %T, attendu *Invalide", err)
+		t.Fatalf("erreur de type %T, attendu *manifest.Invalide", err)
 	}
 	if len(invalide.Manques) < 4 {
 		t.Errorf("%d manquement(s) listé(s), attendu au moins 4 :\n%v",

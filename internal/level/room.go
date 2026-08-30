@@ -3,9 +3,11 @@
 
 package level
 
+import "github.com/sprimault/cohue/internal/manifest"
+
 // Room est une pièce : sa grille de tuiles, ses côtés et ses ancrages.
 type Room struct {
-	Commentable
+	manifest.Commentable
 	// Format est la version du format de pièce.
 	Format int `json:"version_format"`
 	// ID nomme la pièce dans son jeu.
@@ -31,7 +33,7 @@ type Room struct {
 
 // Anchor est un emplacement déclaré dans une pièce.
 type Anchor struct {
-	Commentable
+	manifest.Commentable
 	// Kind dit à quoi sert l'emplacement.
 	Kind string `json:"type"`
 	// At est la case, en coordonnées de tuile `[u, v]`.

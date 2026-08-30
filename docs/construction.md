@@ -26,10 +26,22 @@ une commande tapée directement perd ces variables, et l'échec est intermittent
 python -m pip install -r outils/requirements.txt
 ```
 
-Les versions y sont épinglées, et le fichier dit pourquoi : les images sont
-comparées au bit près, or c'est la compression de Pillow qui fixe ces octets à
-dessin identique. Une version différente fait échouer `make ressources-verif`
-sur la totalité du catalogue sans qu'un seul pixel ait bougé.
+Les versions y sont épinglées pour que le dessin reste stable d'une version de
+Pillow à l'autre.
+
+**Ce qui est comparé, ce sont les pixels d'une image, et les octets de tout le
+reste.** Le PNG est un conteneur compressé et sa compression n'est pas portable :
+à Pillow identique, la wheel Windows charge zlib-ng là où la wheel Linux charge
+zlib, si bien que tout le catalogue diffère d'un système à l'autre sans qu'un
+pixel ait bougé. Sons et manifestes, eux, sont comparés au bit près — ils le
+passent sur les deux systèmes.
+
+Le contrôle n'y perd rien : une retouche manuelle, un script modifié sans
+régénération et un rendu de Pillow qui changerait déplacent tous des pixels.
+
+**Régénérer et committer depuis un seul système.** `make ressources-verif`
+passera partout, mais une régénération sur l'autre système réécrit les six cents
+fichiers à dessin inchangé, et le diff devient illisible.
 
 Le décor est produit par `outils/decor_iso.py` et **versionné** : il ne dépend
 d'aucune source tierce.

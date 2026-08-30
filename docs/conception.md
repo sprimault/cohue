@@ -157,6 +157,20 @@ func (e *Enemy) desiredDirection(champ *FlowField, densite *DensityGrid) Vector 
 
 Le champ `Tangential` suffit à transformer un suiveur bête en flanqueur : il descend le gradient tout en dérivant sur le côté, ce qui referme progressivement le cercle autour du joueur.
 
+**Le vecteur nul a sa direction, et elle vient de l'entité.** La somme peut s'annuler — une créature pile sur le joueur, deux créatures exactement superposées dans le gradient de densité, ce qu'un anneau d'apparition finit toujours par produire. Normaliser n'a alors pas de réponse, et il en faut une : une direction fixe serait la pire, puisque deux entités superposées recevraient la même correction et le resteraient indéfiniment.
+
+La direction se dérive donc de **l'index de l'entité dans son bassin**. Deux entités vivantes ont toujours des index distincts, donc deux directions différentes, donc elles se séparent au tick suivant. C'est déterministe, identique sur toutes les machines, et cela ne consomme aucun tirage aléatoire.
+
+Elle se prend dans une **table de huit directions**, à un pas premier avec leur nombre : `(index × 3) mod 8` porte l'écart entre deux index consécutifs à 135 degrés, là où un pas de 1 n'en donnerait que 45 — deux créatures apparues côte à côte ont des index voisins, et se sépareraient lentement.
+
+Une table, et non un angle calculé, pour une raison qui dépasse la vitesse : **`sin` et `cos` ne sont pas correctement arrondis par l'IEEE-754**, contrairement à `sqrt`, qui l'est et que la simulation admet pour cette raison. Leur dernier bit peut différer d'une implémentation à l'autre, donc d'une architecture à l'autre : faire entrer de la trigonométrie ici rouvrirait la porte que la virgule fixe a fermée, et sur le cas le plus difficile à diagnostiquer — une divergence qui n'apparaît que lorsque deux entités se superposent.
+
+Les huit valeurs sont donc tabulées : `0`, `±65536` pour les axes, `±46341` pour les diagonales — ce dernier étant `65536 × √2 ⁄ 2` arrondi. **Une diagonale n'est donc pas exactement unitaire** : sa norme vaut 65536,07 pour une tuile de 65536, soit un millionième de trop. Autant dire exacte, et le chiffre est là pour qui réemploiera la table ailleurs — il répond d'avance à la question plutôt que de la laisser chercher pourquoi ses diagonales seraient lentes.
+
+L'index n'est pas stable dans le temps — la suppression par échange le change dès qu'une entité meurt devant — et ce n'est pas nécessaire : ce qu'il faut est l'unicité **à un instant donné**, pas la permanence. Le cas dure un tick, le temps que les deux se séparent. Ajouter un identifiant d'apparition à l'entité pour le stabiliser reviendrait à payer un champ pour une propriété dont le mécanisme n'a pas besoin.
+
+Deux garanties de niveaux différents se répondent ici, et il vaut mieux ne pas les confondre : la virgule fixe garantit qu'aucune opération ne produit de valeur aberrante, la normalisation garantit qu'aucune direction n'est arbitraire. C'est la seconde qui répond à la question du jeu — un résultat saturé donnerait une direction juste et une longueur absurde. Le cas se traite donc **avant** de diviser, pas après.
+
 ### L'apparition
 
 Les ennemis apparaissent **hors du champ de vision**, sur un anneau autour du joueur, à trois tuiles au-delà du bord de l'écran. Jamais dans le champ : voir une créature se matérialiser détruit la crédibilité de la horde et rend une mort incompréhensible.
@@ -922,7 +936,8 @@ Trois règles font tenir le procédé :
 
 - **Un type fermé, jamais un alias.** `type Fixed int32` avec ses opérations en méthodes, pas `type Fixed = int32` sur lequel `a * b` compilerait sans rien dire. La remise à l'échelle après produit est la seule vraie source d'erreur du procédé ; le seul garde-fou est que le compilateur refuse la multiplication nue.
 - **Les produits passent par `int64`** avant remise à l'échelle. Deux valeurs d'une tuile tiennent dans un `int32`, leur produit non.
-- **L'arrondi est au plus proche**, en ajoutant la demi-échelle avant le décalage. L'échelle étant une puissance de deux, la remise à l'échelle est un décalage arithmétique, qui arrondit vers l'infini négatif : sans cette correction, chaque opération biaise d'une demi-unité toujours dans le même sens, ce qui fait de l'ordre de quatre dixièmes de tuile de dérive sur une run de quinze minutes. Le rejeu resterait déterministe, et faux.
+- **L'arrondi est au plus proche et symétrique autour de zéro.** L'échelle étant une puissance de deux, la remise à l'échelle est un décalage arithmétique, qui arrondit vers l'infini négatif : sans correction, chaque opération biaise d'une demi-unité toujours dans le même sens, ce qui fait de l'ordre de quatre dixièmes de tuile de dérive sur une run de quinze minutes — le rejeu resterait déterministe, et faux. Ajouter la demi-échelle avant le décalage suffit à l'arrondi, mais pas à la symétrie : les demis exacts monteraient vers l'infini positif, et une vitesse tombant pile sur un demi ferait avancer différemment vers la gauche et vers la droite. Le signe se traite donc à part.
+- **Un résultat hors plage sature, il ne déborde pas.** Aucun lieu n'approche les ±32768 tuiles, mais la division par une longueur minuscule est atteignable — c'est ce que produit la normalisation d'un vecteur presque nul. Un débordement silencieux ferait réapparaître l'entité de l'autre côté de la carte avec le signe opposé ; la saturation la colle au bord, ce qui se diagnostique. C'est un comportement de simulation, donc observable et identique partout, pas un détail d'implémentation.
 
 **La frontière s'arrête à `internal/game`.** Le rendu convertit en pixels et calcule ce qu'il veut en flottants — interpolations, lissage de caméra, paraboles d'éclats — puisque rien de ce qu'il produit ne revient dans la simulation. Sans cette ligne, la verbosité de la virgule fixe contaminerait tout le projet pour un déterminisme dont le rendu n'a que faire.
 

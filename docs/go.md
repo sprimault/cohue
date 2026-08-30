@@ -426,6 +426,23 @@ jamais automatique : un attendu régénéré sans être relu ne teste plus rien.
 autres artefacts suivent le même motif — `-maj-mesures`, cité plus haut à propos
 des quantificateurs, `-maj-notices` et `-maj-schemas`.
 
+### Une planche que rien ne fabrique ne relit rien
+
+Un artefact de relecture ne vaut que par le geste qui le produit et le regard qui
+le suit ; c'est la règle de l'attendu régénéré sans être relu, prise par l'autre
+bout. Une planche que le code sait dessiner mais qu'aucune cible n'écrit tient
+donc lieu de contrôle sans en être un.
+
+Un défaut d'orientation des personnages l'a montré : la planche affichait bien
+les huit directions, dont les deux seules où le symptôme était visible, et aucune
+commande ne la produisait. Ce que le contrôle automatique attrape — alpha,
+silhouette, taille, palette — ne dit rien de ce que l'image représente, et il n'y
+a pas de moyen d'y suppléer autrement que de regarder.
+
+D'où la règle : **toute planche de relecture sort d'une cible du `Makefile`**,
+dans le même geste que ce qu'elle donne à relire. Ajouter des vues à une planche
+que personne ne produit ne corrige rien et donne le sentiment du contraire.
+
 ### Cas limites du jeu
 
 Chaque règle qui peut se contredire a son test. Sur ce jeu, la liste de départ :

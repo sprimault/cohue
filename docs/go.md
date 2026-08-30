@@ -1,0 +1,371 @@
+# Conventions de code
+
+Ce que ce dépôt attend d'un changement en Go, et pourquoi. La conception est
+dans [`conception.md`](conception.md) ; ce document ne parle que du code.
+
+---
+
+## 1. Bibliothèques
+
+Bibliothèque standard par défaut. Pas de framework de ligne de commande, pas de
+bibliothèque d'assertion de test, pas de gestionnaire d'état. La question avant
+d'ajouter quoi que ce soit : « qu'est-ce que ça m'évite d'écrire », pas « est-ce
+que c'est répandu ».
+
+Les exceptions connues d'avance :
+
+| Module | Ce qu'il apporte |
+|---|---|
+| `github.com/hajimehoshi/ebiten/v2` | rendu, entrées, son |
+
+Deux candidats non tranchés : une bibliothèque d'interface pour l'éditeur
+(`ebitenui`, ou tout dessiner à la main), et un lecteur TOML si les manifestes
+de pièces passent de JSON à TOML.
+
+Une dépendance ajoutée entre dans `THIRD-PARTY-NOTICES`, qui accompagne le
+binaire dans chaque archive. Les ressources graphiques suivent un chemin
+distinct : [`../CREDITS.md`](../CREDITS.md), tenu dans le même commit que
+l'asset.
+
+**Une dépendance qui ne vit que dans des fichiers de test ne se juge pas au même
+critère.** Elle n'entre dans aucun binaire, ne peut pas introduire de cgo dans
+une cible publiée, et disparaît du graphe dès qu'on retire le test.
+
+## 2. cgo n'est pas uniforme, et c'est la seule entorse
+
+| Cible | `CGO_ENABLED` |
+|---|---|
+| windows/amd64 | `0` — Ebitengine y est en Go pur |
+| js/wasm | `0` |
+| linux, darwin | `1` — Ebitengine y passe par les API système |
+
+Le mettre à `0` sur darwin ne produit pas une erreur claire mais un échec de
+liaison obscur. C'est une variable de matrice, jamais une valeur globale.
+
+Conséquence à connaître : le binaire Linux est lié à la glibc, il n'y a pas de
+construction statique. Sans importance pour un jeu de bureau, mais ça interdit
+une image `scratch`.
+
+**Aucune autre dépendance n'a le droit d'introduire cgo.** Ebitengine
+est choisi pour cela : une seconde source rendrait les cibles Windows et
+WebAssembly impossibles. C'est aussi pourquoi `js/wasm` continue d'être compilé
+en intégration continue sans être publié : il empêche une dépendance d'en
+ajouter par surprise, comme `windows/amd64` qui est compilé sans cgo lui aussi.
+
+## 3. La langue des identifiants
+
+**La règle est dans [`../CONTRIBUTING.fr.md`](../CONTRIBUTING.fr.md)** :
+identifiants en anglais, documentation en français. Ce qui suit est ce qu'elle
+laisse ouvert, et qui se tranche en écrivant du Go.
+
+Une variable locale ou un paramètre garde le mot du domaine quand
+[`conception.md`](conception.md) l'a nommé en français : `graine`, `essai`,
+`trame`. Ce ne sont pas des noms d'API mais les mots du document, et les traduire
+imposerait un aller-retour à chaque lecture croisée. `Generate(graine int64, p
+Settings)` est donc correct, et `Pool.enemies` aussi.
+
+Règle d'arbitrage quand les deux se rencontrent : **la cohérence prime sur la
+langue.** On ne mélange pas `Enemy` et `Bassin` dans la même structure — le type
+décide, pas la préférence du moment.
+
+Un cas à part, quand il arrivera : les libellés d'interface viennent du
+dictionnaire de traduction et existent dans les deux langues. Leurs clés —
+`pref_audio`, `arme_lourde` — ne sont pas du code et relèvent de la règle des
+données.
+
+## 4. En-tête de fichier
+
+Tout fichier source commence par deux lignes, dans la syntaxe de commentaire de
+son format :
+
+```go
+// Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+// SPDX-License-Identifier: Apache-2.0
+```
+
+`#` en Python, en YAML et en TOML. Une ligne vide sépare l'en-tête de ce qui
+suit, faute de quoi le copyright devient la godoc du paquet — ou, en Python, le
+docstring de module cesse d'en être un.
+
+JSON n'a pas de commentaires : l'en-tête y est un `$comment` en **première
+clé**, le mot-clé que JSON Schema réserve à cet usage et que les validateurs
+ignorent. C'est ce que portent les manifestes de `assets/`, écrits par
+[`../outils/manifestes.py`](../outils/manifestes.py).
+
+**La liste des dispensés est close** :
+
+| Dispensé | Pourquoi |
+|---|---|
+| `.editorconfig`, `.gitattributes`, `.gitignore`, `.golangci.yml`, `Makefile` | outillage que le dépôt ne redistribue dans aucune archive |
+| `go.mod`, `go.sum` | réécrits par la chaîne Go, qui n'y préserverait rien |
+| `LICENSE`, `NOTICE`, `THIRD-PARTY-NOTICES` | ce sont les mentions de licence, elles ne s'en préfixent pas |
+| les documents Markdown | ils s'adressent à un lecteur, pas à un compilateur ; la licence du dépôt est déclarée en tête du `README` et dans `LICENSE` |
+| les images et les sons | un format binaire ne porte pas de commentaire ; le manifeste de leur lot porte la mention pour eux |
+
+Tout le reste en porte un, y compris un fichier d'une ligne. `make entetes` le
+vérifie, et la vérification tourne en intégration continue : une règle que rien
+ne contrôle est une règle qu'on découvre violée six mois plus tard, sur des
+fichiers que plus personne ne relit.
+
+## 5. Structure
+
+- Une struct de dépendances par paquet, construite dans `cmd/cohue/main.go`.
+- Constructeurs `New…` rendant `(*T, error)` si l'initialisation peut échouer.
+- Interfaces définies côté consommateur, pas côté implémentation.
+- Une interface de plus de trois méthodes signale en général deux
+  responsabilités mélangées. Une exception se justifie en godoc, méthode par
+  méthode.
+
+Un fichier porte le nom du type qu'il déclare — `enemy.go` pour `Enemy`,
+`flowfield.go` pour `FlowField`. C'est ce qui permet de trouver une déclaration
+sans chercher.
+
+**Un paquet ne se coupe pas en sous-paquets pour cause de volume.** En Go un
+sous-répertoire est un paquet distinct : découper `internal/game` forcerait à
+exporter des champs privés et créerait un cycle entre les bassins et la boucle.
+Le découpage se fait par fichier, un sujet par fichier.
+
+## 6. Erreurs
+
+```go
+if err != nil {
+    return fmt.Errorf("chargement du niveau %s: %w", nom, err)
+}
+```
+
+- Message en français, minuscules, sans ponctuation finale ni accent — la
+  convention Go pour la casse, et le `grep` reste simple pour les accents.
+- Sentinelles exportées quand l'appelant doit distinguer les cas :
+  `ErrUnknownRoom`, `ErrDisconnectedLevel`.
+- Pas de `panic` hors de `main`, pas de `log.Fatal` dans `internal/`.
+- **Pas de `panic("à implémenter")`.** Un bout non écrit rend
+  `errors.New("à implémenter : étape N")`, où N renvoie à
+  [`ROADMAP.md`](../ROADMAP.md) : la compilation passe, le programme échoue
+  proprement, et un `grep` retrouve la liste. C'est la mesure d'avancement du
+  projet, et elle ne ment pas.
+- **Une signature sans `error` porte quand même son marqueur**, en commentaire
+  sur la première ligne du corps. Sans lui la fonction est invisible au `grep`
+  et le décompte ment.
+
+**Un manquement dit où il est.** Fichier, ligne quand le décodeur la connaît, et
+chemin complet de la clé — `ability.lookout.effect[0].target`, pas « cible
+invalide ». Le chemin se porte dans l'erreur au fur et à mesure de la descente,
+il ne se reconstitue pas après coup. Et ce qui est attendu s'énonce avec ce qui
+est refusé : la liste des valeurs connues vaut mieux qu'un adjectif.
+
+Un niveau invalide fait échouer son chargement entier plutôt que d'être chargé à
+moitié : une pièce manquante laisserait un trou dans la carte, et le flow field
+y enverrait les ennemis tourner en rond. Ses manquements sont listés en une
+fois — qui met au point un niveau veut la liste, pas un
+aller-retour par erreur.
+
+## 7. Écriture de fichiers
+
+`0o600` pour un fichier, `0o750` pour un dossier. Ce que le jeu écrit — niveaux
+extraits, sauvegardes, préférences — appartient à qui l'a lancé et n'a aucune
+raison d'être lisible par les autres comptes de la machine.
+
+Ce sont les seuils qu'exige `gosec`, et aucun cas n'a justifié de s'en écarter.
+Le jour où il y en aura un, c'est un `#nosec` commenté, pas un assouplissement
+global.
+
+## 8. Une affirmation de nombre s'adosse à un test, ou perd son quantificateur
+
+« Le seul endroit où », « les quatre recopies », « une par profil », « dix
+dessins en moyenne ». Une affirmation de quantité est vérifiable ; une affirmation de
+principe ne l'est pas — c'est ce qui rend celle-là exigible et donne un critère
+mécanique : chercher ces tournures, regarder lesquelles ont un test en face.
+
+Le danger n'est pas qu'elle devienne fausse, c'est qu'elle **empêche de
+chercher**. Une phrase qui affirme l'unicité d'un garde-fou dispense de vérifier
+s'il y en a un second, et une relecture ne se déclenche pas quand quelqu'un
+ajoute un cas ailleurs.
+
+Deux formes, deux remèdes. Une affirmation d'unicité sur une **catégorie
+fermée** — « le seul champ non sérialisé de `Game` » — se vérifie une fois et
+tient. Sur une **catégorie ouverte** — les endroits où une recopie est admise,
+les causes d'un échec — elle est fausse dès le prochain ajout, et c'est là qu'il
+faut un test.
+
+Vaut pour les documents : un chiffre qui **décrit le code** s'adosse à un test
+qui lit le document, un chiffre qui **décide** est exercé par le test de
+conformité, un chiffre **mesuré** porte sa date et sa mesure rejouable — voir
+`-maj-mesures`. Un quantificateur qui n'est aucun des trois n'a rien à faire là.
+
+## 9. Journalisation
+
+`log/slog` uniquement, structuré. Clés en anglais, message en français :
+
+```go
+slog.Info("niveau charge", "name", nom, "pieces", nb, "graine", graine)
+```
+
+Jamais de `fmt.Println` de débogage laissé derrière soi. Et rien dans la boucle
+de mise à jour : un log par image traverse le disque soixante fois par seconde.
+
+## 10. Concurrence
+
+- `context.Context` en premier paramètre de toute fonction faisant de
+  l'entrée-sortie, propagé jusqu'au bout. Pas de `context.Background()` hors de
+  `main` et des tests.
+- La simulation d'équilibrage parallélise des milliers de parties, **avec un
+  plafond** : `runtime.NumCPU()`, pas une goroutine par partie.
+- Toute goroutine lancée a une condition d'arrêt explicite et est attendue.
+- **Le parallélisme ne transparaît jamais dans un résultat.** Les runs simulées
+  sont agrégées dans l'ordre de leur graine, jamais dans l'ordre d'arrivée.
+- **La boucle de jeu reste mono-goroutine.** Paralléliser la mise à jour des
+  entités casserait le déterminisme pour un gain nul à ce volume ; ce qui se
+  parallélise, c'est la simulation d'équilibrage hors partie.
+- `make race` doit passer.
+
+---
+
+
+## Le bassin d'entités
+
+Les entités de jeu vivent dans des bassins préalloués, jamais dans des slices
+qui croissent. Le motif est le même pour les ennemis, les projectiles, les
+gemmes, les caisses et les particules :
+
+```go
+type Pool struct {
+    enemies []Enemy // capacité fixe, jamais réallouée
+    active  int
+}
+```
+
+Trois règles qui ne se négocient pas — elles sont dans les invariants :
+
+- Suppression par échange avec le dernier actif, puis décrément. Pas d'`append`
+  dans la boucle de mise à jour, pas de trou.
+- **Aucun pointeur ne sort du bassin.** Après un échange, un `*Enemy` conservé
+  ailleurs désigne une autre entité. Une référence qui vit plusieurs images est
+  un couple index + génération.
+- Ce qui est partagé par un type d'ennemi — vitesse, PV max, poids de
+  séparation — vit dans un `[]EnemyProfile`, et l'entité n'en garde que l'index.
+
+En itérant, prendre l'adresse plutôt que la copie :
+
+```go
+for i := range p.enemies[:p.active] {
+    e := &p.enemies[i]
+}
+```
+
+Le tri en profondeur travaille sur une slice d'indices réutilisée avec
+`indices = indices[:0]`, jamais sur le bassin : l'échange casse l'ordre.
+
+## Les données ne sont pas du code
+
+Profils d'ennemis, courbes de pression, passifs, pièces, lieux : des tables et
+des fichiers. Une nouvelle sorte d'ennemi est une ligne de table, pas une
+branche dans une fonction. Si un profil demande du code, c'est qu'il manque un
+paramètre au profil.
+
+Même règle pour les manifestes : le moteur ne connaît que des profils et des
+cycles, jamais un nom de fichier ni un nombre d'images codés en dur.
+
+## La projection isométrique ne se recalcule pas
+
+Toute conversion écran/tuile passe par `internal/render`. Un calcul recopié sur
+place est un endroit de plus à corriger le jour où la taille de tuile bouge, et
+c'est celui qu'on oublie.
+
+## 11. Tests
+
+### Aucun test n'ouvre de fenêtre
+
+Les runners d'intégration sont sans écran, et `internal/game` n'importe pas
+Ebitengine, ce qui rend la règle facile à tenir.
+Un test qui exigerait un serveur X virtuel est le signe qu'il n'a rien à faire
+dans la suite par défaut : le rendu se juge à l'œil.
+
+### Le test qui vend le projet
+
+```
+graine -> run simulée sans rendu -> état identique à chaque exécution
+```
+
+Une run se joue en mémoire, sans fenêtre, sur un nombre d'images fixé : mêmes
+apparitions, mêmes trajectoires, même état final. Sans lui, l'équilibrage n'est
+pas comparable d'une version à l'autre et une mort injuste n'est pas
+reproductible.
+
+Son jumeau, sur le budget : mille itérations à 300 entités sans une allocation.
+`testing.AllocsPerRun` le dit en un chiffre, et c'est l'invariant le plus facile
+à casser sans s'en apercevoir.
+
+### Fichiers de référence
+
+L'assemblage d'un niveau étant pur, il se teste sans rien : un fichier de niveau
+en entrée, une carte attendue en sortie, comparaison stricte. Idem pour le champ
+de flux sur une carte figée.
+
+Le jeu de cas couvre délibérément les dispositions pénibles — salle très ouverte,
+couloirs étroits, cul-de-sac, obstacle détruit en cours de route.
+
+Mise à jour groupée des attendus derrière `go test ./internal/game -maj-attendus`,
+jamais automatique : un attendu régénéré sans être relu ne teste plus rien. Trois
+autres artefacts suivent le même motif — `-maj-mesures`, cité plus haut à propos
+des quantificateurs, `-maj-notices` et `-maj-schemas`.
+
+### Cas limites du jeu
+
+Chaque règle qui peut se contredire a son test. Sur ce jeu, la liste de départ :
+
+- ennemi acculé contre un obstacle bas, avec la poussée de séparation qui le
+  pousse dans le décor ;
+- caisse détruite pendant qu'un ennemi la traverse — le champ de flux se
+  rafraîchit sous ses pieds ;
+- cône de visée vide, l'arme ne doit pas tirer derrière ;
+- sortie atteinte avant l'objectif : la porte reste fermée ;
+- bassin plein au moment d'une vague, le spawner ne doit ni allouer ni écraser.
+
+### Un test se vérifie en le faisant échouer
+
+Un test qui n'a jamais échoué ne prouve rien. Écrire l'invariant plutôt que le
+cas nominal — pour un effet, qu'appliquer puis annuler rende un état identique à
+l'original — et l'éprouver une fois en cassant volontairement ce qu'il garde.
+
+C'est ce qui a révélé qu'une annulation laissait une tranche vide non nulle là
+où il y avait `nil`, ce qui aurait fait diverger le rejeu du journal en JSON
+sans que rien ne le signale.
+
+### Un test qui bâtit son entrée ne teste pas le chemin qui la produit
+
+Bâtir une entrée à la main est légitime pour **isoler un critère** — atteindre le
+quatrième refus d'un validateur sans satisfaire les trois premiers par accident.
+Ce qui ne l'est pas, c'est d'affirmer une propriété du **système monté** en
+contournant le montage.
+
+Sur un projet antérieur, un mode est resté inerte des mois durant : le test
+posait lui-même la clé du mode, une clé que le manifeste livré n'a jamais
+portée. Un second test vérifiait la bonne, les deux passaient au vert.
+
+D'où un test de conformité qui charge les manifestes livrés de `assets/`, monte
+le jeu et n'injecte rien.
+
+**Et une entrée de test doit être une entrée que le système accepterait.**
+Contourner le montage et forger un état invalide sont deux façons de tester ce
+qui n'arrivera jamais : un niveau dont les pièces ne se raccordent pas n'est pas
+un cas limite, c'est un fichier que le chargeur refuse.
+
+### Un test aléatoire dit ce qu'il a visité, pas seulement qu'il est passé
+
+Une run simulée ne couvre que ce que sa courbe de pression lui présente. Un
+profil qui n'apparaît qu'au-delà de la troisième minute ne sera jamais visité par
+un test de trente secondes, et son défaut survivra à toute la suite.
+
+Compter les profils réellement apparus, et le dire dans la sortie du test.
+
+### Conformité des manifestes
+
+Un test lit les manifestes de `assets/` et vérifie que chaque cycle déclaré a sa
+bande, que la largeur de la bande correspond au nombre d'images annoncé, et que
+tout profil référencé par le code existe. C'est ce qui empêche qu'un
+renommage de fichier casse le jeu au lancement plutôt qu'à la compilation.
+
+### Ce qu'on ne teste pas
+
+Pas de bouchon simulant Ebitengine, pas de comparaison de rendu pixel à pixel.
+Un faux moteur ne testerait que la fidélité du faux.

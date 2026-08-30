@@ -1,0 +1,175 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> — SPDX-License-Identifier: Apache-2.0 — généré par outils/sons.py, ne pas modifier à la main",
+  "version_format": 1,
+  "sons": {
+    "caisse_appui": {
+      "duree_ms": 120,
+      "taux": 22050,
+      "gain": 0.5,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "caisse_rupture": {
+      "duree_ms": 280,
+      "taux": 22050,
+      "gain": 0.7,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "degat_joueur": {
+      "duree_ms": 300,
+      "taux": 22050,
+      "gain": 0.95,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "explosion": {
+      "duree_ms": 550,
+      "taux": 22050,
+      "gain": 1.0,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "impact": {
+      "duree_ms": 70,
+      "taux": 22050,
+      "gain": 0.32,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "interface_choix": {
+      "duree_ms": 60,
+      "taux": 22050,
+      "gain": 0.55,
+      "categorie": "interface",
+      "boucle": false
+    },
+    "montee_niveau": {
+      "duree_ms": 440,
+      "taux": 22050,
+      "gain": 0.95,
+      "categorie": "interface",
+      "boucle": false
+    },
+    "mort_ennemi": {
+      "duree_ms": 160,
+      "taux": 22050,
+      "gain": 0.42,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "mort_joueur": {
+      "duree_ms": 900,
+      "taux": 22050,
+      "gain": 1.0,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "porte_ouverte": {
+      "duree_ms": 600,
+      "taux": 22050,
+      "gain": 0.85,
+      "categorie": "interface",
+      "boucle": false
+    },
+    "ramassage_arme": {
+      "duree_ms": 240,
+      "taux": 22050,
+      "gain": 0.85,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "soin": {
+      "duree_ms": 400,
+      "taux": 22050,
+      "gain": 0.8,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "telegraphe": {
+      "duree_ms": 350,
+      "taux": 22050,
+      "gain": 0.9,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "tir": {
+      "duree_ms": 55,
+      "taux": 22050,
+      "gain": 0.28,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "tir_lourd": {
+      "duree_ms": 220,
+      "taux": 22050,
+      "gain": 0.8,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "gemme_0": {
+      "duree_ms": 70,
+      "taux": 22050,
+      "degre": 0,
+      "gain": 0.4,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "gemme_1": {
+      "duree_ms": 70,
+      "taux": 22050,
+      "degre": 1,
+      "gain": 0.4,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "gemme_2": {
+      "duree_ms": 70,
+      "taux": 22050,
+      "degre": 2,
+      "gain": 0.4,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "gemme_3": {
+      "duree_ms": 70,
+      "taux": 22050,
+      "degre": 3,
+      "gain": 0.4,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "gemme_4": {
+      "duree_ms": 70,
+      "taux": 22050,
+      "degre": 4,
+      "gain": 0.4,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "gemme_5": {
+      "duree_ms": 70,
+      "taux": 22050,
+      "degre": 5,
+      "gain": 0.4,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "gemme_6": {
+      "duree_ms": 70,
+      "taux": 22050,
+      "degre": 6,
+      "gain": 0.4,
+      "categorie": "effets",
+      "boucle": false
+    },
+    "gemme_7": {
+      "duree_ms": 70,
+      "taux": 22050,
+      "degre": 7,
+      "gain": 0.4,
+      "categorie": "effets",
+      "boucle": false
+    }
+  }
+}

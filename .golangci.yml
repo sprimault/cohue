@@ -1,0 +1,45 @@
+version: "2"
+
+# misspell n'est pas dans la liste : ses dictionnaires sont anglais et il n'en
+# existe pas de français. Sur ce dépôt il ne signale que des mots corrects —
+# « connexion », « déplacements », `Enveloppe` — et le bruit finit par faire
+# ignorer la sortie entière.
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - revive
+    - gocritic
+
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: false
+
+  exclusions:
+    rules:
+      # Les corps sont encore des stubs : unused remonte les champs et les
+      # fonctions que personne n'appelle. Retirer un chemin de cette liste dès
+      # que son étape est écrite.
+      - linters:
+          - unused
+        path: internal/(game|render|level)/
+
+      # Un stub rend errors.New("à implémenter : étape N"), donc jamais nil :
+      # staticcheck en déduit que le `if err != nil` de l'appelant est toujours
+      # vrai, ce qui est exact et sans intérêt. C'est le motif que ROADMAP.md
+      # impose pour que le compte des étapes restantes tienne, et il vaut
+      # partout tant qu'il reste des stubs. L'exclusion s'éteint d'elle-même :
+      # au dernier corps écrit, elle ne couvre plus rien.
+      - linters:
+          - staticcheck
+        text: SA4023
+
+formatters:
+  enable:
+    - gofmt
+    - goimports

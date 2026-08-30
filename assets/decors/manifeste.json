@@ -1,0 +1,1169 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> — SPDX-License-Identifier: Apache-2.0 — généré par outils/decor_iso.py, ne pas modifier à la main",
+  "version_format": 1,
+  "tuile": [
+    64,
+    32
+  ],
+  "formes": {
+    "abribus": {
+      "theme": "quartier",
+      "taille": [
+        74,
+        67
+      ],
+      "ancrage": [
+        37,
+        66
+      ],
+      "elevation": 30,
+      "categorie": "haut",
+      "emprise": [
+        1.6,
+        0.7
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "ambulance": {
+      "theme": "parking",
+      "taille": [
+        99,
+        77
+      ],
+      "ancrage": [
+        49,
+        76
+      ],
+      "elevation": 27,
+      "categorie": "haut",
+      "emprise": [
+        2.2,
+        0.91
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "banc": {
+      "theme": "quartier",
+      "taille": [
+        61,
+        42
+      ],
+      "ancrage": [
+        30,
+        41
+      ],
+      "elevation": 12,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.4,
+        0.5
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "barriere": {
+      "theme": "parking",
+      "taille": [
+        35,
+        32
+      ],
+      "ancrage": [
+        17,
+        31
+      ],
+      "elevation": 14,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        0.12
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "borne": {
+      "theme": "parking",
+      "taille": [
+        16,
+        26
+      ],
+      "ancrage": [
+        8,
+        25
+      ],
+      "elevation": 18,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        0.25,
+        0.25
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "bouche_egout": {
+      "theme": "commun",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": false
+    },
+    "boutique": {
+      "theme": "quartier",
+      "taille": [
+        108,
+        98
+      ],
+      "ancrage": [
+        54,
+        97
+      ],
+      "elevation": 44,
+      "categorie": "haut",
+      "emprise": [
+        2.0,
+        1.4
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "bus": {
+      "theme": "quartier",
+      "taille": [
+        109,
+        82
+      ],
+      "ancrage": [
+        54,
+        81
+      ],
+      "elevation": 28,
+      "categorie": "haut",
+      "emprise": [
+        2.6,
+        0.8
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "caddie": {
+      "theme": "supermarche",
+      "taille": [
+        32,
+        32
+      ],
+      "ancrage": [
+        16,
+        31
+      ],
+      "elevation": 16,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        0.5,
+        0.5
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "camion": {
+      "theme": "parking",
+      "taille": [
+        122,
+        92
+      ],
+      "ancrage": [
+        61,
+        91
+      ],
+      "elevation": 31,
+      "categorie": "haut",
+      "emprise": [
+        2.9,
+        0.91
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "camion_benne": {
+      "theme": "parking",
+      "taille": [
+        106,
+        78
+      ],
+      "ancrage": [
+        53,
+        77
+      ],
+      "elevation": 25,
+      "categorie": "haut",
+      "emprise": [
+        2.4,
+        0.91
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "camionnette": {
+      "theme": "parking",
+      "taille": [
+        95,
+        73
+      ],
+      "ancrage": [
+        47,
+        72
+      ],
+      "elevation": 25,
+      "categorie": "haut",
+      "emprise": [
+        2.1,
+        0.88
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "cloison": {
+      "theme": "commun",
+      "taille": [
+        37,
+        67
+      ],
+      "ancrage": [
+        18,
+        66
+      ],
+      "elevation": 48,
+      "categorie": "haut",
+      "emprise": [
+        1.0,
+        0.18
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "comptoir": {
+      "theme": "supermarche",
+      "taille": [
+        96,
+        68
+      ],
+      "ancrage": [
+        48,
+        67
+      ],
+      "elevation": 20,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        2.0,
+        1.0
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "comptoir_confiserie": {
+      "theme": "cinema",
+      "taille": [
+        96,
+        70
+      ],
+      "ancrage": [
+        48,
+        69
+      ],
+      "elevation": 22,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        2.0,
+        1.0
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "conteneur": {
+      "theme": "quartier",
+      "taille": [
+        54,
+        49
+      ],
+      "ancrage": [
+        27,
+        48
+      ],
+      "elevation": 22,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        0.7
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "distributeur": {
+      "theme": "station",
+      "taille": [
+        30,
+        45
+      ],
+      "ancrage": [
+        15,
+        44
+      ],
+      "elevation": 30,
+      "categorie": "haut",
+      "emprise": [
+        0.469,
+        0.469
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "ecran": {
+      "theme": "cinema",
+      "taille": [
+        82,
+        87
+      ],
+      "ancrage": [
+        41,
+        86
+      ],
+      "elevation": 46,
+      "categorie": "haut",
+      "emprise": [
+        2.4,
+        0.15
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "feu_tricolore": {
+      "theme": "quartier",
+      "taille": [
+        8,
+        58
+      ],
+      "ancrage": [
+        4,
+        57
+      ],
+      "elevation": 54,
+      "categorie": "haut",
+      "emprise": [
+        0.125,
+        0.125
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "flaque": {
+      "theme": "commun",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": false
+    },
+    "fleche_sol": {
+      "theme": "commun",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": false
+    },
+    "frigo": {
+      "theme": "supermarche",
+      "taille": [
+        64,
+        54
+      ],
+      "ancrage": [
+        32,
+        53
+      ],
+      "elevation": 22,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "gondole": {
+      "theme": "supermarche",
+      "taille": [
+        86,
+        57
+      ],
+      "ancrage": [
+        43,
+        56
+      ],
+      "elevation": 14,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        2.0,
+        0.7
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "gondole_courte": {
+      "theme": "supermarche",
+      "taille": [
+        54,
+        41
+      ],
+      "ancrage": [
+        27,
+        40
+      ],
+      "elevation": 14,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        0.7
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "immeuble_haut": {
+      "theme": "quartier",
+      "taille": [
+        128,
+        184
+      ],
+      "ancrage": [
+        64,
+        183
+      ],
+      "elevation": 120,
+      "categorie": "haut",
+      "emprise": [
+        2.0,
+        2.0
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "immeuble_petit": {
+      "theme": "quartier",
+      "taille": [
+        128,
+        136
+      ],
+      "ancrage": [
+        64,
+        135
+      ],
+      "elevation": 72,
+      "categorie": "haut",
+      "emprise": [
+        2.0,
+        2.0
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "jardiniere": {
+      "theme": "quartier",
+      "taille": [
+        40,
+        42
+      ],
+      "ancrage": [
+        20,
+        41
+      ],
+      "elevation": 22,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        0.625,
+        0.625
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "lampadaire": {
+      "theme": "quartier",
+      "taille": [
+        18,
+        58
+      ],
+      "ancrage": [
+        9,
+        57
+      ],
+      "elevation": 54,
+      "categorie": "haut",
+      "emprise": [
+        0.125,
+        0.125
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "mur": {
+      "theme": "commun",
+      "taille": [
+        64,
+        96
+      ],
+      "ancrage": [
+        32,
+        95
+      ],
+      "elevation": 64,
+      "categorie": "haut",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "mur_angle": {
+      "theme": "commun",
+      "taille": [
+        64,
+        83
+      ],
+      "ancrage": [
+        32,
+        82
+      ],
+      "elevation": 64,
+      "categorie": "haut",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "mur_ouverture": {
+      "theme": "commun",
+      "taille": [
+        38,
+        83
+      ],
+      "ancrage": [
+        19,
+        82
+      ],
+      "elevation": 64,
+      "categorie": "haut",
+      "emprise": [
+        1.0,
+        0.2
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "mur_te": {
+      "theme": "commun",
+      "taille": [
+        51,
+        83
+      ],
+      "ancrage": [
+        25,
+        82
+      ],
+      "elevation": 70,
+      "categorie": "haut",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "muret": {
+      "theme": "commun",
+      "taille": [
+        64,
+        54
+      ],
+      "ancrage": [
+        32,
+        53
+      ],
+      "elevation": 22,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "panneau": {
+      "theme": "commun",
+      "taille": [
+        20,
+        44
+      ],
+      "ancrage": [
+        10,
+        43
+      ],
+      "elevation": 40,
+      "categorie": "haut",
+      "emprise": [
+        0.125,
+        0.125
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "panneau_horaires": {
+      "theme": "station",
+      "taille": [
+        8,
+        50
+      ],
+      "ancrage": [
+        4,
+        49
+      ],
+      "elevation": 46,
+      "categorie": "haut",
+      "emprise": [
+        0.125,
+        0.125
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "pilier": {
+      "theme": "commun",
+      "taille": [
+        32,
+        80
+      ],
+      "ancrage": [
+        16,
+        79
+      ],
+      "elevation": 64,
+      "categorie": "haut",
+      "emprise": [
+        0.5,
+        0.5
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "plot": {
+      "theme": "parking",
+      "taille": [
+        12,
+        18
+      ],
+      "ancrage": [
+        6,
+        17
+      ],
+      "elevation": 12,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        0.188,
+        0.188
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "porte_fermee": {
+      "theme": "commun",
+      "taille": [
+        38,
+        67
+      ],
+      "ancrage": [
+        19,
+        66
+      ],
+      "elevation": 48,
+      "categorie": "haut",
+      "emprise": [
+        1.0,
+        0.2
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "porte_ouverte": {
+      "theme": "commun",
+      "taille": [
+        38,
+        67
+      ],
+      "ancrage": [
+        19,
+        66
+      ],
+      "elevation": 48,
+      "categorie": "haut",
+      "emprise": [
+        1.0,
+        0.2
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": true
+    },
+    "porte_sortie": {
+      "theme": "commun",
+      "taille": [
+        38,
+        63
+      ],
+      "ancrage": [
+        19,
+        62
+      ],
+      "elevation": 44,
+      "categorie": "haut",
+      "emprise": [
+        1.0,
+        0.2
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "portique_antivol": {
+      "theme": "supermarche",
+      "taille": [
+        37,
+        58
+      ],
+      "ancrage": [
+        18,
+        57
+      ],
+      "elevation": 54,
+      "categorie": "haut",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "poteau_cordon": {
+      "theme": "cinema",
+      "taille": [
+        14,
+        29
+      ],
+      "ancrage": [
+        7,
+        28
+      ],
+      "elevation": 22,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        0.219,
+        0.219
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "poubelle": {
+      "theme": "quartier",
+      "taille": [
+        26,
+        31
+      ],
+      "ancrage": [
+        13,
+        30
+      ],
+      "elevation": 18,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        0.406,
+        0.406
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "quai": {
+      "theme": "station",
+      "taille": [
+        64,
+        42
+      ],
+      "ancrage": [
+        32,
+        41
+      ],
+      "elevation": 10,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": false
+    },
+    "rail": {
+      "theme": "station",
+      "taille": [
+        67,
+        38
+      ],
+      "ancrage": [
+        33,
+        37
+      ],
+      "elevation": 4,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        2.0,
+        0.1
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": false
+    },
+    "rangee_fauteuils": {
+      "theme": "cinema",
+      "taille": [
+        89,
+        57
+      ],
+      "ancrage": [
+        44,
+        56
+      ],
+      "elevation": 12,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        2.0,
+        0.8
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "scooter": {
+      "theme": "quartier",
+      "taille": [
+        35,
+        41
+      ],
+      "ancrage": [
+        17,
+        40
+      ],
+      "elevation": 23,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        0.8,
+        0.3
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "sol": {
+      "theme": "commun",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": false
+    },
+    "sol_carrele": {
+      "theme": "commun",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": false
+    },
+    "sol_fissure": {
+      "theme": "commun",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": false
+    },
+    "sol_parking": {
+      "theme": "parking",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": false
+    },
+    "sol_sale": {
+      "theme": "commun",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": false
+    },
+    "sol_use": {
+      "theme": "commun",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": false
+    },
+    "taxi": {
+      "theme": "parking",
+      "taille": [
+        79,
+        54
+      ],
+      "ancrage": [
+        39,
+        53
+      ],
+      "elevation": 14,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.7,
+        0.78
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "tete_gondole": {
+      "theme": "supermarche",
+      "taille": [
+        64,
+        47
+      ],
+      "ancrage": [
+        32,
+        46
+      ],
+      "elevation": 15,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "tourniquet": {
+      "theme": "station",
+      "taille": [
+        34,
+        29
+      ],
+      "ancrage": [
+        17,
+        28
+      ],
+      "elevation": 12,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        0.531,
+        0.531
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "trottoir": {
+      "theme": "quartier",
+      "taille": [
+        64,
+        38
+      ],
+      "ancrage": [
+        32,
+        37
+      ],
+      "elevation": 6,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "bloquant": false,
+      "transparence_si_derriere": false
+    },
+    "voiture": {
+      "theme": "parking",
+      "taille": [
+        79,
+        54
+      ],
+      "ancrage": [
+        39,
+        53
+      ],
+      "elevation": 14,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.7,
+        0.78
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "voiture_epave": {
+      "theme": "parking",
+      "taille": [
+        79,
+        51
+      ],
+      "ancrage": [
+        39,
+        50
+      ],
+      "elevation": 11,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.7,
+        0.78
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": false
+    },
+    "wagon": {
+      "theme": "station",
+      "taille": [
+        128,
+        95
+      ],
+      "ancrage": [
+        64,
+        94
+      ],
+      "elevation": 31,
+      "categorie": "haut",
+      "emprise": [
+        3.05,
+        0.94
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    },
+    "wagon_tete": {
+      "theme": "station",
+      "taille": [
+        108,
+        85
+      ],
+      "ancrage": [
+        54,
+        84
+      ],
+      "elevation": 31,
+      "categorie": "haut",
+      "emprise": [
+        2.45,
+        0.94
+      ],
+      "bloquant": true,
+      "transparence_si_derriere": true
+    }
+  }
+}

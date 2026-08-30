@@ -1,0 +1,476 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> — SPDX-License-Identifier: Apache-2.0 — généré par outils/objets.py, ne pas modifier à la main",
+  "version_format": 1,
+  "objets": {
+    "caisse": {
+      "taille": [
+        32,
+        32
+      ],
+      "ancrage": [
+        16,
+        31
+      ],
+      "emprise": [
+        0.5,
+        0.5
+      ],
+      "famille": "monde",
+      "bloquant": true,
+      "destruction": {
+        "mode": "contact",
+        "delai_ms": 330,
+        "ruine": "caisse_cassee",
+        "eclats": "bois",
+        "cycle_appui": "caisse_appui",
+        "cycle_rupture": "caisse_rupture",
+        "son_appui": "caisse_appui",
+        "son_rupture": "caisse_rupture"
+      }
+    },
+    "caisse_cassee": {
+      "taille": [
+        32,
+        25
+      ],
+      "ancrage": [
+        16,
+        24
+      ],
+      "emprise": [
+        0.5,
+        0.5
+      ],
+      "famille": "monde",
+      "bloquant": false
+    },
+    "palette": {
+      "taille": [
+        64,
+        38
+      ],
+      "ancrage": [
+        32,
+        37
+      ],
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "famille": "monde",
+      "bloquant": true
+    },
+    "gemme": {
+      "taille": [
+        10,
+        8
+      ],
+      "ancrage": [
+        5,
+        7
+      ],
+      "emprise": [
+        0.156,
+        0.156
+      ],
+      "famille": "monde",
+      "bloquant": false,
+      "experience": 1,
+      "son": "gemme",
+      "scintillement": {
+        "images": 4,
+        "duree_ms": 140,
+        "boucle": true
+      }
+    },
+    "cloison_fragile": {
+      "taille": [
+        37,
+        59
+      ],
+      "ancrage": [
+        18,
+        58
+      ],
+      "emprise": [
+        1.0,
+        0.18
+      ],
+      "famille": "monde",
+      "bloquant": true,
+      "destruction": {
+        "mode": "tir",
+        "touches": 8,
+        "ruine": "cloison_fragile_cassee",
+        "eclats": "platre",
+        "son_rupture": "caisse_rupture"
+      }
+    },
+    "cloison_fragile_cassee": {
+      "taille": [
+        37,
+        29
+      ],
+      "ancrage": [
+        18,
+        28
+      ],
+      "emprise": [
+        1.0,
+        0.18
+      ],
+      "famille": "monde",
+      "bloquant": false
+    },
+    "vitrine": {
+      "taille": [
+        37,
+        53
+      ],
+      "ancrage": [
+        18,
+        52
+      ],
+      "emprise": [
+        0.25,
+        0.25
+      ],
+      "famille": "monde",
+      "bloquant": true,
+      "destruction": {
+        "mode": "tir",
+        "touches": 5,
+        "ruine": "vitrine_cassee",
+        "eclats": "verre",
+        "son_rupture": "caisse_rupture"
+      }
+    },
+    "vitrine_cassee": {
+      "taille": [
+        37,
+        53
+      ],
+      "ancrage": [
+        18,
+        52
+      ],
+      "emprise": [
+        1.0,
+        0.18
+      ],
+      "famille": "monde",
+      "bloquant": false
+    },
+    "grille_ventilation": {
+      "taille": [
+        27,
+        36
+      ],
+      "ancrage": [
+        13,
+        35
+      ],
+      "emprise": [
+        0.7,
+        0.16
+      ],
+      "famille": "monde",
+      "bloquant": true,
+      "destruction": {
+        "mode": "tir",
+        "touches": 3,
+        "ruine": "grille_ventilation_cassee",
+        "eclats": "metal",
+        "son_rupture": "caisse_rupture"
+      }
+    },
+    "grille_ventilation_cassee": {
+      "taille": [
+        27,
+        22
+      ],
+      "ancrage": [
+        13,
+        21
+      ],
+      "emprise": [
+        0.7,
+        0.16
+      ],
+      "famille": "monde",
+      "bloquant": false
+    },
+    "rideau_fer": {
+      "taille": [
+        37,
+        65
+      ],
+      "ancrage": [
+        18,
+        64
+      ],
+      "emprise": [
+        1.0,
+        0.18
+      ],
+      "famille": "monde",
+      "bloquant": true,
+      "destruction": {
+        "mode": "tir",
+        "touches": 20,
+        "ruine": "rideau_fer_casse",
+        "eclats": "metal",
+        "son_rupture": "caisse_rupture"
+      }
+    },
+    "rideau_fer_casse": {
+      "taille": [
+        37,
+        32
+      ],
+      "ancrage": [
+        18,
+        31
+      ],
+      "emprise": [
+        1.0,
+        0.18
+      ],
+      "famille": "monde",
+      "bloquant": false
+    },
+    "projectile_base": {
+      "taille": [
+        6,
+        6
+      ],
+      "ancrage": [
+        3,
+        5
+      ],
+      "emprise": [
+        0.25,
+        0.25
+      ],
+      "famille": "monde",
+      "bloquant": false,
+      "degats": 1,
+      "vitesse_px_s": 320,
+      "portee_tuiles": 6
+    },
+    "projectile_perforant": {
+      "taille": [
+        8,
+        7
+      ],
+      "ancrage": [
+        4,
+        6
+      ],
+      "emprise": [
+        0.25,
+        0.25
+      ],
+      "famille": "monde",
+      "bloquant": false,
+      "degats": 1,
+      "vitesse_px_s": 380,
+      "portee_tuiles": 8,
+      "traverse": true
+    },
+    "projectile_ennemi": {
+      "taille": [
+        6,
+        7
+      ],
+      "ancrage": [
+        3,
+        6
+      ],
+      "emprise": [
+        0.25,
+        0.25
+      ],
+      "famille": "monde",
+      "bloquant": false,
+      "degats": 6,
+      "vitesse_px_s": 200,
+      "portee_tuiles": 7
+    },
+    "fiole": {
+      "taille": [
+        12,
+        13
+      ],
+      "ancrage": [
+        6,
+        12
+      ],
+      "emprise": [
+        0.25,
+        0.25
+      ],
+      "famille": "monde",
+      "bloquant": false,
+      "soin": 30,
+      "emplacements": 2,
+      "son": "soin",
+      "scintillement": {
+        "images": 4,
+        "duree_ms": 140,
+        "boucle": true
+      }
+    },
+    "eclats_bois": {
+      "formes": 3,
+      "cote": 8,
+      "famille": "particule",
+      "bloquant": false,
+      "note": "trajectoire calculée par le moteur"
+    },
+    "eclats_verre": {
+      "formes": 3,
+      "cote": 8,
+      "famille": "particule",
+      "bloquant": false,
+      "note": "trajectoire calculée par le moteur"
+    },
+    "eclats_platre": {
+      "formes": 3,
+      "cote": 8,
+      "famille": "particule",
+      "bloquant": false,
+      "note": "trajectoire calculée par le moteur"
+    },
+    "eclats_metal": {
+      "formes": 3,
+      "cote": 8,
+      "famille": "particule",
+      "bloquant": false,
+      "note": "trajectoire calculée par le moteur"
+    },
+    "eclats_chair": {
+      "formes": 3,
+      "cote": 8,
+      "famille": "particule",
+      "bloquant": false,
+      "note": "trajectoire calculée par le moteur"
+    },
+    "etincelle": {
+      "images": 3,
+      "cote": [
+        10,
+        10
+      ],
+      "duree_ms": 40,
+      "boucle": false,
+      "famille": "effet",
+      "bloquant": false
+    },
+    "souffle": {
+      "images": 5,
+      "cote": [
+        48,
+        48
+      ],
+      "duree_ms": 60,
+      "boucle": false,
+      "famille": "effet",
+      "bloquant": false
+    },
+    "caisse_appui": {
+      "images": 3,
+      "cote": [
+        36,
+        32
+      ],
+      "duree_ms": 110,
+      "boucle": true,
+      "famille": "monde",
+      "bloquant": false
+    },
+    "caisse_rupture": {
+      "images": 3,
+      "cote": [
+        36,
+        32
+      ],
+      "duree_ms": 90,
+      "boucle": false,
+      "famille": "monde",
+      "bloquant": false
+    },
+    "fusil": {
+      "taille_icone": [
+        20,
+        20
+      ],
+      "taille_sol": [
+        16,
+        17
+      ],
+      "ancrage_sol": [
+        8,
+        16
+      ],
+      "famille": "arme",
+      "bloquant": false,
+      "charges": 5,
+      "son": "ramassage_arme"
+    },
+    "lance_flammes": {
+      "taille_icone": [
+        20,
+        20
+      ],
+      "taille_sol": [
+        15,
+        16
+      ],
+      "ancrage_sol": [
+        7,
+        15
+      ],
+      "famille": "arme",
+      "bloquant": false,
+      "charges": 3,
+      "son": "ramassage_arme"
+    },
+    "grenade": {
+      "taille_icone": [
+        20,
+        20
+      ],
+      "taille_sol": [
+        14,
+        20
+      ],
+      "ancrage_sol": [
+        7,
+        19
+      ],
+      "famille": "arme",
+      "bloquant": false,
+      "charges": 3,
+      "son": "ramassage_arme"
+    },
+    "tourelle": {
+      "taille_icone": [
+        20,
+        20
+      ],
+      "taille_sol": [
+        16,
+        17
+      ],
+      "ancrage_sol": [
+        8,
+        16
+      ],
+      "famille": "arme",
+      "bloquant": false,
+      "charges": 2,
+      "son": "ramassage_arme"
+    }
+  }
+}

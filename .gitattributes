@@ -1,0 +1,33 @@
+# Normalisation des fins de ligne. Indispensable quand le dépôt est alimenté
+# depuis Windows et consommé sous Linux : sans ça, un script shell ou un test
+# comparant des octets casse de façon incompréhensible.
+* text=auto eol=lf
+
+# Doivent rester en LF quoi qu'il arrive
+*.sh text eol=lf
+*.go text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.sql text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+Makefile text eol=lf
+
+# Spécifiques Windows
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binaire, jamais converti. Les sons y figurent au même titre que les images :
+# ils sont générés, versionnés, et `make ressources-verif` les compare octet
+# pour octet. S'en remettre à l'heuristique de `text=auto` ferait dépendre 23
+# fichiers d'une détection au lieu d'une déclaration.
+*.png binary
+*.jpg binary
+*.wav binary
+*.ogg binary
+*.zip binary
+*.gz binary
+*.exe binary
+*.wasm binary

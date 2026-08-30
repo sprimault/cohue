@@ -1,0 +1,461 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> — SPDX-License-Identifier: Apache-2.0 — généré par outils/figurines.py, ne pas modifier à la main",
+  "version_format": 1,
+  "profils": {
+    "joueur": {
+      "nom": "Survivant",
+      "groupe": 1,
+      "variantes": 1,
+      "gabarit": "bipede",
+      "vitesse": 1.0,
+      "rayon_px": 8,
+      "vie": 100,
+      "plafond_degats_s": 20,
+      "origine": "figurine générée",
+      "cote": 64,
+      "appui": [
+        32,
+        63
+      ],
+      "directions": [
+        "S",
+        "SO",
+        "O",
+        "NO",
+        "N",
+        "NE",
+        "E",
+        "SE"
+      ],
+      "cycles": {
+        "repos": {
+          "images": 1,
+          "duree_ms": 200,
+          "boucle": true
+        },
+        "attaque": {
+          "images": 1,
+          "duree_ms": 80,
+          "boucle": false
+        },
+        "marche": {
+          "images": 4,
+          "duree_ms": 100,
+          "boucle": true
+        },
+        "mort": {
+          "images": 2,
+          "duree_ms": 120,
+          "boucle": false
+        }
+      }
+    },
+    "marcheur": {
+      "nom": "Badaud",
+      "groupe": 1,
+      "variantes": 6,
+      "gabarit": "bipede",
+      "vitesse": 0.62,
+      "rayon_px": 8,
+      "touches": 3,
+      "points": 10,
+      "degats_contact_s": 6,
+      "origine": "figurine générée",
+      "cote": 64,
+      "appui": [
+        32,
+        63
+      ],
+      "directions": [
+        "S",
+        "SO",
+        "O",
+        "NO",
+        "N",
+        "NE",
+        "E",
+        "SE"
+      ],
+      "cycles": {
+        "repos": {
+          "images": 1,
+          "duree_ms": 200,
+          "boucle": true
+        },
+        "marche": {
+          "images": 5,
+          "duree_ms": 100,
+          "boucle": true
+        },
+        "attaque": {
+          "images": 3,
+          "duree_ms": 80,
+          "boucle": false
+        },
+        "degat": {
+          "images": 1,
+          "duree_ms": 120,
+          "boucle": false
+        },
+        "mort": {
+          "images": 3,
+          "duree_ms": 120,
+          "boucle": false
+        }
+      }
+    },
+    "sprinteur": {
+      "nom": "Molosse",
+      "groupe": 3,
+      "variantes": 1,
+      "gabarit": "quadrupede",
+      "vitesse": 1.35,
+      "rayon_px": 7,
+      "touches": 2,
+      "points": 25,
+      "degats_contact_s": 8,
+      "degats_charge": 18,
+      "origine": "figurine générée",
+      "cote": 64,
+      "appui": [
+        32,
+        63
+      ],
+      "directions": [
+        "S",
+        "SO",
+        "O",
+        "NO",
+        "N",
+        "NE",
+        "E",
+        "SE"
+      ],
+      "cycles": {
+        "marche": {
+          "images": 8,
+          "duree_ms": 100,
+          "boucle": true
+        },
+        "mort": {
+          "images": 2,
+          "duree_ms": 120,
+          "boucle": false
+        }
+      }
+    },
+    "flanqueur": {
+      "nom": "Arpenteur",
+      "groupe": 1,
+      "variantes": 1,
+      "gabarit": "rampant",
+      "vitesse": 0.82,
+      "rayon_px": 7,
+      "touches": 4,
+      "points": 30,
+      "degats_contact_s": 7,
+      "tangentiel": 0.55,
+      "origine": "figurine générée",
+      "cote": 64,
+      "appui": [
+        32,
+        63
+      ],
+      "directions": [
+        "S",
+        "SO",
+        "O",
+        "NO",
+        "N",
+        "NE",
+        "E",
+        "SE"
+      ],
+      "cycles": {
+        "repos": {
+          "images": 1,
+          "duree_ms": 200,
+          "boucle": true
+        },
+        "attaque": {
+          "images": 2,
+          "duree_ms": 80,
+          "boucle": false
+        },
+        "marche": {
+          "images": 5,
+          "duree_ms": 100,
+          "boucle": true
+        },
+        "degat": {
+          "images": 1,
+          "duree_ms": 120,
+          "boucle": false
+        },
+        "mort": {
+          "images": 3,
+          "duree_ms": 120,
+          "boucle": false
+        }
+      }
+    },
+    "cracheur": {
+      "nom": "Buse",
+      "groupe": 1,
+      "variantes": 1,
+      "gabarit": "bulbe",
+      "vitesse": 0.55,
+      "rayon_px": 8,
+      "touches": 5,
+      "points": 40,
+      "degats_contact_s": 4,
+      "portee_tuiles": 6,
+      "origine": "figurine générée",
+      "cote": 64,
+      "appui": [
+        32,
+        63
+      ],
+      "directions": [
+        "S",
+        "SO",
+        "O",
+        "NO",
+        "N",
+        "NE",
+        "E",
+        "SE"
+      ],
+      "cycles": {
+        "repos": {
+          "images": 1,
+          "duree_ms": 200,
+          "boucle": true
+        },
+        "attaque": {
+          "images": 1,
+          "duree_ms": 80,
+          "boucle": false
+        },
+        "marche": {
+          "images": 4,
+          "duree_ms": 100,
+          "boucle": true
+        },
+        "mort": {
+          "images": 2,
+          "duree_ms": 120,
+          "boucle": false
+        }
+      }
+    },
+    "bloqueur": {
+      "nom": "Vigile",
+      "groupe": 1,
+      "variantes": 1,
+      "gabarit": "colosse",
+      "vitesse": 0.45,
+      "rayon_px": 12,
+      "touches": 12,
+      "points": 60,
+      "degats_contact_s": 10,
+      "origine": "figurine générée",
+      "cote": 64,
+      "appui": [
+        32,
+        63
+      ],
+      "directions": [
+        "S",
+        "SO",
+        "O",
+        "NO",
+        "N",
+        "NE",
+        "E",
+        "SE"
+      ],
+      "cycles": {
+        "repos": {
+          "images": 1,
+          "duree_ms": 200,
+          "boucle": true
+        },
+        "attaque": {
+          "images": 2,
+          "duree_ms": 80,
+          "boucle": false
+        },
+        "marche": {
+          "images": 5,
+          "duree_ms": 100,
+          "boucle": true
+        },
+        "degat": {
+          "images": 1,
+          "duree_ms": 120,
+          "boucle": false
+        },
+        "mort": {
+          "images": 3,
+          "duree_ms": 120,
+          "boucle": false
+        }
+      }
+    },
+    "eclateur": {
+      "nom": "Baudruche",
+      "groupe": 1,
+      "variantes": 1,
+      "gabarit": "gonfle",
+      "vitesse": 0.7,
+      "rayon_px": 9,
+      "touches": 4,
+      "points": 35,
+      "degats_contact_s": 5,
+      "degats_explosion": 35,
+      "rayon_explosion_tuiles": 1.5,
+      "origine": "figurine générée",
+      "cote": 64,
+      "appui": [
+        32,
+        63
+      ],
+      "directions": [
+        "S",
+        "SO",
+        "O",
+        "NO",
+        "N",
+        "NE",
+        "E",
+        "SE"
+      ],
+      "cycles": {
+        "repos": {
+          "images": 1,
+          "duree_ms": 200,
+          "boucle": true
+        },
+        "marche": {
+          "images": 5,
+          "duree_ms": 100,
+          "boucle": true
+        },
+        "attaque": {
+          "images": 3,
+          "duree_ms": 80,
+          "boucle": false
+        },
+        "degat": {
+          "images": 1,
+          "duree_ms": 120,
+          "boucle": false
+        },
+        "mort": {
+          "images": 3,
+          "duree_ms": 120,
+          "boucle": false
+        }
+      }
+    },
+    "civil": {
+      "nom": "Passant",
+      "groupe": 1,
+      "variantes": 1,
+      "gabarit": "bipede",
+      "vitesse": 0.75,
+      "rayon_px": 7,
+      "touches": 2,
+      "points": 5,
+      "degats_contact_s": 3,
+      "origine": "figurine générée",
+      "cote": 64,
+      "appui": [
+        32,
+        63
+      ],
+      "directions": [
+        "S",
+        "SO",
+        "O",
+        "NO",
+        "N",
+        "NE",
+        "E",
+        "SE"
+      ],
+      "cycles": {
+        "repos": {
+          "images": 1,
+          "duree_ms": 200,
+          "boucle": true
+        },
+        "attaque": {
+          "images": 1,
+          "duree_ms": 80,
+          "boucle": false
+        },
+        "marche": {
+          "images": 4,
+          "duree_ms": 100,
+          "boucle": true
+        },
+        "mort": {
+          "images": 2,
+          "duree_ms": 120,
+          "boucle": false
+        }
+      }
+    },
+    "soigneur": {
+      "nom": "Secouriste",
+      "groupe": 1,
+      "variantes": 1,
+      "gabarit": "bipede",
+      "vitesse": 0.7,
+      "rayon_px": 7,
+      "touches": 3,
+      "points": 15,
+      "degats_contact_s": 4,
+      "origine": "figurine générée",
+      "cote": 64,
+      "appui": [
+        32,
+        63
+      ],
+      "directions": [
+        "S",
+        "SO",
+        "O",
+        "NO",
+        "N",
+        "NE",
+        "E",
+        "SE"
+      ],
+      "cycles": {
+        "repos": {
+          "images": 1,
+          "duree_ms": 200,
+          "boucle": true
+        },
+        "attaque": {
+          "images": 1,
+          "duree_ms": 80,
+          "boucle": false
+        },
+        "marche": {
+          "images": 4,
+          "duree_ms": 100,
+          "boucle": true
+        },
+        "mort": {
+          "images": 2,
+          "duree_ms": 120,
+          "boucle": false
+        }
+      }
+    }
+  }
+}

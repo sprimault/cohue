@@ -1,0 +1,227 @@
+# Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+# SPDX-License-Identifier: Apache-2.0
+
+# Construction des binaires publiés, sur un tag.
+#
+# Une seule machine ne produit pas toutes les cibles, contrairement aux autres
+# projets : Ebitengine ne se compile en croisé que vers Windows et WebAssembly,
+# Linux et macOS exigent du natif. D'où la matrice multi-runners.
+#
+# Trois choses ne peuvent pas se faire cible par cible et vont dans le job de
+# rassemblement : SHA256SUMS calculé en un seul endroit sur toutes les archives,
+# l'attestation de provenance, et la création de la version.
+
+name: Publication
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version à construire, pour un essai à blanc"
+        required: true
+
+permissions:
+  contents: read
+
+# Une publication par tag, jamais deux en parallèle : deux tags poussés coup sur
+# coup produiraient deux jeux d'archives et deux brouillons de version, et le
+# SHA256SUMS de l'un pourrait porter sur les artefacts de l'autre.
+#
+# `cancel-in-progress` reste à false, contrairement à la CI : une publication
+# interrompue en cours laisse une version à moitié créée, ce qui est pire que
+# d'attendre.
+concurrency:
+  group: publication-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  binaires:
+    name: ${{ matrix.os }}/${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # `publier` est porté par toutes les lignes, y compris à true : une
+          # clé absente d'une ligne de matrice s'évalue en chaîne vide, que la
+          # comparaison coerce en 0 comme le booléen false. Un filtre écrit
+          # `matrix.publier != false` serait donc faux partout, y compris sur
+          # les cibles à publier, et l'étape d'archivage ne tournerait jamais.
+          - { os: windows, arch: amd64, cgo: 0, runner: ubuntu-latest, ext: .exe, publier: true }
+          # js/wasm se compile mais ne se publie pas : l'archive serait
+          # inutilisable seule, faute de wasm_exec.js et d'une page HTML, et le
+          # mode web n'est pas au programme. La cible reste ici parce qu'elle est
+          # ce qui empêche une dépendance d'introduire du cgo sans qu'on le voie.
+          - { os: js, arch: wasm, cgo: 0, runner: ubuntu-latest, ext: .wasm, publier: false }
+          - { os: linux, arch: amd64, cgo: 1, runner: ubuntu-latest, ext: "", publier: true }
+          - { os: linux, arch: arm64, cgo: 1, runner: ubuntu-24.04-arm, ext: "", publier: true }
+          - { os: darwin, arch: arm64, cgo: 1, runner: macos-latest, ext: "", publier: true }
+          # macos-15-intel est la dernière image x86_64 des runners, annoncée
+          # jusqu'en août 2027. Cette ligne a une date de péremption connue.
+          - { os: darwin, arch: amd64, cgo: 1, runner: macos-15-intel, ext: "", publier: true }
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      # La saisie passe par l'environnement et non par interpolation dans le
+      # corps : une expression `${{ }}` est substituée avant que le shell ne
+      # lise la ligne, si bien qu'une valeur contenant un point-virgule
+      # s'exécuterait. C'est une saisie libre, donc du texte, jamais du code.
+      - name: Version
+        id: version
+        shell: bash
+        env:
+          VERSION_SAISIE: ${{ inputs.version }}
+        run: |
+          echo "valeur=${VERSION_SAISIE:-${GITHUB_REF_NAME#v}}" >> "$GITHUB_OUTPUT"
+
+      # -trimpath toujours : les chemins absolus de la machine de build n'ont
+      # rien à faire dans un artefact public.
+      - name: Construction
+        shell: bash
+        env:
+          CGO_ENABLED: ${{ matrix.cgo }}
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          mkdir -p paquet
+          go build -trimpath \
+            -ldflags "-s -w -X main.version=${{ steps.version.outputs.valeur }}" \
+            -o "paquet/cohue${{ matrix.ext }}" ./cmd/cohue
+
+      # LICENSE et NOTICE vont dans l'archive et non à côté : Apache 2.0 les
+      # exige à la redistribution, et personne ne télécharge un asset séparé.
+      #
+      # THIRD-PARTY-NOTICES pour la même raison, mais au titre des licences des
+      # bibliothèques liées au binaire : la MIT, comme la plupart des licences
+      # permissives, exige que sa notice accompagne toute copie du logiciel, et
+      # un binaire qui la compile en est une.
+      #
+      # Rien d'autre : les ressources sont embarquées dans le binaire, qui se
+      # suffit donc à lui-même.
+      - name: Archive
+        shell: bash
+        run: |
+          cp LICENSE NOTICE THIRD-PARTY-NOTICES paquet/
+          nom="cohue_${{ steps.version.outputs.valeur }}_${{ matrix.os }}_${{ matrix.arch }}"
+          mkdir -p dist
+          cd paquet
+          if [ "${{ matrix.os }}" = "windows" ]; then
+            zip -r "../dist/$nom.zip" .
+          else
+            tar czf "../dist/$nom.tar.gz" .
+          fi
+
+      - uses: actions/upload-artifact@v7
+        if: matrix.publier
+        with:
+          name: archive-${{ matrix.os }}-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
+
+  rassemblement:
+    name: Sommes, attestation et version
+    needs: binaires
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # L'attestation lie chaque archive au commit et à la chaîne qui l'a
+      # produite. C'est le seul contrepoids crédible à des binaires non signés.
+      id-token: write
+      attestations: write
+    steps:
+      # Le dépôt est nécessaire pour lire CHANGELOG.md : les notes de version
+      # en sortent, plutôt que d'être collées à la main après coup — une étape
+      # manuelle après publication est une étape qu'on oublie.
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: recu
+          merge-multiple: true
+
+      # Les sommes portent sur les archives et non sur les binaires : c'est
+      # l'archive que la personne télécharge, donc ce qu'elle peut vérifier.
+      - name: SHA256SUMS
+        run: |
+          cd recu
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: "recu/*.zip,recu/*.tar.gz"
+
+      # Les notes viennent de la section du CHANGELOG qui porte cette version.
+      # Elle a été relue en PR avant le tag, donc au moment où elle comptait :
+      # c'est ce qui évite de la réécrire ici, où personne ne la relirait.
+      #
+      # Une section absente arrête la publication. Une version sans notes ne dit
+      # ni ce qui change, ni ce qu'un auteur de niveau doit reprendre — ce que
+      # les règles du projet exigent en tête.
+      # La version se résout comme dans le job binaires, saisie d'abord et tag
+      # ensuite : sans ça, l'essai à blanc cherche une section « master » dans
+      # le CHANGELOG et s'arrête ici, alors que c'est justement le chemin qu'il
+      # est censé parcourir en entier. Par l'environnement et non par
+      # interpolation directe : la saisie est libre, et elle entre dans un shell.
+      - name: Notes de version
+        env:
+          VERSION_SAISIE: ${{ inputs.version }}
+        run: |
+          version="${VERSION_SAISIE:-${GITHUB_REF_NAME#v}}"
+
+          # index et non une expression régulière : les crochets du titre de
+          # section y formeraient une classe de caractères, et « [0.1.1] »
+          # correspondrait alors à un seul caractère parmi « 0 », « . » et
+          # « 1 ». La recherche littérale ne pose pas la question.
+          awk -v v="$version" '
+            index($0, "## [" v "]") == 1 { dedans = 1; next }
+            dedans && index($0, "## ") == 1 { exit }
+            dedans { print }
+          ' CHANGELOG.md > notes.md
+
+          # Une section réduite à des lignes vides passerait le test de taille
+          # de fichier : c'est la présence de texte qui est exigée, pas celle
+          # d'octets.
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "CHANGELOG.md n'a pas de section pour la version $version" >&2
+            exit 1
+          fi
+
+          # Le titre est la troisième partie du titre de section, après la
+          # version et la date. Absent, la version se nomme par son tag seul.
+          titre=$(grep -m1 -F "## [$version]" CHANGELOG.md \
+            | sed -n 's/^## \[[^]]*\][^—]*—[^—]*— *//p')
+          if [ -n "$titre" ]; then
+            nom="${GITHUB_REF_NAME} — ${titre}"
+          else
+            nom="${GITHUB_REF_NAME}"
+          fi
+
+          # Une variable écrite dans GITHUB_ENV n'existe qu'à partir du step
+          # suivant : c'est la variable du shell qu'on affiche ici, sinon la
+          # trace montrerait autre chose que ce qui sera publié.
+          echo "titre=${nom}" >> "$GITHUB_ENV"
+          echo "== $nom =="
+          cat notes.md
+
+      # En brouillon : une dernière relecture avant que la version soit visible,
+      # et c'est là que s'annonce un version_format qui change — l'événement le
+      # plus coûteux du projet, puisqu'il périme les niveaux partagés.
+      - name: Version en brouillon
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "${titre}" \
+            --draft \
+            --notes-file notes.md \
+            recu/*

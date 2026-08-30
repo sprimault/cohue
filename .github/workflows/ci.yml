@@ -1,0 +1,201 @@
+# Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+# SPDX-License-Identifier: Apache-2.0
+
+# Vérification de chaque poussée et de chaque PR.
+#
+# Les cibles appelées sont celles du Makefile, jamais des commandes go réécrites
+# ici : deux définitions finiraient par diverger, et c'est celle du workflow
+# qu'on ne peut pas essayer avant de pousser.
+#
+# Les matrices font exception. Celle des tests tourne sur un runner Windows, qui
+# n'a pas make ; celle des compilations ne produit aucun artefact et n'a donc
+# que faire du nommage de `make binary`.
+
+name: Vérification
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  # govulncheck interroge sa base d'avis en direct : un job vert le matin peut
+  # être rouge l'après-midi sur exactement le même code. Une exécution
+  # quotidienne le dit sans attendre la prochaine contribution.
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Les images sont générées : régénérées, elles doivent être identiques au bit
+  # près. Un écart signale une retouche manuelle d'un PNG, qui serait écrasée au
+  # prochain lancement sans que personne ne le voie.
+  #
+  # Les versions sont épinglées dans outils/requirements.txt, qui dit pourquoi :
+  # c'est la compression de Pillow qui fixe les octets, pas le dessin.
+  #
+  # Un job à part, sans setup-go : ce contrôle ne touche pas une ligne de Go, et
+  # l'adosser au job Contrôles le ferait tomber avec lui — un go.mod illisible
+  # emporterait la vérification des ressources, qui n'a rien à voir.
+  ressources:
+    name: Ressources
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # L'interpréteur est épinglé au même titre que Pillow : les sons sortent
+      # de `wave` et de `struct`, les manifestes de `json`, tous trois de la
+      # bibliothèque standard. Laisser flotter la version de Python laisserait
+      # donc flotter des octets que ce job compare un à un.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Ressources reproductibles
+        run: |
+          python3 -m pip install --quiet -r outils/requirements.txt
+          make ressources-verif
+
+  # La règle et la liste close des dispensés sont dans docs/go.md. Sans ce job
+  # elle resterait déclarative : c'est en la contrôlant qu'on a découvert que
+  # six scripts de outils/ n'avaient jamais porté la leur.
+  #
+  # Aucune installation : le contrôle n'emploie que la bibliothèque standard,
+  # pour rester exécutable sur un dépôt fraîchement cloné.
+  entetes:
+    name: En-têtes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Mentions de licence
+        run: make entetes
+
+  controles:
+    name: Contrôles
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          # La version vient de go.mod : la répéter ici créerait un second
+          # endroit à mettre à jour, et personne ne penserait aux deux.
+          go-version-file: go.mod
+          check-latest: true
+
+      - name: Format
+        run: make fmt
+
+      - name: Construction
+        run: make build
+
+      - name: Tests
+        run: make test
+
+      # Le détecteur de course exige cgo, donc un compilateur C. Il est présent
+      # sur les runners Ubuntu, ce qui n'est pas le cas partout.
+      - name: Détecteur de course
+        run: make race
+
+      # Version épinglée, la même que GOLANGCI_VERSION dans le Makefile. Avec
+      # « latest », le poste de développement prend du retard dès qu'une version
+      # sort, et le lint échoue ici sur du code que personne n'a touché.
+      - name: Lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13.1
+
+  securite:
+    name: Sécurité
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      # make tools et non des go install réécrits ici : les versions sont
+      # épinglées dans le Makefile, et deux définitions divergeraient. Il
+      # installe aussi golangci-lint, inutile à ce job — quelques secondes
+      # contre un second endroit à tenir à jour.
+      - name: Outils
+        run: make tools
+
+      - name: Vulnérabilités connues
+        run: make vulncheck
+
+      - name: Analyse statique de sécurité
+        run: make sec
+
+  # Ce que le poste de développement ne peut pas vérifier : que le code se
+  # construit encore pour les cibles de la matrice. Sans ce job, une rupture de
+  # compilation sur macOS ou arm64 n'apparaîtrait qu'au moment de publier.
+  cibles:
+    name: Compilation ${{ matrix.os }}/${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows, arch: amd64, cgo: 0, runner: ubuntu-latest }
+          - { os: js, arch: wasm, cgo: 0, runner: ubuntu-latest }
+          - { os: linux, arch: amd64, cgo: 1, runner: ubuntu-latest }
+          - { os: linux, arch: arm64, cgo: 1, runner: ubuntu-24.04-arm }
+          - { os: darwin, arch: arm64, cgo: 1, runner: macos-latest }
+          - { os: darwin, arch: amd64, cgo: 1, runner: macos-15-intel }
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      - name: Construction
+        env:
+          CGO_ENABLED: ${{ matrix.cgo }}
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+        run: go build -trimpath ./cmd/cohue
+
+  # Le déterminisme se vérifie en exécutant, pas en compilant : une graine doit
+  # produire la même run et la même suite de tirages quel que soit le système.
+  # Les tests concernés comparent octet pour octet, ce qui n'a de sens que
+  # rejoué sur chaque cible.
+  #
+  # Linux/amd64 est absent de la matrice parce que le job Contrôles est déjà
+  # dessus, et darwin/amd64 aussi : même système que darwin/arm64, pour du code
+  # sans flottant ni dépendance à la taille d'un mot, il ne prouverait rien de
+  # plus qu'un quatrième runner à faire tourner.
+  natifs:
+    name: Tests ${{ matrix.os }}/${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows, arch: amd64, runner: windows-latest }
+          - { os: darwin, arch: arm64, runner: macos-latest }
+          - { os: linux, arch: arm64, runner: ubuntu-24.04-arm }
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      # Toute la suite et pas seulement le noyau : l'extraction du contenu livré
+      # écrit sur disque, et les séparateurs de chemin sont le genre de chose qui
+      # ne se voit que sur le système concerné.
+      - name: Tests
+        shell: bash
+        run: go test ./...

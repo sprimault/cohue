@@ -1,0 +1,12 @@
+Notices de licence des composants tiers liés au binaire.
+
+Ce fichier accompagne chaque archive publiée : la plupart des licences
+permissives exigent que leur notice suive toute copie du logiciel, et un binaire
+qui les compile en est une.
+
+Il est vide tant que go.mod l'est. À la première dépendance, y reporter sa
+licence complète — et retirer la note du Makefile qui signale l'absence de test
+de fraîcheur.
+
+Les ressources graphiques et sonores suivent un chemin distinct : voir
+CREDITS.md.

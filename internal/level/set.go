@@ -3,9 +3,11 @@
 
 package level
 
+import "github.com/sprimault/cohue/internal/manifest"
+
 // Set est un jeu de pièces : l'atlas, la palette et l'ambiance d'un thème.
 type Set struct {
-	Commentable
+	manifest.Commentable
 	// Format est la version du format de jeu de pièces.
 	Format int `json:"version_format"`
 	// ID nomme le jeu, et c'est lui que les pièces citent.

@@ -1,7 +1,7 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-package level
+package manifest
 
 // Commentable donne à toute structure du format le droit de porter un
 // commentaire.

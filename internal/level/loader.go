@@ -4,14 +4,13 @@
 package level
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"path"
 
 	"github.com/sprimault/cohue/internal/game"
+	"github.com/sprimault/cohue/internal/manifest"
 )
 
 // Les refus que l'appelant peut vouloir distinguer.
@@ -57,31 +56,6 @@ func NewLoader(fsys fs.FS, couts map[string]game.Cost) *Loader {
 	return &Loader{fsys: fsys, couts: couts}
 }
 
-// decoder lit un fichier JSON en refusant toute clé inconnue.
-//
-// Le refus attrape la faute de frappe qui *ajoute* une clé — `rotaton` au lieu
-// de `rotation` se chargerait sinon en silence sur la valeur par défaut, et
-// l'auteur ne comprendrait pas pourquoi sa pièce est de travers. Il n'attrape
-// jamais celle qui en supprime une : c'est la validation, derrière, qui exige
-// ce qui doit être là.
-//
-// Le message du décodeur ressort tel quel, avec le chemin de la clé fautive :
-// le remplacer par « fichier invalide » détruirait la seule information utile.
-func decoder[T any](fsys fs.FS, chemin string) (*T, error) {
-	brut, err := fs.ReadFile(fsys, chemin)
-	if err != nil {
-		return nil, fmt.Errorf("lecture de %s: %w", chemin, err)
-	}
-	d := json.NewDecoder(bytes.NewReader(brut))
-	d.DisallowUnknownFields()
-
-	var valeur T
-	if err := d.Decode(&valeur); err != nil {
-		return nil, fmt.Errorf("%s: %w", chemin, err)
-	}
-	return &valeur, nil
-}
-
 // Load lit le lieu que porte un dossier, ses pièces et son jeu, puis les cuit
 // en grille de coûts.
 //
@@ -101,7 +75,7 @@ func (l *Loader) Load(dossier string) (*game.CostGrid, error) {
 	}
 
 	chemin := path.Join(dossier, LevelFile)
-	lieu, err := decoder[Level](l.fsys, chemin)
+	lieu, err := manifest.Decode[Level](l.fsys, chemin)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +87,7 @@ func (l *Loader) Load(dossier string) (*game.CostGrid, error) {
 		return nil, fmt.Errorf("%s: %w", chemin, ErrEmptyLevel)
 	}
 
-	jeu, err := decoder[Set](l.fsys, path.Join(dossier, lieu.SetID+".json"))
+	jeu, err := manifest.Decode[Set](l.fsys, path.Join(dossier, lieu.SetID+".json"))
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +97,7 @@ func (l *Loader) Load(dossier string) (*game.CostGrid, error) {
 
 	pieces := make([]*Room, 0, len(lieu.Placements))
 	for _, pose := range lieu.Placements {
-		piece, err := decoder[Room](l.fsys, path.Join(dossier, pose.RoomID+".json"))
+		piece, err := manifest.Decode[Room](l.fsys, path.Join(dossier, pose.RoomID+".json"))
 		if err != nil {
 			return nil, fmt.Errorf("%w : %s", ErrUnknownRoom, pose.RoomID)
 		}

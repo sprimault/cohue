@@ -11,12 +11,14 @@
 // temps.
 package level
 
+import "github.com/sprimault/cohue/internal/manifest"
+
 // Level est un lieu : une liste de pièces posées, et rien de plus.
 //
 // Quelques centaines d'octets, parce qu'il ne porte que des identifiants et des
 // positions — le destinataire possède déjà les tuiles.
 type Level struct {
-	Commentable
+	manifest.Commentable
 	// Format est la version du format de lieu, indépendante de celle d'une
 	// pièce. Une pièce reste dans le binaire quand un lieu circule : le jour où
 	// l'une gagne un champ, les lieux publiés ne deviennent pas suspects.
@@ -35,7 +37,7 @@ type Level struct {
 
 // Placement est une pièce posée dans un lieu.
 type Placement struct {
-	Commentable
+	manifest.Commentable
 	// RoomID nomme la pièce.
 	RoomID string `json:"id"`
 	// U et V sont la case d'origine de la pièce dans le lieu.

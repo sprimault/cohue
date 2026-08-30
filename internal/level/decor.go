@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	"github.com/sprimault/cohue/internal/game"
+	"github.com/sprimault/cohue/internal/manifest"
 )
 
 // FormatDecor est la version du manifeste de décor que ce binaire lit.
@@ -21,7 +22,7 @@ const FormatDecor = 1
 // parce qu'un second type qui ne décrirait qu'une moitié du fichier laisserait
 // la question de savoir lequel fait foi.
 type Decor struct {
-	Commentable
+	manifest.Commentable
 	// Format est la version du format de manifeste.
 	Format int `json:"version_format"`
 	// Tile est la taille d'une tuile en pixels, `[largeur, hauteur]`.
@@ -32,7 +33,7 @@ type Decor struct {
 
 // Shape est une forme du décor, telle que le générateur la déclare.
 type Shape struct {
-	Commentable
+	manifest.Commentable
 	// Theme est le lieu auquel la forme appartient.
 	Theme string `json:"theme"`
 	// Size est la taille de l'image en pixels.
@@ -65,7 +66,7 @@ type Shape struct {
 // forme n'est écrit dans le code, et ajouter une flaque au générateur suffit à
 // ce que le champ de flux la contourne.
 func LoadDecor(fsys fs.FS, chemin string) (*Decor, map[string]game.Cost, error) {
-	decor, err := decoder[Decor](fsys, chemin)
+	decor, err := manifest.Decode[Decor](fsys, chemin)
 	if err != nil {
 		return nil, nil, err
 	}

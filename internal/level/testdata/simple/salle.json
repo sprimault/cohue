@@ -1,0 +1,16 @@
+{
+  "$comment": "Mur plein au nord, ouverture pleine au sud : la convention se lit.",
+  "version_format": 1,
+  "identifiant": "salle",
+  "jeu": "commun",
+  "taille": [8, 4],
+  "grille": [
+    "########",
+    "#......#",
+    "#..O...#",
+    "........"
+  ],
+  "ancrages": [
+    { "$comment": "Le seul coin d'où la salle se voit en entier.", "type": "apparition", "position": [2, 3] }
+  ]
+}

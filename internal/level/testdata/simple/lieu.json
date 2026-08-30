@@ -1,0 +1,8 @@
+{
+  "version_format": 1,
+  "identifiant": "essai",
+  "jeu_pieces": "commun",
+  "pieces": [
+    { "id": "salle", "u": 0, "v": 0 }
+  ]
+}

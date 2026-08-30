@@ -636,22 +636,40 @@ Trois champs à prévoir dès la première version, sinon ils ne pourront plus �
 
 ```json
 {
-  "$comment": "Rayon central du supermarché. Le cul-de-sac au sud est voulu.",
+  "$comment": "Rayon central. Mur plein au nord, ouverture pleine au sud.",
   "identifiant": "rayon_long",
   "jeu": "supermarche",
   "version_format": 1,
-  "taille": [16, 16],
+  "taille": [8, 4],
   "aire_ouverte": 0.62,
   "cotes": { "nord": "ouverture", "est": "mur", "sud": "ouverture", "ouest": "mur" },
+  "grille": [
+    "########",
+    "#......#",
+    "#..O...#",
+    "........"
+  ],
   "ancrages": [
-    { "type": "apparition", "position": [2, 14] },
-    { "type": "signaletique", "position": [8, 0] },
-    { "type": "caisse", "position": [11, 6] }
+    { "type": "apparition", "position": [2, 3] },
+    { "type": "caisse", "position": [4, 2] }
   ]
 }
 ```
 
-La grille de tuiles de la pièce (indices d'atlas, passabilité, hauteurs) vit dans un fichier binaire ou JSON compact à côté. La passabilité et les hauteurs sont **dérivées des propriétés des tuiles au chargement**, jamais saisies à la main : l'auteur ne sait même pas que le flow field existe.
+**La grille est dans le même fichier, et sous forme de lignes.** Un fichier séparé serait une seconde description du même objet : une pièce dont la grille annonce seize cases et dont le descripteur en déclare douze ment, sans qu'on sache lequel des deux. Et des lignes plutôt qu'un tableau de nombres parce qu'on **voit la pièce** en lisant le fichier — l'exemple ci-dessus a son mur au nord et son ouverture au sud, cela se lit sans rien décoder. Pendant les étapes où les pièces s'écrivent à la main, cela vaut mieux qu'un mur de virgules ; en revue, un diff montre les lignes changées.
+
+Deux règles rendent la forme exploitable :
+
+- **Une chaîne par `v` croissant, un caractère par `u` croissant** — l'ordre direct des axes du losange, celui que les emprises du manifeste emploient déjà. Un format cohérent avec le reste s'oublie moins qu'un format justifié.
+
+  Attention à ce que `grille[v][u]` ne suggère pas : la première dimension n'est **pas une ligne d'écran**. En projection 2:1, `u` croissant descend vers le sud-est et `v` croissant vers le sud-ouest ; la case (0, 0) est le sommet du losange, et la première chaîne est l'arête qui en part vers la droite. Les côtés se nomment donc par la grille et jamais par l'écran — `nord` est `v = 0`, `sud` est `v` maximal, `ouest` est `u = 0`, `est` est `u` maximal — ce que `cotes` employait déjà sans le dire. L'exemple est volontairement asymétrique : son mur est au nord au sens de la grille, et il apparaît à l'écran comme l'arête haute-droite du losange.
+- **Toutes les chaînes ont la même longueur, et elle vaut la taille annoncée.** C'est le désaccord de dimensions qu'un fichier séparé aurait rendu indétectable : il ne disparaît pas en fusionnant les deux, il se déplace à l'intérieur du fichier, où il se vérifie d'un coup au chargement.
+
+La correspondance entre un caractère et une tuile n'est pas dans la pièce mais dans son **jeu de pièces** : c'est là que vivent déjà l'atlas et la taille de tuile, et une palette est de même nature. La déclarer par pièce la dupliquerait, avec le même caractère désignant deux choses selon le fichier.
+
+C'est aussi le premier usage concret d'`empreinte_jeu_pieces` : un caractère réattribué dans un thème change le sens de **toutes** ses pièces à la fois, et en silence. L'empreinte est ce qui transforme ce désastre en message explicite.
+
+La passabilité et les hauteurs sont **dérivées des propriétés des tuiles au chargement**, jamais saisies à la main : l'auteur ne sait même pas que le flow field existe.
 
 **Tout est en JSON, y compris ce que le TOML rendrait plus agréable à écrire.** Un lieu partagé est du JSON compact compressé — c'est ce qui donne les 548 caractères mesurés plus bas —, et un second format sur le même objet imposerait une conversion pour partager, donc deux représentations qui finiraient par diverger. Le format retenu est celui que le jeu lit toute sa vie, pas celui qui arrange les neuf étapes pendant lesquelles les pièces s'écrivent à la main. Corollaire pratique : rien à lire hors de la bibliothèque standard, et une seule forme d'en-tête de licence.
 
@@ -672,6 +690,11 @@ Ce qu'on y perd est le commentaire, et `$comment` le rend : il est **autorisé p
     "fichier": "atlas.png",
     "taille_tuile": [64, 32],
     "variantes_rotation": true
+  },
+  "palette": {
+    ".": "sol",
+    "#": "mur",
+    "O": "pilier"
   },
   "ambiance": {
     "musique": "neons.ogg",

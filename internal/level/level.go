@@ -1,0 +1,44 @@
+// Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+// SPDX-License-Identifier: Apache-2.0
+
+// Package level lit les lieux et les cuit en une carte que la simulation
+// consomme.
+//
+// Le moteur ne sait plus, après la cuisson, que le lieu était fait de pièces :
+// il reçoit une grille de coûts. C'est ce qui permet aux lieux livrés d'emprunter
+// exactement le chemin d'un niveau tiers — même code, une seule chose à
+// déboguer, et un chargeur exercé à chaque partie plutôt qu'une fois de temps en
+// temps.
+package level
+
+// Level est un lieu : une liste de pièces posées, et rien de plus.
+//
+// Quelques centaines d'octets, parce qu'il ne porte que des identifiants et des
+// positions — le destinataire possède déjà les tuiles.
+type Level struct {
+	Commentable
+	// Format est la version du format de lieu, indépendante de celle d'une
+	// pièce. Une pièce reste dans le binaire quand un lieu circule : le jour où
+	// l'une gagne un champ, les lieux publiés ne deviennent pas suspects.
+	Format int `json:"version_format"`
+	// ID nomme le lieu.
+	ID string `json:"identifiant"`
+	// SetID est le jeu de pièces dont il tire ses pièces.
+	SetID string `json:"jeu_pieces"`
+	// SetFingerprint est l'empreinte de ce jeu au moment où le lieu a été
+	// composé. Sans elle, une palette retouchée changerait le sens de toutes les
+	// pièces en silence.
+	SetFingerprint string `json:"empreinte_jeu_pieces,omitempty"`
+	// Placements sont les pièces posées, avec leur case d'origine.
+	Placements []Placement `json:"pieces"`
+}
+
+// Placement est une pièce posée dans un lieu.
+type Placement struct {
+	Commentable
+	// RoomID nomme la pièce.
+	RoomID string `json:"id"`
+	// U et V sont la case d'origine de la pièce dans le lieu.
+	U int `json:"u"`
+	V int `json:"v"`
+}

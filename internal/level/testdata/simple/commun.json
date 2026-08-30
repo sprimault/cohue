@@ -1,0 +1,11 @@
+{
+  "$comment": "Jeu de pièces minimal, pour les tests du chargeur.",
+  "version_format": 1,
+  "identifiant": "commun",
+  "nom": "Commun",
+  "palette": {
+    ".": "sol",
+    "#": "mur",
+    "O": "pilier"
+  }
+}

@@ -71,15 +71,32 @@ func FromInt(tuiles int) Fixed {
 	return borner(int64(tuiles) * int64(One))
 }
 
-// FromFloat convertit une valeur lue dans un manifeste.
+// FromFloat convertit une valeur lue dans un manifeste, en saturant hors plage.
 //
 // Le flottant s'arrête ici : il vient d'un fichier, il est converti une fois au
-// chargement, et la simulation n'en voit jamais.
+// chargement, et la simulation n'en voit jamais. Le fichier est du JSON, qui ne
+// sait écrire ni NaN ni infini — mais il sait écrire quarante mille, et la
+// saturation existe pour cela.
+//
+// Convertir directement en `Fixed` une valeur hors plage rend un résultat que la
+// spécification Go laisse à l'implémentation : amd64 donne le plus petit int32,
+// arm64 sature au plus grand. Une distance positive deviendrait la plus grande
+// distance négative sur une seule des deux — c'est-à-dire précisément la
+// divergence entre plateformes que la virgule fixe existe pour empêcher.
 func FromFloat(tuiles float64) Fixed {
+	echelle := tuiles * float64(One)
 	if tuiles < 0 {
-		return Fixed(tuiles*float64(One) - 0.5)
+		echelle -= 0.5
+	} else {
+		echelle += 0.5
 	}
-	return Fixed(tuiles*float64(One) + 0.5)
+	switch {
+	case echelle > math.MaxInt32:
+		return math.MaxInt32
+	case echelle < math.MinInt32:
+		return math.MinInt32
+	}
+	return Fixed(echelle)
 }
 
 // Mul rend le produit de deux longueurs, arrondi au plus proche et symétrique

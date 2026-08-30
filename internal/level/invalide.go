@@ -36,7 +36,7 @@ func (e *Invalide) Error() string {
 // Un lieu invalide fait échouer son chargement entier plutôt que d'être chargé à
 // moitié : une pièce manquante laisserait un trou dans la carte, et le champ de
 // flux y enverrait les ennemis tourner en rond.
-func valider(lieu *Level, jeu *Set, pieces []*Room) []string {
+func valider(nom string, lieu *Level, jeu *Set, pieces []*Room) []string {
 	var manques []string
 	dire := func(format string, args ...any) {
 		manques = append(manques, fmt.Sprintf(format, args...))
@@ -44,6 +44,11 @@ func valider(lieu *Level, jeu *Set, pieces []*Room) []string {
 
 	if lieu.ID == "" {
 		dire("identifiant : le lieu n'en a pas")
+	} else if lieu.ID != nom {
+		// Le cas concret : quelqu'un duplique un lieu pour en faire une
+		// variante, renomme le dossier et oublie l'identifiant. Sans ce refus,
+		// la copie se charge en se croyant l'original.
+		dire("identifiant : « %s », alors que le dossier se nomme « %s »", lieu.ID, nom)
 	}
 	if lieu.SetID == "" {
 		dire("jeu_pieces : le lieu ne dit pas de quel jeu il tire ses pièces")

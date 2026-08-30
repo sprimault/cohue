@@ -724,6 +724,10 @@ Ce qu'on y perd est le commentaire, et `$comment` le rend : il est **autorisé p
 
 Un lieu n'est pas une carte, c'est une **liste de pièces posées**. Quelques centaines d'octets.
 
+**Un lieu est un dossier**, qui porte son `lieu.json`, son jeu de pièces et ses pièces. Trois raisons, dont la première suffirait : à plat, l'espace de noms des pièces est global, et deux auteurs qui nomment chacun la leur `carrefour` s'écrasent. Un lieu qu'on télécharge se suffit alors à lui-même — sinon il ne se télécharge pas, il s'installe. Et `empreinte_jeu_pieces` ne veut dire quelque chose que si deux exemplaires du même jeu peuvent différer, ce qui suppose précisément que chacun emporte le sien.
+
+Le descripteur porte un nom fixe plutôt que celui du lieu : un dossier de lieu se reconnaît alors sans être ouvert, et renommer un lieu se fait en renommant son dossier. Le nom du dossier et le champ `identifiant` décrivant dès lors la même chose, **le chargeur exige qu'ils s'accordent** — sans quoi celui qui duplique un lieu pour en faire une variante renomme le dossier, oublie l'identifiant, et charge une copie qui se croit l'original.
+
 ```json
 {
   "version_format": 1,

@@ -32,6 +32,13 @@ const (
 	FormatSet   = 1
 )
 
+// LevelFile est le nom que porte le descripteur dans un dossier de lieu.
+//
+// Fixe, et non dérivé de l'identifiant : c'est ce qui permet de reconnaître un
+// dossier de lieu sans l'ouvrir, et de renommer un lieu en renommant son
+// dossier.
+const LevelFile = "lieu.json"
+
 // Loader lit un lieu et ses pièces dans un système de fichiers.
 //
 // Une interface de lecture plutôt qu'un chemin : les lieux livrés viennent d'un
@@ -75,13 +82,25 @@ func decoder[T any](fsys fs.FS, chemin string) (*T, error) {
 	return &valeur, nil
 }
 
-// Load lit un lieu, ses pièces et son jeu, puis les cuit en grille de coûts.
+// Load lit le lieu que porte un dossier, ses pièces et son jeu, puis les cuit
+// en grille de coûts.
+//
+// Un dossier, et non un fichier : c'est ce qui donne aux pièces un espace de
+// noms local. À plat, deux auteurs qui nomment chacun leur pièce « carrefour »
+// s'écraseraient, et un lieu ne pourrait pas circuler sans emporter le
+// vocabulaire de tous les autres.
 //
 // L'ordre importe : décoder, valider, cuire. Le décodage s'arrête au premier
 // écart — `encoding/json` ne sait pas faire autrement —, la validation liste
 // tout ce qui manque en une fois, parce que c'est là que l'aller-retour coûte à
 // qui met au point un niveau.
-func (l *Loader) Load(chemin string) (*game.CostGrid, error) {
+func (l *Loader) Load(dossier string) (*game.CostGrid, error) {
+	nom := path.Base(dossier)
+	if nom == "." || nom == "/" {
+		return nil, fmt.Errorf("%q : un lieu se charge par son dossier, qui porte son nom", dossier)
+	}
+
+	chemin := path.Join(dossier, LevelFile)
 	lieu, err := decoder[Level](l.fsys, chemin)
 	if err != nil {
 		return nil, err
@@ -94,7 +113,6 @@ func (l *Loader) Load(chemin string) (*game.CostGrid, error) {
 		return nil, fmt.Errorf("%s: %w", chemin, ErrEmptyLevel)
 	}
 
-	dossier := path.Dir(chemin)
 	jeu, err := decoder[Set](l.fsys, path.Join(dossier, lieu.SetID+".json"))
 	if err != nil {
 		return nil, err
@@ -112,7 +130,7 @@ func (l *Loader) Load(chemin string) (*game.CostGrid, error) {
 		pieces = append(pieces, piece)
 	}
 
-	if manques := valider(lieu, jeu, pieces); len(manques) > 0 {
+	if manques := valider(nom, lieu, jeu, pieces); len(manques) > 0 {
 		return nil, &Invalide{Chemin: chemin, Manques: manques}
 	}
 	return cuire(lieu, jeu, pieces, l.couts), nil

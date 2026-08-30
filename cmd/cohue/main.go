@@ -23,7 +23,7 @@ import (
 // d'ignorer que les ressources sont embarquées plutôt que posées à côté.
 const (
 	manifesteDecor = "assets/decors/manifeste.json"
-	lieuDepart     = "assets/lieux/place.json"
+	lieuDepart     = "assets/lieux/place"
 )
 
 // version est renseignée à la liaison par -ldflags, et vaut « dev » hors

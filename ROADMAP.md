@@ -22,6 +22,17 @@ il porte son motif. Au-delà de deux ou trois, ce ne sont plus des dépendances 
 c'est que la numérotation est fausse, et c'est elle qu'il faut refaire,
 marqueurs compris.
 
+**Chaque étape franchie est publiée**, qu'elle donne à voir quelque chose ou non,
+et qu'elle soit jouable ou non. L'étape N porte la version 0.N.0 — le
+`CHANGELOG` dit déjà que le mineur marque une étape et non une rupture d'API ;
+ce qui est ajouté ici est l'engagement à taguer, pas seulement à numéroter.
+
+Deux conséquences pour les premières. Les notes d'une version qui ne se joue pas
+doivent dire ce qu'elle **ne fait pas** : quelqu'un télécharge une archive dont
+le binaire rend « à implémenter : étape N », et sans cette phrase il croit à un
+défaut. Et l'étape 1 étant sans rendu par construction, la 0.2.0 sera la
+première version qu'on puisse lancer pour voir quelque chose.
+
 La conception complète est dans `docs/conception.md`. Ce fichier n'en est que
 l'ordre d'exécution.
 

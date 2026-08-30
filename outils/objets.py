@@ -240,21 +240,25 @@ def cloison_fragile_cassee():
 
 
 def vitrine():
-    """Verre : le seul obstacle destructible qu'on voit à travers."""
+    """Verre : le seul obstacle destructible qu'on voit à travers.
+
+    Par `empiler` et non par un canevas monté à la main : la composition
+    manuelle perd `info`, et l'emprise retombait sur la valeur par défaut d'un
+    quart de tuile — celle d'une fiole, pour une cloison mince que le champ de
+    flux doit contourner sur toute sa longueur.
+    """
     cadre = _mince("acier_sombre", 34)
     verre = prim.volume(tx=0.86, ty=0.10, elevation=26,
                         matiere=_matiere("_o_verre", TEINTES["verre"]), bandes=2)
     verre.putalpha(verre.getchannel("A").point(lambda v: 150 if v else 0))
-    fond = Image.new("RGBA", (max(cadre.width, verre.width),
-                              max(cadre.height, verre.height)), TRANSPARENT)
-    fond.alpha_composite(cadre, (0, fond.height - cadre.height))
-    fond.alpha_composite(verre, ((fond.width - verre.width) // 2,
-                                 fond.height - cadre.height + 4))
-    return fond
+    return prim.empiler((cadre, 0, 0),
+                        (verre, (cadre.width - verre.width) // 2,
+                         cadre.height - verre.height - 4))
 
 
 def vitrine_cassee():
-    cadre = _mince("acier_sombre", 34)
+    """Après rupture : le châssis bas, qui garde la trace de la devanture."""
+    cadre = _mince("acier_sombre", 12)
     return prim.eventrer(cadre, densite=0.30, graine=62)
 
 
@@ -423,9 +427,12 @@ def caisse_rupture(images=3):
 # Tout ce que le moteur doit savoir d'un objet sans rien coder en dur : ce qui
 # le bloque, ce qui le détruit, ce qu'il projette et ce qu'il fait entendre.
 #
-# `mode` distingue les deux façons de casser du jeu : au contact pour la caisse,
-# où le délai est la mécanique elle-même, et au tir pour les obstacles — casser
-# un mur en s'appuyant dessus n'aurait pas de sens.
+# `mode` distingue les deux façons de casser du jeu, et c'est le geste qui les
+# sépare, pas la nature du dégât : la caisse cède à l'appui, en la traversant,
+# sans interrompre la course ; un obstacle fragile demande de s'arrêter contre
+# lui et d'appuyer sur la touche d'interaction. Le tir de base ne les casse
+# jamais — il ne cible que des ennemis et ne saurait pas distinguer un rideau de
+# fer d'une créature.
 #
 # `touches` est en touches de l'arme de base au premier niveau, même unité que
 # la résistance des créatures.
@@ -434,14 +441,14 @@ DESTRUCTION = {
                "eclats": "bois", "cycle_appui": "caisse_appui",
                "cycle_rupture": "caisse_rupture",
                "son_appui": "caisse_appui", "son_rupture": "caisse_rupture"},
-    "cloison_fragile": {"mode": "tir", "touches": 8, "ruine": "cloison_fragile_cassee",
+    "cloison_fragile": {"mode": "interaction", "touches": 8, "ruine": "cloison_fragile_cassee",
                         "eclats": "platre", "son_rupture": "caisse_rupture"},
-    "vitrine": {"mode": "tir", "touches": 5, "ruine": "vitrine_cassee",
+    "vitrine": {"mode": "interaction", "touches": 5, "ruine": "vitrine_cassee",
                 "eclats": "verre", "son_rupture": "caisse_rupture"},
-    "grille_ventilation": {"mode": "tir", "touches": 3,
+    "grille_ventilation": {"mode": "interaction", "touches": 3,
                            "ruine": "grille_ventilation_cassee",
                            "eclats": "metal", "son_rupture": "caisse_rupture"},
-    "rideau_fer": {"mode": "tir", "touches": 20, "ruine": "rideau_fer_casse",
+    "rideau_fer": {"mode": "interaction", "touches": 20, "ruine": "rideau_fer_casse",
                    "eclats": "metal", "son_rupture": "caisse_rupture"},
 }
 
@@ -451,7 +458,14 @@ BLOQUANTS = {"caisse", "palette", "cloison_fragile", "vitrine",
              "grille_ventilation", "rideau_fer"}
 
 # Son joué au ramassage ou à l'usage, quand il y en a un.
-SONS = {"gemme": "gemme", "fiole": "soin"}
+SONS = {"fiole": "soin"}
+
+# Un renvoi vers une famille et non vers un fichier : le catalogue porte
+# `gemme_0` à `gemme_7`, et le moteur avance d'un degré à chaque ramassage
+# rapproché. Deux clés distinctes plutôt qu'une seule à interpréter — sans
+# quoi le contrôle ne peut que comparer des préfixes, et accepte alors « gem »
+# et « g » aussi bien que « gemme ».
+FAMILLES_SONS = {"gemme": "gemme"}
 
 # Ce que vaut un objet en jeu. Ces nombres vivent ici et non dans le code : la
 # règle du dépôt est que les données ne sont pas du code, et un manifeste est
@@ -499,16 +513,38 @@ def main():
 
     for nom, fabrique in CATALOGUE.items():
         brut = fabrique()
-        emprise = brut.info.get("emprise", (0.25, 0.25))
+        # Une emprise absente n'est pas une petite emprise. Elle se perd dès
+        # qu'une forme recompose ses volumes dans une image neuve, et un défaut
+        # silencieux poserait alors un carré d'un quart de tuile là où la
+        # vitrine est une cloison mince — le champ de flux contournerait autre
+        # chose que ce qui est dessiné. Ce qui bloque doit donc la déclarer.
+        emprise = brut.info.get("emprise")
+        if emprise is None:
+            if nom in BLOQUANTS:
+                raise ValueError(f"{nom} bloque sans déclarer son emprise :"
+                                 " la composition l'a perdue en chemin")
+            emprise = (0.25, 0.25)
+
         img = prim.reduire(prim.contour(brut, force=0.40), couleurs=12)
         # Recadrage : le moteur pose un objet par son point d'appui, pas par le
         # coin d'une image. Des marges transparentes ne feraient que décaler la
         # position réelle sans que rien ne le signale.
         img = img.crop(img.getbbox())
+        img.info.update(brut.info)
         img.save(o.sortie / f"{nom}.png")
+
+        # Les trois champs qui commandent le rendu et la topologie, dérivés
+        # comme pour le décor et non saisis. Sans eux, le rideau de fer fait
+        # 65 pixels de haut et rien ne dit au moteur qu'il masque un
+        # personnage : il devrait en coder la liste, contre l'invariant du
+        # manifeste-contrat.
+        haut = prim.elevation_reelle(img) if "hauteur_dessus" in img.info else 0
         manifeste[nom] = {"taille": list(img.size),
                           "ancrage": [img.width // 2, img.height - 1],
                           "emprise": list(emprise),
+                          "elevation": haut,
+                          "categorie": prim.categorie(nom in BLOQUANTS, haut),
+                          "transparence_si_derriere": haut > prim.PLAFOND_OBSTACLE_BAS,
                           "famille": "monde",
                           "bloquant": nom in BLOQUANTS}
         if nom in VALEURS:
@@ -517,6 +553,8 @@ def main():
             manifeste[nom]["destruction"] = DESTRUCTION[nom]
         if nom in SONS:
             manifeste[nom]["son"] = SONS[nom]
+        if nom in FAMILLES_SONS:
+            manifeste[nom]["famille_sons"] = FAMILLES_SONS[nom]
         if nom in ("fiole", "gemme"):
             bande = _scintillement(img)
             bande.save(o.sortie / f"{nom}_scintille.png")

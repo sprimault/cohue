@@ -19,6 +19,13 @@ from PIL import Image
 LARGEUR_TUILE = 64
 TRANSPARENT = (0, 0, 0, 0)
 
+# Un personnage fait 64 pixels de haut ; ce qui dépasse 24 en masque un et
+# devient un décor de bordure plutôt qu'un obstacle à contourner. Ces deux
+# grandeurs vivent ici parce qu'elles décrivent la projection et sa lisibilité,
+# pas une forme du jeu — décor et objets s'y réfèrent tous les deux.
+HAUTEUR_PERSONNAGE = 64
+PLAFOND_OBSTACLE_BAS = 24
+
 # dessus, flanc gauche, flanc droit, arête éclairée
 MATIERES = {
     "beton": ((166, 166, 170), (118, 118, 124), (94, 94, 100), (198, 198, 202)),
@@ -64,6 +71,34 @@ def surface(tx, ty, largeur_tuile=LARGEUR_TUILE):
             if -marge <= u <= tx + marge and -marge <= v <= ty + marge:
                 points[(x, y)] = (min(max(u, 0.0), tx), min(max(v, 0.0), ty))
     return points, largeur, hauteur
+
+
+def elevation_reelle(img):
+    """Hauteur d'une forme au-dessus du sol, en pixels.
+
+    L'image contient la face supérieure et les flancs ; c'est la part sous le
+    dessus qui dit de combien la forme dépasse, et donc si elle masque un
+    personnage.
+    """
+    return max(0, img.height - img.info["hauteur_dessus"])
+
+
+def categorie(bloquant, elevation):
+    """Range une forme parmi les trois hauteurs de la vue de dessus.
+
+    **La passabilité décide d'abord**, l'élévation ne départageant que ce qui
+    bloque. Une porte ouverte dépasse de 48 pixels et reste un passage ; un quai
+    ou un trottoir dépassent du sol et se marchent. Les classer sur leur seule
+    hauteur ferait afficher des obstacles là où l'on passe, et la lecture
+    topologique que l'éditeur promet ne vaudrait plus rien.
+
+    La catégorie ne sert donc qu'à la topologie. Le rendu, lui, a `elevation` et
+    `transparence_si_derriere` : une propriété qui servirait aux deux finirait
+    par mal servir les deux.
+    """
+    if not bloquant:
+        return "sol"
+    return "obstacle_bas" if elevation <= PLAFOND_OBSTACLE_BAS else "haut"
 
 
 def volume(tx=1, ty=1, elevation=0, matiere="beton", largeur_tuile=LARGEUR_TUILE,

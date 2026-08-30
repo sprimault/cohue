@@ -14,6 +14,14 @@ seule, et elle ne ment pas.
 renumérotent jamais — ce sont eux que portent les marqueurs du code. Une étape
 qui apparaît s'ajoute à la fin, quelle que soit sa place logique.
 
+**Un sous-ensemble d'étape peut être avancé**, quand l'écart entre l'écriture
+d'un contrat et sa première mise à l'épreuve devient trop grand. Deux règles
+alors : l'avancement nomme son périmètre exact **et ce qui reste à l'étape
+d'origine** — c'est cette moitié-là qu'on oublie de vérifier en y arrivant —, et
+il porte son motif. Au-delà de deux ou trois, ce ne sont plus des dépendances :
+c'est que la numérotation est fausse, et c'est elle qu'il faut refaire,
+marqueurs compris.
+
 La conception complète est dans `docs/conception.md`. Ce fichier n'en est que
 l'ordre d'exécution.
 
@@ -62,8 +70,15 @@ sous-pixel.
 Écran de mort, relance sur une touche en moins d'une seconde, même
 configuration. Une arme, un profil d'ennemi, une courbe de pression.
 
-**Jalon décisif.** Si le prototype ne donne pas envie d'enchaîner cinq parties,
-aucun sprite ne le sauvera, et il vaut mieux le savoir ici qu'après trois ans.
+**Jalon éliminatoire.** Il tranche une seule question : le déplacement et le tir
+sont-ils agréables ? Si la réponse est non, aucun sprite ne le sauvera et on ne
+continue pas — c'est le seul jalon qui puisse arrêter le projet, et il arrive
+tôt pour cette raison. Un oui, en revanche, ne prouve rien sur l'envie de
+refaire : c'est l'étape 8 qui le dira.
+
+Son critère se mesure plutôt qu'il ne se ressent : **si la bascule de puissance
+n'est pas ressentie avant la minute 9**, la courbe est trop lente — voir le
+chapitre 2 de la conception.
 
 ## 4 — Les profils d'ennemis
 
@@ -81,6 +96,14 @@ La résistance d'un profil s'exprime en touches de l'arme de base au premier
 niveau, jamais en points absolus : l'arme grossit toute la run, un chiffre
 absolu ne voudrait rien dire. Un multiplicateur adossé à la courbe de pression
 la fait monter au fil du temps.
+
+**Y compris une porte et une caisse, sous-ensembles des étapes 8 et 7 avancés
+ici** — non comme contenu mais comme sonde. Cinq étapes séparent le jalon
+éliminatoire du jalon décisif, ce qui est long sans retour : un objectif
+d'ouverture et une caisse à casser suffisent à sentir la tension « rester ou
+partir » bien avant que tout soit écrit. Restent à leurs étapes : le temps mort
+à la porte, le choix de branche, le score, le recyclage de la traîne, et tout ce
+que l'étape 7 dit des ressources.
 
 ## 5 — Les assets
 
@@ -111,6 +134,10 @@ Score d'un lieu : points d'ennemis plus bonus de temps restant. Les deux
 s'opposent — farmer rapporte, partir vite rapporte aussi — et c'est cette
 tension qui donne du poids au choix de la porte. Affichage en fin de lieu, pas
 pendant l'action.
+
+**Jalon décisif.** C'est ici, et pas à l'étape 3, qu'on sait si l'on a envie de
+relancer : un enchaînement complet dit ce que le seul déplacement ne pouvait pas
+dire. Celui-là ne peut que valider — c'est l'étape 3 qui pouvait arrêter.
 
 ## 9 — La signalétique
 
@@ -150,6 +177,20 @@ socle d'améliorations permanentes plafonné bas.
 
 Peinture d'une pièce avec les tuiles du jeu. Différé jusqu'ici pour de bonnes
 raisons : le champ existe dans le format depuis l'étape 10, mais rien ne l'écrit.
+
+## 15 — Les écrans de réglages
+
+Sensibilité, volumes par catégorie de mixage, remappage des touches, difficulté.
+
+Ici et pas plus tôt parce que leur contenu dépend de ce qu'il y aura à régler, et
+que la moitié n'existe pas avant : les catégories de mixage sont posées dès le
+manifeste des sons, la difficulté n'est un curseur qu'une fois la courbe de
+pression écrite, et le remappage suppose la liste complète des commandes.
+
+Ce qui se décidait tôt l'a été à l'étape 3 et vit dans la conception : ce qu'une
+pause fige, quand on écrit sur le disque, ce qui persiste d'une run à l'autre.
+Cette étape ne porte que le contenu, et elle existe pour qu'il ne soit pas une
+dette sans domicile.
 
 ---
 

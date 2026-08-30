@@ -35,11 +35,13 @@ Corollaire propre à la progression par salles : mourir au troisième lieu renvo
 
 Une run doit s'arrêter alors que quelque chose est en cours : 200 XP avant une évolution, deux armes sur trois pour une fusion, une synergie composée mais jamais vue à l'œuvre. C'est la phrase intérieure — « la prochaine fois je prends la même chose mais je monte l'orbite d'abord » — qui déclenche la relance, jamais le score.
 
-Concrètement : la mort typique d'un joueur moyen doit tomber vers 8-11 minutes, alors que les évolutions les plus intéressantes se débloquent vers 12-14. La majorité des runs meurent avec un plan inachevé.
+Concrètement : la mort typique d'un joueur moyen doit tomber vers 8-11 minutes, alors que les évolutions les plus intéressantes se débloquent vers 12-14. La majorité des runs meurent avec un plan inachevé — mais après avoir traversé la phase de toute-puissance, qui commence à la minute 7. Le joueur meurt en pleine gloire avec un plan en cours, pas avant d'avoir rien vu.
 
 ### Le tempo des montées de niveau
 
-C'est le métronome du plaisir. Front-load agressif : premier niveau à 12 secondes, puis toutes les 15-20 secondes pendant deux minutes, puis l'écart s'allonge. Règle dure : **jamais plus de 45 secondes sans un choix à faire**.
+C'est le métronome du plaisir. Front-load agressif : premier niveau à 12 secondes, puis toutes les 15-20 secondes **pendant quatre minutes**, puis l'écart s'allonge. Règle dure : **jamais plus de 45 secondes sans un choix à faire**.
+
+Quatre minutes et non deux, parce que c'est ce qui amène la toute-puissance à la minute 7 sans toucher au début. Le début est déjà à sa limite : en deçà de 15 secondes, les choix s'enchaînent trop vite pour être des choix. C'est donc l'allongement qui démarre plus tard, et cela vaut environ sept montées de niveau de plus au moment où la bascule doit se produire.
 
 Le choix compte plus que la récompense. Trois cartes, dont deux tentantes. Si le joueur prend systématiquement la même, l'équilibrage est cassé — la bonne carte est celle qui fait hésiter.
 
@@ -55,12 +57,16 @@ La pause est réelle — la horde se fige — parce que choisir sous pression n'
 
 La courbe de sensation doit croiser celle de la difficulté.
 
-- Minutes 0-3 : fragile, chaque ennemi compte.
-- Minutes 4-9 : montée, on encaisse et on rend.
-- Minutes 10-14 : le joueur traverse les hordes sans regarder, l'écran est blanc de dégâts.
+- Minutes 0-2 : fragile, chaque ennemi compte.
+- Minutes 3-6 : montée, on encaisse et on rend.
+- Minutes 7-11 : le joueur traverse les hordes sans regarder, l'écran est blanc de dégâts.
 - Dernière minute : tout est repris.
 
 Cette phase de toute-puissance est indispensable. C'est le souvenir que le joueur emporte, et c'est ce qu'il essaie de retrouver en relançant.
+
+**Elle tombe avant la mort typique, et c'est ce qui la rend possible.** Placée de la minute 10 à la 14, elle serait réservée à ceux qui survivent au-delà de la mort moyenne — c'est-à-dire absente de la partie du joueur qu'on cherche justement à faire relancer, et absente des premières heures, quand il décide s'il reste. Un jeu qui réserve son meilleur moment aux joueurs déjà convaincus perd les autres.
+
+D'où un critère qui rend l'intention vérifiable, et qui est le vrai contenu du jalon éliminatoire : **si la bascule n'est pas ressentie avant la minute 9, la courbe est trop lente.**
 
 ### Le feedback par kill
 
@@ -98,7 +104,9 @@ Tout ce qui précède crée l'envie de rejouer en rendant le jeu bon. Il existe 
 
 ### Des segments, pas une arène
 
-Quatre à cinq lieux de trois à quatre minutes, avec une build qui traverse les segments. Le total reste de l'ordre du quart d'heure.
+Quatre lieux de trois à quatre minutes, avec une build qui traverse les segments. Le total reste de l'ordre du quart d'heure — cinq lieux de quatre minutes n'y tiendraient pas.
+
+Quatre segments donnent trois portes, donc trois fois le choix « rester ou partir » : assez pour installer la tension, pas assez pour la répéter jusqu'à la lassitude. Et raccourcir les lieux plutôt qu'en retirer un aurait rogné ailleurs — trois minutes laissent à peine le temps d'une montée, d'un pic et d'un creux.
 
 ### La sortie se gagne
 
@@ -122,7 +130,7 @@ La bonne structure, c'est le **flow field**. Un seul BFS depuis le joueur sur la
 
 Coût : un BFS sur 128×128 cellules, quelques dizaines de microsecondes, une fois pour tout le monde.
 
-Ordre de grandeur des effectifs, calé sur le tampon interne de 960×540, soit une quinzaine de tuiles visibles : **60 à 100 ennemis à l'écran** en régime normal de fin de segment, **150 en pic** sur une vingtaine de secondes, **250 à 300 entités vivantes** au total en comptant ce qui approche hors champ. Au-delà, ce n'est plus une horde mais un mur uni : les profils cessent d'être distinguables, et avec eux la lisibilité de l'échec. Le levier de pression n'est de toute façon pas le nombre, c'est la vitesse relative et la fermeture des angles — vingt ennemis qui coupent une sortie font plus peur que deux cents qui suivent en file. Le contournement d'obstacles est gratuit — piliers, rayonnages, tourniquets se retrouvent dans le champ sans une ligne de code d'évitement. C'est ce qui rend le décor urbain jouable là où les survivors classiques se contentent d'un terrain vide.
+Ordre de grandeur des effectifs, calé sur le tampon interne de 960×540. La demi-étendue visible y vaut 15,9 tuiles par axe du monde — pas « une quinzaine en largeur », qui serait un compte orthogonal et donnerait un champ deux fois trop petit. Sur cette surface : **60 à 100 ennemis à l'écran** en régime normal de fin de segment, **150 en pic** sur une vingtaine de secondes, **250 à 300 entités vivantes** au total en comptant ce qui approche hors champ. Au-delà, ce n'est plus une horde mais un mur uni : les profils cessent d'être distinguables, et avec eux la lisibilité de l'échec. Le levier de pression n'est de toute façon pas le nombre, c'est la vitesse relative et la fermeture des angles — vingt ennemis qui coupent une sortie font plus peur que deux cents qui suivent en file. Le contournement d'obstacles est gratuit — piliers, rayonnages, tourniquets se retrouvent dans le champ sans une ligne de code d'évitement. C'est ce qui rend le décor urbain jouable là où les survivors classiques se contentent d'un terrain vide.
 
 Sur les lieux étirés en longueur, le champ n'est calculé que sur une **fenêtre autour du joueur** : un ennemi à quarante tuiles n'a besoin d'aucune précision.
 
@@ -157,6 +165,8 @@ Sur une carte fermée, aucune position de l'anneau n'est parfois valide — le j
 
 Le budget de pression correspondant n'est pas perdu pour autant : il est reporté au tick suivant, où l'anneau aura peut-être une position libre. Sans ce report, un couloir étroit deviendrait un abri où la pression tombe à zéro, ce qui est exactement ce que la conception cherche à éviter.
 
+**Mais le report est borné à quelques secondes.** Sans borne, vingt secondes passées dans un cul-de-sac s'accumulent et se libèrent d'un coup à la sortie — c'est-à-dire le mur d'ennemis que la règle « jamais dans le champ de vision » cherche à interdire. Ce qui déborde la borne est perdu, et c'est voulu : se terrer doit coûter du temps, pas produire une punition différée qu'on ne relie plus à sa cause.
+
 ### Rien ne traverse un mur
 
 La poussée de séparation n'est qu'une force parmi d'autres : elle ne décide pas de la position finale. Le déplacement calculé est **projeté sur la grille de passabilité** avant d'être appliqué — s'il mène dans un obstacle, sa composante bloquée est annulée et l'entité glisse le long du mur au lieu de s'y enfoncer. Si les deux composantes sont bloquées, elle ne bouge pas.
@@ -172,6 +182,8 @@ Le blocage ne peut pas devenir un piège, parce que le corps solide ne l'est que
 ### Le recyclage de la traîne
 
 Dès lors que le joueur progresse vers une sortie, les ennemis restés derrière ne servent plus à rien. Au-delà d'une distance seuil, l'entité est retirée du pool et réapparaît devant. Sans ça, la traîne grossit et le frame time avec.
+
+**Réapparaît par l'anneau**, et non « devant » : c'est la même règle que pour une apparition neuve — hors du champ de vision, sur une position passable, abandonnée si aucune ne convient. Un raccourci qui poserait l'entité directement devant le joueur produirait exactement ce que le paragraphe précédent interdit, une créature surgie de nulle part, avec en prime l'impression que le jeu triche pour rattraper celui qui court.
 
 ### Aucun ennemi ne délibère
 
@@ -199,8 +211,15 @@ Le rôle est l'identifiant du moteur ; le nom est de la fiction, et vit dans la 
 | cracheur | **Buse** | bulbe posé au sol | le camping dans un coin |
 | bloqueur | **Vigile** | colosse épaulé | les goulots et les couloirs |
 | éclateur | **Baudruche** | corps gonflé, tête minuscule | le nettoyage à l'aveugle |
+| soigneur | **Secouriste** | humanoïde clair | le nettoyage tout court |
 
 Résistance et points de chaque profil : chapitre 6.
+
+**Le Secouriste est le seul qui crée une priorité de cible.** Les six autres cassent le kiting par la position ; aucun ne rend un ennemi plus urgent qu'un autre. Lui annule le travail tant qu'il vit, et comme le tir vise le plus proche sans que le joueur puisse choisir, le seul moyen de l'abattre est **d'aller vers lui** — donc d'abandonner sa position de kiting pour entrer dans la horde.
+
+Cette mécanique n'existe que parce que la visée est omnidirectionnelle et automatique. Avec le cône avant qu'on a écarté, il aurait suffi de s'orienter pour le prioriser, et il n'aurait rien coûté. Le lien mérite d'être noté ici, parce qu'aucun fichier ne le montre : réintroduire un jour un moyen de viser — un mode, une arme dirigée, une option d'accessibilité — désactiverait le Secouriste sans que personne ne touche au Secouriste.
+
+**Le Passant n'est pas dans cette table**, parce qu'il n'est pas un ennemi : il ne blesse pas, ne rapporte rien, ne se cible pas, et le spawner ne l'achète pas dans son budget. C'est une entité d'ambiance qui traverse la scène en va-et-vient — elle avance tout droit et repart quand elle bute — et dont le seul effet est d'occuper l'espace où l'on voulait passer. Lui donner des dégâts de contact en referait un Badaud affaibli, c'est-à-dire un doublon ; le ranger parmi les ennemis obligerait chaque boucle écrite ensuite à demander « celui-là attaque-t-il ? ».
 
 - **Le Badaud** : masse lente, il ne fait qu'exister en nombre. Il existe en plusieurs teintes de vêtement — une foule d'un seul bleu se lit comme un bloc uni, alors que six variantes cassent la répétition sans coûter une silhouette de plus. La variante est tirée à l'apparition depuis la graine de la run, donc elle ne casse pas le déterminisme.
 - **Le Molosse** : télégraphe une charge (une demi-seconde d'anticipation, un son), puis fonce en ligne droite et ne corrige plus. Sa charge inflige davantage qu'un contact ordinaire — sans cela, charger ne serait qu'un déplacement rapide. Il punit l'immobilité, mais s'esquive latéralement. Le fait qu'il abandonne le flow field pendant la charge est ce qui le rend lisible. **Il n'apparaît jamais seul** : une meute de trois qui charge en décalé impose d'arrêter de reculer en ligne droite, ce qu'un chien isolé n'obtient pas. La taille de groupe est un champ du profil, pas une exception du spawner.
@@ -235,6 +254,10 @@ Point critique dès lors que des lieux sont créés par des tiers. Un scénario 
 
 Chaque profil a son coût de pression. Le spawner remplit, respecte la passabilité, et lâche hors du champ de vision. Bonus : la difficulté globale devient un seul curseur multiplicateur, ce qui donne les modes de difficulté gratuitement.
 
+**Un budget est un débit, les effectifs sont un stock, et il faut les deux.** Le premier dit combien de créatures arrivent par seconde ; le second, combien sont vivantes à un instant. Le stock vaut le débit multiplié par la durée de vie — laquelle dépend d'une arme qui aura été multipliée par dix au cours de la run. Un scénario qui ne piloterait que le débit laisserait donc les effectifs du début de ce chapitre à l'état de vœu : ils seraient espérés, pas tenus.
+
+Le spawner porte donc aussi un **plafond d'effectif**, et cesse d'acheter quand il est atteint, quel que soit son budget. Le budget non dépensé pour cette raison est perdu et non reporté — sinon on retrouve le mur d'ennemis différé.
+
 ---
 
 ## 5. Les dégâts subis
@@ -265,6 +288,8 @@ La règle qui compte plus que les valeurs : **la vie ne se régénère pas seule
 
 Une fiole ne dépasse jamais le maximum : le surplus est perdu, ce qui donne au joueur une raison de ne pas la boire tout de suite et fait de ses deux emplacements de consommables une petite décision de plus.
 
+**Le plafond ne couvre que le contact continu.** La charge du Molosse et l'explosion de la Baudruche s'y ajoutent sans en relever. C'est le contact qui rend la mort illisible en masse — trente corps collés dont on ne distingue pas la contribution —, alors qu'une charge télégraphée ou un anneau qui s'élargit sont deux choses qu'on a vues venir et qu'on n'a pas esquivées. Les plafonner ensemble ferait qu'une meute de trois Molosses infligerait ce qu'un seul inflige, et le télégraphe n'annoncerait plus rien.
+
 ### La charge du Molosse
 
 Elle inflige **plus qu'un contact ordinaire**. Sans cela, charger ne servirait à rien : ce ne serait qu'un déplacement rapide, et le télégraphe n'aurait rien à annoncer.
@@ -286,6 +311,7 @@ Une valeur absolue de PV ne veut rien dire dans un jeu où l'arme grossit toute 
 | Arpenteur | 4 | 30 | il faut le suivre pendant qu'il tourne |
 | Baudruche | 4 | 35 | l'abattre de près est une erreur |
 | Buse | 5 | 40 | elle tire de loin, on va la chercher |
+| Secouriste | 3 | 15 | tant qu'il vit, le reste ne meurt pas |
 | Vigile | 12 | 60 | il bouche un couloir, on le contourne |
 
 Ces valeurs sont un point de départ, pas un équilibrage : elles se règlent à partir du jalon 3, en jouant.
@@ -302,9 +328,15 @@ Deux garde-fous. Le score ne doit **jamais contredire la lisibilité** : il s'af
 
 ### Le classement, et pourquoi la graine existe
 
-Un score n'est comparable que si les runs le sont. C'est à cela que sert la graine déterministe posée dans les invariants : deux joueurs qui affrontent la même graine sur le même lieu ont eu les mêmes vagues aux mêmes instants.
+Ce que la graine garantit est précis, et ce n'est pas ce qu'on croit d'abord : **la même suite de décisions produit la même run**. Deux joueurs qui affrontent la même graine sur le même lieu ne rencontrent pas les mêmes vagues aux mêmes instants — le report du budget d'apparition et le recyclage de la traîne dépendent du trajet, donc de la façon de jouer. Ils partagent un terrain et une distribution, pas une séquence.
+
+C'est un speedrun sur la même carte, pas un puzzle identique. Et c'est mieux ainsi : celui qui esquive mieux subit moins de report, donc moins de pression — le classement récompense le jeu plutôt que la chance d'un tirage.
 
 D'où deux classements possibles, sans serveur : la **graine du jour**, identique pour tout le monde, et le classement par lieu partagé, où celui qui diffuse un niveau diffuse aussi sa graine. Un fichier de niveau tenant dans un message, le défi se partage avec lui.
+
+**Un score se vérifie par rejeu, il ne devient pas inviolable pour autant.** Le journal de run — un `Input` par tick, sous-produit gratuit du chapitre 15 — se joint au score : qui veut vérifier rejoue, et retrouve le même total ou ne le retrouve pas. Quelques kilo-octets une fois les répétitions encodées, donc joignable à un message comme le lieu lui-même.
+
+Ce que cela établit est la cohérence entre un score et un journal, ce qui suffit à éliminer le fichier modifié — le cas réel. Cela n'établit pas qu'un humain a joué : un journal produit par un programme passerait la vérification sans faute. La distinction décide de ce qu'on affiche — un journal joignable au score, jamais la mention « vérifié », qui promettrait une garantie qu'aucun classement sans serveur ne peut donner. Tant qu'il n'y a rien à gagner, la fraude n'a d'ailleurs pas d'enjeu.
 
 ---
 
@@ -389,6 +421,22 @@ Le joueur garde donc **la même arme du début à la fin**, et ce sont des passi
 
 L'évolution se fait **en nombre plutôt qu'en nature** : un projectile qui devient trois, pas un projectile qui change de comportement. Plus lisible, plus facile à équilibrer, et beaucoup moins de cas particuliers dans le code de collision.
 
+### Les passifs montent par paliers
+
+Un axe se prend plusieurs fois, et c'est ce qui remplit une trentaine de montées avec six axes plutôt que trente entrées de table.
+
+Trois règles, qui visent toutes la même chose — la stratégie unique consistant à empiler un seul axe du début à la fin :
+
+- **Chaque palier coûte plus que le précédent.** Sans quoi le troisième projectile vaut le premier, alors qu'il apporte proportionnellement moins.
+- **Chaque axe a une borne**, six paliers pour commencer. L'épuiser devient un moment de jeu : il faut basculer sur un axe qu'on n'avait pas choisi.
+- **L'offre dépasse la demande.** Six axes de six paliers font trente-six choix pour une trentaine de montées : le joueur laisse l'équivalent d'un axe derrière lui. L'inverse ne produirait pas un choix difficile mais un écran de montée de niveau vide, ce qui est le pire défaut possible à cet endroit — il tombe sur le moment de récompense.
+
+Reste la run exceptionnelle qui dépasse trente-six montées. Une carte inépuisable la couvre, mais elle **n'entre dans le tirage que lorsqu'il ne reste plus assez de paliers pour remplir les trois cartes** — sinon elle occupe une place trente fois pour un cas qui arrive une.
+
+Sa nature n'est pas indifférente : un soin fait l'affaire, précieux quand on est bas et ignorable quand on est haut, donc situationnel. Un gain d'expérience serait un mauvais choix — il accélère la montée suivante, donc il se rembourse, donc il est toujours au moins aussi bon que ce qu'il remplace, et il aplatirait la table entière sans qu'on voie pourquoi.
+
+Et rien n'interdit le cas extrême, celui où tout est épuisé : la soupape doit alors **remplir les trois places à elle seule**. Elle est donc répétable dans un même tirage, ou il en existe plusieurs de natures différentes — faute de quoi on retombe sur l'écran vide qu'elle était censée éviter, au moment précis où le joueur a le mieux joué.
+
 **Le revers à assumer** : le contraste des patterns disparaît, alors que c'est un moteur de rejouabilité du genre. Il se récupère par deux voies qui ne coûtent aucune animation de personnage — les armes lourdes ramassées dans les caisses, qui sont un effet et non une pose, et les effets qui ne partent pas du personnage : zone au sol, orbite, onde de choc, dessinés au sol ou autour du joueur.
 
 ### La visée
@@ -436,13 +484,13 @@ Une option reste ouverte si le tir manuel manque au jalon 3 : garder l'automatiq
 
 ### Les directions
 
-Le pack de personnages retenu fournit 8 directions (voir chapitre 12), ce qui lève la contrainte initiale de 4 poses. Si un archétype devait être dessiné à la main, la solution de repli tient toujours : quatre orientations sur les diagonales écran (NE, SE, SO, NO), dont deux obtenues par miroir horizontal — on ne dessine alors que dos et face.
+`figurines.py` produit 8 directions, ce qui lève la contrainte initiale de 4 poses. Si un archétype devait un jour être dessiné à la main, la solution de repli tient toujours : quatre orientations sur les diagonales écran (NE, SE, SO, NO), dont deux obtenues par miroir horizontal — on ne dessine alors que dos et face.
 
 Dans tous les cas : orienter le sprite sur la direction de **visée**, pas de déplacement. Le joueur recule en tirant vers l'avant, et ça se lit immédiatement.
 
 ### La grille et les tailles
 
-Tout découle des sprites de 64×64 du pack de personnages : la tuile de sol fait **64×32**, projection 2:1, origine au centre du losange.
+Tout découle des sprites de personnages, en 64×64 : la tuile de sol fait **64×32**, projection 2:1, origine au centre du losange.
 
 Pour un objet couvrant plusieurs tuiles, `largeur = (tx + ty) × 32` et l'emprise au sol `hauteur = (tx + ty) × 16`.
 
@@ -464,6 +512,12 @@ La règle des **24 pixels** est celle qui compte : au-delà, l'objet masque un p
 ### Les trois hauteurs
 
 Chaque tuile porte une hauteur parmi trois : sol, obstacle bas qu'on voit par-dessus, mur plein. C'est ce qui permet de juger la lisibilité d'une salle **avant** de la lancer, et c'est indispensable à l'éditeur en vue de dessus (voir plus bas).
+
+**Les trois se dérivent, et la passabilité décide d'abord** : ce qui se franchit est du sol, ce qui bloque est un obstacle bas jusqu'à 24 pixels et un mur au-delà. L'élévation ne départage donc que ce qui arrête.
+
+L'ordre compte, parce que la vue de dessus sert à voir **où l'on passe**. Une porte ouverte dépasse de 48 pixels et reste un passage — c'est même la seule chose que l'auteur ait besoin d'y lire ; un quai, un trottoir, un rail dépassent du sol et se marchent. Les classer sur leur seule hauteur afficherait des obstacles là où il n'y en a pas, et la lecture topologique ne vaudrait plus rien.
+
+Le rendu, lui, ne lit pas cette catégorie : il a l'élévation et le drapeau de semi-transparence. Une propriété qui servirait aux deux finirait par mal servir les deux.
 
 ### Le tri en profondeur
 
@@ -702,7 +756,7 @@ Ordre de grandeur : une quinzaine de pièces par thème, cinq thèmes, plus six 
 Décision arrêtée. Elle est esthétique — le registre des jeux d'arcade et des isométriques des années 90 — mais elle a trois conséquences pratiques qui pèsent lourd :
 
 - **Les décors manquants deviennent faisables soi-même.** Un rayonnage de supermarché en 64×32, ce n'est pas de l'illustration, c'est de la géométrie et trois teintes. Rayons, caddies, tourniquets, distributeurs : des soirées de travail plutôt qu'une commande.
-- **La taille des sprites reste raisonnable** à 800 entités affichées, ce que du 3D précalculé haute résolution ne permettrait pas.
+- **La taille des sprites reste raisonnable** aux effectifs du chapitre 4 — 150 entités à l'écran en pic —, ce que du 3D précalculé haute résolution ne permettrait pas.
 - **Le mélange de sources devient possible**, à condition de tenir la palette (voir ci-dessous).
 
 Corollaire : la voie du rendu 3D précalculé (modèles Mixamo ou low-poly rendus dans Blender) est écartée. Elle reste notée ici comme option de repli si le bestiaire devait grossir au point que le dessin à la main ne suive plus.
@@ -711,7 +765,7 @@ Corollaire : la voie du rendu 3D précalculé (modèles Mixamo ou low-poly rendu
 
 À poser dès le premier asset, pénibles à corriger ensuite.
 
-**Une palette fermée.** Trente-deux couleurs, pas plus, extraites du pack de personnages retenu et fixées dans un fichier. Tout asset entrant est recoloré dessus. C'est le seul moyen de rendre cohérents des paquets venant d'auteurs différents et ses propres tuiles.
+**Une palette fermée.** Trente-deux couleurs, pas plus, fixées dans `MATIERES` et partagées par tous les générateurs. Tout asset entrant est recoloré dessus. C'est le seul moyen de rendre cohérents des paquets venant d'auteurs différents et ses propres tuiles.
 
 **Aucun filtrage à l'affichage.** Échantillonnage au plus proche voisin, et caméra déplacée en pixels entiers, jamais en flottants. Le scrolling sous-pixel fait scintiller le pixel art : c'est le défaut qui trahit immédiatement un jeu bâclé.
 
@@ -792,9 +846,13 @@ Les mettre ailleurs aurait dupliqué la liste des profils à deux endroits. Un n
 
 Côté **sons** : durée, gain, bouclage, et une **catégorie de mixage** — le joueur doit pouvoir baisser les effets sans toucher à la musique, et l'interface doit rester audible quand tout le reste est baissé.
 
-Côté **objets** : emprise, ce qui bloque, ce qui détruit, ce qui est projeté, ce qui est entendu, et les valeurs de jeu — expérience d'une gemme, soin d'une fiole, dégâts et portée d'un projectile, charges d'une arme lourde. Un bloc `destruction` porte le mode — `contact` pour la caisse, où le délai est la mécanique elle-même, `tir` pour les obstacles —, le nombre de touches, le nom de la ruine, la matière des éclats, les cycles d'appui et de rupture, et les clés de sons. Le moteur ne code donc rien en dur : un futur obstacle se déclare dans une table.
+Côté **objets** : emprise, élévation, catégorie et semi-transparence — les trois mêmes que le décor, et pour la même raison, un rideau de fer culmine à 46 pixels et masque un personnage —, ce qui bloque, ce qui détruit, ce qui est projeté, ce qui est entendu, et les valeurs de jeu — expérience d'une gemme, soin d'une fiole, dégâts et portée d'un projectile, charges d'une arme lourde. Un bloc `destruction` porte le mode — `contact` pour la caisse, où le délai est la mécanique elle-même, `interaction` pour les obstacles fragiles —, le nombre de touches, le nom de la ruine, la matière des éclats, les cycles d'appui et de rupture, et les clés de sons. Le moteur ne code donc rien en dur : un futur obstacle se déclare dans une table.
 
-Le contrôle vérifie la cohérence de ces renvois — une ruine qui n'existe pas, des éclats sans particules générées, un destructible au tir sans nombre de touches, une ruine qui bloque encore, un son introuvable. Ce sont des défauts qui ne se manifestent qu'au moment de la destruction, c'est-à-dire le plus tard possible et souvent chez un joueur.
+Un renvoi de son dit **s'il nomme un fichier ou une famille**. `son` désigne l'un, `famille_sons` une suite de degrés — `gemme_0` à `gemme_7` — que le moteur parcourt en avançant d'un cran à chaque déclenchement rapproché, et qu'il reprend au premier après un silence. Deux clés plutôt qu'une seule à interpréter : sans la distinction, le contrôle ne peut que comparer des préfixes, et accepte alors « gem » et « g » aussi bien que « gemme ».
+
+Le contrôle vérifie la cohérence de ces renvois — une ruine qui n'existe pas, des éclats sans particules générées, un destructible sans nombre de touches, une ruine qui bloque encore, **une ruine qui n'est pas plus basse que son original**, un son introuvable au nom exact, **une famille de sons dont la suite de degrés a un trou**. Ce sont des défauts qui ne se manifestent qu'au moment de la destruction, c'est-à-dire le plus tard possible et souvent chez un joueur.
+
+Deux de ces contrôles ont été écrits après coup, sur des défauts que la liste promettait de couvrir et ne couvrait pas : une vitrine dont la ruine culminait aussi haut que la devanture intacte, et un renvoi de son que la comparaison par préfixe validait par accident. Un contrôle qui passe par accident est pire qu'absent — on se croit couvert.
 
 Sans ces fichiers, une bande de 320 pixels est indéchiffrable — 5 images de 64 ou 4 de 80 ? Avec eux, le code de rendu ne connaît que des profils et des cycles, jamais des noms de fichiers ni des nombres codés en dur. Remplacer plus tard le chien du pack par un sprinteur dessiné à la main avec 6 images se fait en changeant une ligne du manifeste.
 
@@ -961,6 +1019,16 @@ Deux pièges. L'échange à la suppression **casse l'ordre**, donc le tri en pro
 
 Le même modèle sert pour les projectiles, les gemmes, les caisses, les particules et les cadavres.
 
+### Les écrans hors de l'action
+
+Le seul écran décrit jusqu'ici est celui de la mort. Il en faut trois autres — pause, réglages, sortie —, et leur **structure** se décide maintenant parce qu'elle touche la boucle ; leur contenu attend d'avoir quelque chose à régler.
+
+- **Ce qu'une pause fige.** Le compteur de ticks s'arrête, comme pour la montée de niveau : c'est la même règle, et il n'y en a qu'une. Rien ne se sauvegarde à ce moment.
+- **Quand on écrit sur le disque.** À la fin d'une run et à la sortie, jamais pendant. Une écriture au milieu d'une vague est la saccade que tout le reste du document cherche à éviter.
+- **Ce qui persiste.** Déblocages, meilleurs scores par lieu et par graine, réglages, compteur de parties. Rien d'autre : quitter en pleine partie perd la run en cours, et c'est assumé.
+
+Le contenu de l'écran de réglages dépend de ce qu'il y aura à régler, et la moitié n'existe pas encore — les catégories de mixage, oui ; la sensibilité de quoi, la difficulté de quoi, pas encore. Il a donc son étape dans la feuille de route plutôt qu'une place ici : une tâche datée n'est pas une dette, une tâche absente en est une.
+
 ### La persistance
 
 Ce qui survit à une run est peu de chose : les déblocages, les meilleurs scores par lieu et par graine, les réglages, et le compteur de parties. Rien de tout cela n'a besoin d'un moteur de base de données, mais deux raisons peuvent en justifier un — l'historique des scores par graine, qui grossit, et l'habitude déjà prise sur [[jeu-fugitif]].
@@ -987,25 +1055,23 @@ Fait :
 - Les objets et les bruitages, générés et contrôlés au même titre : caisse et ses cycles, gemme, fiole, projectiles, armes lourdes, éclats par matière.
 - Le test de projection : personnages et tuiles s'alignent.
 
-Reste, dans cet ordre :
+Reste, dans l'ordre qu'établit [`../ROADMAP.md`](../ROADMAP.md) — **et cette numérotation-là est la seule**. En tenir une seconde ici avait produit deux « jalons décisifs » qui ne désignaient pas la même chose.
 
-1. **Le noyau nerveux.** Un rectangle qui bouge, 300 rectangles qui le poursuivent via le flow field, un tir automatique. Si ce n'est pas déjà satisfaisant, aucun sprite ne le sauvera. C'est ici que se fige la structure des entités (chapitre 13) : la reprendre plus tard touche tout le code de jeu.
-2. **La boucle mort → relance**, avec une seule arme et un seul type d'ennemi. Se surprendre à enchaîner cinq runs sur ce prototype est la condition pour continuer.
-3. **La salle complète** : vagues, caisses, objectif, porte, build. Jalon décisif — si cette salle donne envie d'être refaite, tout le reste n'est que du contenu.
-4. Les six profils d'ennemis, désormais disponibles en images, et la courbe de pression.
-5. Le système d'armes, de niveaux et de synergies.
-6. L'enchaînement de salles et la signalétique.
-7. L'assemblage des pièces au chargement, les lieux officiels bâtis en pièces.
-8. L'éditeur : pose de pièces, connecteurs, jauges, test en direct.
-9. Le mode tuiles, l'édition de campagne, le partage.
+Deux jalons, et ils ne répondent pas à la même question.
 
-Note de prudence : survivor, roguelite, exploration, ressources et éditeur avec campagne, empilés, font un projet de plusieurs années à une personne. L'ordre ci-dessus est conçu pour que la question « est-ce que c'est amusant ? » soit tranchée à l'étape 3, en quelques semaines, et non après trois ans.
+**Le jalon éliminatoire, à l'étape 3** — la boucle mort → relance, une arme, un profil, une courbe de pression. Il tranche : le déplacement et le tir sont-ils agréables ? Si la réponse est non, rien de ce qui suit ne les rendra bons et on ne continue pas. C'est le seul jalon qui peut tuer le projet, et il arrive tôt pour cette raison. Son critère, écrit au chapitre 2 : si la bascule de puissance n'est pas ressentie avant la minute 9, la courbe est trop lente.
+
+**Le jalon décisif, à l'étape 8** — l'enchaînement de salles, le score, le choix de la porte. Il tranche : a-t-on envie de relancer ? Un oui à l'étape 3 ne le prouvait pas ; seul un enchaînement complet le dit. Celui-là ne peut que valider.
+
+Cinq étapes séparent les deux, ce qui est long sans retour. D'où la sonde de l'étape 4 : une porte et une caisse, assez pour sentir la tension « rester ou partir » bien avant que tout soit écrit.
+
+Note de prudence : survivor, roguelite, exploration, ressources et éditeur avec campagne, empilés, font un projet de plusieurs années à une personne. L'ordre est conçu pour que la question « est-ce agréable ? » soit tranchée en quelques semaines, et « est-ce qu'on y revient ? » en quelques mois — pas après trois ans.
 
 ## 17. Ce qui reste à trancher
 
 - **La rotation des pièces** : quatre variantes de mur dans le tileset, ou aucune rotation et plus de pièces à dessiner. À décider avant de dessiner la moindre tuile.
 - **La taille de la maille des pièces** : 16×16 tuiles est la base proposée, elle conditionne tout le travail d'édition.
-- **La palette définitive** : 32 couleurs extraites du pack de personnages, à reporter dans `MATIERES` pour que décor et sprites deviennent cohérents d'un coup.
+- **La palette définitive** : le plafond de couleurs de `MATIERES`, et les teintes réservées — celle du personnage joueur et celle des projectiles ennemis, qui ne doivent apparaître nulle part ailleurs.
 - **La semi-transparence** des objets hauts quand le joueur passe derrière : le manifeste porte déjà `transparence_si_derriere` sur les vingt-sept formes concernées, reste à décider comment le rendu l'applique — opacité fixe, découpe, ou seulement autour du personnage.
 - **La portée du tir de base**, qui remplace l'angle du cône comme réglage décisif du kiting : trop courte, il faut faire face pour toucher ; trop longue, la horde meurt avant d'être une menace.
 - **Le plafond de dégâts par seconde** et le rapport entre contact ordinaire et charge du Molosse : deux chiffres qui décident si l'encerclement est tendu ou injuste.

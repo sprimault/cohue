@@ -245,10 +245,19 @@ def manifestes(sortie):
             matiere = destruction.get("eclats")
             if matiere and f"eclats_{matiere}" not in contenu:
                 defauts.append((nom, f"éclats « {matiere} » sans particules générées"))
-            if destruction.get("mode") == "tir" and "touches" not in destruction:
-                defauts.append((nom, "destructible au tir sans nombre de touches"))
-            if destruction.get("ruine") and contenu.get(destruction["ruine"], {}).get("bloquant"):
+            if destruction.get("mode") == "interaction" and "touches" not in destruction:
+                defauts.append((nom, "destructible sans nombre de touches"))
+            ruine = contenu.get(destruction.get("ruine") or "", {})
+            if ruine.get("bloquant"):
                 defauts.append((nom, "sa ruine bloque encore : casser n'ouvre rien"))
+            # Une ruine plus haute ou aussi haute que son original signale une
+            # forme cassée qu'on a oublié de raccourcir : elle masquerait encore
+            # un personnage, et rien à l'écran ne dirait que l'obstacle est
+            # tombé. Vrai de toutes les ruines livrées, sauf celle qui a fait
+            # écrire ce contrôle.
+            if ruine and ruine.get("elevation", 0) >= info.get("elevation", 0):
+                defauts.append((nom, f"sa ruine culmine à {ruine['elevation']} px"
+                                     f" contre {info.get('elevation')} : elle n'est pas tombée"))
     return defauts
 
 
@@ -257,6 +266,11 @@ def renvois_de_sons(sortie):
 
     Un renvoi mort ne se voit qu'au moment où l'objet est détruit — c'est-à-dire
     le plus tard possible, et souvent chez un joueur.
+
+    La correspondance est **exacte**. Une comparaison par préfixe passerait sur
+    « gem » et sur « g » aussi bien que sur « gemme » : elle ne couvrirait pas,
+    elle en donnerait l'air. Ce qui désigne une suite de degrés le déclare avec
+    sa propre clé, et se vérifie autrement.
     """
     catalogue = sortie / "sons" / "manifeste.json"
     if not catalogue.exists():
@@ -270,9 +284,29 @@ def renvois_de_sons(sortie):
             attendus = [info.get("son")] + [info.get("destruction", {}).get(cle)
                                             for cle in ("son_appui", "son_rupture")]
             for cle in filter(None, attendus):
-                if cle not in sons and not any(s.startswith(cle) for s in sons):
+                if cle not in sons:
                     defauts.append((nom, f"son « {cle} » introuvable"))
+
+            famille = info.get("famille_sons")
+            if famille:
+                defauts += _famille_de_sons(nom, famille, sons)
     return defauts
+
+
+def _famille_de_sons(nom, famille, sons):
+    """Exige qu'une famille soit une suite de degrés complète, à partir de zéro.
+
+    Le moteur avance d'un degré à chaque déclenchement rapproché et repart du
+    premier après un silence : un trou dans la suite se traduirait par un
+    silence au milieu d'une volée, ce qui s'entend et ne se diagnostique pas.
+    """
+    degres = sorted(int(s.rsplit("_", 1)[1]) for s in sons
+                    if s.startswith(f"{famille}_") and s.rsplit("_", 1)[1].isdigit())
+    if len(degres) < 2:
+        return [(nom, f"famille « {famille} » : {len(degres)} degré(s), il en faut au moins deux")]
+    if degres != list(range(len(degres))):
+        return [(nom, f"famille « {famille} » : degrés {degres}, suite incomplète")]
+    return []
 
 
 # Les planches de contrôle et les aperçus sont régénérés mais pas versionnés :

@@ -601,12 +601,14 @@ def main():
     a = argparse.ArgumentParser(description=__doc__)
     a.add_argument("--sortie", type=Path, default=Path("assets/personnages"))
     a.add_argument("--apercu", action="store_true")
+    # Voir `decor_iso.py` : ce qui sert à relire ne va pas dans ce qui est livré.
+    a.add_argument("--controles", default=Path(".tmp/controle"), type=Path)
     o = a.parse_args()
 
     if o.apercu:
-        o.sortie.mkdir(parents=True, exist_ok=True)
+        o.controles.mkdir(parents=True, exist_ok=True)
         for profil in PROFILS:
-            apercu(profil).save(o.sortie / f"apercu_{profil}.png")
+            apercu(profil).save(o.controles / f"apercu_{profil}.png")
             print("aperçu:", profil)
         return
 

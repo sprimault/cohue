@@ -590,6 +590,10 @@ def main():
     analyseur.add_argument("formes", nargs="*")
     analyseur.add_argument("--theme", choices=sorted(THEMES))
     analyseur.add_argument("--sortie", default="assets", type=Path)
+    # Hors de `--sortie` : ce qui est livré et ce qui sert à relire ne se mêlent
+    # pas. `assets/` part dans le binaire par `go:embed`, qui ne sait pas
+    # exclure, et une planche oubliée là s'y retrouverait.
+    analyseur.add_argument("--controles", default=Path(".tmp/controle"), type=Path)
     analyseur.add_argument("--liste", action="store_true")
     options = analyseur.parse_args()
 
@@ -663,13 +667,14 @@ def main():
                       "tuile": [LARGEUR_TUILE, LARGEUR_TUILE // 2],
                       "formes": manifeste})
 
+    options.controles.mkdir(parents=True, exist_ok=True)
     for theme, formes in THEMES.items():
         lot = [produites[n] for n in sorted(formes) if n in produites]
         if lot:
-            planche(lot).save(options.sortie / f"controle_{theme}.png")
+            planche(lot).save(options.controles / f"controle_{theme}.png")
 
     if "sol" in produites:
-        carrelage(produites["sol"]).save(options.sortie / "controle_carrelage.png")
+        carrelage(produites["sol"]).save(options.controles / "controle_carrelage.png")
 
 
 if __name__ == "__main__":

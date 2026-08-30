@@ -144,8 +144,6 @@ def controler(sortie, pentes=False):
     grilles = _cotes_de_grille(sortie)
 
     for chemin in sorted(sortie.rglob("*.png")):
-        if chemin.name.startswith(("controle_", "apercu_", "palette")):
-            continue
         image = Image.open(chemin).convert("RGBA")
         pixels = np.asarray(image)
         masque = pixels[:, :, 3] > 0
@@ -384,17 +382,6 @@ def _famille_de_sons(nom, famille, sons):
     return []
 
 
-# Les planches de contrôle et les aperçus sont régénérés mais pas versionnés :
-# `.gitignore` les exclut parce qu'ils se refont à volonté. Les comparer ferait
-# échouer tout clone frais, où ils n'existent pas encore.
-NON_VERSIONNE = ("controle_", "apercu_")
-
-
-def _versionne(chemin):
-    """Dit si ce fichier a vocation à être dans le dépôt."""
-    return not chemin.name.startswith(NON_VERSIONNE)
-
-
 def _engendre(chemin):
     """Dit si ce chemin relève d'un dossier qu'un générateur écrit.
 
@@ -445,9 +432,9 @@ def _ecart(reference, produit):
 def comparer(reference, produit):
     """Liste les fichiers qui diffèrent entre le dépôt et une régénération."""
     ecarts = []
-    attendus = {r for p in produit.rglob("*") if p.is_file() and _versionne(p)
+    attendus = {r for p in produit.rglob("*") if p.is_file()
                 for r in [p.relative_to(produit)] if _engendre(r)}
-    presents = {r for p in reference.rglob("*") if p.is_file() and _versionne(p)
+    presents = {r for p in reference.rglob("*") if p.is_file()
                 for r in [p.relative_to(reference)] if _engendre(r)}
 
     for manquant in sorted(attendus - presents):

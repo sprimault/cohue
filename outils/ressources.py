@@ -286,6 +286,22 @@ def _versionne(chemin):
     return not chemin.name.startswith(NON_VERSIONNE)
 
 
+def _engendre(chemin):
+    """Dit si ce chemin relève d'un dossier qu'un générateur écrit.
+
+    Le périmètre vient de la table des générateurs et non d'une liste de noms à
+    tenir : tout `assets/` n'est pas généré — la table d'armes, que l'on règle à
+    la main pendant l'équilibrage, ne l'est pas — et un dossier tenu à la main ne
+    doit être ni comparé, ni signalé comme n'étant plus produit.
+
+    Le dossier et non le fichier : à l'intérieur d'un dossier généré, un fichier
+    que plus rien ne produit reste une anomalie. Une forme retirée d'un script
+    laisserait sinon son image versionnée, elle partirait dans le binaire par
+    `go:embed`, et personne ne la verrait.
+    """
+    return bool(chemin.parts) and chemin.parts[0] in {d for _, _, d in GENERATEURS}
+
+
 def _meme_dessin(reference, produit):
     """Dit si deux images portent les mêmes pixels, quels que soient leurs octets.
 
@@ -320,10 +336,10 @@ def _ecart(reference, produit):
 def comparer(reference, produit):
     """Liste les fichiers qui diffèrent entre le dépôt et une régénération."""
     ecarts = []
-    attendus = {p.relative_to(produit) for p in produit.rglob("*")
-                if p.is_file() and _versionne(p)}
-    presents = {p.relative_to(reference) for p in reference.rglob("*")
-                if p.is_file() and _versionne(p)}
+    attendus = {r for p in produit.rglob("*") if p.is_file() and _versionne(p)
+                for r in [p.relative_to(produit)] if _engendre(r)}
+    presents = {r for p in reference.rglob("*") if p.is_file() and _versionne(p)
+                for r in [p.relative_to(reference)] if _engendre(r)}
 
     for manquant in sorted(attendus - presents):
         ecarts.append((manquant, "absent du dépôt"))

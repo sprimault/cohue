@@ -165,6 +165,10 @@ Vingt Badauds qui poussent un Vigile contre une cloison ne le font donc pas pass
 
 Corollaire à assumer : **les entités se chevauchent** quand la place manque. Il n'y a pas de collision dure entre ennemis, seulement la répulsion douce du gradient de densité. Résoudre les chevauchements par un décalage géométrique produirait des tremblements en chaîne dans une foule dense, et pousserait mécaniquement les créatures du bord dans les murs — exactement ce qu'on vient d'interdire.
 
+**Le joueur traverse la horde, sauf le Vigile.** C'est la seule exception, et elle lui donne ce que le tableau des rôles lui promet : un corps qui bouche un couloir, et pas seulement une résistance qui met du temps à tomber. S'il ne traversait rien, une foule dense le figerait et la mort deviendrait illisible ; s'il traversait tout, l'encerclement ne serait qu'un mur de dégâts et le bloqueur n'aurait plus de rôle.
+
+Le blocage ne peut pas devenir un piège, parce que le corps solide ne l'est que vivant : un joueur pris entre un Vigile et un mur tire nécessairement dessus — c'est le plus proche, et la visée est omnidirectionnelle. Douze touches, c'est long et c'est fini. À éprouver au jalon 3 : si cette situation se lit comme une mort injuste, c'est l'exception qui tombe, pas le plafond de dégâts.
+
 ### Le recyclage de la traîne
 
 Dès lors que le joueur progresse vers une sortie, les ennemis restés derrière ne servent plus à rien. Au-delà d'une distance seuil, l'entité est retirée du pool et réapparaît devant. Sans ça, la traîne grossit et le frame time avec.
@@ -205,7 +209,11 @@ Résistance et points de chaque profil : chapitre 6.
 - **Le Vigile** : lent, encaissant, il bouche les goulots. Dans un couloir de supermarché, il transforme une route de fuite en piège.
 - **La Baudruche** : explose en mourant. Sa silhouette disproportionnée dit « ne t'approche pas » avant même que le télégraphe ne s'allume. Elle punit le nettoyage à l'aveugle en mêlée.
 
-Six profils suffisent pour tout le jeu. Ce sont des données, pas du code : une structure `EnemyProfile` avec nom, vitesse, résistance en touches, points, poids de séparation, tangentiel, portée, taille de groupe, comportement spécial. Le reste est du mixage de vagues.
+Six profils suffisent pour tout le jeu. Ce sont des données, pas du code : une structure `EnemyProfile` avec nom, vitesse, résistance en touches, points, **coût de pression**, poids de séparation, tangentiel, portée, taille de groupe, comportement spécial. Le reste est du mixage de vagues.
+
+Le **coût de pression** est ce que le spawner dépense pour acheter la créature ; les **points** sont ce que le joueur gagne en la tuant. Deux monnaies sans rapport, que le mot « points » a d'abord désignées toutes les deux à cinquante lignes d'écart. Le mot reste au joueur, qui le voit à l'écran.
+
+Ces valeurs vivent dans `assets/personnages/manifeste.json`, avec le rendu : les mettre ailleurs dupliquerait la liste des profils à deux endroits.
 
 ### Le scénario de vagues : un budget, pas des compteurs
 
@@ -315,7 +323,11 @@ Ce délai a ses propres images : un cycle d'appui qui boucle tant que le joueur 
 
 Le contenu est **visible avant la casse** — icône flottante ou liseré coloré. Sinon le joueur casse tout systématiquement et ce n'est plus un choix, c'est une corvée.
 
-Contrainte technique : une caisse est **bloquante dans le flow field**, sinon les ennemis la traversent alors que le joueur non. Sa destruction déclenche un rafraîchissement local du champ, pas un BFS complet. Cas de jeu à préserver : un joueur acculé peut se dégager en cassant une caisse, à condition que le délai reste court.
+Contrainte technique : **la passabilité n'est pas un booléen, c'est un coût par case.** Une caisse ne bloque pas et ne se franchit pas librement : elle coûte cher à traverser, ce qui est exactement le ralentissement décrit plus haut. Un mur, lui, a un coût infini.
+
+C'est ce qui fait tenir ensemble les trois règles de la caisse, qu'un booléen rendait contradictoires — on ne ralentit pas ce qui est arrêté, et un joueur acculé ne se dégage pas à travers ce qui bloque. Et ce que la conception veut par ailleurs devient gratuit : la flaque, le sol sale et le sol fissuré ralentissent ce qui les traverse sans qu'aucun mécanisme nouveau soit écrit, et un profil pourra ignorer un coût que le joueur paie.
+
+Le champ de flux devient donc un parcours pondéré. **Un tri par seaux, pas un tas** : les coûts sont trois ou quatre valeurs entières, ce qui ramène le calcul au même temps linéaire qu'un parcours en largeur ordinaire — un Dijkstra général se paierait pour une variété de coûts qui n'existe pas ici. La destruction d'une caisse déclenche un rafraîchissement local, pas un recalcul complet.
 
 ### Les obstacles destructibles
 
@@ -330,7 +342,9 @@ En revanche, l'auteur d'un niveau peut poser des **obstacles fragiles**, prévus
 | cloison de placo | 8 | une réserve, un mur qui n'en était pas un |
 | rideau de fer | 20 | une vraie décision : vingt touches sous la horde |
 
-Ils se cassent **au tir**, contrairement à la caisse qui cède au contact — casser un mur en s'appuyant dessus n'aurait aucun sens, et cela permet de les distinguer d'un coup d'œil dans le jeu comme dans le code.
+Ils se cassent **sur une touche d'interaction**, en se tenant contre eux, et jamais sous le tir de base — qui ne cible que des ennemis et ne saurait pas distinguer un rideau de fer d'une créature.
+
+Ce qui les sépare de la caisse n'est donc pas la nature du dégât mais le geste : la caisse cède à l'appui, en la traversant, et n'interrompt pas la course ; un destructible demande de s'arrêter et d'appuyer. C'est ce qui donne son prix aux vingt touches du rideau de fer — vingt touches immobile sous la horde, contre un tiers de seconde de ralentissement pour une caisse. Les armes lourdes, elles, emportent ce qui se trouve dans leur zone, destructibles compris : c'est un usage de plus pour une charge, et une raison d'en garder une.
 
 Deux conséquences reprises de la caisse : ils sont bloquants dans le champ de flux tant qu'ils tiennent, et leur destruction déclenche un rafraîchissement local du champ, pas un BFS complet. Chacun laisse une ruine basse, franchissable, qui garde la trace de ce qui a été ouvert.
 
@@ -378,13 +392,13 @@ L'évolution se fait **en nombre plutôt qu'en nature** : un projectile qui devi
 
 ### La visée
 
-Le tir de base est **automatique**, et il vise **le plus proche dans un cône devant**, autour de la direction de visée. Angle à caler entre 90 et 120 degrés : plus étroit, le joueur corrige son orientation au lieu de fuir ; plus large, on retombe sur « le plus proche » et le choix perd son sens.
+Le tir de base est **automatique** et vise **le plus proche, dans toutes les directions**. Il n'y a pas de cône, et rien ne retient le tir : s'il existe une cible à portée, ça part.
 
-**Cône vide, pas de tir.** Jamais de repli sur une cible derrière : c'est ce qui rend le comportement lisible — on comprend pourquoi ça ne part pas.
+Un cône avant a d'abord été retenu, avec la règle « cône vide, pas de tir ». Les deux sont abandonnés, et pas au vu d'une mesure : le conflit est logique et aucune partie ne l'aurait tranché autrement. Le chapitre 1 pose que le joueur ne contrôle que son déplacement, le chapitre 4 que tout son jeu est du kiting — et kiter, c'est avoir la horde derrière soi. Un cône avant ferait donc de la fuite un moment sans dégâts, et le seul moyen de tirer serait de cesser de fuir. Aucun angle ne répare ça.
 
-Le sprite s'oriente donc sur la **visée**, pas sur le déplacement. Les 8 directions étant fournies, reculer en tirant vers l'avant se lit immédiatement.
+Ce que le cône apportait vraiment était visuel, et se garde sans lui : **le sprite s'oriente sur la cible**, pas sur le déplacement. Les 8 directions étant fournies, reculer en tirant vers l'avant se lit immédiatement. Sans cible à portée, il s'oriente sur le déplacement — un personnage figé dans une direction morte se lirait comme un défaut.
 
-Contrainte : les projectiles ne ciblent **jamais** le mobilier. Si l'auto-visée choisit une caisse plutôt qu'un sprinteur qui charge, le joueur meurt sans comprendre.
+Contrainte : les projectiles ne ciblent **jamais** le mobilier. Si l'auto-visée choisit une caisse plutôt qu'un sprinteur qui charge, le joueur meurt sans comprendre. C'est aussi pourquoi les obstacles destructibles ne se cassent pas au tir de base — voir le chapitre 7.
 
 ### Armement de base infini, armes lourdes à charges
 
@@ -409,6 +423,10 @@ Variante si les consommables gênent l'équilibrage : de la surchauffe plutôt q
 
 Les valeurs — dégâts, cadences, portées, coût des passifs — ne se conçoivent pas sur le papier : elles tiennent au ressenti et seront jetées au premier essai. Elles se fixent à partir du jalon 3, une fois la boucle jouable, et vivent dans une table de données, pas dans le document.
 
+Cette table est **`assets/armes/manifeste.json`, tenu à la main** — le seul de `assets/` qui ne sorte pas d'un générateur. C'est délibéré : c'est le fichier qu'on rouvrira le plus souvent pendant l'équilibrage, et le loger dans un manifeste généré ferait passer chaque réglage de cadence par un script Python, donc par une régénération de six cents images pour changer un chiffre. La boucle courte compte davantage ici que l'uniformité.
+
+Il porte dès l'étape 1 ce que le tir automatique réclame : cadence, portée, dégâts, nombre de projectiles. Sans lui, ces valeurs deviennent des constantes Go et l'invariant des données tombe à la première ligne écrite.
+
 Une option reste ouverte si le tir manuel manque au jalon 3 : garder l'automatique et ajouter un **tir d'appoint** sur touche, avec temps de recharge. Le joueur passif ne perd rien, le joueur actif gagne un peu.
 
 ---
@@ -426,6 +444,8 @@ Dans tous les cas : orienter le sprite sur la direction de **visée**, pas de d�
 Tout découle des sprites de 64×64 du pack de personnages : la tuile de sol fait **64×32**, projection 2:1, origine au centre du losange.
 
 Pour un objet couvrant plusieurs tuiles, `largeur = (tx + ty) × 32` et l'emprise au sol `hauteur = (tx + ty) × 16`.
+
+Ce sont là des tailles d'image, donc des pixels, et elles n'appartiennent qu'au rendu. La simulation, elle, ne connaît que la tuile — voir « Les repères » au chapitre 15.
 
 | Élément | Taille image | Élévation au-dessus du sol |
 |---|---|---|
@@ -451,6 +471,8 @@ Le rendu iso a besoin d'un tri par `Y` écran : un tri par compartiments, pas un
 **À égalité, la clé doit être totale et stable.** Deux entités sur la même case sont départagées par leur `X` écran, puis par leur identifiant — index et génération. Sans ce dernier critère, l'ordre dépend du parcours du bassin, qui change à chaque suppression par échange : deux sprites superposés se relaieraient au premier plan d'une image à l'autre, et le scintillement se voit immédiatement.
 
 **Le joueur passe devant tout ce qui partage sa profondeur.** C'est une exception assumée à la règle de tri : perdre son personnage sous un empilement d'ennemis est la pire chose qui puisse arriver à la lisibilité, et cela survient précisément au moment où l'on est encerclé, c'est-à-dire quand il faut voir clair.
+
+**Les cadavres passent sous tout ce qui est vivant**, à profondeur égale. C'est l'exception symétrique, et pour la même raison : en fin de run, un tapis de cadavres finirait par masquer la horde qui arrive.
 
 ### La caméra
 
@@ -758,7 +780,11 @@ Chaque manifeste porte un **en-tête** : `version_format`, et pour le décor la 
 
 Côté **décor** : taille, ancrage, élévation, catégorie, thème, et trois champs qui commandent le moteur — `bloquant`, dont le chargeur tire la grille de passabilité, `emprise` en tuiles, sans laquelle une gondole de deux tuiles n'en bloquerait qu'une, et `transparence_si_derriere` pour ce qui dépasse 24 pixels. Aucun des deux ne se devine : un trottoir et un quai dépassent du sol et se marchent, une flaque est plate et se traverse, alors qu'un muret de même hauteur qu'un trottoir arrête tout.
 
-Côté **personnages** : le rendu — cycles, cadences, bouclage, directions, point d'appui, gabarit, variantes — **et les valeurs de jeu**, dans le même fichier. Vitesse rapportée à celle du joueur, résistance en touches, points, dégâts de contact par seconde, rayon de collision, et ce qui est propre à un profil : tangentiel du flanqueur, portée de la Buse, dégâts de charge du Molosse, rayon d'explosion de la Baudruche.
+Côté **personnages** : le rendu — cycles, cadences, bouclage, directions, point d'appui, gabarit, variantes — **et les valeurs de jeu**, dans le même fichier. Vitesse rapportée à celle du joueur, résistance en touches, points, coût de pression, poids de séparation, comportement, dégâts de contact par seconde, rayon de collision, et ce qui est propre à un profil : tangentiel du flanqueur, portée de la Buse, dégâts de charge du Molosse, rayon d'explosion de la Baudruche.
+
+Le profil `joueur` porte en plus la seule **vitesse absolue** du jeu, en tuiles par seconde : les huit autres s'y rapportent, et sans elle aucun des deux termes du rapport n'est exprimable.
+
+Côté **armes** : `assets/armes/manifeste.json`, tenu à la main et non généré — cadence, portée, dégâts, nombre de projectiles, puis la table des passifs et les recettes de fusion. C'est la seule exception de `assets/`, et le chapitre 9 dit pourquoi.
 
 Les mettre ailleurs aurait dupliqué la liste des profils à deux endroits. Un nouveau profil reste une ligne de table.
 
@@ -816,6 +842,81 @@ Deux manques à connaître d'avance. **Ebitengine ne fournit aucune interface** 
 
 L'alternative sérieuse serait Godot, qui donnerait tilemap isométrique et interface gratuitement — mais l'éditeur voulu ici est intégré au jeu, avec test en direct, donc l'avantage fond et il faudrait apprendre un moteur entier au lieu d'un langage.
 
+### Le temps
+
+**Soixante pas par seconde, fixes, jamais réglables.** Ebitengine appelle la mise à jour à cadence constante et rattrape un retard en l'appelant plusieurs fois d'affilée ; la simulation n'a donc jamais à connaître le temps écoulé. Le tick est l'unité de temps unique d'`internal/game`, qui **n'accepte aucun delta** : une fonction de mise à jour qui prendrait une durée en paramètre est un défaut, pas une souplesse.
+
+Toute durée écrite dans un manifeste — les cadences d'animation, le tiers de seconde d'appui sur une caisse, le télégraphe du Molosse — est en millisecondes, et se convertit en ticks **une seule fois au chargement**, par arrondi au plus proche. Convertir à l'usage rouvrirait la question à chaque appel : à 60 Hz, 330 ms valent 19,8 pas, et la caisse céderait au 19e ou au 20e selon qui écrit le code.
+
+**Une durée sous le pas est refusée, jamais relevée à un tick.** La relever produirait un fichier qui ment : quelqu'un écrirait 8 ms en croyant obtenir du 125 Hz et obtiendrait du 60, sans que rien ne le dise. Le refus est tenable ici parce que ces fichiers ne sont saisis par personne — ils sortent des générateurs, donc une telle valeur est un défaut dans un script, pas une intention d'auteur. Le contrôle est aux deux bouts : le générateur refuse de l'écrire, le chargeur refuse de la lire. Le premier la montre à sa source, le second protège du fichier retouché à la main.
+
+Un seul compteur de ticks porte la partie. Il n'avance ni pendant la pause de la montée de niveau, ni pendant le gel d'impact des gros coups — sans quoi le scénario de vagues, l'objectif de survie et le bonus de temps du chapitre 6 mesureraient trois choses différentes. Le temps réel n'entre jamais dans la simulation, ce qui se vérifie simplement : `internal/game` n'importe pas `time`.
+
+### Les repères
+
+**La tuile est le repère du monde, et le seul.** Le pixel n'existe que dans `internal/render` ; l'élévation est une troisième grandeur qui ne participe à aucun calcul de simulation. Une distance de jeu se mesure dans le plan du sol et jamais à l'écran, sinon un rayon exprimé en pixels décrit une ellipse et deux Badauds se touchent à une distance différente selon qu'ils sont alignés est-ouest ou nord-sud.
+
+**Les positions sont en virgule fixe entière, une tuile valant 65536.** Pas des flottants : la spécification Go autorise une implémentation à fusionner une multiplication et une addition en une seule opération arrondie une fois, et arm64 le fait là où amd64 ne le fait pas. Deux binaires publiés divergeraient sur la même graine, ce qui viderait l'invariant du déterminisme de sa substance — et avec lui le classement par graine, la graine du jour et le partage d'un défi, que le chapitre 6 promet tous les trois.
+
+Trois règles font tenir le procédé :
+
+- **Un type fermé, jamais un alias.** `type Fixed int32` avec ses opérations en méthodes, pas `type Fixed = int32` sur lequel `a * b` compilerait sans rien dire. La remise à l'échelle après produit est la seule vraie source d'erreur du procédé ; le seul garde-fou est que le compilateur refuse la multiplication nue.
+- **Les produits passent par `int64`** avant remise à l'échelle. Deux valeurs d'une tuile tiennent dans un `int32`, leur produit non.
+- **L'arrondi est au plus proche**, en ajoutant la demi-échelle avant le décalage. L'échelle étant une puissance de deux, la remise à l'échelle est un décalage arithmétique, qui arrondit vers l'infini négatif : sans cette correction, chaque opération biaise d'une demi-unité toujours dans le même sens, ce qui fait de l'ordre de quatre dixièmes de tuile de dérive sur une run de quinze minutes. Le rejeu resterait déterministe, et faux.
+
+**La frontière s'arrête à `internal/game`.** Le rendu convertit en pixels et calcule ce qu'il veut en flottants — interpolations, lissage de caméra, paraboles d'éclats — puisque rien de ce qu'il produit ne revient dans la simulation. Sans cette ligne, la verbosité de la virgule fixe contaminerait tout le projet pour un déterminisme dont le rendu n'a que faire.
+
+Corollaire sur la normalisation : le champ de flux stocke des vecteurs **déjà normalisés**, calculés une fois par rafraîchissement et non par entité et par image. `math.Sqrt` reste utilisable ailleurs — c'est l'une des rares opérations dont l'IEEE-754 exige l'arrondi correct, donc elle est portable —, à condition d'arrondir son résultat au plus proche plutôt que de le tronquer : une troncature raccourcit toujours, et les diagonales deviendraient plus lentes que les axes.
+
+**L'invariant se vérifie, il ne se surveille pas.** Un test joue une graine sur un nombre de ticks fixé et compare l'empreinte de l'état — positions, vies, générations et état de chaque flux, parcourus dans l'ordre des index du bassin — à un attendu versionné. Il tourne sur les trois cibles natives de l'intégration continue, dont deux arm64. L'empreinte porte sur l'état et non sur un résumé : un compte d'ennemis vivants passerait au vert alors que deux trajectoires ont divergé puis se sont recroisées, ce qui est précisément le cas qu'on cherche. Sa mise à jour passe par `-maj-attendus`, jamais automatiquement.
+
+### L'aléatoire
+
+Une graine par partie, et **quatre flux nommés** qui en dérivent : `vagues`, `positions`, `butin`, `cosmetique`. Nommés par leur usage et jamais par leur rang — un flux qu'on désigne par son numéro finit par changer de sens.
+
+Un flux unique suffirait à rejouer une partie jouée, et casserait le test qui compte : une run simulée **sans rendu** ne tire pas les teintes de vêtement, et chaque tirage manquant décale tous les suivants. Les vagues d'une run simulée cesseraient de correspondre à celles de la même graine jouée à l'écran — c'est-à-dire que l'outil d'équilibrage mesurerait autre chose que le jeu.
+
+Le tirage cosmétique a donc lieu **dans la simulation**, à l'apparition, comme les autres. Le sortir vers le rendu paraîtrait plus propre et serait pire : une partie rejouée depuis son journal ne retrouverait pas les mêmes vêtements, et un rejeu visuellement infidèle est plus trompeur qu'un rejeu qui diverge, puisqu'il a l'air juste.
+
+Ce qui est interdit n'est pas le flux, c'est **qu'une décision lise ce qu'il alimente**. Et cela se vérifie plutôt que de se surveiller : deux runs sur la même graine, teintes forcées différentes, doivent rendre la même empreinte de simulation.
+
+L'algorithme est **PCG**, celui de `math/rand/v2`. Il est spécifié, stable d'une version de Go à l'autre, et le changer invaliderait toutes les graines publiées — donc il se choisit maintenant. Le générateur global reste proscrit, l'invariant 4 le dit déjà.
+
+### L'ordre de mise à jour
+
+Il n'y a pas de bon ordre, il y a un ordre écrit une fois. Dans un tick :
+
+1. les entrées ;
+2. les apparitions ;
+3. le champ de flux, si c'est son tick ;
+4. la grille de densité ;
+5. les intentions de déplacement ;
+6. la projection sur la passabilité ;
+7. les contacts et les dégâts ;
+8. les suppressions.
+
+Les apparitions avant la densité, et c'est ce qui commande leur place : le champ de flux ne dépend que du joueur et des obstacles, une créature apparue après son calcul n'y perd rien. La densité, elle, dépend des ennemis — deux créatures apparues au même endroit se superposeraient exactement le temps d'une image, et personne ne retrouverait jamais l'origine de ce scintillement.
+
+La suppression par échange remonte la dernière entité active à l'index libéré. Cet index **n'est pas réexaminé dans la même image** : l'entité remontée attend le tick suivant. Sans cette règle, elle serait mise à jour deux fois ou zéro selon le sens du parcours, et le déterminisme dépendrait d'un détail d'écriture.
+
+### La mort est un état, pas un événement
+
+Une résistance tombée à zéro **est** la mort : pas de drapeau à côté, rien à synchroniser, et savoir si une entité est une cible valide reste une lecture.
+
+Ce qui se déclenche une fois est la **transition** — l'endroit qui applique les dégâts constate que la résistance était positive et ne l'est plus. Trois conséquences en partent, au même point : le butin, les points, et l'émission du cadavre. Les rattacher à l'état plutôt qu'à la transition les ferait repartir à chaque passage, et une Baudruche exploserait autant de fois qu'un projectile la traverse.
+
+L'entité morte reste en place jusqu'à la fin du tick, pour que les index tiennent, mais **cesse d'être une cible** : un projectile traité plus tard dans la même passe l'ignore et va chercher derrière. C'est ce qui empêche deux projectiles de tuer le même ennemi sans rien devoir à l'ordre des étapes.
+
+**Un cadavre n'est pas un ennemi mort, c'est une autre nature de chose** — une position, un cycle, une durée, et rien d'autre. Il ne pense pas, ne bloque pas, ne compte dans aucune densité et n'est jamais visé. Il a donc son bassin, comme les particules et pour la même raison : un type qui signifierait deux choses selon un drapeau obligerait chaque boucle écrite ensuite à demander « est-il mort ? », et l'oubli se paierait dans une boucle qui n'existe pas encore.
+
+Trois règles le tiennent :
+
+- **Il partage la clé de tri en profondeur des autres entités, et passe sous tout ce qui est vivant** à profondeur égale. Sans cela, un tapis de cadavres finit par masquer la horde en fin de run — ce que le chapitre 2 interdit.
+- **Son bassin est borné comme les autres.** Plein, le plus ancien cède sa place plutôt que d'allouer. À vingt morts par seconde en pic, c'est le cas ordinaire et non une erreur : un cadavre disparaît un peu tôt au milieu d'une mêlée, ce qui ne se voit pas, et le budget d'allocation ne bouge pas d'un pic à l'autre.
+- **Il porte la teinte de variante de l'ennemi dont il vient**, sinon un Badaud bleu laisse un cadavre vert et cela se remarque immédiatement.
+
+Le bassin de cadavres est donc entièrement cosmétique : il n'entre pas dans l'empreinte d'état, et ne consommant aucun tirage, une run simulée sans rendu peut ne pas l'alimenter.
+
 ### La structure des entités
 
 À trancher au premier jalon, pas après.
@@ -856,7 +957,7 @@ for i := range p.enemies[:p.active] {
 
 Deux pièges. L'échange à la suppression **casse l'ordre**, donc le tri en profondeur travaille sur une slice d'indices réutilisée avec `indices = indices[:0]`, jamais sur le bassin lui-même. Et le passage en tableaux séparés par champ n'est à envisager que si le profileur le réclame : pénible à écrire, sans gain mesurable à ce volume.
 
-Le même modèle sert pour les projectiles, les gemmes, les caisses et les particules.
+Le même modèle sert pour les projectiles, les gemmes, les caisses, les particules et les cadavres.
 
 ### La persistance
 
@@ -904,7 +1005,7 @@ Note de prudence : survivor, roguelite, exploration, ressources et éditeur avec
 - **La taille de la maille des pièces** : 16×16 tuiles est la base proposée, elle conditionne tout le travail d'édition.
 - **La palette définitive** : 32 couleurs extraites du pack de personnages, à reporter dans `MATIERES` pour que décor et sprites deviennent cohérents d'un coup.
 - **La semi-transparence** des objets hauts quand le joueur passe derrière : le manifeste porte déjà `transparence_si_derriere` sur les vingt-sept formes concernées, reste à décider comment le rendu l'applique — opacité fixe, découpe, ou seulement autour du personnage.
-- **L'angle du cône de visée**, entre 90 et 120 degrés : à régler en jouant, c'est lui qui décide si le kiting est agréable.
+- **La portée du tir de base**, qui remplace l'angle du cône comme réglage décisif du kiting : trop courte, il faut faire face pour toucher ; trop longue, la horde meurt avant d'être une menace.
 - **Le plafond de dégâts par seconde** et le rapport entre contact ordinaire et charge du Molosse : deux chiffres qui décident si l'encerclement est tendu ou injuste.
 - **La vitesse du joueur rapportée à celle des profils** : à 60 % de sa vitesse un Badaud ne rattrape jamais, à 90 % la fuite ne suffit plus. Tout le kiting tient dans ce rapport, et il se règle en jouant.
 - **La portée de ramassage des gemmes** : c'est elle qui rend l'aimant nécessaire ou décoratif.
@@ -913,5 +1014,7 @@ Note de prudence : survivor, roguelite, exploration, ressources et éditeur avec
 - **La bibliothèque d'interface pour l'éditeur** : `ebitenui` ou tout dessiner à la main. À évaluer avant le chantier de l'éditeur, pas pendant.
 
 Tranché en cours de route : aucun asset importable dans le contenu utilisateur, et mode tuiles différé après la première version de l'éditeur.
+
+Tranché avant d'écrire la première ligne d'`internal/game`, parce que ce sont les décisions que reprendre plus tard toucherait tout le code de jeu : le pas de simulation et la conversion des durées, la tuile en virgule fixe comme repère unique, les quatre flux aléatoires et leur algorithme, la visée omnidirectionnelle sans cône, la passabilité par coût plutôt que par booléen, le Vigile comme seul corps que le joueur ne traverse pas, le domicile de la table d'armes, et l'ordre de mise à jour dans une image.
 
 Tranché par le générateur : la catégorie n'est pas saisie, elle est **dérivée de l'élévation** — `PLAFOND_OBSTACLE_BAS` vaut 24, au-delà la forme est `haut` et porte `transparence_si_derriere`. Un obstacle bas trop haut est donc impossible à produire, plutôt que refusé après coup. Le distributeur de billets, l'abribus et les véhicules sont `haut` au même titre que les murs : il n'y a rien à baisser.

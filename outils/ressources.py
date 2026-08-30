@@ -276,6 +276,33 @@ def profils(sortie):
     return defauts
 
 
+def formes(sortie):
+    """Vérifie que le coût de traversée est déclaré là, et seulement là, où il est lu.
+
+    Exigé sur ce qui se franchit, refusé sur ce qui bloque. Un champ facultatif
+    dans un seul sens laisserait un `cout_traversee` orphelin sur un mur, jamais
+    lu, qui ferait croire à un réglage — et `bloquant` avec un coût fini est un
+    état que le format ne doit pas savoir exprimer.
+    """
+    chemin = sortie / "decors" / "manifeste.json"
+    if not chemin.exists():
+        return []
+
+    defauts = []
+    for nom, info in _entrees(chemin).items():
+        cout = info.get("cout_traversee")
+        if info.get("bloquant"):
+            if cout is not None:
+                defauts.append((nom, "bloquant et pourtant un cout_traversee"))
+        elif cout is None:
+            defauts.append((nom, "franchissable sans cout_traversee"))
+        # `isinstance(True, int)` est vrai : sans l'exclusion, un `true` recopié
+        # de la ligne `bloquant` juste au-dessus passerait pour un coût de 1.
+        elif isinstance(cout, bool) or not isinstance(cout, int) or cout < 1:
+            defauts.append((nom, f"cout_traversee « {cout} » : entier supérieur à zéro attendu"))
+    return defauts
+
+
 def manifestes(sortie):
     """Vérifie que chaque manifeste décrit bien ce qui est sur le disque."""
     defauts = []
@@ -478,6 +505,7 @@ def main():
     controlees, defauts = controler(options.sortie, pentes=options.pentes)
     defauts += manifestes(options.sortie)
     defauts += profils(options.sortie)
+    defauts += formes(options.sortie)
     defauts += controler_sons(options.sortie)
     defauts += renvois_de_sons(options.sortie)
     sons = len(list(options.sortie.rglob("*.wav")))

@@ -35,13 +35,24 @@ from primitives_iso import (HAUTEUR_PERSONNAGE, LARGEUR_TUILE, MATIERES,
 MARQUAGE = (232, 232, 224)
 BANDE_JAUNE = (222, 186, 74)
 
-# Ce qui se traverse. L'élévation ne suffit pas à le déduire : un trottoir et un
-# quai dépassent du sol et se marchent, une flaque est plate et se traverse,
-# alors qu'un muret de même hauteur qu'un trottoir arrête tout.
+# Ce qui se traverse, et ce que la traversée coûte. L'élévation ne suffit pas à
+# le déduire : un trottoir et un quai dépassent du sol et se marchent, une flaque
+# est plate et se traverse, alors qu'un muret de même hauteur qu'un trottoir
+# arrête tout.
+#
+# Une seule table plutôt que deux : un ensemble et un dictionnaire de coûts
+# finiraient par ne plus lister les mêmes formes, et le coût orphelin ne serait
+# jamais lu.
+#
+# Le coût multiplie la longueur perçue d'une case. À 2, une flaque de deux cases
+# vaut un détour de deux cases, et un ennemi la contournera plutôt que de la
+# traverser : c'est fort, et c'est voulu comme point de départ. Un ralentissement
+# qu'on ne voit pas ne se règle jamais.
 FRANCHISSABLES = {
-    "sol", "sol_use", "sol_carrele", "sol_fissure", "sol_sale", "sol_parking",
-    "flaque", "bouche_egout", "fleche_sol", "trottoir", "quai", "rail",
-    "porte_ouverte",
+    "sol": 1, "sol_use": 1, "sol_carrele": 1, "sol_parking": 1,
+    "sol_fissure": 2, "sol_sale": 2, "flaque": 2,
+    "bouche_egout": 1, "fleche_sol": 1, "trottoir": 1, "quai": 1, "rail": 1,
+    "porte_ouverte": 1,
 }
 
 
@@ -654,6 +665,8 @@ def main():
             # Le chargeur en tire la grille de passabilité : c'est la seule
             # source, et elle est déclarée plutôt que devinée.
             "bloquant": nom not in FRANCHISSABLES,
+            **({} if nom not in FRANCHISSABLES
+               else {"cout_traversee": FRANCHISSABLES[nom]}),
             # Au-delà de la limite, l'objet masque un personnage : le rendu doit
             # le passer en semi-transparence quand le joueur est derrière.
             "transparence_si_derriere": haut > PLAFOND_OBSTACLE_BAS,

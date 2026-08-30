@@ -118,6 +118,7 @@
         1.0
       ],
       "bloquant": false,
+      "cout_traversee": 1,
       "transparence_si_derriere": false
     },
     "boutique": {
@@ -384,6 +385,7 @@
         1.0
       ],
       "bloquant": false,
+      "cout_traversee": 2,
       "transparence_si_derriere": false
     },
     "fleche_sol": {
@@ -403,6 +405,7 @@
         1.0
       ],
       "bloquant": false,
+      "cout_traversee": 1,
       "transparence_si_derriere": false
     },
     "frigo": {
@@ -745,6 +748,7 @@
         0.2
       ],
       "bloquant": false,
+      "cout_traversee": 1,
       "transparence_si_derriere": true
     },
     "porte_sortie": {
@@ -840,6 +844,7 @@
         1.0
       ],
       "bloquant": false,
+      "cout_traversee": 1,
       "transparence_si_derriere": false
     },
     "rail": {
@@ -859,6 +864,7 @@
         0.1
       ],
       "bloquant": false,
+      "cout_traversee": 1,
       "transparence_si_derriere": false
     },
     "rangee_fauteuils": {
@@ -916,6 +922,7 @@
         1.0
       ],
       "bloquant": false,
+      "cout_traversee": 1,
       "transparence_si_derriere": false
     },
     "sol_carrele": {
@@ -935,6 +942,7 @@
         1.0
       ],
       "bloquant": false,
+      "cout_traversee": 1,
       "transparence_si_derriere": false
     },
     "sol_fissure": {
@@ -954,6 +962,7 @@
         1.0
       ],
       "bloquant": false,
+      "cout_traversee": 2,
       "transparence_si_derriere": false
     },
     "sol_parking": {
@@ -973,6 +982,7 @@
         1.0
       ],
       "bloquant": false,
+      "cout_traversee": 1,
       "transparence_si_derriere": false
     },
     "sol_sale": {
@@ -992,6 +1002,7 @@
         1.0
       ],
       "bloquant": false,
+      "cout_traversee": 2,
       "transparence_si_derriere": false
     },
     "sol_use": {
@@ -1011,6 +1022,7 @@
         1.0
       ],
       "bloquant": false,
+      "cout_traversee": 1,
       "transparence_si_derriere": false
     },
     "taxi": {
@@ -1087,6 +1099,7 @@
         1.0
       ],
       "bloquant": false,
+      "cout_traversee": 1,
       "transparence_si_derriere": false
     },
     "voiture": {

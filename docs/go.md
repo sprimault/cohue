@@ -443,6 +443,21 @@ D'où la règle : **toute planche de relecture sort d'une cible du `Makefile`**,
 dans le même geste que ce qu'elle donne à relire. Ajouter des vues à une planche
 que personne ne produit ne corrige rien et donne le sentiment du contraire.
 
+### Un contrôle privé de son entrée échoue, il ne passe pas
+
+Quand un contrôle dépend d'une information venue d'ailleurs — un nom de dossier,
+une liste, un manifeste —, son absence est une erreur et jamais un passage en
+silence. Sinon on le désarme sans le toucher, en changeant seulement la façon de
+l'appeler, et il continue de passer au vert en ne vérifiant plus rien.
+
+Le chargeur de lieux en donne le cas : il confronte le nom du dossier au champ
+`identifiant`. Un `fs.FS` monté directement sur le dossier du lieu ne lui laisse
+plus de nom à confronter — le contrôle ne devient pas faux, il perd sa prise.
+D'où le refus de `Load(".")`, et son propre test.
+
+C'est la même famille que ci-dessus, prise encore ailleurs : un contrôle qui
+certifie l'écart au lieu de le signaler.
+
 ### Cas limites du jeu
 
 Chaque règle qui peut se contredire a son test. Sur ce jeu, la liste de départ :

@@ -18,9 +18,14 @@ Les exceptions connues d'avance :
 |---|---|
 | `github.com/hajimehoshi/ebiten/v2` | rendu, entrées, son |
 
-Deux candidats non tranchés : une bibliothèque d'interface pour l'éditeur
-(`ebitenui`, ou tout dessiner à la main), et un lecteur TOML si les manifestes
-de pièces passent de JSON à TOML.
+Un seul candidat non tranché : une bibliothèque d'interface pour l'éditeur,
+`ebitenui` ou tout dessiner à la main.
+
+Le lecteur TOML n'en est plus un. Tout ce que le jeu lit est en JSON, y compris
+les pièces, que le TOML rendrait pourtant plus agréables à écrire : un lieu
+partagé est du JSON compact compressé, et un second format sur le même objet
+imposerait une conversion, donc deux représentations qui divergent. La
+bibliothèque standard suffit.
 
 Une dépendance ajoutée entre dans `THIRD-PARTY-NOTICES`, qui accompagne le
 binaire dans chaque archive. Les ressources graphiques suivent un chemin
@@ -62,7 +67,8 @@ Une variable locale ou un paramètre garde le mot du domaine quand
 [`conception.md`](conception.md) l'a nommé en français : `graine`, `essai`,
 `trame`. Ce ne sont pas des noms d'API mais les mots du document, et les traduire
 imposerait un aller-retour à chaque lecture croisée. `Generate(graine int64, p
-Settings)` est donc correct, et `Pool.enemies` aussi.
+Settings)` est donc correct : la signature se lit en anglais, le paramètre porte
+le mot qu'on relira dans la conception.
 
 Règle d'arbitrage quand les deux se rencontrent : **la cohérence prime sur la
 langue.** On ne mélange pas `Enemy` et `Bassin` dans la même structure — le type
@@ -83,14 +89,18 @@ son format :
 // SPDX-License-Identifier: Apache-2.0
 ```
 
-`#` en Python, en YAML et en TOML. Une ligne vide sépare l'en-tête de ce qui
-suit, faute de quoi le copyright devient la godoc du paquet — ou, en Python, le
-docstring de module cesse d'en être un.
+`#` en Python et en YAML. Une ligne vide sépare l'en-tête de ce qui suit, faute
+de quoi le copyright devient la godoc du paquet — ou, en Python, le docstring de
+module cesse d'en être un.
 
 JSON n'a pas de commentaires : l'en-tête y est un `$comment` en **première
 clé**, le mot-clé que JSON Schema réserve à cet usage et que les validateurs
 ignorent. C'est ce que portent les manifestes de `assets/`, écrits par
-[`../outils/manifestes.py`](../outils/manifestes.py).
+[`../outils/manifestes.py`](../outils/manifestes.py). La même clé sert de
+commentaire ordinaire **partout ailleurs dans le document** : c'est ce qui rend
+le JSON tenable pour des pièces écrites à la main. Un fichier partagé se lit en
+refusant les clés inconnues — sinon une faute de frappe prend la valeur par
+défaut sans rien dire — et `$comment` est la seule clé exemptée de ce refus.
 
 **La liste des dispensés est close** :
 
@@ -158,6 +168,49 @@ moitié : une pièce manquante laisserait un trou dans la carte, et le flow fiel
 y enverrait les ennemis tourner en rond. Ses manquements sont listés en une
 fois — qui met au point un niveau veut la liste, pas un
 aller-retour par erreur.
+
+**Deux temps, deux comportements, et c'est délibéré.** Le décodage refuse au
+premier écart ; la validation liste tout.
+
+`encoding/json` s'arrête à la première erreur, et on ne cherche pas à contourner
+ça par une passe préalable en `map[string]any` qui collecterait les clés
+inconnues : deux passes, ce sont deux vérités sur le même fichier, avec leurs
+tolérances propres, et le jour où elles divergent un fichier franchit la
+première pour échouer à la seconde avec un message qui ne correspond à rien de
+ce qu'on vient de lui dire.
+
+La restriction est d'ailleurs ce qui est juste, pas un repli. Une clé inconnue
+est presque toujours une faute de frappe isolée — un `rotaton` — et la corriger
+fait avancer d'un cran. Les manquements de validation arrivent par grappes : une
+pièce absente, un ancrage qui manque, une sortie inatteignable. C'est là que
+l'aller-retour coûte, et c'est là que la promesse porte.
+
+En échange, le message du décodeur donne le chemin de la clé fautive et
+**ressort tel quel** jusqu'à l'auteur du niveau. Le remplacer par « niveau
+invalide » détruirait la seule information utile de la ligne.
+
+### Ce que le décodage d'un fichier partagé exige
+
+Trois règles, qui se tiennent ensemble :
+
+- **`DisallowUnknownFields`.** Sans lui, `rotaton` au lieu de `rotation` se
+  charge en silence avec la valeur par défaut, et l'auteur ne comprend pas
+  pourquoi sa pièce est de travers.
+- **Chaque structure décodée tolère `$comment`**, et pas seulement la racine :
+  une pièce se commente là où elle pose question, dans un ancrage ou un objet de
+  liste. Un type `Commentable` embarqué dans chacune porte le champ, qui n'est
+  jamais lu — le compilateur garantit alors que la convention et le contrôle ne
+  divergent pas, et une structure qui l'oublierait ferait échouer le premier
+  fichier commenté plutôt que le centième.
+- **Une validation des champs obligatoires derrière le décodage.** Refuser les
+  clés inconnues attrape la faute de frappe qui *ajoute* une clé, jamais celle
+  qui en *supprime* une : un lieu sans graine se décode sans erreur et démarre
+  sur la graine zéro, qui est une graine valide.
+
+C'est dans cette validation, et nulle part ailleurs, que « listés en une fois »
+devient vrai. C'est donc là qu'il faut résister au `return` sur le premier
+manquement : elle accumule et rend tout, y compris quand le premier défaut rend
+les suivants prévisibles.
 
 ## 7. Écriture de fichiers
 
@@ -264,6 +317,34 @@ paramètre au profil.
 
 Même règle pour les manifestes : le moteur ne connaît que des profils et des
 cycles, jamais un nom de fichier ni un nombre d'images codés en dur.
+
+## Deux descriptions de la même chose finissent par diverger
+
+Avant d'ajouter une seconde représentation de quelque chose qui en a déjà une,
+une question : **qu'est-ce qui garantit qu'elles restent d'accord ?** Quand la
+réponse est « la vigilance », c'est non.
+
+La deuxième représentation paraît toujours peu coûteuse, et c'est toujours elle
+qui se désynchronise. Trois cas déjà écartés, qui sont le même :
+
+- une pièce en TOML et un lieu partagé en JSON compact — le partage imposerait
+  une conversion, donc deux formes du même objet ;
+- une passe de décodage en `map[string]any` devant la passe typée, chacune avec
+  ses tolérances propres, jusqu'au fichier qui franchit l'une et échoue à
+  l'autre ;
+- une liste de champs à exclure tenue à côté de l'empreinte d'état, qui se
+  périme au premier champ ajouté.
+
+La question laisse passer les cas où la réponse est bonne, et c'est pour cela
+qu'elle vaut mieux qu'une interdiction, qui se ferait contourner au premier
+d'entre eux : un cache reconstruit à partir de sa source ne peut pas en
+diverger, un index dérivé non plus. Ce qui est refusé, c'est la seconde
+description qu'on maintient à la main.
+
+C'est le pendant, sur la représentation, de ce que ce document exige du
+comportement : un invariant se vérifie, il ne se surveille pas. Quand une
+seconde description est vraiment nécessaire sans être dérivable, alors c'est un
+test qui tient l'accord — pas une relecture.
 
 ## La projection isométrique ne se recalcule pas
 

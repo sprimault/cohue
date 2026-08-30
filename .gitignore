@@ -15,9 +15,4 @@
 /.tmp/
 /makefile.local
 
-# Sorties intermédiaires des outils d'assets : les planches de contrôle se
-# régénèrent. Décor et personnages, eux, sont versionnés : ils sortent de nos
-# scripts et ne dépendent d'aucune source tierce.
-controle_*.png
-apercu_*.png
 /outils/__pycache__/

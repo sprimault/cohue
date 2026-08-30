@@ -38,3 +38,22 @@ publié, et explique les conventions du dépôt à qui y contribue.
 Rien de jouable. Le dépôt porte la conception, les outils de fabrication des
 ressources et l'échafaudage ; l'étape 1 de la feuille de route est la simulation
 nue.
+
+### Ajouté
+
+- Le format des lieux et des pièces, en JSON, `version_format` 1. Un lieu ne
+  porte que des identifiants de pièces et leurs positions, et ne peut embarquer
+  ni image ni son. La clé `$comment` y est admise partout et sert de
+  commentaire ; toute autre clé inconnue fait refuser le fichier.
+
+***
+
+Nothing playable. The repository holds the design, the asset-building tools and
+the scaffolding; step 1 of the roadmap is the bare simulation.
+
+### Added
+
+- The level and room format, in JSON, `version_format` 1. A level carries only
+  room identifiers and their positions, and can embed neither images nor sounds.
+  The `$comment` key is allowed anywhere and serves as a comment; any other
+  unknown key causes the file to be rejected.

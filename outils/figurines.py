@@ -60,10 +60,18 @@ JEU = {
     "eclateur":  {"vitesse": 0.70, "rayon_px": 9, "touches": 4, "points": 35,
                   "degats_contact_s": 5, "degats_explosion": 35,
                   "rayon_explosion_tuiles": 1.5},
-    "civil":     {"vitesse": 0.75, "rayon_px": 7, "touches": 2, "points": 5,
-                  "degats_contact_s": 3},
     "soigneur":  {"vitesse": 0.70, "rayon_px": 7, "touches": 3, "points": 15,
                   "degats_contact_s": 4},
+    # Le Passant n'est pas un monstre : il ne blesse pas, ne rapporte rien, ne
+    # se cible pas et ne se paie pas dans le budget de pression. Il traverse la
+    # scène et occupe l'espace, ce qui suffit à le rendre gênant. Lui laisser
+    # des dégâts de contact en ferait un Badaud affaibli, donc un doublon.
+    #
+    # `va_et_vient` dit ce qu'on voit, comme `poursuite` pour les autres ; le
+    # moyen est un rebond — il avance tout droit jusqu'à buter, puis repart —
+    # ce qui n'exige aucune trajectoire posée dans la pièce.
+    "civil":     {"vitesse": 0.75, "rayon_px": 7, "deplacement": "va_et_vient",
+                  "hostile": False},
 }
 
 CADENCES = {"repos": 200, "marche": 100, "attaque": 80, "degat": 120, "mort": 120}
@@ -95,10 +103,15 @@ PROFILS = {
     "eclateur":  {"nom": "Baudruche", "habit": (176, 92, 52),   "peau": (222, 152, 96),  "carrure": 1.0,
                   "gabarit": "gonfle",
                   "cycles": {"repos": 1, "marche": 5, "attaque": 3, "degat": 1, "mort": 3}},
-    "civil":     {"nom": "Passant", "habit": (176, 160, 142), "peau": (214, 170, 132), "carrure": 0.95,
-                  "cycles": {"repos": 1, "attaque": 1, "marche": 4, "mort": 2}},
+    # Le Secouriste est le seul profil qui crée une priorité de cible : tant
+    # qu'il vit, il annule le nettoyage. Les six autres cassent le kiting par la
+    # position, aucun ne rend un ennemi plus urgent qu'un autre.
     "soigneur":  {"nom": "Secouriste", "habit": (206, 206, 200), "peau": (214, 170, 132), "carrure": 0.95,
                   "cycles": {"repos": 1, "attaque": 1, "marche": 4, "mort": 2}},
+    # Pas de cycle d'attaque : il n'en a pas, et lui en donner un serait la
+    # première marche vers un profil de combat.
+    "civil":     {"nom": "Passant", "habit": (176, 160, 142), "peau": (214, 170, 132), "carrure": 0.95,
+                  "cycles": {"repos": 1, "marche": 4, "mort": 2}},
 }
 
 CHEVEUX = (58, 44, 38)

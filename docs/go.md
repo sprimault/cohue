@@ -341,6 +341,19 @@ d'entre eux : un cache reconstruit à partir de sa source ne peut pas en
 diverger, un index dérivé non plus. Ce qui est refusé, c'est la seconde
 description qu'on maintient à la main.
 
+**Le cas aggravé est celui où la seconde description est le contrôle lui-même.**
+Les trois exemples ci-dessus sont des descriptions parallèles qu'on maintient à
+la main : on sait qu'on les tient, même quand on oublie de le faire. Un contrôle
+passe pour sûr par nature, puisque vérifier est sa fonction. Quand il teste une
+valeur périmée, il ne se contente donc pas d'être inutile — il **protège**
+l'écart : l'endroit précis censé le signaler le certifie, et il n'en reste plus
+aucun pour le voir.
+
+Une décision sur les destructibles a ainsi survécu dans les données après avoir
+été retirée du document, tout en restant au vert. D'où le réflexe, quand une
+décision touche des données : chercher tout de suite **qui les contrôle**. Le
+contrôle est le dernier endroit où l'ancienne décision reste vraie.
+
 C'est le pendant, sur la représentation, de ce que ce document exige du
 comportement : un invariant se vérifie, il ne se surveille pas. Quand une
 seconde description est vraiment nécessaire sans être dérivable, alors c'est un

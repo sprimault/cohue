@@ -359,16 +359,16 @@
         }
       }
     },
-    "civil": {
-      "nom": "Passant",
+    "soigneur": {
+      "nom": "Secouriste",
       "groupe": 1,
       "variantes": 1,
       "gabarit": "bipede",
-      "vitesse": 0.75,
+      "vitesse": 0.7,
       "rayon_px": 7,
-      "touches": 2,
-      "points": 5,
-      "degats_contact_s": 3,
+      "touches": 3,
+      "points": 15,
+      "degats_contact_s": 4,
       "origine": "figurine générée",
       "cote": 64,
       "appui": [
@@ -408,16 +408,15 @@
         }
       }
     },
-    "soigneur": {
-      "nom": "Secouriste",
+    "civil": {
+      "nom": "Passant",
       "groupe": 1,
       "variantes": 1,
       "gabarit": "bipede",
-      "vitesse": 0.7,
+      "vitesse": 0.75,
       "rayon_px": 7,
-      "touches": 3,
-      "points": 15,
-      "degats_contact_s": 4,
+      "deplacement": "va_et_vient",
+      "hostile": false,
       "origine": "figurine générée",
       "cote": 64,
       "appui": [
@@ -439,11 +438,6 @@
           "images": 1,
           "duree_ms": 200,
           "boucle": true
-        },
-        "attaque": {
-          "images": 1,
-          "duree_ms": 80,
-          "boucle": false
         },
         "marche": {
           "images": 4,

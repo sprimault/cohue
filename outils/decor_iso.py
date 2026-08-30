@@ -25,14 +25,12 @@ from pathlib import Path
 from PIL import Image
 
 from manifestes import ecrire_manifeste
-from primitives_iso import (LARGEUR_TUILE, MATIERES, TRANSPARENT, aligner,
-                            bandeau, carrelage, contour, creuser, empiler,
-                            eventrer, fenetres, grain, joint, nervures,
-                            position, poser, reduire, rivets, surface, tache,
-                            volume)
-
-HAUTEUR_PERSONNAGE = 64
-PLAFOND_OBSTACLE_BAS = 24
+from primitives_iso import (HAUTEUR_PERSONNAGE, LARGEUR_TUILE, MATIERES,
+                            PLAFOND_OBSTACLE_BAS, TRANSPARENT, aligner,
+                            bandeau, carrelage, categorie, contour, creuser,
+                            elevation_reelle, empiler, eventrer, fenetres,
+                            grain, joint, nervures, position, poser, reduire,
+                            rivets, surface, tache, volume)
 
 MARQUAGE = (232, 232, 224)
 BANDE_JAUNE = (222, 186, 74)
@@ -569,10 +567,6 @@ CATALOGUE = {nom: fn for formes in THEMES.values() for nom, fn in formes.items()
 THEME_DE = {nom: theme for theme, formes in THEMES.items() for nom in formes}
 
 
-def elevation_reelle(img):
-    return max(0, img.height - img.info["hauteur_dessus"])
-
-
 def planche(images, echelle=3):
     """Aligne les formes sur un sol commun, avec la silhouette du joueur."""
     silhouette = Image.new("RGBA", (24, HAUTEUR_PERSONNAGE), (226, 70, 70, 110))
@@ -644,7 +638,11 @@ def main():
             "taille": list(img.size),
             "ancrage": [img.width // 2, img.height - 1],
             "elevation": haut,
-            "categorie": "obstacle_bas" if haut <= PLAFOND_OBSTACLE_BAS else "haut",
+            # Trois hauteurs, dérivées de la passabilité d'abord : c'est la vue
+            # de dessus de l'éditeur qui les lit, et elle veut savoir où l'on
+            # passe. Un quai se marche, une porte ouverte aussi, quelle que soit
+            # leur hauteur.
+            "categorie": categorie(nom not in FRANCHISSABLES, haut),
             # Emprise au sol, en tuiles : le chargeur marque toutes les cases
             # couvertes, pas seulement celle de l'ancrage. Sans elle, une gondole
             # de deux tuiles n'en bloquerait qu'une.

@@ -15,6 +15,9 @@
         0.5,
         0.5
       ],
+      "elevation": 16,
+      "categorie": "obstacle_bas",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": true,
       "destruction": {
@@ -41,6 +44,9 @@
         0.5,
         0.5
       ],
+      "elevation": 9,
+      "categorie": "sol",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -57,6 +63,9 @@
         1.0,
         1.0
       ],
+      "elevation": 6,
+      "categorie": "obstacle_bas",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": true
     },
@@ -73,10 +82,13 @@
         0.156,
         0.156
       ],
+      "elevation": 3,
+      "categorie": "sol",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": false,
       "experience": 1,
-      "son": "gemme",
+      "famille_sons": "gemme",
       "scintillement": {
         "images": 4,
         "duree_ms": 140,
@@ -96,10 +108,13 @@
         1.0,
         0.18
       ],
+      "elevation": 40,
+      "categorie": "haut",
+      "transparence_si_derriere": true,
       "famille": "monde",
       "bloquant": true,
       "destruction": {
-        "mode": "tir",
+        "mode": "interaction",
         "touches": 8,
         "ruine": "cloison_fragile_cassee",
         "eclats": "platre",
@@ -119,6 +134,9 @@
         1.0,
         0.18
       ],
+      "elevation": 10,
+      "categorie": "sol",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -132,13 +150,16 @@
         52
       ],
       "emprise": [
-        0.25,
-        0.25
+        1.0,
+        0.18
       ],
+      "elevation": 34,
+      "categorie": "haut",
+      "transparence_si_derriere": true,
       "famille": "monde",
       "bloquant": true,
       "destruction": {
-        "mode": "tir",
+        "mode": "interaction",
         "touches": 5,
         "ruine": "vitrine_cassee",
         "eclats": "verre",
@@ -148,16 +169,19 @@
     "vitrine_cassee": {
       "taille": [
         37,
-        53
+        31
       ],
       "ancrage": [
         18,
-        52
+        30
       ],
       "emprise": [
         1.0,
         0.18
       ],
+      "elevation": 12,
+      "categorie": "sol",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -174,10 +198,13 @@
         0.7,
         0.16
       ],
+      "elevation": 22,
+      "categorie": "obstacle_bas",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": true,
       "destruction": {
-        "mode": "tir",
+        "mode": "interaction",
         "touches": 3,
         "ruine": "grille_ventilation_cassee",
         "eclats": "metal",
@@ -197,6 +224,9 @@
         0.7,
         0.16
       ],
+      "elevation": 8,
+      "categorie": "sol",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -213,10 +243,13 @@
         1.0,
         0.18
       ],
+      "elevation": 46,
+      "categorie": "haut",
+      "transparence_si_derriere": true,
       "famille": "monde",
       "bloquant": true,
       "destruction": {
-        "mode": "tir",
+        "mode": "interaction",
         "touches": 20,
         "ruine": "rideau_fer_casse",
         "eclats": "metal",
@@ -236,6 +269,9 @@
         1.0,
         0.18
       ],
+      "elevation": 13,
+      "categorie": "sol",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -252,6 +288,9 @@
         0.25,
         0.25
       ],
+      "elevation": 0,
+      "categorie": "sol",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": false,
       "degats": 1,
@@ -271,6 +310,9 @@
         0.25,
         0.25
       ],
+      "elevation": 0,
+      "categorie": "sol",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": false,
       "degats": 1,
@@ -291,6 +333,9 @@
         0.25,
         0.25
       ],
+      "elevation": 0,
+      "categorie": "sol",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": false,
       "degats": 6,
@@ -310,6 +355,9 @@
         0.25,
         0.25
       ],
+      "elevation": 0,
+      "categorie": "sol",
+      "transparence_si_derriere": false,
       "famille": "monde",
       "bloquant": false,
       "soin": 30,

@@ -42,26 +42,70 @@ DIRECTIONS = ["S", "SO", "O", "NO", "N", "NE", "E", "SE"]
 # une valeur absolue de PV ne voudrait rien dire dans un jeu où l'arme est
 # multipliée par dix au cours d'une run.
 #
-# `vitesse` est un rapport à celle du joueur. C'est le chiffre le plus
-# structurant du jeu : au-delà de 0,9 la fuite ne suffit plus, en dessous de 0,6
-# on ne peut plus être encerclé en terrain ouvert.
+# `vitesse_relative` est un rapport à celle du joueur, la seule vitesse absolue
+# du jeu. Deux champs plutôt qu'un `vitesse` qui changerait d'unité selon le
+# profil : c'est le chiffre le plus structurant du jeu — au-delà de 0,9 la fuite
+# ne suffit plus, en dessous de 0,6 on ne peut plus être encerclé en terrain
+# ouvert — et il ne doit pas se lire de travers.
+#
+# `rayon_tuiles` et non un rayon en pixels : la simulation ne connaît que la
+# tuile, et une distance mesurée à l'écran décrit une ellipse dans le monde. La
+# conversion se fait ici, une fois, plutôt que dans le chargeur.
+#
+# `role` distingue trois natures, et non deux : le joueur n'a ni touches ni
+# points mais une vie et un plafond de dégâts, un ennemi a l'inverse, et le
+# Passant n'a ni l'un ni l'autre. Un booléen `hostile` n'en portait que deux, le
+# troisième cas se lisant dans son absence — le genre de défaut par défaut qu'on
+# ne voit pas.
+#
+# `cout_pression` est ce que le spawner dépense pour l'acheter, `points` ce que
+# le joueur gagne à le tuer : deux monnaies sans rapport. Le coût se calque sur
+# la résistance, c'est-à-dire sur ce que la créature coûte au joueur, et jamais
+# sur ce qu'elle lui rapporte. Il est unitaire, le spawner le multipliant par la
+# taille du groupe.
+#
+# `max_simultane` borne les vivants d'un profil, pas les apparus. Un coût élevé
+# règle une fréquence moyenne, pas une simultanéité : le Secouriste ne vaut rien
+# seul et double la difficulté au milieu de vingt Badauds, donc sa rareté ne peut
+# pas se régler par son prix. Un scénario peut resserrer ce plafond, jamais le
+# desserrer.
 JEU = {
-    "joueur":    {"vitesse": 1.00, "rayon_px": 8, "vie": 100, "plafond_degats_s": 20},
-    "marcheur":  {"vitesse": 0.62, "rayon_px": 8, "touches": 3, "points": 10,
-                  "degats_contact_s": 6},
-    "sprinteur": {"vitesse": 1.35, "rayon_px": 7, "touches": 2, "points": 25,
-                  "degats_contact_s": 8, "degats_charge": 18},
-    "flanqueur": {"vitesse": 0.82, "rayon_px": 7, "touches": 4, "points": 30,
-                  "degats_contact_s": 7, "tangentiel": 0.55},
-    "cracheur":  {"vitesse": 0.55, "rayon_px": 8, "touches": 5, "points": 40,
-                  "degats_contact_s": 4, "portee_tuiles": 6},
-    "bloqueur":  {"vitesse": 0.45, "rayon_px": 12, "touches": 12, "points": 60,
-                  "degats_contact_s": 10},
-    "eclateur":  {"vitesse": 0.70, "rayon_px": 9, "touches": 4, "points": 35,
-                  "degats_contact_s": 5, "degats_explosion": 35,
+    "joueur":    {"role": "joueur", "vitesse_tuiles_s": 5.0, "rayon_tuiles": 0.125,
+                  "vie": 100, "plafond_degats_s": 20},
+    "marcheur":  {"role": "ennemi", "comportement": "poursuite",
+                  "vitesse_relative": 0.62, "rayon_tuiles": 0.125, "touches": 3,
+                  "points": 10, "cout_pression": 3, "poids_separation": 1.0,
+                  "max_simultane": 0, "degats_contact_s": 6},
+    "sprinteur": {"role": "ennemi", "comportement": "charge",
+                  "vitesse_relative": 1.35, "rayon_tuiles": 0.109, "touches": 2,
+                  "points": 25, "cout_pression": 4, "poids_separation": 1.0,
+                  "max_simultane": 0, "degats_contact_s": 8, "degats_charge": 18},
+    "flanqueur": {"role": "ennemi", "comportement": "flanc",
+                  "vitesse_relative": 0.82, "rayon_tuiles": 0.109, "touches": 4,
+                  "points": 30, "cout_pression": 5, "poids_separation": 1.0,
+                  "max_simultane": 0, "degats_contact_s": 7, "tangentiel": 0.55},
+    "cracheur":  {"role": "ennemi", "comportement": "tir",
+                  "vitesse_relative": 0.55, "rayon_tuiles": 0.125, "touches": 5,
+                  "points": 40, "cout_pression": 6, "poids_separation": 1.3,
+                  "max_simultane": 0, "degats_contact_s": 4, "portee_tuiles": 6},
+    # Poids faible : dans le mécanisme du chapitre 4, ce poids dit combien une
+    # créature s'écarte de ses voisines, et non combien elle résiste à être
+    # poussée — personne n'est poussé, chacun s'applique la force à soi-même.
+    # Un Vigile qui ignore la foule tient sa position, et c'est ce qui bouche.
+    "bloqueur":  {"role": "ennemi", "comportement": "poursuite",
+                  "vitesse_relative": 0.45, "rayon_tuiles": 0.188, "touches": 12,
+                  "points": 60, "cout_pression": 12, "poids_separation": 0.4,
+                  "max_simultane": 0, "degats_contact_s": 10},
+    "eclateur":  {"role": "ennemi", "comportement": "explosion",
+                  "vitesse_relative": 0.70, "rayon_tuiles": 0.141, "touches": 4,
+                  "points": 35, "cout_pression": 5, "poids_separation": 1.0,
+                  "max_simultane": 0, "degats_contact_s": 5, "degats_explosion": 35,
                   "rayon_explosion_tuiles": 1.5},
-    "soigneur":  {"vitesse": 0.70, "rayon_px": 7, "touches": 3, "points": 15,
-                  "degats_contact_s": 4},
+    # Un seul à la fois : sa menace est multiplicative, pas additive.
+    "soigneur":  {"role": "ennemi", "comportement": "soin",
+                  "vitesse_relative": 0.70, "rayon_tuiles": 0.109, "touches": 3,
+                  "points": 15, "cout_pression": 6, "poids_separation": 1.0,
+                  "max_simultane": 1, "degats_contact_s": 4},
     # Le Passant n'est pas un monstre : il ne blesse pas, ne rapporte rien, ne
     # se cible pas et ne se paie pas dans le budget de pression. Il traverse la
     # scène et occupe l'espace, ce qui suffit à le rendre gênant. Lui laisser
@@ -70,8 +114,13 @@ JEU = {
     # `va_et_vient` dit ce qu'on voit, comme `poursuite` pour les autres ; le
     # moyen est un rebond — il avance tout droit jusqu'à buter, puis repart —
     # ce qui n'exige aucune trajectoire posée dans la pièce.
-    "civil":     {"vitesse": 0.75, "rayon_px": 7, "deplacement": "va_et_vient",
-                  "hostile": False},
+    #
+    # Le rôle porte tout le reste : ce qui n'est pas hostile n'entre dans aucun
+    # compte — ni le budget de pression, ni le plafond d'effectif, ni un objectif
+    # de porte fondé sur les kills. Sans cette dernière conséquence, un lieu
+    # peuplé de Passants ouvrirait sa porte tout seul.
+    "civil":     {"role": "ambiance", "comportement": "va_et_vient",
+                  "vitesse_relative": 0.75, "rayon_tuiles": 0.109},
 }
 
 CADENCES = {"repos": 200, "marche": 100, "attaque": 80, "degat": 120, "mort": 120}

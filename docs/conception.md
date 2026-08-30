@@ -219,20 +219,21 @@ Ces valeurs vivent dans `assets/personnages/manifeste.json`, avec le rendu : les
 
 Point critique dès lors que des lieux sont créés par des tiers. Un scénario qui dit « à 7 min, 120 marcheurs » rendra le premier niveau amateur venu injouable ou vide. Un scénario exprime donc une **pression par seconde** ; le spawner achète des ennemis dans ce budget parmi les profils autorisés, et ça reste cohérent quel que soit le lieu.
 
-```toml
-[[phase]]
-debut = "0:00"
-pression = 8
-profils = ["marcheur"]
-
-[[phase]]
-debut = "1:30"
-pression = 25
-profils = ["marcheur", "flanqueur", "sprinteur"]
-pic = { a = "2:10", multiplicateur = 3, duree = 25 }
+```json
+{
+  "phases": [
+    { "debut": "0:00", "pression": 8, "profils": ["marcheur"] },
+    {
+      "debut": "1:30",
+      "pression": 25,
+      "profils": ["marcheur", "flanqueur", "sprinteur"],
+      "pic": { "a": "2:10", "multiplicateur": 3, "duree_s": 25 }
+    }
+  ]
+}
 ```
 
-Chaque profil a un prix en points de pression. Le spawner remplit, respecte la passabilité, et lâche hors du champ de vision. Bonus : la difficulté globale devient un seul curseur multiplicateur, ce qui donne les modes de difficulté gratuitement.
+Chaque profil a son coût de pression. Le spawner remplit, respecte la passabilité, et lâche hors du champ de vision. Bonus : la difficulté globale devient un seul curseur multiplicateur, ce qui donne les modes de difficulté gratuitement.
 
 ---
 
@@ -565,50 +566,51 @@ Trois champs à prévoir dès la première version, sinon ils ne pourront plus �
 
 ### Une pièce
 
-```toml
-[piece]
-identifiant = "rayon_long"
-jeu = "supermarche"
-version_format = 1
-taille = [16, 16]
-aire_ouverte = 0.62
-
-cotes = { nord = "ouverture", est = "mur", sud = "ouverture", ouest = "mur" }
-
-[[ancrages]]
-type = "apparition"
-position = [2, 14]
-
-[[ancrages]]
-type = "signaletique"
-position = [8, 0]
-
-[[ancrages]]
-type = "caisse"
-position = [11, 6]
+```json
+{
+  "$comment": "Rayon central du supermarché. Le cul-de-sac au sud est voulu.",
+  "identifiant": "rayon_long",
+  "jeu": "supermarche",
+  "version_format": 1,
+  "taille": [16, 16],
+  "aire_ouverte": 0.62,
+  "cotes": { "nord": "ouverture", "est": "mur", "sud": "ouverture", "ouest": "mur" },
+  "ancrages": [
+    { "type": "apparition", "position": [2, 14] },
+    { "type": "signaletique", "position": [8, 0] },
+    { "type": "caisse", "position": [11, 6] }
+  ]
+}
 ```
 
 La grille de tuiles de la pièce (indices d'atlas, passabilité, hauteurs) vit dans un fichier binaire ou JSON compact à côté. La passabilité et les hauteurs sont **dérivées des propriétés des tuiles au chargement**, jamais saisies à la main : l'auteur ne sait même pas que le flow field existe.
 
+**Tout est en JSON, y compris ce que le TOML rendrait plus agréable à écrire.** Un lieu partagé est du JSON compact compressé — c'est ce qui donne les 548 caractères mesurés plus bas —, et un second format sur le même objet imposerait une conversion pour partager, donc deux représentations qui finiraient par diverger. Le format retenu est celui que le jeu lit toute sa vie, pas celui qui arrange les neuf étapes pendant lesquelles les pièces s'écrivent à la main. Corollaire pratique : rien à lire hors de la bibliothèque standard, et une seule forme d'en-tête de licence.
+
+Ce qu'on y perd est le commentaire, et `$comment` le rend : il est **autorisé partout, pas seulement en première clé**, où il porte la mention de licence. Un fichier partagé se lit en refusant les clés inconnues — sans quoi `rotaton` au lieu de `rotation` se charge en silence avec une valeur par défaut, et l'auteur ne comprend pas pourquoi sa pièce est de travers. `$comment` est la seule clé exemptée de ce refus.
+
+**Les `version_format` du lieu et de la pièce sont indépendants.** Un lieu circule entre joueurs, une pièce reste dans le binaire ; le jour où une pièce gagne un champ, les lieux publiés ne deviennent pas suspects pour autant. Ce sont deux contrats, avec deux durées de vie et deux migrations.
+
 ### Un jeu de pièces (thème)
 
-```toml
-[jeu_pieces]
-identifiant = "supermarche"
-nom = "Supermarché"
-auteur = "stephane"
-version = "1.2.0"
-version_format = 1
-
-[atlas]
-fichier = "atlas.png"
-taille_tuile = [64, 32]
-variantes_rotation = true
-
-[ambiance]
-musique = "neons.ogg"
-teinte = "#c8d4e0"
-luminosite = 0.8
+```json
+{
+  "identifiant": "supermarche",
+  "nom": "Supermarché",
+  "auteur": "stephane",
+  "version": "1.2.0",
+  "version_format": 1,
+  "atlas": {
+    "fichier": "atlas.png",
+    "taille_tuile": [64, 32],
+    "variantes_rotation": true
+  },
+  "ambiance": {
+    "musique": "neons.ogg",
+    "teinte": "#c8d4e0",
+    "luminosite": 0.8
+  }
+}
 ```
 
 ### Un lieu

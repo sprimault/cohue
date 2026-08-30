@@ -29,6 +29,20 @@ des entités se fige ici — tableau de structures pleines, index plutôt que
 pointeurs, profil partagé hors de l'entité. La reprendre plus tard toucherait
 tout le code de jeu.
 
+**Dépend de la lecture d'un lieu à pièce unique, sous-ensemble de l'étape 10
+avancé ici.** Le champ de flux a besoin d'obstacles à contourner dès la première
+ligne, et son interface n'est pas un format de niveau mais une grille de coûts.
+Une carte bâtie en Go la remplirait aussi bien — mais le chargeur serait alors
+écrit neuf étapes plus tard contre un contrat que rien n'aurait exercé, et c'est
+au moment de l'écrire qu'on découvrirait que la grille attendue n'est pas celle
+qu'on sait produire.
+
+Ce qui est avancé se borne à cela : lire un fichier de lieu, le cuire en grille
+de coûts. Un lieu d'une seule pièce rend l'assemblage trivial. Les connecteurs,
+la validation topologique et la composition de plusieurs pièces restent à
+l'étape 10, où ils ont leur place — les numéros ne bougent pas, et le marqueur
+de l'étape 10 continue de désigner ce qu'il désignait.
+
 Livré quand 300 poursuivants convergent vers une cible mobile en contournant
 des obstacles, à budget d'allocation constant sur mille itérations.
 

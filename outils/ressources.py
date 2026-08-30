@@ -203,6 +203,81 @@ def controler(sortie, pentes=False):
     return controlees, defauts
 
 
+# Ce qu'un profil doit porter, et rien d'autre. Deux descriptions du même
+# ensemble — le générateur qui l'écrit, cette table qui l'exige — et c'est
+# voulu : la question « qu'est-ce qui garantit qu'elles restent d'accord »
+# trouve ici une bonne réponse, un contrôle joué à chaque `make controle`. La
+# duplication est le mécanisme, pas son prix : une table qui se mettrait à jour
+# depuis le générateur ne contrôlerait rien, et ajouter un champ doit être un
+# geste délibéré en deux endroits.
+#
+# Le rôle décide d'abord, parce que les trois natures n'ont pas les mêmes
+# valeurs : le joueur a une vie et pas de points, un ennemi l'inverse, une
+# entité d'ambiance ni l'un ni l'autre.
+CHAMPS_COMMUNS = {"role", "vitesse_relative", "rayon_tuiles", "groupe",
+                  "gabarit", "nom", "origine", "cote", "appui", "directions",
+                  "cycles", "variantes"}
+
+CHAMPS_PAR_ROLE = {
+    "joueur": {"vitesse_tuiles_s", "vie", "plafond_degats_s"},
+    "ennemi": {"comportement", "touches", "points", "cout_pression",
+               "poids_separation", "max_simultane", "degats_contact_s"},
+    "ambiance": {"comportement"},
+}
+
+# Ce qu'un comportement ajoute, et qui n'a de sens que pour lui. Un
+# `portee_tuiles` sur un Badaud ne serait jamais lu et laisserait croire qu'il
+# tire : le contrôle attrape donc le champ de trop autant que le champ absent.
+CHAMPS_PAR_COMPORTEMENT = {
+    "poursuite":   set(),
+    "va_et_vient": set(),
+    "charge":      {"degats_charge"},
+    "flanc":       {"tangentiel"},
+    "tir":         {"portee_tuiles"},
+    "explosion":   {"degats_explosion", "rayon_explosion_tuiles"},
+    "soin":        set(),
+}
+
+
+def profils(sortie):
+    """Vérifie que chaque profil porte les champs de son rôle, et rien de plus.
+
+    Le joueur est le seul à porter une vitesse absolue ; les autres n'ont qu'un
+    rapport. Un profil qui aurait gardé l'ancien nom de champ se chargerait à
+    vitesse nulle — une créature immobile au milieu de la horde, qu'on mettrait
+    longtemps à relier à un renommage.
+    """
+    chemin = sortie / "personnages" / "manifeste.json"
+    if not chemin.exists():
+        return []
+
+    defauts = []
+    propres = set().union(*CHAMPS_PAR_COMPORTEMENT.values())
+    for nom, info in _entrees(chemin).items():
+        role = info.get("role")
+        if role not in CHAMPS_PAR_ROLE:
+            defauts.append((nom, f"role « {role} » inconnu, attendu "
+                                 f"{' ou '.join(sorted(CHAMPS_PAR_ROLE))}"))
+            continue
+
+        attendus = CHAMPS_COMMUNS | CHAMPS_PAR_ROLE[role]
+        if role == "joueur":
+            attendus -= {"vitesse_relative", "comportement"}
+        else:
+            comportement = info.get("comportement")
+            if comportement not in CHAMPS_PAR_COMPORTEMENT:
+                defauts.append((nom, f"comportement « {comportement} » inconnu"))
+                continue
+            attendus |= CHAMPS_PAR_COMPORTEMENT[comportement]
+
+        for manquant in sorted(attendus - set(info)):
+            defauts.append((nom, f"champ « {manquant} » absent"))
+        for surnumeraire in sorted(set(info) - attendus):
+            quoi = "propre à un autre comportement" if surnumeraire in propres else "inconnu"
+            defauts.append((nom, f"champ « {surnumeraire} » {quoi}"))
+    return defauts
+
+
 def manifestes(sortie):
     """Vérifie que chaque manifeste décrit bien ce qui est sur le disque."""
     defauts = []
@@ -415,6 +490,7 @@ def main():
 
     controlees, defauts = controler(options.sortie, pentes=options.pentes)
     defauts += manifestes(options.sortie)
+    defauts += profils(options.sortie)
     defauts += controler_sons(options.sortie)
     defauts += renvois_de_sons(options.sortie)
     sons = len(list(options.sortie.rglob("*.wav")))

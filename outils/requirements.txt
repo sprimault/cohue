@@ -1,14 +1,17 @@
 # Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 # SPDX-License-Identifier: Apache-2.0
 
-# Versions épinglées, et c'est ce qui rend `make ressources-verif` tenable : les
-# images sont comparées au bit près, or c'est la compression zlib de Pillow qui
-# décide de ces octets, à dessin rigoureusement identique. Laissées flottantes,
-# les six cents images échouent au contrôle le lendemain d'une publication
-# amont, sur du travail que personne n'a touché.
+# Versions épinglées pour le dessin, pas pour les octets : c'est le rendu de
+# Pillow qui doit rester stable d'une version à l'autre, puisque le contrôle
+# compare les pixels. Laissée flottante, une montée amont qui changerait un
+# antialiasing ou un arrondi ferait échouer le contrôle sur du travail que
+# personne n'a touché.
 #
-# Les monter est donc un lot en soi : régénérer, relire quelques planches de
-# contrôle, et la montée emporte le diff des ressources avec elle.
+# L'identité des octets, elle, n'est pas atteignable par épinglage : la wheel
+# Windows charge zlib-ng là où la wheel Linux charge zlib, à Pillow identique.
+#
+# Monter une version est donc un lot en soi : régénérer, relire quelques
+# planches de contrôle, et la montée emporte le diff des ressources avec elle.
 pillow==12.2.0
 numpy==2.5.2
 scipy==1.18.1

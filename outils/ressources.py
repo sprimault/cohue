@@ -275,19 +275,64 @@ def renvois_de_sons(sortie):
     return defauts
 
 
+# Les planches de contrôle et les aperçus sont régénérés mais pas versionnés :
+# `.gitignore` les exclut parce qu'ils se refont à volonté. Les comparer ferait
+# échouer tout clone frais, où ils n'existent pas encore.
+NON_VERSIONNE = ("controle_", "apercu_")
+
+
+def _versionne(chemin):
+    """Dit si ce fichier a vocation à être dans le dépôt."""
+    return not chemin.name.startswith(NON_VERSIONNE)
+
+
+def _meme_dessin(reference, produit):
+    """Dit si deux images portent les mêmes pixels, quels que soient leurs octets.
+
+    Un PNG est un conteneur compressé, et la comparaison stricte n'est pas
+    portable : Pillow n'embarque pas la même bibliothèque de compression selon
+    la plateforme — la wheel Windows charge zlib-ng, la wheel Linux zlib —, si
+    bien que toutes les images du dépôt diffèrent d'un système à l'autre à
+    dessin rigoureusement identique. C'est le dessin qui est versionné ici, pas
+    la façon de le compresser.
+
+    Ce que le contrôle attrape n'en souffre pas : une retouche manuelle, un
+    script modifié sans régénération et un rendu de Pillow qui changerait
+    déplacent tous des pixels. Sons et manifestes gardent la comparaison
+    stricte, qu'ils passent sur les deux systèmes.
+    """
+    with Image.open(reference) as a, Image.open(produit) as b:
+        return a.size == b.size and a.mode == b.mode and a.tobytes() == b.tobytes()
+
+
+def _ecart(reference, produit):
+    """Rend la description de l'écart entre deux fichiers, ou None s'il n'y en a pas."""
+    if filecmp.cmp(reference, produit, shallow=False):
+        return None
+    if reference.suffix != ".png":
+        return "diffère de la régénération"
+    with Image.open(reference) as a, Image.open(produit) as b:
+        if a.size != b.size or a.mode != b.mode:
+            return f"taille ou mode différents : {a.size}{a.mode} contre {b.size}{b.mode}"
+    return None if _meme_dessin(reference, produit) else "pixels différents"
+
+
 def comparer(reference, produit):
     """Liste les fichiers qui diffèrent entre le dépôt et une régénération."""
     ecarts = []
-    attendus = {p.relative_to(produit) for p in produit.rglob("*") if p.is_file()}
-    presents = {p.relative_to(reference) for p in reference.rglob("*") if p.is_file()}
+    attendus = {p.relative_to(produit) for p in produit.rglob("*")
+                if p.is_file() and _versionne(p)}
+    presents = {p.relative_to(reference) for p in reference.rglob("*")
+                if p.is_file() and _versionne(p)}
 
     for manquant in sorted(attendus - presents):
         ecarts.append((manquant, "absent du dépôt"))
     for surnumeraire in sorted(presents - attendus):
         ecarts.append((surnumeraire, "présent dans le dépôt mais plus généré"))
     for commun in sorted(attendus & presents):
-        if not filecmp.cmp(reference / commun, produit / commun, shallow=False):
-            ecarts.append((commun, "diffère de la régénération"))
+        quoi = _ecart(reference / commun, produit / commun)
+        if quoi:
+            ecarts.append((commun, quoi))
     return ecarts
 
 

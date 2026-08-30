@@ -32,12 +32,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Les images sont générées : régénérées, elles doivent être identiques au bit
-  # près. Un écart signale une retouche manuelle d'un PNG, qui serait écrasée au
-  # prochain lancement sans que personne ne le voie.
+  # Les images sont générées : régénérées, elles doivent porter les mêmes
+  # pixels. Un écart signale une retouche manuelle d'un PNG, qui serait écrasée
+  # au prochain lancement sans que personne ne le voie.
   #
-  # Les versions sont épinglées dans outils/requirements.txt, qui dit pourquoi :
-  # c'est la compression de Pillow qui fixe les octets, pas le dessin.
+  # Les pixels et non les octets, parce que la compression PNG n'est pas
+  # portable : à Pillow identique, la wheel Windows charge zlib-ng et celle de
+  # ce runner zlib. Les sons et les manifestes, eux, sont comparés au bit près.
   #
   # Un job à part, sans setup-go : ce contrôle ne touche pas une ligne de Go, et
   # l'adosser au job Contrôles le ferait tomber avec lui — un go.mod illisible

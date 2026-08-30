@@ -445,7 +445,7 @@ def figurine(profil, direction, cycle, image, total, variante=0):
     avancement = image / max(1, total - 1) if total > 1 else 0.0
     angle = math.radians(DIRECTIONS.index(direction) * 45 + 90)
     lateral = math.cos(angle)                # +1 vers la droite de l'écran
-    profondeur = math.sin(angle)             # +1 vers le fond
+    profondeur = -math.sin(angle)            # +1 vers le fond, donc de dos
     de_dos = profondeur > 0.3
 
     balance = math.sin(avancement * 2 * math.pi)

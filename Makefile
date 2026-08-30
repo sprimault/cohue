@@ -97,6 +97,7 @@ decors:
 
 figurines:
 	$(PYTHON) outils/figurines.py --sortie assets/personnages
+	$(PYTHON) outils/figurines.py --apercu
 
 objets:
 	$(PYTHON) outils/objets.py --sortie assets/objets

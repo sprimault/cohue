@@ -49,9 +49,13 @@ nue.
   sale et le sol fissuré ralentissent qui les traverse — le joueur comme les
   créatures, qui les contournent plutôt que d'y passer. Il est exigé sur ce qui
   se franchit et refusé sur ce qui bloque.
-- Un lieu livré, `assets/lieux/place.json`, chargé au lancement par le même
-  chemin qu'un lieu écrit par un tiers. Les ressources sont embarquées dans le
-  binaire : l'exécutable se suffit à lui-même.
+- Un lieu livré, `assets/lieux/place/`, chargé au lancement par le même chemin
+  qu'un lieu écrit par un tiers. Les ressources sont embarquées dans le binaire :
+  l'exécutable se suffit à lui-même.
+- **Un lieu est un dossier** : son `lieu.json`, son jeu de pièces et ses pièces.
+  Les noms de pièces sont ainsi locaux à un lieu, et deux auteurs peuvent nommer
+  chacun la leur `carrefour`. Le nom du dossier et le champ `identifiant` doivent
+  s'accorder, faute de quoi le lieu est refusé.
 
 ***
 
@@ -68,6 +72,10 @@ the scaffolding; step 1 of the roadmap is the bare simulation.
   and cracked ground slow down whoever crosses them — the player as much as the
   creatures, which go around rather than through. It is required on whatever can
   be crossed and rejected on whatever blocks.
-- A shipped level, `assets/lieux/place.json`, loaded at startup through the same
-  path as a level written by a third party. Assets are embedded in the binary:
-  the executable stands on its own.
+- A shipped level, `assets/lieux/place/`, loaded at startup through the same path
+  as a level written by a third party. Assets are embedded in the binary: the
+  executable stands on its own.
+- **A level is a directory**: its `lieu.json`, its room set and its rooms. Room
+  names are thus local to a level, and two authors can each name theirs
+  `carrefour`. The directory name and the `identifiant` field must agree, or the
+  level is rejected.

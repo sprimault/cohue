@@ -384,6 +384,14 @@ C'est ce qui fait tenir ensemble les trois règles de la caisse, qu'un booléen 
 
 Le champ de flux devient donc un parcours pondéré. **Un tri par seaux, pas un tas** : les coûts sont trois ou quatre valeurs entières, ce qui ramène le calcul au même temps linéaire qu'un parcours en largeur ordinaire — un Dijkstra général se paierait pour une variété de coûts qui n'existe pas ici. La destruction d'une caisse déclenche un rafraîchissement local, pas un recalcul complet.
 
+**Le coût se paie au déplacement, et il divise la vitesse.** Sans quoi le parcours pondéré serait une superstition : il contournerait au prix de deux cases ce qui ne coûte rien à traverser, et l'écart entre le chemin choisi et le chemin payé ne se verrait nulle part.
+
+**Une seule grille, lue par toutes les entités**, joueur compris — la caisse veut déjà le ralentir. Deux grilles se paieraient à chaque destruction, où il faudrait garder d'accord deux rafraîchissements locaux ; et le jour où un profil devra ignorer un coût, la Buse qui glisse ou le Molosse qui charge, c'est un champ de profil, pas une seconde grille.
+
+La case de référence est **celle du point d'appui, avant le pas**. Le point d'appui parce qu'une entité est presque toujours à cheval sur deux cases et que c'est déjà lui qui la situe partout ailleurs, tri en profondeur compris ; avant le pas parce que diviser par le coût de la case d'arrivée est circulaire — le pas plein entre dans la flaque, la division le raccourcit, il n'y entre plus, et l'entité tremble à la frontière. L'écart avec ce que le parcours a compté est d'un tick à l'entrée et d'un tick à la sortie, qui se compensent sur une traversée.
+
+Corollaire à connaître : **le coût s'échantillonne au tick, il ne s'intègre pas.** Une entité assez rapide pour franchir une case entière en un pas ne paierait jamais une case isolée, son point d'appui n'y séjournant à aucun tick. Sans portée aujourd'hui — il faudrait soixante tuiles par seconde là où le joueur en fait cinq — mais c'est ce qui cède en premier le jour où un coût élevé servira à ralentir quelque chose de mince.
+
 ### Les obstacles destructibles
 
 Un mur ne cède **jamais** sous la pression d'une horde : la géométrie n'est pas négociable, sinon le Vigile perd son intérêt, la signalétique son objet, et l'éditeur ne peut plus rien valider — une carte qui change en cours de partie n'est plus vérifiable.
@@ -879,7 +887,9 @@ Chaque lot produit un manifeste JSON, et c'est lui qui fait contrat entre les im
 
 Chaque manifeste porte un **en-tête** : `version_format`, et pour le décor la taille de tuile. Sans lui, aucune migration n'est possible le jour où un champ change de sens.
 
-Côté **décor** : taille, ancrage, élévation, catégorie, thème, et trois champs qui commandent le moteur — `bloquant`, dont le chargeur tire la grille de passabilité, `emprise` en tuiles, sans laquelle une gondole de deux tuiles n'en bloquerait qu'une, et `transparence_si_derriere` pour ce qui dépasse 24 pixels. Aucun des deux ne se devine : un trottoir et un quai dépassent du sol et se marchent, une flaque est plate et se traverse, alors qu'un muret de même hauteur qu'un trottoir arrête tout.
+Côté **décor** : taille, ancrage, élévation, catégorie, thème, et quatre champs qui commandent le moteur — `bloquant` et `cout_traversee`, dont le chargeur tire la grille de coûts, `emprise` en tuiles, sans laquelle une gondole de deux tuiles n'en bloquerait qu'une, et `transparence_si_derriere` pour ce qui dépasse 24 pixels. Rien de tout cela ne se devine : un trottoir et un quai dépassent du sol et se marchent, une flaque est plate et se traverse, alors qu'un muret de même hauteur qu'un trottoir arrête tout.
+
+`cout_traversee` est exigé sur ce qui se franchit et refusé sur ce qui bloque. Deux champs plutôt qu'un entier où une valeur réservée vaudrait l'infini : une sentinelle laisse `bloquant` et un coût fini coexister dans le même fichier, et quelqu'un finit par l'écrire. Contrôlé dans les deux sens, l'état absurde n'est pas exprimable — et un coût orphelin sur un mur, jamais lu, ne fait croire à aucun réglage.
 
 Côté **personnages** : le rendu — cycles, cadences, bouclage, directions, point d'appui, gabarit, variantes — **et les valeurs de jeu**, dans le même fichier.
 

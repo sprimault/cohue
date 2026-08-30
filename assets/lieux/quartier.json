@@ -1,0 +1,15 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · tenu à la main, aucun générateur ne l'écrit",
+  "version_format": 1,
+  "identifiant": "quartier",
+  "nom": "Quartier",
+  "palette": {
+    ".": "sol",
+    ",": "trottoir",
+    "~": "flaque",
+    "x": "sol_fissure",
+    "#": "mur",
+    "m": "muret",
+    "O": "pilier"
+  }
+}

@@ -45,6 +45,13 @@ nue.
   porte que des identifiants de pièces et leurs positions, et ne peut embarquer
   ni image ni son. La clé `$comment` y est admise partout et sert de
   commentaire ; toute autre clé inconnue fait refuser le fichier.
+- Le coût de traversée d'une tuile de décor, `cout_traversee`. La flaque, le sol
+  sale et le sol fissuré ralentissent qui les traverse — le joueur comme les
+  créatures, qui les contournent plutôt que d'y passer. Il est exigé sur ce qui
+  se franchit et refusé sur ce qui bloque.
+- Un lieu livré, `assets/lieux/place.json`, chargé au lancement par le même
+  chemin qu'un lieu écrit par un tiers. Les ressources sont embarquées dans le
+  binaire : l'exécutable se suffit à lui-même.
 
 ***
 
@@ -57,3 +64,10 @@ the scaffolding; step 1 of the roadmap is the bare simulation.
   room identifiers and their positions, and can embed neither images nor sounds.
   The `$comment` key is allowed anywhere and serves as a comment; any other
   unknown key causes the file to be rejected.
+- The traversal cost of a decor tile, `cout_traversee`. Puddles, dirty ground
+  and cracked ground slow down whoever crosses them — the player as much as the
+  creatures, which go around rather than through. It is required on whatever can
+  be crossed and rejected on whatever blocks.
+- A shipped level, `assets/lieux/place.json`, loaded at startup through the same
+  path as a level written by a third party. Assets are embedded in the binary:
+  the executable stands on its own.

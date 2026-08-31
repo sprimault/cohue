@@ -512,6 +512,14 @@ Ebitengine, ce qui rend la règle facile à tenir.
 Un test qui exigerait un serveur X virtuel est le signe qu'il n'a rien à faire
 dans la suite par défaut : le rendu se juge à l'œil.
 
+**La règle est plus large qu'elle n'en a l'air : `internal/render` n'a aucun
+fichier de test, et n'en aura pas.** Importer Ebitengine initialise GLFW, qui
+panique sans `DISPLAY` — donc n'importe quel test de ce paquet tombe avant
+d'avoir commencé, y compris un qui n'ouvrirait aucune fenêtre et se contenterait
+de lire deux constantes. Ce n'est pas « ne pas ouvrir de fenêtre dans un test »,
+c'est « ne pas tester un paquet qui lie la bibliothèque ». Un paquet sans test
+étant d'ordinaire un défaut, sa godoc dit pourquoi celui-là n'en est pas un.
+
 ### Le test qui vend le projet
 
 ```

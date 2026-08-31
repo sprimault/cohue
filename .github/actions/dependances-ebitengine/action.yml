@@ -1,0 +1,34 @@
+# Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Dépendances système d'Ebitengine
+description: >
+  Installe les en-têtes X11, OpenGL et ALSA qu'Ebitengine exige pour compiler
+  avec cgo sur Linux. Ne fait rien sur les autres systèmes.
+
+# Six jobs en avaient besoin — cinq dans l'intégration continue, un dans la
+# publication — d'où une action plutôt que six copies. Une liste de paquets
+# recopiée six fois, c'est six endroits à corriger le jour où Ebitengine en
+# réclame un de plus, et cinq qu'on oubliera.
+#
+# La liste est celle de la documentation d'Ebitengine, pas une reconstitution à
+# partir de l'erreur : `X11/Xlib.h` manquait, mais installer le seul paquet qui
+# le porte aurait laissé les suivants se découvrir un par un.
+runs:
+  using: composite
+  steps:
+    - name: En-têtes X11, OpenGL et ALSA
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          libc6-dev \
+          libgl1-mesa-dev \
+          libxcursor-dev \
+          libxi-dev \
+          libxinerama-dev \
+          libxrandr-dev \
+          libxxf86vm-dev \
+          libasound2-dev \
+          pkg-config

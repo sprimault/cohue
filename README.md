@@ -18,13 +18,19 @@ same configuration.
 
 ## Status
 
-**Nothing runs yet.** The repository holds the design, the asset-building tools
-and the scaffolding. Step 1 is the bare simulation.
+**The game opens and can be walked, it cannot be played yet.** Steps 1 and 2 are
+delivered: the window shows a level, you move through it with the keyboard, and
+the horde closes in around obstacles.
 
-What is settled: the 2:1 isometric geometry validated to the pixel, the scenery
-generated with its manifest, and the characters generated as well — one body
-type per family, eight orientations, and the gameplay values in the same
-manifest as the rendering.
+What is missing for this to be a game: dying and restarting, doors to open,
+crates to break, weapons to pick up, level-ups, and the chain of levels. The
+scenery is coloured rectangles — the images exist, but nothing loads them yet.
+
+What is settled: the simulation running three hundred creatures with no
+allocation per tick, the isometric rendering with its projection, camera and
+depth sort, the scenery generated with its manifest, and the characters
+generated as well — one body type per family, eight orientations, and the
+gameplay values in the same manifest as the rendering.
 
 - [`docs/conception.md`](docs/conception.md) — the full design (French)
 - [`ROADMAP.md`](ROADMAP.md) — the steps, and what is out of scope for v1

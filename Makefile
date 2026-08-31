@@ -19,7 +19,7 @@ PYTHON    ?= python3
 # directement perd ces variables, et l'échec est intermittent.
 -include makefile.local
 
-.PHONY: build run test race fmt lint vulncheck sec notices cover binary binaries clean tools ressources ressources-verif decors figurines objets sons controle entetes
+.PHONY: build run test race fmt lint vulncheck sec notices cover binary binaries clean tools ressources ressources-verif decors figurines objets sons controle entetes sommaire
 
 build:
 	go build -trimpath -ldflags "$(LDFLAGS)" -o $(SORTIE)/$(BINAIRE) ./cmd/cohue
@@ -112,6 +112,13 @@ controle:
 # vient de git ls-files : ce qui n'est pas publié n'a pas à porter de mention.
 entetes:
 	$(PYTHON) outils/entetes.py
+
+# Le sommaire de docs/go.md indexe par la question, pas par les titres — donc il
+# n'est pas une copie de la structure. Ses ancres, elles, en sont une : une ancre
+# morte ne produit aucune erreur en Markdown, elle ne fait rien, et un sommaire
+# que rien ne vérifie égare au lieu de guider.
+sommaire:
+	$(PYTHON) outils/sommaire.py
 
 # Ce que passe l'intégration continue : régénère à côté et exige l'identique.
 # Un écart signale une retouche manuelle d'un PNG, ce qui serait écrasé au

@@ -3,6 +3,40 @@
 Ce que ce dépôt attend d'un changement en Go, et pourquoi. La conception est
 dans [`conception.md`](conception.md) ; ce document ne parle que du code.
 
+Le sommaire indexe par la question qu'on se pose, non par ce que les sections
+affirment — on cherche ici avec un problème, pas avec un titre. Il ne résume
+rien : une entrée qui dirait ce que sa section conclut serait la seconde
+description que ce document proscrit. `make sommaire` vérifie que chaque entrée
+pointe quelque part et qu'aucune section de premier rang n'est laissée hors
+index.
+
+<!-- sommaire -->
+
+| Quand on se demande | Voir |
+|---|---|
+| si une dépendance a sa place | [Bibliothèques](#1-bibliothèques) |
+| pourquoi une cible ne se compile pas comme les autres | [cgo n'est pas uniforme](#2-cgo-nest-pas-uniforme-et-cest-la-seule-entorse) |
+| en quelle langue nommer une chose | [La langue des identifiants](#3-la-langue-des-identifiants) |
+| ce qu'un fichier porte avant son code | [En-tête de fichier](#4-en-tête-de-fichier) |
+| où ranger un type, un fichier, un réglage | [Structure](#5-structure) |
+| comment refuser un fichier, et quoi en dire | [Erreurs](#6-erreurs) |
+| avec quelles permissions écrire | [Écriture de fichiers](#7-écriture-de-fichiers) |
+| si un chiffre a le droit d'être écrit | [Une affirmation de nombre](#8-une-affirmation-de-nombre-sadosse-à-un-test-ou-perd-son-quantificateur) |
+| comment formuler une justification qui vieillira | [Une condition vaut mieux qu'une conclusion](#une-condition-vaut-mieux-quune-conclusion) |
+| quoi journaliser, et où ne pas le faire | [Journalisation](#9-journalisation) |
+| ce qui a le droit de tourner en parallèle | [Concurrence](#10-concurrence) |
+| comment garder une référence sur une entité | [Le bassin d'entités](#le-bassin-dentités) |
+| si un comportement doit être du code | [Les données ne sont pas du code](#les-données-ne-sont-pas-du-code) |
+| où vit une valeur, et ce qui l'y garde seule | [Deux descriptions](#deux-descriptions-de-la-même-chose-finissent-par-diverger) |
+| pourquoi un champ absent se comporte comme un champ nul | [La valeur zéro](#la-valeur-zéro-ne-se-partage-pas-entre-labsence-et-une-valeur-légitime) |
+| où convertir entre le monde et l'écran | [La projection isométrique](#la-projection-isométrique-ne-se-recalcule-pas) |
+| ce qu'un test doit garder, et comment | [Tests](#11-tests) |
+| si un test vert prouve quelque chose | [Trois façons d'avoir un test vert](#trois-façons-davoir-un-test-vert-qui-ne-prouve-rien) |
+| comment défendre un test qu'on croirait faux | [Le test contre-intuitif](#le-test-qui-garde-une-propriété-contre-intuitive) |
+| pourquoi un contrôle passe sans rien vérifier | [Un contrôle privé de son entrée](#un-contrôle-privé-de-son-entrée-échoue-il-ne-passe-pas) |
+
+<!-- fin du sommaire -->
+
 ---
 
 ## 1. Bibliothèques
@@ -558,6 +592,14 @@ Le chargeur de lieux en donne le cas : il confronte le nom du dossier au champ
 `identifiant`. Un `fs.FS` monté directement sur le dossier du lieu ne lui laisse
 plus de nom à confronter — le contrôle ne devient pas faux, il perd sa prise.
 D'où le refus de `Load(".")`, et son propre test.
+
+Le contrôle du sommaire en donne un second, sur un mécanisme sans rapport : la
+façon la plus simple de le faire taire serait de supprimer le sommaire qu'il
+vérifie. Le premier cas perdait son entrée par accident, celui-ci montre qu'on
+peut la lui retirer exprès — d'où le refus explicite quand les repères manquent.
+
+Deux cas sans rapport l'un avec l'autre, et c'est ce qui distingue une règle
+d'une anecdote généralisée.
 
 C'est la même famille que ci-dessus, prise encore ailleurs : un contrôle qui
 certifie l'écart au lieu de le signaler.

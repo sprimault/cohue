@@ -33,7 +33,16 @@ de version sont ce que lit un auteur de niveau étranger avant de savoir s'il
 doit reprendre son travail. Ce préambule reste en français : il n'est jamais
 publié, et explique les conventions du dépôt à qui y contribue.
 
-## [Non publié]
+## [0.2.0] — 2026-08-31 — La horde à l'écran
+
+**Cette version se regarde et se traverse, elle ne se joue pas encore.** La
+fenêtre s'ouvre sur un lieu, on s'y déplace au clavier, et la horde converge en
+contournant les obstacles — mais on ne peut pas mourir, donc pas recommencer.
+
+Il n'y a donc ni écran de mort, ni porte, ni caisse, ni arme à ramasser, ni
+montée de niveau, ni enchaînement de lieux. Le décor est fait de rectangles
+colorés : les images existent dans le binaire, mais rien ne les charge encore.
+C'est le comportement attendu, pas un défaut.
 
 ### Ajouté
 
@@ -58,6 +67,15 @@ publié, et explique les conventions du dépôt à qui y contribue.
   arrivera avec les écrans de réglages.
 
 ***
+
+**This release can be looked at and walked through, it cannot be played yet.**
+The window opens on a level, you move through it with the keyboard, and the
+horde closes in around obstacles — but you cannot die, so you cannot start over.
+
+There is therefore no death screen, no door, no crate, no weapon to pick up, no
+level-up, no chain of levels. The scenery is coloured rectangles: the images are
+in the binary, but nothing loads them yet. This is the expected behaviour, not a
+defect.
 
 ### Added
 

@@ -49,8 +49,14 @@ type Shape struct {
 	// Category est la hauteur telle que l'éditeur la lit : `sol`,
 	// `obstacle_bas` ou `haut`.
 	Category string `json:"categorie"`
-	// Footprint est l'emprise au sol en tuiles, sans laquelle une gondole de
-	// deux tuiles n'en bloquerait qu'une.
+	// Footprint est l'emprise au sol en tuiles.
+	//
+	// **Aucune pièce ne doit poser une forme de plus d'une tuile tant que rien
+	// ne lit ce champ**, et c'est pourquoi le lieu livré n'en emploie aucune :
+	// le chargeur l'ignore, si bien qu'une gondole de deux tuiles n'en
+	// bloquerait qu'une, et que le lieu mentirait sans qu'aucun contrôle ne le
+	// dise. Le champ est déclaré parce que le décodage refuse les clés
+	// inconnues ; le retirer ferait échouer le chargement du manifeste livré.
 	Footprint [2]float64 `json:"emprise"`
 	// Blocking dit si la forme arrête ce qui s'y présente.
 	Blocking bool `json:"bloquant"`

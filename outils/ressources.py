@@ -76,18 +76,31 @@ def _pentes(masque):
     return mesures
 
 
+# Sous quelle clé chaque manifeste range ses entrées. Liste close : un manifeste
+# nouveau s'y déclare, et c'est le geste qui le fait entrer dans les contrôles.
+CLES_D_ENTREES = ("formes", "objets", "profils", "sons", "armes")
+
+
 def _entrees(chemin):
     """Rend le dictionnaire des entrées d'un manifeste, quelle que soit sa forme.
 
-    Chaque manifeste porte désormais un en-tête — version de format, taille de
-    tuile — et range ses entrées sous une clé. Un lecteur qui l'ignorerait
-    prendrait `version_format` pour un asset.
+    Chaque manifeste porte un en-tête — version de format, taille de tuile — et
+    range ses entrées sous une clé. Un lecteur qui l'ignorerait prendrait
+    `version_format` pour un asset.
+
+    Une clé inconnue arrête tout, plutôt que de rendre le document entier comme
+    on le faisait : un contrôle privé de son entrée échoue, il ne passe pas. Le
+    repli a fonctionné le jour où le manifeste des armes est arrivé — il a levé,
+    donc on l'a vu ; un manifeste d'une autre forme aurait rendu quelque chose de
+    plausible, et les contrôles auraient vérifié des clés d'en-tête en croyant
+    lire des assets.
     """
     contenu = json.loads(chemin.read_text(encoding="utf-8"))
-    for cle in ("formes", "objets", "profils", "sons"):
+    for cle in CLES_D_ENTREES:
         if cle in contenu:
             return contenu[cle]
-    return contenu
+    raise SystemExit(f"{chemin} : aucune clé d'entrées connue, "
+                     f"attendu {' ou '.join(CLES_D_ENTREES)}")
 
 
 def _cotes_de_grille(sortie):
@@ -231,7 +244,7 @@ CHAMPS_PAR_COMPORTEMENT = {
     "va_et_vient": set(),
     "charge":      {"degats_charge"},
     "flanc":       {"tangentiel"},
-    "tir":         {"portee_tuiles"},
+    "tir":         {"portee_tuiles", "degats_tir", "vitesse_projectile_tuiles_s"},
     "explosion":   {"degats_explosion", "rayon_explosion_tuiles"},
     "soin":        set(),
 }
@@ -273,6 +286,42 @@ def profils(sortie):
         for surnumeraire in sorted(set(info) - attendus):
             quoi = "propre à un autre comportement" if surnumeraire in propres else "inconnu"
             defauts.append((nom, f"champ « {surnumeraire} » {quoi}"))
+    return defauts
+
+
+# Ce qu'un objet ne porte plus, et chez qui c'est parti.
+#
+# Une liste de champs bannis plutôt que la liste blanche qu'on préfère ailleurs :
+# ici on ne se protège pas d'un fichier tiers mais d'une régression connue, et le
+# message doit apprendre où ranger la valeur plutôt que de dire qu'elle est de
+# trop. Les deux fichiers portaient la portée de la Buse, avec deux valeurs
+# différentes, et personne ne l'a vu.
+CHAMPS_DEMENAGES = {
+    "degats": "chez le tireur : l'arme pour le joueur, le profil pour une créature",
+    "portee_tuiles": "chez le tireur, qui la porte déjà",
+    "vitesse_px_s": "chez le tireur, en tuiles par seconde et non en pixels",
+    "traverse": "chez l'arme, où ce sera un passif",
+}
+
+
+def objets(sortie):
+    """Vérifie qu'aucun objet ne reprend une valeur qui appartient au tireur.
+
+    Un projectile est un objet qui vole : sa taille et son ancrage le décrivent,
+    ses dégâts non. La règle est au chapitre 4 de la conception, et ce contrôle
+    est ce qui empêche de la reperdre — sans lui, quelqu'un remet `degats` sur un
+    projectile par symétrie avec le manifeste des personnages, qui porte bien ses
+    valeurs de jeu.
+    """
+    chemin = sortie / "objets" / "manifeste.json"
+    if not chemin.exists():
+        return []
+
+    defauts = []
+    for nom, info in _entrees(chemin).items():
+        for champ in sorted(set(info) & set(CHAMPS_DEMENAGES)):
+            defauts.append((nom, f"champ « {champ} » : il a déménagé "
+                                 f"{CHAMPS_DEMENAGES[champ]}"))
     return defauts
 
 
@@ -505,6 +554,7 @@ def main():
     controlees, defauts = controler(options.sortie, pentes=options.pentes)
     defauts += manifestes(options.sortie)
     defauts += profils(options.sortie)
+    defauts += objets(options.sortie)
     defauts += formes(options.sortie)
     defauts += controler_sons(options.sortie)
     defauts += renvois_de_sons(options.sortie)

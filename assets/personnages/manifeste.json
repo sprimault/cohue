@@ -231,6 +231,8 @@
       "max_simultane": 0,
       "degats_contact_s": 4,
       "portee_tuiles": 6,
+      "degats_tir": 6,
+      "vitesse_projectile_tuiles_s": 7.0,
       "origine": "figurine générée",
       "cote": 64,
       "appui": [

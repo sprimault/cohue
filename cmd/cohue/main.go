@@ -26,6 +26,7 @@ import (
 const (
 	manifesteDecor       = "assets/decors/manifeste.json"
 	manifestePersonnages = "assets/personnages/manifeste.json"
+	manifesteArmes       = "assets/armes/manifeste.json"
 	lieuDepart           = "assets/lieux/place"
 )
 
@@ -78,6 +79,12 @@ func run() error {
 		return err
 	}
 	slog.Info("profils chargés", "enemies", len(profils.Enemies))
+
+	armes, err := game.LoadWeapons(cohue.Assets, manifesteArmes)
+	if err != nil {
+		return err
+	}
+	slog.Info("armes chargées", "base", armes.Base.Key)
 
 	monde := game.NewWorld(profils, carte, capaciteHorde)
 	slog.Info("monde monté", "capacite", monde.Enemies().Cap())

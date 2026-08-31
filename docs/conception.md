@@ -893,6 +893,8 @@ Chaque lot produit un manifeste JSON, et c'est lui qui fait contrat entre les im
 
 Chaque manifeste porte un **en-tête** : `version_format`, et pour le décor la taille de tuile. Sans lui, aucune migration n'est possible le jour où un champ change de sens.
 
+**Mais il n'y sert pas à ce qu'il sert dans un niveau**, et la nuance mérite d'être écrite avant que quelqu'un l'aligne dans un sens ou dans l'autre. Un niveau circule entre joueurs, donc son numéro dit à un binaire quoi faire d'un fichier qu'il n'a pas produit. Un manifeste, lui, est embarqué par `go:embed` : il voyage avec son lecteur et ne peut pas en être désynchronisé. Ce qu'il accorde n'est pas deux machines mais **deux chaînes d'outils** — des scripts Python qui écrivent, du Go qui lit — et c'est pour cela qu'il en porte un quand même. D'où deux réflexes à ne pas avoir : incrémenter par symétrie avec les niveaux quand un champ disparaît, ou retirer le champ en constatant qu'aucune migration ne l'attend.
+
 Côté **décor** : taille, ancrage, élévation, catégorie, thème, et quatre champs qui commandent le moteur — `bloquant` et `cout_traversee`, dont le chargeur tire la grille de coûts, `emprise` en tuiles, sans laquelle une gondole de deux tuiles n'en bloquerait qu'une, et `transparence_si_derriere` pour ce qui dépasse 24 pixels. Rien de tout cela ne se devine : un trottoir et un quai dépassent du sol et se marchent, une flaque est plate et se traverse, alors qu'un muret de même hauteur qu'un trottoir arrête tout.
 
 `cout_traversee` est exigé sur ce qui se franchit et refusé sur ce qui bloque. Deux champs plutôt qu'un entier où une valeur réservée vaudrait l'infini : une sentinelle laisse `bloquant` et un coût fini coexister dans le même fichier, et quelqu'un finit par l'écrire. Contrôlé dans les deux sens, l'état absurde n'est pas exprimable — et un coût orphelin sur un mur, jamais lu, ne fait croire à aucun réglage.
@@ -904,6 +906,12 @@ Un **rôle** décide d'abord, et il en a trois : le joueur porte une vie, un pla
 Un **comportement** ajoute ensuite ce qui n'a de sens que pour lui : tangentiel du flanqueur, portée de la Buse, dégâts de charge du Molosse, rayon d'explosion de la Baudruche. Déclarés avec le comportement et non dans une liste de champs facultatifs, ils se contrôlent dans les deux sens — une portée sur un Badaud ne serait jamais lue et laisserait croire qu'il tire.
 
 Deux unités enfin, et jamais deux fois le même nom pour deux unités : `vitesse_tuiles_s` sur le seul joueur, `vitesse_relative` sur les autres. Et `rayon_tuiles`, pas un rayon en pixels : la simulation ne connaît que la tuile, et une distance mesurée à l'écran décrirait une ellipse dans le monde.
+
+Côté **objets et armes**, la ligne de partage tient en une phrase : **le tireur porte les valeurs de son tir, le projectile ne porte que son apparence.** Cadence, portée, dégâts, nombre de projectiles et vitesse appartiennent à l'arme quand c'est le joueur qui tire, au profil quand c'est une créature — et le projectile garde sa taille, son ancrage, son emprise, ce qui se règle en dessinant.
+
+Ce n'est pas une préférence de rangement. Les projectiles ont d'abord porté leurs dégâts et leur portée, si bien que la Buse avait une portée de six sur son profil et de sept sur son projectile, dans deux fichiers, sans que rien ne le signale — la seconde description avait divergé avant même d'être lue. Et la vitesse d'un projectile est le chiffre qui décide si un tir de Buse s'esquive : la laisser dans un manifeste généré signifiait que la seule vraie question d'équilibrage du Cracheur se réglait en régénérant six cents images.
+
+Le critère qui range vaut au-delà de ce cas : **un chiffre qu'on ajuste en jouant ne vit pas dans le fichier où l'on ajuste ce qu'on dessine.** C'est aussi ce qui justifie que la table d'armes soit tenue à la main, et `outils/ressources.py` refuse les champs déménagés pour qu'on ne les remette pas sur un objet par symétrie avec le manifeste des personnages, qui porte bien ses valeurs de jeu.
 
 Côté **armes** : `assets/armes/manifeste.json`, tenu à la main et non généré — cadence, portée, dégâts, nombre de projectiles, puis la table des passifs et les recettes de fusion. C'est la seule exception de `assets/`, et le chapitre 9 dit pourquoi.
 

@@ -470,13 +470,17 @@ FAMILLES_SONS = {"gemme": "gemme"}
 # Ce que vaut un objet en jeu. Ces nombres vivent ici et non dans le code : la
 # règle du dépôt est que les données ne sont pas du code, et un manifeste est
 # déjà l'endroit où le moteur va les chercher.
+#
+# Les projectiles n'y figurent plus. Un projectile est un objet qui vole : il
+# porte sa taille, son ancrage et son emprise, et rien de ce qui se règle en
+# jouant. Dégâts, portée et vitesse appartiennent à celui qui tire — l'arme pour
+# le joueur, le profil pour une créature —, parce que ce sont les chiffres qu'on
+# rouvrira le plus, et que les régler ne doit pas coûter une régénération de six
+# cents images. La règle est au chapitre 4 de la conception ; `ressources.py`
+# refuse ces champs pour qu'on ne les y remette pas par symétrie.
 VALEURS = {
     "gemme": {"experience": 1},
     "fiole": {"soin": 30, "emplacements": 2},
-    "projectile_base": {"degats": 1, "vitesse_px_s": 320, "portee_tuiles": 6},
-    "projectile_perforant": {"degats": 1, "vitesse_px_s": 380, "portee_tuiles": 8,
-                             "traverse": True},
-    "projectile_ennemi": {"degats": 6, "vitesse_px_s": 200, "portee_tuiles": 7},
 }
 
 CHARGES = {"fusil": 5, "lance_flammes": 3, "grenade": 3, "tourelle": 2}

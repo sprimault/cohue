@@ -69,6 +69,11 @@ jobs:
           go-version-file: go.mod
           check-latest: true
 
+      # Ebitengine se lie aux bibliothèques système sur Linux : sans leurs
+      # en-têtes, la compilation échoue sur `X11/Xlib.h` bien avant le code du
+      # jeu. L'action ne fait rien sur les autres systèmes.
+      - uses: ./.github/actions/dependances-ebitengine
+
       # La saisie passe par l'environnement et non par interpolation dans le
       # corps : une expression `${{ }}` est substituée avant que le shell ne
       # lise la ligne, si bien qu'une valeur contenant un point-virgule

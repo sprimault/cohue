@@ -96,24 +96,24 @@ func (w *World) deplacerTirs() {
 
 // toucher applique un projectile à la première créature qu'il atteint.
 //
-// Deux projectiles qui arrivent sur la même créature dans le même tick ne la
-// tuent qu'une fois, et sans qu'aucune garde ne le vérifie : la mort étant un
-// état, la créature quitte le bassin à l'instant où sa résistance tombe, et le
-// second ne la trouve plus. Il poursuit alors sa route et va chercher derrière,
-// ce qui est exactement ce que la conception demande.
+// Une créature dont la résistance est tombée **cesse d'être une cible sans
+// quitter le bassin** : elle y reste jusqu'à la fin du tick, pour que les index
+// tiennent, et c'est la passe de nettoyage qui l'en retire. Deux projectiles
+// arrivant sur elle dans le même tick ne la tuent donc qu'une fois, et le second
+// va chercher derrière.
 //
-// **La suppression est immédiate, et non différée à la fin du tick**, alors que
-// l'ordre de mise à jour place les suppressions en dernier. Les deux donnent le
-// même résultat visible, par deux chemins différents : différée, la créature
-// morte resterait dans le bassin le temps du tick, et c'est une garde sur sa
-// résistance qui empêcherait le second projectile de la toucher. Ce qui tranche
-// est ce que la conception dit des cadavres — un type qui signifie deux choses
-// selon un drapeau oblige chaque boucle écrite ensuite à demander « est-il
-// mort ? », et l'oubli se paie dans une boucle qui n'existe pas encore. Le
-// ciblage du même tick ne doit pas pouvoir voir un mort.
+// La retirer sur-le-champ donnerait le même résultat visible aujourd'hui, mais
+// pour une raison accidentelle : les projectiles et les ennemis vivent dans deux
+// bassins distincts, si bien que supprimer dans l'un ne dérange pas le parcours
+// de l'autre. Les dégâts de contact, eux, parcourront le bassin des ennemis en
+// les tuant — et une suppression en cours de passe y changerait les index sous
+// les pieds de la boucle. La garde, elle, tient quel que soit le bassin parcouru.
 func (w *World) toucher(p *Projectile) bool {
 	for i := range w.ennemis.Active() {
 		e := w.ennemis.At(i)
+		if e.Hits <= 0 {
+			continue
+		}
 		rayon := w.profils.Enemies[e.Profile].Radius
 		if (Vec{e.X - p.X, e.Y - p.Y}).carres() > int64(rayon)*int64(rayon) {
 			continue
@@ -122,9 +122,6 @@ func (w *World) toucher(p *Projectile) bool {
 		// La transition, et non l'état : c'est ici que se brancheront le butin,
 		// les points et le cadavre, une seule fois chacun.
 		e.Hits -= p.Hits
-		if e.Hits <= 0 {
-			w.ennemis.RemoveAt(i)
-		}
 		return true
 	}
 	return false

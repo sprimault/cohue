@@ -98,9 +98,10 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 // Step avance la simulation d'un tick, le joueur suivant la direction voulue.
 //
 // L'ordre est celui de la conception, et il est écrit une fois : les entrées, le
-// champ de flux si c'est son tick, la densité, puis les intentions et leur
-// projection. Ce qui manque encore y prendra sa place — les apparitions entre
-// les entrées et le champ, les contacts et les suppressions à la fin.
+// champ de flux si c'est son tick, la densité, les intentions et leur
+// projection, puis les suppressions en dernier. Ce qui manque encore y prendra
+// sa place — les apparitions entre les entrées et le champ, les contacts avant
+// les suppressions.
 //
 // Les intentions et la projection tiennent en une seule passe alors que la
 // conception les énumère séparément, et c'est équivalent — **à une condition qui
@@ -122,6 +123,7 @@ func (w *World) Step(voulu Vec) {
 	w.deplacerEnnemis()
 	w.tirer()
 	w.deplacerTirs()
+	w.retirerLesMorts()
 
 	w.tick++
 }
@@ -211,6 +213,27 @@ func (w *World) glisser(x, y Fixed, pas Vec) (Fixed, Fixed) {
 		ny = y
 	}
 	return nx, ny
+}
+
+// retirerLesMorts ferme le tick en vidant le bassin de ce qui n'a plus de
+// résistance.
+//
+// Une créature morte a cessé d'être une cible dès l'instant où sa résistance est
+// tombée, mais elle est restée en place : c'est ce qui permet aux boucles du tick
+// de garder leurs index, et c'est pourquoi les suppressions viennent en dernier.
+//
+// La place libérée **est** réexaminée ici, à l'inverse de ce que fait une passe
+// de mise à jour : celle-ci ferait avancer deux fois l'entité remontée, alors que
+// ce nettoyage ne fait que filtrer — la sauter y laisserait un mort jusqu'au tick
+// suivant.
+func (w *World) retirerLesMorts() {
+	for i := 0; i < w.ennemis.Len(); {
+		if w.ennemis.At(i).Hits <= 0 {
+			w.ennemis.RemoveAt(i)
+			continue
+		}
+		i++
+	}
 }
 
 // passable dit si une position du monde tombe sur une case franchissable.

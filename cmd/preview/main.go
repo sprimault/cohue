@@ -19,9 +19,10 @@
 //
 // **Elle est déterministe, et doit le rester.** Deux exécutions écrivent des
 // octets identiques, sans quoi comparer une planche d'avant et d'après un
-// changement ne dirait rien. C'est gratuit tant que rien n'est tiré au sort ; le
-// jour où des créatures seront posées, leurs positions viendront d'une graine
-// fixée ici et non d'un tirage libre.
+// changement ne dirait rien. Rien n'y est tiré au sort : la horde vient du semis
+// régulier du montage, et les vues qui jouent des pas les jouent avec une
+// direction nulle. Le jour où un tirage entrera dans la simulation, sa graine
+// devra être fixée pour que cette propriété tienne.
 //
 // Elle exige un écran et ne tourne donc pas en intégration continue. Ce n'est
 // pas un contrôle mais une planche : ce qui se vérifie mécaniquement vit du côté
@@ -49,32 +50,34 @@ import (
 // écart à excepter, et elle pèserait dans le binaire de qui l'a régénérée.
 const sortie = ".tmp/apercus"
 
-// Les capacités des bassins, qui n'ont ici aucune importance : la planche ne
-// peuple rien. Basses plutôt que recopiées de celles du jeu, qui auraient donné
-// deux valeurs à tenir d'accord pour un montage qui ne les exerce pas.
-const (
-	capacite = 1
-	tirs     = 1
-)
-
-// vue est une position du joueur et le nom du fichier qui en sort.
+// vue est une scène à écrire : où poser le joueur, combien de pas jouer avant de
+// dessiner, et le nom du fichier qui en sort.
 type vue struct {
-	nom  string
-	u, v int
+	nom   string
+	u, v  int
+	ticks int
 }
 
 // vues énumère ce que la planche donne à relire.
 //
-// Le centre montre la projection sans rien qui la borde ; les quatre autres
+// Le centre montre la projection sans rien qui la borde ; les quatre suivantes
 // posent le joueur près d'un coin du losange, là où la caméra bute et où le
 // joueur se décentre. Ce sont les seuls endroits où le cadrage décide de quelque
 // chose, et ils couvrent les deux axes dans les deux sens.
+//
+// **La mêlée est la seule qui juge l'exception du joueur**, et c'est pourquoi
+// elle joue des pas : la horde semée converge, et il faut qu'elle soit arrivée
+// pour qu'on voie si le personnage reste devant ce qui l'entoure. Une horde qui
+// approche encore ne le dirait pas — elle est derrière lui ou devant lui, jamais
+// autour. Quatre secondes suffisent à ce que les plus proches le rejoignent sans
+// que l'arme de base en ait abattu assez pour dégager la place.
 var vues = []vue{
-	{"centre", 16, 16},
-	{"nord", 2, 2},
-	{"ouest", 2, 29},
-	{"est", 29, 2},
-	{"sud", 29, 29},
+	{nom: "centre", u: 16, v: 16},
+	{nom: "nord", u: 2, v: 2},
+	{nom: "ouest", u: 2, v: 29},
+	{nom: "est", u: 29, v: 2},
+	{nom: "sud", u: 29, v: 29},
+	{nom: "melee", u: 16, v: 16, ticks: 4 * game.TPS},
 }
 
 // planche écrit toutes les vues au premier pas, puis demande l'arrêt.
@@ -95,10 +98,12 @@ var vues = []vue{
 // Ce qu'elle en perd est nul : monter un écran cadre déjà sur le joueur, donc un
 // écran monté après la scène est cadré juste. Ce qui doit avancer d'un pas passe
 // par `World.Step`, où la direction est écrite et non lue.
+// **Chaque vue monte sa propre partie**, et n'hérite donc pas de ce que les
+// précédentes ont joué. Une vue qui avance de quatre secondes laisserait sinon
+// une horde déplacée aux suivantes, et l'ordre de la table déciderait de ce
+// qu'on voit — ce qui est exactement le genre de dépendance cachée qu'une
+// planche ne doit pas avoir. Le montage coûte quelques millisecondes.
 type planche struct {
-	monde  *game.World
-	grille *game.CostGrid
-	tuile  [2]int
 	tampon *ebiten.Image
 	ecrit  bool
 }
@@ -124,14 +129,23 @@ func (p *planche) Draw(*ebiten.Image) {}
 // Layout donne au tampon la taille de celui du jeu.
 func (p *planche) Layout(_, _ int) (int, int) { return render.Largeur, render.Hauteur }
 
-// vue pose la scène, la dessine et écrit le fichier.
+// vue monte une partie, y pose la scène, la dessine et écrit le fichier.
 //
 // Le joueur est posé au centre de sa case et non sur son coin, faute de quoi la
-// planche montrerait un cas qu'aucune partie ne produit. L'écran vient après
-// lui, et non l'inverse : c'est son montage qui cadre.
+// planche montrerait un cas qu'aucune partie ne produit. Les pas se jouent
+// ensuite, avec une direction nulle : la horde avance, le joueur ne bouge pas, et
+// rien de ce qui se passe ne dépend de ce qu'on presse. L'écran vient en dernier,
+// puisque c'est son montage qui cadre.
 func (p *planche) vue(v vue) error {
-	p.monde.Place(game.FromInt(v.u)+game.One/2, game.FromInt(v.v)+game.One/2)
-	render.NewScreen(p.monde, p.grille, p.tuile).Draw(p.tampon)
+	partie, err := session.Open(cohue.Assets, cohue.StartingLevel)
+	if err != nil {
+		return err
+	}
+	partie.World.Place(game.FromInt(v.u)+game.One/2, game.FromInt(v.v)+game.One/2)
+	for range v.ticks {
+		partie.World.Step(game.Vec{})
+	}
+	render.NewScreen(partie.World, partie.Grid, partie.Tile).Draw(p.tampon)
 
 	chemin := filepath.Join(sortie, v.nom+".png")
 
@@ -166,23 +180,17 @@ func main() {
 	}
 }
 
-// run monte une partie par le même chemin que le binaire, puis lance la planche.
+// run ouvre la fenêtre que le dessin exige, puis lance la planche.
+//
+// La partie, elle, se monte une fois par vue : voir la godoc de `planche`.
 func run() error {
 	if err := os.MkdirAll(sortie, 0o750); err != nil {
-		return err
-	}
-
-	partie, err := session.Open(cohue.Assets, cohue.StartingLevel, capacite, tirs)
-	if err != nil {
 		return err
 	}
 
 	ebiten.SetWindowTitle("Cohue — planche")
 	ebiten.SetWindowSize(render.Largeur, render.Hauteur)
 	return ebiten.RunGame(&planche{
-		monde:  partie.World,
-		grille: partie.Grid,
-		tuile:  partie.Tile,
 		tampon: ebiten.NewImage(render.Largeur, render.Hauteur),
 	})
 }

@@ -45,6 +45,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   l'écran.
 - Le sol montre ce que la simulation lit d'une case — franchissable, coûteuse ou
   mur — et non le décor, qui viendra avec les images.
+- **La horde est à l'écran et converge**, en contournant les obstacles. Elle est
+  semée au lancement et n'arrive pas par vagues : le scénario de pression viendra
+  plus tard. Les créatures se recouvrent dans l'ordre de leur profondeur, et le
+  joueur passe devant celles qui partagent la sienne.
 
 ***
 
@@ -57,6 +61,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   space, and centres a level small enough to fit the screen once and for all.
 - The floor shows what the simulation reads from a tile — walkable, costly or
   wall — and not the scenery, which comes with the images.
+- **The horde is on screen and closes in**, going around obstacles. It is seeded
+  at startup and does not arrive in waves: the pressure schedule comes later.
+  Creatures overlap in depth order, and the player is drawn in front of those
+  sharing the same depth.
 
 ## [0.1.0] — 2026-08-31 — La simulation nue
 

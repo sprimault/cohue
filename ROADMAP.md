@@ -93,8 +93,9 @@ chapitre 2 de la conception.
 
 ## 4 — Les profils d'ennemis
 
-Les six comportements comme données, pas comme code : marcheur, sprinteur,
-flanqueur, cracheur, bloqueur, éclateur. Un `EnemyProfile` par ligne de table.
+Les comportements comme données, pas comme code : marcheur, sprinteur,
+flanqueur, cracheur, bloqueur, éclateur, soigneur. Un `EnemyProfile` par ligne
+de table.
 
 Le spawner achète des ennemis dans un budget de pression par seconde plutôt que
 de poser des compteurs fixes : c'est ce qui gardera les niveaux tiers jouables.

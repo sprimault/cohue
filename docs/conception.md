@@ -806,7 +806,7 @@ Mieux : un lieu qui ne référence que des pièces officielles tient dans quelqu
 
 Le format suppose qu'existent un atlas de tuiles, des feuilles de sprites et de la musique. Rien de tout ça n'est produit par le moteur, l'éditeur ou le format : c'est le poste le plus coûteux du projet, celui qui ne bénéficie d'aucun raccourci technique.
 
-Ordre de grandeur : une quinzaine de pièces par thème, cinq thèmes, plus six archétypes d'ennemis et un joueur.
+Ordre de grandeur : une quinzaine de pièces par thème, cinq thèmes, plus sept archétypes d'ennemis et un joueur.
 
 ### Le style : pixel art
 

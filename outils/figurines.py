@@ -86,7 +86,8 @@ JEU = {
     "cracheur":  {"role": "ennemi", "comportement": "tir",
                   "vitesse_relative": 0.55, "rayon_tuiles": 0.125, "touches": 5,
                   "points": 40, "cout_pression": 6, "poids_separation": 1.3,
-                  "max_simultane": 0, "degats_contact_s": 4, "portee_tuiles": 6},
+                  "max_simultane": 0, "degats_contact_s": 4, "portee_tuiles": 6,
+                  "degats_tir": 6, "vitesse_projectile_tuiles_s": 7.0},
     # Poids faible : dans le mécanisme du chapitre 4, ce poids dit combien une
     # créature s'écarte de ses voisines, et non combien elle résiste à être
     # poussée — personne n'est poussé, chacun s'applique la force à soi-même.

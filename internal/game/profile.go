@@ -117,6 +117,12 @@ type EnemyProfile struct {
 	Tangential Fixed
 	// Range est la distance à laquelle il ouvre le feu, en tuiles.
 	Range Fixed
+	// ShotDamage est ce qu'un de ses projectiles retire au joueur.
+	ShotDamage int
+	// ShotSpeed est la vitesse de ses projectiles, en tuiles par tick. Elle vit
+	// ici et non sur l'objet qui vole : c'est elle qui décide si un tir de Buse
+	// s'esquive, donc la seule vraie question d'équilibrage du profil.
+	ShotSpeed Fixed
 	// BurstDamage est ce que son explosion inflige au centre.
 	BurstDamage int
 	// BurstRadius est la portée de cette explosion, en tuiles.
@@ -236,6 +242,8 @@ type rawProfile struct {
 	ChargeDamage *int     `json:"degats_charge,omitempty"`
 	Tangential   *float64 `json:"tangentiel,omitempty"`
 	Range        *float64 `json:"portee_tuiles,omitempty"`
+	ShotDamage   *int     `json:"degats_tir,omitempty"`
+	ShotSpeed    *float64 `json:"vitesse_projectile_tuiles_s,omitempty"`
 	BurstDamage  *int     `json:"degats_explosion,omitempty"`
 	BurstRadius  *float64 `json:"rayon_explosion_tuiles,omitempty"`
 
@@ -300,6 +308,8 @@ var champsConditionnels = []struct {
 	{"degats_charge", "« charge »", estComportement(Charge), func(p rawProfile) bool { return p.ChargeDamage != nil }},
 	{"tangentiel", "« flanc »", estComportement(Flank), func(p rawProfile) bool { return p.Tangential != nil }},
 	{"portee_tuiles", "« tir »", estComportement(Ranged), func(p rawProfile) bool { return p.Range != nil }},
+	{"degats_tir", "« tir »", estComportement(Ranged), func(p rawProfile) bool { return p.ShotDamage != nil }},
+	{"vitesse_projectile_tuiles_s", "« tir »", estComportement(Ranged), func(p rawProfile) bool { return p.ShotSpeed != nil }},
 	{"degats_explosion", "« explosion »", estComportement(Burst), func(p rawProfile) bool { return p.BurstDamage != nil }},
 	{"rayon_explosion_tuiles", "« explosion »", estComportement(Burst), func(p rawProfile) bool { return p.BurstRadius != nil }},
 }
@@ -389,6 +399,8 @@ func (p rawProfile) ennemi(cle string, base float64) EnemyProfile {
 		ChargeDamage:     ou0(p.ChargeDamage),
 		Tangential:       FromFloat(ou0(p.Tangential)),
 		Range:            FromFloat(ou0(p.Range)),
+		ShotDamage:       ou0(p.ShotDamage),
+		ShotSpeed:        parTick(ou0(p.ShotSpeed)),
 		BurstDamage:      ou0(p.BurstDamage),
 		BurstRadius:      FromFloat(ou0(p.BurstRadius)),
 	}

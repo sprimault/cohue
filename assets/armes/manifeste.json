@@ -1,0 +1,16 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> — SPDX-License-Identifier: Apache-2.0 — tenu à la main, le seul manifeste de assets/ qui ne sorte d'aucun générateur : régler une cadence ne doit pas coûter une régénération de six cents images",
+  "version_format": 1,
+  "armes": {
+    "reglementaire": {
+      "$comment": "Le socle infini, celui qui monte de niveau et porte la build. Ses dégâts valent une touche par définition : c'est cette arme, à son premier niveau, qui donne l'unité dans laquelle s'exprime la résistance des créatures.",
+      "nom": "Réglementaire",
+      "role": "base",
+      "cadence_ms": 400,
+      "portee_tuiles": 6,
+      "degats_touches": 1,
+      "projectiles": 1,
+      "vitesse_projectile_tuiles_s": 12.0
+    }
+  }
+}

@@ -292,10 +292,7 @@
       "categorie": "sol",
       "transparence_si_derriere": false,
       "famille": "monde",
-      "bloquant": false,
-      "degats": 1,
-      "vitesse_px_s": 320,
-      "portee_tuiles": 6
+      "bloquant": false
     },
     "projectile_perforant": {
       "taille": [
@@ -314,11 +311,7 @@
       "categorie": "sol",
       "transparence_si_derriere": false,
       "famille": "monde",
-      "bloquant": false,
-      "degats": 1,
-      "vitesse_px_s": 380,
-      "portee_tuiles": 8,
-      "traverse": true
+      "bloquant": false
     },
     "projectile_ennemi": {
       "taille": [
@@ -337,10 +330,7 @@
       "categorie": "sol",
       "transparence_si_derriere": false,
       "famille": "monde",
-      "bloquant": false,
-      "degats": 6,
-      "vitesse_px_s": 200,
-      "portee_tuiles": 7
+      "bloquant": false
     },
     "fiole": {
       "taille": [

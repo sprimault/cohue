@@ -33,11 +33,16 @@ de version sont ce que lit un auteur de niveau étranger avant de savoir s'il
 doit reprendre son travail. Ce préambule reste en français : il n'est jamais
 publié, et explique les conventions du dépôt à qui y contribue.
 
-## [Non publié]
+## [0.1.0] — 2026-08-31 — La simulation nue
 
-Rien de jouable. Le dépôt porte la conception, les outils de fabrication des
-ressources et l'échafaudage ; l'étape 1 de la feuille de route est la simulation
-nue.
+**Cette version ne se joue pas et ne montre rien.** Le binaire charge ses
+ressources, monte le monde et s'arrête sur « à implémenter : étape 2 » : c'est le
+comportement attendu, pas un défaut. L'étape 1 de la feuille de route est la
+simulation, sans rendu par construction ; la 0.2.0 sera la première à ouvrir une
+fenêtre.
+
+Il n'y a donc ni affichage, ni clavier, ni porte, ni caisse, ni arme à ramasser,
+ni montée de niveau, ni enchaînement de lieux. Ce qui existe se mesure en test.
 
 ### Ajouté
 
@@ -56,11 +61,25 @@ nue.
   Les noms de pièces sont ainsi locaux à un lieu, et deux auteurs peuvent nommer
   chacun la leur `carrefour`. Le nom du dossier et le champ `identifiant` doivent
   s'accorder, faute de quoi le lieu est refusé.
+- La simulation : bassins d'entités préalloués et références qui survivent à la
+  suppression, champ de flux pondéré par les coûts de terrain, grille de densité
+  qui desserre la horde, et tir automatique visant le plus proche à portée. Trois
+  cents poursuivants convergent vers une cible mobile en contournant les
+  obstacles, sans une allocation par tick.
+- Le manifeste des armes, `assets/armes/manifeste.json`, le seul de `assets/`
+  tenu à la main. Le tireur porte les valeurs de son tir — cadence, portée,
+  dégâts, nombre de projectiles, vitesse — et un projectile ne porte que son
+  apparence.
 
 ***
 
-Nothing playable. The repository holds the design, the asset-building tools and
-the scaffolding; step 1 of the roadmap is the bare simulation.
+**This release does not play and shows nothing.** The binary loads its assets,
+builds the world and stops on "à implémenter : étape 2": that is the expected
+behaviour, not a defect. Step 1 of the roadmap is the simulation, without
+rendering by construction; 0.2.0 will be the first to open a window.
+
+So there is no display, no keyboard, no door, no crate, no weapon to pick up, no
+level-up and no chaining of places. What exists is measured in tests.
 
 ### Added
 
@@ -79,3 +98,11 @@ the scaffolding; step 1 of the roadmap is the bare simulation.
   names are thus local to a level, and two authors can each name theirs
   `carrefour`. The directory name and the `identifiant` field must agree, or the
   level is rejected.
+- The simulation: preallocated entity pools with references that survive
+  removal, a flow field weighted by terrain costs, a density grid that loosens
+  the horde, and automatic fire aiming at the nearest target in range. Three
+  hundred pursuers close in on a moving target while going around obstacles,
+  without a single allocation per tick.
+- The weapon manifest, `assets/armes/manifeste.json`, the only one in `assets/`
+  kept by hand. The shooter carries the values of its shot — cooldown, range,
+  damage, projectile count, speed — and a projectile carries only its appearance.

@@ -1,5 +1,7 @@
 # Security
 
+Français : [SECURITY.fr.md](SECURITY.fr.md)
+
 ## Supported versions
 
 The latest published release. In `0.x` there is no maintenance branch: a fix

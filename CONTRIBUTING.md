@@ -35,7 +35,7 @@ the places where one change tips others over.
 
 - **[`docs/conception.md`](docs/conception.md)** is authoritative. The code
   conforms to it, so changing a line changes what the code must do.
-- **The level and piece format** is a public contract: a level shared today must
+- **The level and room format** is a public contract: a level shared today must
   still load tomorrow. An added field is optional; a removed or renamed field
   breaks everything already in circulation.
 - **`assets/` and `outils/`** go together. The scenery is generated: a shape is
@@ -139,15 +139,15 @@ trailing comment saying why, and **when to remove it**.
 | Number | Where | What it tracks |
 |---|---|---|
 | repository version | git tag | the binary |
-| `version_format` | every level and every piece | the file format |
-| `empreinte_jeu_pieces` | every level | the actual state of the piece set |
+| `version_format` | every level and every room | the file format |
+| `empreinte_jeu_pieces` | every level | the actual state of the room set |
 
 The last two do not follow SemVer. `version_format` is an integer: adding an
 optional field does not bump it, anything else does, and a bump requires writing
 the migration for existing levels.
 
 `empreinte_jeu_pieces` is not a version but a checksum: it changes as soon as a
-shipped piece moves. Without it, a level would load silently with geometry
+shipped room moves. Without it, a level would load silently with geometry
 different from the one its author built.
 
 The repository follows SemVer with the zero clause, defined in
@@ -172,7 +172,7 @@ Contributions in English are welcome and are not subject to the bilingual rule.
 ## Shared levels
 
 A level is data, never code: it references only the vocabulary the binary
-provides — pieces, objects, profiles, events.
+provides — rooms, objects, profiles, events.
 
 **No binary file, under any extension.** No image, no sound, no executable. This
 is a mechanical rule, not a judgement: it removes every question of provenance

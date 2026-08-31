@@ -252,13 +252,20 @@ type rawProfile struct {
 	BurstDamage  *int     `json:"degats_explosion,omitempty"`
 	BurstRadius  *float64 `json:"rayon_explosion_tuiles,omitempty"`
 
+	// Group est la taille de la meute : ce que le spawner achètera d'un coup.
+	//
+	// À part des champs qui suivent, malgré les apparences — c'est une valeur de
+	// jeu et non d'apparence, et le rendu ne la lira jamais. Rangée avec eux,
+	// elle serait relue à l'étape 5 comme un détail de figurine, et l'étape 4
+	// réinventerait le champ ailleurs.
+	Group int `json:"groupe"`
+
 	// Ce qui suit décrit la figurine et son identité, et la simulation n'en lit
 	// rien. Ces champs sont déclarés parce que le décodage refuse toute clé
 	// inconnue : les retirer en constatant qu'ils ne servent à rien ferait
 	// échouer le chargement du seul manifeste qui existe. Le rendu les lira à
 	// l'étape 5 ; contrôler leur présence appartient au générateur qui les
 	// écrit.
-	Group      int                 `json:"groupe"`
 	Variants   int                 `json:"variantes"`
 	Template   string              `json:"gabarit"`
 	Origin     string              `json:"origine"`

@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Le point d'entrée : le montage d'une partie et l'ouverture de la fenêtre.
-// C'est le seul endroit du programme qui ait le droit de terminer le processus.
 
 // Cohue est un action-roguelite urbain en vue isométrique, sous pression de
 // horde.
 //
-// Le jeu se réduit pour l'instant à un lieu qu'on traverse : la feuille de route
-// en donne les étapes, et il n'y a personne d'autre à l'écran.
+// Le jeu se réduit pour l'instant à un lieu qu'on traverse sous la pression
+// d'une horde semée au montage : la feuille de route en donne les étapes.
 package main
 
 import (

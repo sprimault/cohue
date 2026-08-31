@@ -537,7 +537,7 @@ Ce sont là des tailles d'image, donc des pixels, et elles n'appartiennent qu'au
 | Personnage et ennemis | 64×64 | appui en (32, 63) |
 | Gemme d'XP | 10×8 | — |
 
-La règle des **24 pixels** est celle qui compte : au-delà, l'objet masque un personnage de 64 et devient un piège visuel. Ce qui la dépasse — murs, piliers, véhicules, wagons, immeubles — n'est pas un obstacle à contourner en pleine action mais une limite de zone, et doit passer en semi-transparence quand le joueur est derrière.
+La règle des **24 pixels** est celle qui compte : au-delà, l'objet masque un personnage de 64 et devient un piège visuel. Ce qui la dépasse — murs, piliers, véhicules, wagons, immeubles — n'est pas un obstacle à contourner en pleine action mais une limite de zone, et le manifeste le déclare forme par forme. Ce que le rendu en fait est plus bas, à « La silhouette plutôt que la transparence ».
 
 **Résolution interne : 960×540**, agrandie en entier vers la fenêtre. Un tampon de 480×270 ne montrerait que 7 tuiles de large, bien trop serré pour voir la horde arriver ; 960×540 en donne une quinzaine et se multiplie par 2 pour du 1080p, donc pixels carrés garantis.
 
@@ -549,7 +549,7 @@ Chaque tuile porte une hauteur parmi trois : sol, obstacle bas qu'on voit par-de
 
 L'ordre compte, parce que la vue de dessus sert à voir **où l'on passe**. Une porte ouverte dépasse de 48 pixels et reste un passage — c'est même la seule chose que l'auteur ait besoin d'y lire ; un quai, un trottoir, un rail dépassent du sol et se marchent. Les classer sur leur seule hauteur afficherait des obstacles là où il n'y en a pas, et la lecture topologique ne vaudrait plus rien.
 
-Le rendu, lui, ne lit pas cette catégorie : il a l'élévation et le drapeau de semi-transparence. Une propriété qui servirait aux deux finirait par mal servir les deux.
+Le rendu, lui, ne lit pas cette catégorie : il a l'élévation et le drapeau qui dit qu'une forme masque un personnage. Une propriété qui servirait aux deux finirait par mal servir les deux.
 
 ### Le tri en profondeur
 
@@ -560,6 +560,24 @@ Le rendu iso a besoin d'un tri par `Y` écran : un tri par compartiments, pas un
 **Le joueur passe devant tout ce qui partage sa profondeur.** C'est une exception assumée à la règle de tri : perdre son personnage sous un empilement d'ennemis est la pire chose qui puisse arriver à la lisibilité, et cela survient précisément au moment où l'on est encerclé, c'est-à-dire quand il faut voir clair.
 
 **Les cadavres passent sous tout ce qui est vivant**, à profondeur égale. C'est l'exception symétrique, et pour la même raison : en fin de run, un tapis de cadavres finirait par masquer la horde qui arrive.
+
+### La silhouette plutôt que la transparence
+
+Une forme qui dépasse 24 pixels cache un personnage. Trois façons de le traiter, et deux d'entre elles paient la lisibilité du lieu pour celle du personnage :
+
+- **l'opacité fixe** sur la forme entière — triviale à écrire, mais les élévations montent jusqu'à 120 pixels, et un immeuble à demi effacé retire plus d'information qu'il n'en donne ;
+- **la découpe** autour du personnage, en dégradé — le plus beau rendu, au prix d'un shader et d'un second passage ;
+- **la silhouette** — le décor reste opaque, et c'est le personnage qu'on redessine par-dessus, en aplat, quand une forme le masque.
+
+**C'est la silhouette**, et l'argument tient en une phrase : la transparence retire de l'information au décor, la silhouette en ajoute au personnage. Le chapitre 2 veut les deux — voir la horde arriver *et* comprendre où sont les murs —, et c'est la seule des trois qui n'enlève rien.
+
+Elle traite en outre un cas qu'aucune propriété du décor ne pourra jamais décrire : un joueur derrière trois Vigiles empilés est invisible sans qu'aucune forme ne soit en cause. Une transparence ne sait effacer que ce qu'un manifeste a déclaré ; la silhouette ne dépend que de ce qui est dessiné devant.
+
+Ce qu'elle suppose est déjà là : savoir quelle entité est masquée, c'est-à-dire ce que le tri en profondeur calcule. Aucun mécanisme de plus, seulement un second blit en teinte plate.
+
+**Elle ne révèle que le joueur et les projectiles ennemis**, comme le chapitre 2 l'exige, et jamais un ennemi : voir la horde à travers un bus retirerait au décor le seul pouvoir qu'il a sur le combat. Ce qui se cache derrière un camion doit rester une inconnue.
+
+Le drapeau du manifeste garde donc son rôle — il dit quelles formes masquent —, mais son nom actuel désigne la technique écartée plutôt que le fait constaté. Il sera corrigé.
 
 ### La caméra
 
@@ -895,7 +913,7 @@ Chaque manifeste porte un **en-tête** : `version_format`, et pour le décor la 
 
 **Mais il n'y sert pas à ce qu'il sert dans un niveau**, et la nuance mérite d'être écrite avant que quelqu'un l'aligne dans un sens ou dans l'autre. Un niveau circule entre joueurs, donc son numéro dit à un binaire quoi faire d'un fichier qu'il n'a pas produit. Un manifeste, lui, est embarqué par `go:embed` : il voyage avec son lecteur et ne peut pas en être désynchronisé. Ce qu'il accorde n'est pas deux machines mais **deux chaînes d'outils** — des scripts Python qui écrivent, du Go qui lit — et c'est pour cela qu'il en porte un quand même. D'où deux réflexes à ne pas avoir : incrémenter par symétrie avec les niveaux quand un champ disparaît, ou retirer le champ en constatant qu'aucune migration ne l'attend.
 
-Côté **décor** : taille, ancrage, élévation, catégorie, thème, et quatre champs qui commandent le moteur — `bloquant` et `cout_traversee`, dont le chargeur tire la grille de coûts, `emprise` en tuiles, sans laquelle une gondole de deux tuiles n'en bloquerait qu'une, et `transparence_si_derriere` pour ce qui dépasse 24 pixels. Rien de tout cela ne se devine : un trottoir et un quai dépassent du sol et se marchent, une flaque est plate et se traverse, alors qu'un muret de même hauteur qu'un trottoir arrête tout.
+Côté **décor** : taille, ancrage, élévation, catégorie, thème, et quatre champs qui commandent le moteur — `bloquant` et `cout_traversee`, dont le chargeur tire la grille de coûts, `emprise` en tuiles, sans laquelle une gondole de deux tuiles n'en bloquerait qu'une, et le drapeau qui signale ce qui dépasse 24 pixels, donc masque un personnage. Rien de tout cela ne se devine : un trottoir et un quai dépassent du sol et se marchent, une flaque est plate et se traverse, alors qu'un muret de même hauteur qu'un trottoir arrête tout.
 
 `cout_traversee` est exigé sur ce qui se franchit et refusé sur ce qui bloque. Deux champs plutôt qu'un entier où une valeur réservée vaudrait l'infini : une sentinelle laisse `bloquant` et un coût fini coexister dans le même fichier, et quelqu'un finit par l'écrire. Contrôlé dans les deux sens, l'état absurde n'est pas exprimable — et un coût orphelin sur un mur, jamais lu, ne fait croire à aucun réglage.
 
@@ -919,7 +937,7 @@ Les mettre ailleurs aurait dupliqué la liste des profils à deux endroits. Un n
 
 Côté **sons** : durée, gain, bouclage, et une **catégorie de mixage** — le joueur doit pouvoir baisser les effets sans toucher à la musique, et l'interface doit rester audible quand tout le reste est baissé.
 
-Côté **objets** : emprise, élévation, catégorie et semi-transparence — les trois mêmes que le décor, et pour la même raison, un rideau de fer culmine à 46 pixels et masque un personnage —, ce qui bloque, ce qui détruit, ce qui est projeté, ce qui est entendu, et les valeurs de jeu — expérience d'une gemme, soin d'une fiole, dégâts et portée d'un projectile, charges d'une arme lourde. Un bloc `destruction` porte le mode — `contact` pour la caisse, où le délai est la mécanique elle-même, `interaction` pour les obstacles fragiles —, le nombre de touches, le nom de la ruine, la matière des éclats, les cycles d'appui et de rupture, et les clés de sons. Le moteur ne code donc rien en dur : un futur obstacle se déclare dans une table.
+Côté **objets** : emprise, élévation, catégorie et masquage — les trois mêmes que le décor, et pour la même raison, un rideau de fer culmine à 46 pixels et masque un personnage —, ce qui bloque, ce qui détruit, ce qui est projeté, ce qui est entendu, et les valeurs de jeu — expérience d'une gemme, soin d'une fiole, dégâts et portée d'un projectile, charges d'une arme lourde. Un bloc `destruction` porte le mode — `contact` pour la caisse, où le délai est la mécanique elle-même, `interaction` pour les obstacles fragiles —, le nombre de touches, le nom de la ruine, la matière des éclats, les cycles d'appui et de rupture, et les clés de sons. Le moteur ne code donc rien en dur : un futur obstacle se déclare dans une table.
 
 Un renvoi de son dit **s'il nomme un fichier ou une famille**. `son` désigne l'un, `famille_sons` une suite de degrés — `gemme_0` à `gemme_7` — que le moteur parcourt en avançant d'un cran à chaque déclenchement rapproché, et qu'il reprend au premier après un silence. Deux clés plutôt qu'une seule à interpréter : sans la distinction, le contrôle ne peut que comparer des préfixes, et accepte alors « gem » et « g » aussi bien que « gemme ».
 
@@ -1146,7 +1164,6 @@ Note de prudence : survivor, roguelite, exploration, ressources et éditeur avec
 - **La rotation des pièces** : quatre variantes de mur dans le tileset, ou aucune rotation et plus de pièces à dessiner. À décider avant de dessiner la moindre tuile.
 - **La taille de la maille des pièces** : 16×16 tuiles est la base proposée, elle conditionne tout le travail d'édition.
 - **La palette définitive** : le plafond de couleurs de `MATIERES`, et les teintes réservées — celle du personnage joueur et celle des projectiles ennemis, qui ne doivent apparaître nulle part ailleurs.
-- **La semi-transparence** des objets hauts quand le joueur passe derrière : le manifeste porte déjà `transparence_si_derriere` sur les vingt-sept formes concernées, reste à décider comment le rendu l'applique — opacité fixe, découpe, ou seulement autour du personnage.
 - **La portée du tir de base**, qui remplace l'angle du cône comme réglage décisif du kiting : trop courte, il faut faire face pour toucher ; trop longue, la horde meurt avant d'être une menace.
 - **Le plafond de dégâts par seconde** et le rapport entre contact ordinaire et charge du Molosse : deux chiffres qui décident si l'encerclement est tendu ou injuste.
 - **La vitesse du joueur rapportée à celle des profils** : à 60 % de sa vitesse un Badaud ne rattrape jamais, à 90 % la fuite ne suffit plus. Tout le kiting tient dans ce rapport, et il se règle en jouant. Le point de départ est cinq tuiles par seconde pour le joueur — un peu plus de trois secondes pour traverser l'écran — ce qui donne au Molosse en charge un gain d'une tuile trois quarts par seconde, franc plutôt que rapide.
@@ -1159,4 +1176,4 @@ Tranché en cours de route : aucun asset importable dans le contenu utilisateur,
 
 Tranché avant d'écrire la première ligne d'`internal/game`, parce que ce sont les décisions que reprendre plus tard toucherait tout le code de jeu : le pas de simulation et la conversion des durées, la tuile en virgule fixe comme repère unique, les quatre flux aléatoires et leur algorithme, la visée omnidirectionnelle sans cône, la passabilité par coût plutôt que par booléen, le Vigile comme seul corps que le joueur ne traverse pas, le domicile de la table d'armes, et l'ordre de mise à jour dans une image.
 
-Tranché par le générateur : la catégorie n'est pas saisie, elle est **dérivée de l'élévation** — `PLAFOND_OBSTACLE_BAS` vaut 24, au-delà la forme est `haut` et porte `transparence_si_derriere`. Un obstacle bas trop haut est donc impossible à produire, plutôt que refusé après coup. Le distributeur de billets, l'abribus et les véhicules sont `haut` au même titre que les murs : il n'y a rien à baisser.
+Tranché par le générateur : la catégorie n'est pas saisie, elle est **dérivée de l'élévation** — `PLAFOND_OBSTACLE_BAS` vaut 24, au-delà la forme est `haut` et se déclare masquante. Un obstacle bas trop haut est donc impossible à produire, plutôt que refusé après coup. Le distributeur de billets, l'abribus et les véhicules sont `haut` au même titre que les murs : il n'y a rien à baisser.

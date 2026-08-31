@@ -28,13 +28,18 @@ const separationScale = One / 8
 // d'allocation. Rien n'y est alloué après la construction.
 type World struct {
 	profils *Profiles
+	arme    Weapon
 	grille  *CostGrid
 	flux    *FlowField
 	densite *DensityGrid
 	ennemis *Pool[Enemy]
+	tirs    *Pool[Projectile]
 
 	playerX, playerY Fixed
-	tick             Tick
+	// cooldown est ce qui reste à attendre avant le prochain tir. Il descend à
+	// zéro et y demeure : sans cible, l'arme ne tire pas et ne consomme rien.
+	cooldown Tick
+	tick     Tick
 }
 
 // NewWorld monte une partie sur une carte et une table de profils.
@@ -42,18 +47,23 @@ type World struct {
 // La capacité du bassin est fixée ici et pour de bon : c'est le plafond que le
 // spawner rencontrera, et il vaut mieux qu'il le rencontre plutôt que de laisser
 // la horde croître jusqu'à ce que l'image s'effondre.
-func NewWorld(profils *Profiles, grille *CostGrid, capacite int) *World {
+func NewWorld(profils *Profiles, arme Weapon, grille *CostGrid, capacite, tirs int) *World {
 	return &World{
 		profils: profils,
+		arme:    arme,
 		grille:  grille,
 		flux:    NewFlowField(grille),
 		densite: NewDensityGrid(grille.Width(), grille.Height()),
 		ennemis: NewPool[Enemy](capacite),
+		tirs:    NewPool[Projectile](tirs),
 	}
 }
 
 // Enemies rend le bassin des ennemis, pour le parcourir ou le peupler.
 func (w *World) Enemies() *Pool[Enemy] { return w.ennemis }
+
+// Shots rend le bassin des projectiles en vol.
+func (w *World) Shots() *Pool[Projectile] { return w.tirs }
 
 // Player rend la position du joueur.
 func (w *World) Player() (Fixed, Fixed) { return w.playerX, w.playerY }
@@ -73,7 +83,12 @@ func (w *World) Place(x, y Fixed) {
 // L'index est celui de la table, jamais une copie de ses valeurs. Le second
 // résultat est faux quand le bassin est plein.
 func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
-	return w.ennemis.Spawn(Enemy{Profile: profil, X: x, Y: y})
+	return w.ennemis.Spawn(Enemy{
+		Profile: profil,
+		X:       x,
+		Y:       y,
+		Hits:    w.profils.Enemies[profil].Hits,
+	})
 }
 
 // Step avance la simulation d'un tick, le joueur suivant la direction voulue.
@@ -101,6 +116,8 @@ func (w *World) Step(voulu Vec) {
 	}
 	w.compterDensite()
 	w.deplacerEnnemis()
+	w.tirer()
+	w.deplacerTirs()
 
 	w.tick++
 }

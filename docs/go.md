@@ -34,6 +34,7 @@ index.
 | si un test vert prouve quelque chose | [Trois façons d'avoir un test vert](#trois-façons-davoir-un-test-vert-qui-ne-prouve-rien) |
 | comment défendre un test qu'on croirait faux | [Le test contre-intuitif](#le-test-qui-garde-une-propriété-contre-intuitive) |
 | pourquoi un contrôle passe sans rien vérifier | [Un contrôle privé de son entrée](#un-contrôle-privé-de-son-entrée-échoue-il-ne-passe-pas) |
+| si une déclaration peut s'écrire avant son appelant | [Ce que rien n'exerce](#dans-un-paquet-sans-tests-ce-que-rien-nexerce-est-invérifiable) |
 
 <!-- fin du sommaire -->
 
@@ -588,6 +589,29 @@ a pas de moyen d'y suppléer autrement que de regarder.
 D'où la règle : **toute planche de relecture sort d'une cible du `Makefile`**,
 dans le même geste que ce qu'elle donne à relire. Ajouter des vues à une planche
 que personne ne produit ne corrige rien et donne le sentiment du contraire.
+
+### Dans un paquet sans tests, ce que rien n'exerce est invérifiable
+
+`internal/render` n'a pas de fichier de test et n'en aura pas. Une déclaration
+qu'aucun appelant n'atteint y est donc plus qu'invérifiée : rien ne pourra jamais
+la vérifier. Elle compile et elle se relit, ce qui donne exactement l'illusion
+contraire.
+
+Le cas type est la table qu'on écrit d'avance parce qu'on sait déjà ce qu'elle
+contiendra — la correspondance entre les huit orientations du monde et les bandes
+que le manifeste des personnages nomme en repère écran, posée avant le premier
+sprite qui la lira. Juste ou fausse, personne n'a de prise dessus.
+
+**Le remède n'est pas celui de la planche, et c'est ce qui mérite d'être
+retenu.** Une planche existe déjà et il lui manque une commande : on la fabrique.
+Ici il n'y a rien à produire — on n'écrit pas la déclaration tant qu'un appelant
+ne l'exerce pas. Une règle dit « produis-le », l'autre dit « pas encore ». Les
+confondre mène à chercher le remède du côté d'un test, dans un paquet qui n'en
+aura jamais.
+
+Ce qui la ferme : elle ne vaut que là où la doctrine exclut les tests. Ailleurs,
+une déclaration sans appelant se teste, et ce qu'on lui reproche est
+l'anticipation.
 
 ### Un contrôle privé de son entrée échoue, il ne passe pas
 

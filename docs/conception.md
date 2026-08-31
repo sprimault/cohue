@@ -577,7 +577,7 @@ Ce qu'elle suppose est déjà là : savoir quelle entité est masquée, c'est-à
 
 **Elle ne révèle que le joueur et les projectiles ennemis**, comme le chapitre 2 l'exige, et jamais un ennemi : voir la horde à travers un bus retirerait au décor le seul pouvoir qu'il a sur le combat. Ce qui se cache derrière un camion doit rester une inconnue.
 
-Le drapeau du manifeste garde donc son rôle — il dit quelles formes masquent —, mais son nom actuel désigne la technique écartée plutôt que le fait constaté. Il sera corrigé.
+Le champ du manifeste s'appelle donc `masquant`, par symétrie avec `bloquant` : deux adjectifs, deux constats, et aucun des deux ne dit ce que le moteur doit en faire. Le nommer d'après la technique aurait figé dans la donnée une décision de rendu.
 
 ### La caméra
 

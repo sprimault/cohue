@@ -93,8 +93,8 @@ def categorie(bloquant, elevation):
     topologique que l'éditeur promet ne vaudrait plus rien.
 
     La catégorie ne sert donc qu'à la topologie. Le rendu, lui, a `elevation` et
-    `transparence_si_derriere` : une propriété qui servirait aux deux finirait
-    par mal servir les deux.
+    `masquant` : une propriété qui servirait aux deux finirait par mal servir
+    les deux.
     """
     if not bloquant:
         return "sol"

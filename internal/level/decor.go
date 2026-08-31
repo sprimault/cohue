@@ -65,9 +65,19 @@ type Shape struct {
 	// s'accorder avec `Blocking`, et un zéro implicite les rendrait
 	// indiscernables.
 	Cost *int `json:"cout_traversee,omitempty"`
-	// TransparentBehind dit si le rendu doit effacer la forme quand le joueur
-	// passe derrière.
-	TransparentBehind bool `json:"transparence_si_derriere"`
+	// Masking dit que la forme dépasse la hauteur d'un personnage, donc qu'elle
+	// peut en cacher un.
+	//
+	// Le champ constate, il ne prescrit pas : ce que le rendu en fait — la
+	// silhouette de ce qui est caché, redessinée par-dessus — est sa décision et
+	// peut changer sans que le manifeste bouge. Il portait auparavant le nom de
+	// la technique, ce qui figeait dans la donnée une solution qu'on n'avait pas
+	// encore choisie.
+	//
+	// Comme `Footprint`, rien ne le lit encore. Le renommer n'a donc engagé
+	// aucune garantie du compilateur : c'est `DisallowUnknownFields`, au
+	// chargement du manifeste livré, qui a confronté les deux noms.
+	Masking bool `json:"masquant"`
 }
 
 // LoadDecor lit le manifeste de décor et en dérive le catalogue de coûts.

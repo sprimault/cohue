@@ -548,7 +548,7 @@ def main():
                           "emprise": list(emprise),
                           "elevation": haut,
                           "categorie": prim.categorie(nom in BLOQUANTS, haut),
-                          "transparence_si_derriere": haut > prim.PLAFOND_OBSTACLE_BAS,
+                          "masquant": haut > prim.PLAFOND_OBSTACLE_BAS,
                           "famille": "monde",
                           "bloquant": nom in BLOQUANTS}
         if nom in VALEURS:

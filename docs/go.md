@@ -159,6 +159,20 @@ sous-répertoire est un paquet distinct : découper `internal/game` forcerait à
 exporter des champs privés et créerait un cycle entre les bassins et la boucle.
 Le découpage se fait par fichier, un sujet par fichier.
 
+**Ce qu'on rouvre pour équilibrer et ce qu'on rouvre pour corriger un défaut ne
+sont pas le même fichier.** Une structure de données répond à une question
+factuelle ; la force qu'on tire de sa réponse est une décision de jeu. Les loger
+ensemble en ferait un objet mixte, et le premier réglage obligerait à rouvrir une
+structure de données.
+
+Le signe qui confirme le rangement : un réglage qu'on cherchera **en même temps
+que d'autres** doit vivre avec eux, sinon on le cherche. `DensityGrid` compte des
+créatures et rend une pente ; le facteur qui convertit cette pente en poussée vit
+dans la boucle, avec la vitesse et le plafond de dégâts qu'on ajustera dans la
+même séance. Et `assets/armes/manifeste.json` est tenu à la main plutôt que
+généré, parce que régler une cadence ne doit pas coûter une régénération de six
+cents images.
+
 ## 6. Erreurs
 
 ```go
@@ -268,6 +282,22 @@ Vaut pour les documents : un chiffre qui **décrit le code** s'adosse à un test
 qui lit le document, un chiffre qui **décide** est exercé par le test de
 conformité, un chiffre **mesuré** porte sa date et sa mesure rejouable — voir
 `-maj-mesures`. Un quantificateur qui n'est aucun des trois n'a rien à faire là.
+
+## Une condition vaut mieux qu'une conclusion
+
+**Une conclusion se périme en silence quand ses prémisses changent ; une
+condition dit à quel moment elle cesse d'être vraie.** C'est vrai d'une godoc
+comme d'un document, et c'est ce qui sépare une justification qu'on peut relire
+d'une affirmation qu'il faudra croire.
+
+La godoc de `World.Step` n'écrit donc pas « les intentions et la projection
+tiennent en une seule passe, et c'est équivalent », mais « c'est équivalent tant
+qu'aucune intention ne lit l'état d'une autre entité ». La première serait fausse
+le jour où un ennemi devra éviter celui qui le précède, sans que rien ne l'ait
+signalé ; la seconde nomme d'avance ce qui la fera tomber.
+
+Le test est simple : demander ce qui devrait changer dans le code pour que la
+phrase devienne fausse. Si la réponse n'est pas dans la phrase, elle y manque.
 
 ## 9. Journalisation
 
@@ -386,6 +416,17 @@ C'est le pendant, sur la représentation, de ce que ce document exige du
 comportement : un invariant se vérifie, il ne se surveille pas. Quand une
 seconde description est vraiment nécessaire sans être dérivable, alors c'est un
 test qui tient l'accord — pas une relecture.
+
+**La question qui précède, et qui se pose avant d'écrire un champ : où vit cette
+valeur ?** Elle a la même forme que la précédente et les deux se répondent —
+une valeur sans domicile unique en a deux, et deux domiciles finissent par
+diverger.
+
+Elle n'est pas théorique : la portée du Cracheur vivait sur son profil **et** sur
+son projectile, à six tuiles d'un côté et sept de l'autre, dans deux fichiers que
+rien ne confrontait. Le rangement seul ne l'aurait pas montrée — c'est l'exigence
+d'un domicile unique qui a fait apparaître le second, en cherchant lequel des
+deux faisait foi.
 
 ## La valeur zéro ne se partage pas entre l'absence et une valeur légitime
 
@@ -546,6 +587,55 @@ l'original — et l'éprouver une fois en cassant volontairement ce qu'il garde.
 C'est ce qui a révélé qu'une annulation laissait une tranche vide non nulle là
 où il y avait `nil`, ce qui aurait fait diverger le rejeu du journal en JSON
 sans que rien ne le signale.
+
+**L'épreuve renseigne aussi sur le code, et pas seulement sur le test.** Une
+mutation qui ne fait échouer personne dit qu'un test manque — ou que la ligne
+mutée ne fait pas ce qu'on croit. Sauter l'entrée périmée d'un seau, dans le
+champ de flux, ne change aucun résultat : sans elle, la cellule est retraitée
+avec une distance pessimiste que la comparaison des candidats rejette. Ce qui
+était faux n'était pas le code mais le commentaire, qui présentait cette ligne
+comme une correction alors qu'elle n'évite que du travail.
+
+Le piège, dans ce cas-là : **un test ajouté pour couvrir une ligne inutile
+devient ensuite la preuve qu'elle est nécessaire.** C'est le mécanisme exact par
+lequel du code mort se fossilise, et c'est pourquoi le bon geste était de
+corriger le commentaire, pas d'inventer un test.
+
+### Trois façons d'avoir un test vert qui ne prouve rien
+
+Rencontrées le même jour, toutes trois trouvées par mutation et aucune par
+relecture :
+
+- **il mesure une propriété inexistante.** Le contournement d'une flaque, éprouvé
+  sur une seule case coûteuse : la traversée et le détour valaient quatre tous
+  les deux, et le champ avait raison de choisir n'importe lequel. Il en fallait
+  deux pour que le détour l'emporte.
+- **il passe par coïncidence arithmétique.** Cent ticks pour vérifier qu'une arme
+  sans cible ne consomme pas sa cadence — cent étant un multiple exact de cette
+  cadence plus un, le compteur se retrouvait prêt au moment de la mesure, y
+  compris dans le code fautif. Une durée première avec la période retire la
+  coïncidence, et le piège revient pour tout ce qui est périodique.
+- **son scénario ne discrimine pas.** Deux cibles à des distances différentes
+  pour vérifier qu'on vise la plus proche — mais alignées, si bien que le
+  projectile visant la lointaine traversait la proche et la touchait au passage.
+  Le test était bien rédigé, il mesurait la bonne chose, et la géométrie du cas
+  rendait les deux comportements indistinguables.
+
+Le troisième est le plus retors, parce que rien dans le test n'est faux. Ni la
+relecture ni la couverture ne le disent : seule la mutation.
+
+### Le test qui garde une propriété contre-intuitive
+
+Il est d'une autre nature que les autres, et il n'a **pas de mutation pour le
+justifier** — il n'y a rien à casser, puisque le comportement gardé est déjà
+celui qu'on croirait faux. Une foule de densité parfaitement uniforme rend un
+gradient nul, donc ne se repousse pas : c'est correct, puisque aucune direction
+n'y est moins encombrée qu'une autre, et c'est la poussée des bords qui la
+desserre de proche en proche.
+
+Sa godoc est donc son seul argument, et elle doit expliquer **pourquoi le
+comportement est correct**, jamais ce qu'il fait. C'est aussi le seul test qu'un
+relecteur pressé supprime en toute bonne foi, en pensant qu'il fige un défaut.
 
 ### Un test qui bâtit son entrée ne teste pas le chemin qui la produit
 

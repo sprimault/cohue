@@ -153,6 +153,12 @@ func TestCibleDansUnMurLaisseToutInatteignable(t *testing.T) {
 // perpendiculaires qui se touchent par un angle, et la horde traverse
 // visuellement une arête. C'est le genre de défaut qu'on voit tout de suite et
 // qu'on met des jours à relier au champ de flux.
+//
+// **Il ne fait que la moitié du travail, et l'autre est dans
+// `TestLeGlissementNeCoupeAucunAngle`.** Ce qui est gardé ici est l'orientation
+// proposée par une cellule ; rien n'oblige une entité à la suivre, et le joueur
+// ne la lit même pas. Supprimer celui-là au motif que celui-ci existe laisserait
+// le champ libre de désigner l'arête.
 func TestLaDirectionNeCoupePasUnAngle(t *testing.T) {
 	// Depuis (2, 2), le voisin diagonal (1, 1) est bien plus proche de la cible,
 	// mais les deux murs qui le bordent ferment le passage.

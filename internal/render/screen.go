@@ -31,11 +31,15 @@ import (
 	"github.com/sprimault/cohue/internal/game"
 )
 
-// Les dimensions du tampon interne, agrandi en entier vers la fenêtre.
+// Les dimensions du tampon interne, fixes.
 //
 // Un tampon de 480×270 ne montrerait que sept tuiles de large, bien trop serré
 // pour voir la horde arriver ; 960×540 en donne une quinzaine et se multiplie
-// par deux pour du 1080p, donc pixels carrés garantis.
+// par deux pour du 1080p.
+//
+// C'est leur fixité qui est la règle de pixel art. Le facteur qui les agrandit
+// vers la fenêtre est un réglage d'affichage, que l'étape 15 tranchera — voir
+// `Layout`, qui dit ce qu'il en est aujourd'hui.
 const (
 	Largeur = 960
 	Hauteur = 540

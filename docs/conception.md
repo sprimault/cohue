@@ -541,6 +541,8 @@ La règle des **24 pixels** est celle qui compte : au-delà, l'objet masque un p
 
 **Résolution interne : 960×540**, agrandie en entier vers la fenêtre. Un tampon de 480×270 ne montrerait que 7 tuiles de large, bien trop serré pour voir la horde arriver ; 960×540 en donne une quinzaine et se multiplie par 2 pour du 1080p, donc pixels carrés garantis.
 
+Deux choses distinctes, et elles n'arrivent pas ensemble : **la fixité du tampon est acquise dès l'étape 2**, l'agrandissement en entier attend l'étape 15. Le facteur dépend du facteur d'échelle du système, qu'il faut lire séparément, et il oblige à choisir ce qu'on fait du reste de la fenêtre — bandes noires, taille contrainte, ou redimensionnement par pas. C'est un réglage d'affichage, et il vit avec le plein écran et la résolution.
+
 ### Les trois hauteurs
 
 Chaque tuile porte une hauteur parmi trois : sol, obstacle bas qu'on voit par-dessus, mur plein. C'est ce qui permet de juger la lisibilité d'une salle **avant** de la lancer, et c'est indispensable à l'éditeur en vue de dessus (voir plus bas).
@@ -846,7 +848,7 @@ Corollaire : la voie du rendu 3D précalculé (modèles Mixamo ou low-poly rendu
 
 **Aucun filtrage à l'affichage.** Échantillonnage au plus proche voisin, et caméra déplacée en pixels entiers, jamais en flottants. Le scrolling sous-pixel fait scintiller le pixel art : c'est le défaut qui trahit immédiatement un jeu bâclé.
 
-**Une résolution interne fixe.** Rendu dans le tampon de 960×540 arrêté au chapitre 10, agrandi en entier vers la fenêtre. Pixels carrés à toutes les tailles d'écran, et surtout décision de game design déguisée en détail technique : ce tampon détermine à quelle distance le joueur voit arriver la horde. C'est sa fixité qui est la règle de pixel art ; sa valeur, elle, est déjà tranchée.
+**Une résolution interne fixe.** Rendu dans le tampon de 960×540 arrêté au chapitre 10, agrandi en entier vers la fenêtre — l'agrandissement étant réglé à l'étape 15, avec le reste de l'affichage. Pixels carrés à toutes les tailles d'écran une fois qu'il l'est, et surtout décision de game design déguisée en détail technique : ce tampon détermine à quelle distance le joueur voit arriver la horde. C'est sa fixité qui est la règle de pixel art ; sa valeur, elle, est déjà tranchée.
 
 ### La lisibilité en masse
 

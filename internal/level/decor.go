@@ -72,7 +72,7 @@ func LoadDecor(fsys fs.FS, chemin string) (*Decor, map[string]game.Cost, error) 
 	}
 	if decor.Format != FormatDecor {
 		return nil, nil, fmt.Errorf("%s: %w : %d, ce binaire lit la %d",
-			chemin, ErrUnsupportedFormat, decor.Format, FormatDecor)
+			chemin, manifest.ErrUnsupportedFormat, decor.Format, FormatDecor)
 	}
 
 	couts := make(map[string]game.Cost, len(decor.Shapes))

@@ -178,7 +178,11 @@ fichiers que plus personne ne relit.
 
 ## 5. Structure
 
-- Une struct de dépendances par paquet, construite dans `cmd/cohue/main.go`.
+- Une struct de dépendances par paquet, construite au montage et jamais par un
+  singleton. Le montage d'une partie vit dans `internal/session`, parce que deux
+  programmes en ont besoin — le jeu et la planche de relecture — et qu'un
+  montage recopié aurait fini par diverger. Ce qui reste dans `cmd/` est ce que
+  chacun fait de la partie montée : une fenêtre, ou des images.
 - Constructeurs `New…` rendant `(*T, error)` si l'initialisation peut échouer.
 - Interfaces définies côté consommateur, pas côté implémentation.
 - Une interface de plus de trois méthodes signale en général deux

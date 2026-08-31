@@ -33,6 +33,55 @@ de version sont ce que lit un auteur de niveau étranger avant de savoir s'il
 doit reprendre son travail. Ce préambule reste en français : il n'est jamais
 publié, et explique les conventions du dépôt à qui y contribue.
 
+## [0.2.1] — 2026-09-01 — Ce que la relecture a corrigé
+
+**Rien ne change en jeu.** Un binaire 0.2.1 se comporte exactement comme un
+0.2.0 : cette version corrige un défaut interne qu'on ne voit pas et remet la
+documentation d'accord avec le code. Aucun lieu n'est à reprendre.
+
+### Corrigé
+
+- Le champ de flux allouait de la mémoire au fil de ses reconstructions : ses
+  files naissaient vides et grandissaient à mesure que le joueur traversait le
+  lieu, là où le budget d'allocation l'interdit. Elles reçoivent leur place au
+  montage.
+- Le contrôle des mentions de licence sautait tous les fichiers JSON, en
+  confiant les manifestes à un contrôle qui ne regarde que `assets/` : ceux du
+  reste du dépôt n'étaient donc lus par personne.
+
+### Modifié
+
+- La documentation dit ce que le code fait — l'ordre d'un pas de simulation, le
+  domicile des plafonds de bassin, la clé du tri en profondeur, la structure
+  d'une entité et l'origine d'une tuile. L'agrandissement du tampon vers la
+  fenêtre est inscrit à l'étape des écrans de réglages, où il se décide.
+- Les identifiants publics et les clés de journalisation sont en anglais, ce que
+  les règles du dépôt demandaient déjà.
+
+***
+
+**Nothing changes in game.** A 0.2.1 binary behaves exactly like a 0.2.0 one:
+this release fixes an internal defect no one can see and brings the
+documentation back in line with the code. No level needs revisiting.
+
+### Fixed
+
+- The flow field allocated memory across its rebuilds: its queues started empty
+  and grew as the player crossed the level, where the allocation budget forbids
+  it. They now get their room at setup.
+- The licence notice check skipped every JSON file, leaving manifests to a check
+  that only looks at `assets/`: those elsewhere in the repository were read by
+  no one.
+
+### Changed
+
+- The documentation states what the code does — the order of a simulation step,
+  where the pool caps live, the depth sort key, an entity's layout and a tile's
+  origin. Scaling the buffer to the window is recorded under the settings
+  screens step, where it gets decided.
+- Public identifiers and logging keys are in English, as the repository's own
+  rules already required.
+
 ## [0.2.0] — 2026-08-31 — La horde à l'écran
 
 **Cette version se regarde et se traverse, elle ne se joue pas encore.** La

@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Les cas du décor : le coût contradictoire d'une forme bloquante, le coût hors
-// bornes, et la version de format que ce binaire ne lit pas.
+// bornes, la taille de tuile hors du deux pour un, et la version de format que
+// ce binaire ne lit pas.
 
 package level
 
@@ -81,6 +82,28 @@ func TestDecorRefuseUnCoutHorsBornes(t *testing.T) {
 		_, _, err := LoadDecor(manifesteDecor(`"sol": `+forme("false", cout)), "decor.json")
 		if err == nil {
 			t.Errorf("cout_traversee de %s accepté", cout)
+		}
+	}
+}
+
+// TestDecorRefuseUneTuileHorsDuDeuxPourUn couvre les quatre façons de perdre la
+// projection : la clé absente, la taille nulle, la négative et le carré.
+//
+// Le premier cas est celui qui motive le contrôle. Refuser les clés inconnues
+// attrape la faute de frappe qui *ajoute* une clé, jamais celle qui en supprime
+// une : sans lui, un manifeste sans `tuile` se charge sur un couple nul, et
+// c'est le rendu qui divise par zéro, deux paquets plus loin.
+func TestDecorRefuseUneTuileHorsDuDeuxPourUn(t *testing.T) {
+	for _, entete := range []string{
+		`"version_format": 1`,
+		`"version_format": 1, "tuile": [0, 0]`,
+		`"version_format": 1, "tuile": [-64, -32]`,
+		`"version_format": 1, "tuile": [64, 64]`,
+	} {
+		fsys := fstest.MapFS{"decor.json": &fstest.MapFile{
+			Data: []byte(`{` + entete + `, "formes": {}}`)}}
+		if _, _, err := LoadDecor(fsys, "decor.json"); err == nil {
+			t.Errorf("en-tête accepté : {%s}", entete)
 		}
 	}
 }

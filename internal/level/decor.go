@@ -30,6 +30,11 @@ type Decor struct {
 	// Format est la version du format de manifeste.
 	Format int `json:"version_format"`
 	// Tile est la taille d'une tuile en pixels, `[largeur, hauteur]`.
+	//
+	// Le rapport est de deux pour un, et le chargeur l'exige : les formes sont
+	// dessinées en 2:1 par le générateur, si bien qu'un manifeste annonçant
+	// autre chose décrirait des images que le dossier ne contient pas. C'est
+	// d'ici que le rendu tient sa projection, et de nulle part ailleurs.
 	Tile [2]int `json:"tuile"`
 	// Shapes sont les formes du décor, par nom.
 	Shapes map[string]Shape `json:"formes"`
@@ -85,6 +90,11 @@ type Shape struct {
 // C'est ce qui fait du manifeste le contrat qu'il prétend être : aucun nom de
 // forme n'est écrit dans le code, et ajouter une flaque au générateur suffit à
 // ce que le champ de flux la contourne.
+//
+// La taille de tuile entre dans les mêmes manquements que les formes. La clé
+// absente vaut un couple nul, qu'aucun consommateur ne saurait distinguer d'un
+// réglage, et un refus qui s'arrêterait à elle cacherait ce que le fichier a
+// d'autre à corriger.
 func LoadDecor(fsys fs.FS, chemin string) (*Decor, map[string]game.Cost, error) {
 	decor, err := manifest.Decode[Decor](fsys, chemin)
 	if err != nil {
@@ -95,8 +105,14 @@ func LoadDecor(fsys fs.FS, chemin string) (*Decor, map[string]game.Cost, error) 
 			chemin, manifest.ErrUnsupportedFormat, decor.Format, FormatDecor)
 	}
 
-	couts := make(map[string]game.Cost, len(decor.Shapes))
 	var manques []string
+	if largeur, hauteur := decor.Tile[0], decor.Tile[1]; largeur <= 0 || hauteur*2 != largeur {
+		manques = append(manques, fmt.Sprintf(
+			"tuile : [%d, %d], il en faut une largeur positive et une hauteur de moitie",
+			largeur, hauteur))
+	}
+
+	couts := make(map[string]game.Cost, len(decor.Shapes))
 	for _, nom := range noms(decor.Shapes) {
 		forme := decor.Shapes[nom]
 		cout, defaut := forme.cout()

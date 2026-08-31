@@ -13,9 +13,17 @@ make lint
 make vulncheck
 make sec
 make entetes    # la mention de licence, sur ce que git publie
+make sommaire   # le sommaire par question de docs/go.md
+make notices    # THIRD-PARTY-NOTICES contre ce que les cibles publiées lient
 make cover
+make binaries   # windows et wasm, dans dist/
 make tools      # installe golangci-lint, govulncheck, gosec
 ```
+
+`entetes`, `sommaire` et `notices` sont des étapes de l'intégration continue :
+les lancer en local, c'est éviter un aller-retour. `notices` en particulier, que
+seul un changement de dépendance fait bouger, et qui est rouge sur toute pull
+request qui en ajoute une sans régénérer le fichier.
 
 `make apercus` écrit des vues du rendu dans `.tmp/apercus/`. C'est le seul moyen
 de relire `internal/render`, qui n'a pas de test et n'en aura pas — importer
@@ -109,7 +117,7 @@ autonome et accepte ses propres options.
 ```
 python outils/decor_iso.py --theme parking --sortie assets/decors
 python outils/decor_iso.py voiture camion --sortie assets/decors
-python outils/figurines.py --apercu --sortie .tmp/apercus
+python outils/figurines.py --apercu            # planches dans .tmp/controle/
 python outils/objets.py --sortie assets/objets
 python outils/ressources.py --controle        # sans rien régénérer
 python outils/ressources.py --controle --pentes

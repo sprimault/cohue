@@ -93,6 +93,13 @@ a file:
 make ressources-verif && make entetes
 ```
 
+A third one as soon as a dependency comes in or goes out, because the notices
+travel with every published archive:
+
+```
+make notices
+```
+
 `govulncheck` queries its advisory database **live**: a job green in the morning
 can be red in the afternoon on exactly the same code. Do not rely on CI alone,
 which validates once the branch is already pushed.

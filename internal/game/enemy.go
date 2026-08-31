@@ -1,6 +1,9 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Enemy est une créature de la horde telle qu'elle vit dans son bassin : sa
+// position, l'index de son profil, et la résistance dont la chute est sa mort.
+
 package game
 
 // Enemy est une créature de la horde, telle qu'elle vit dans son bassin.

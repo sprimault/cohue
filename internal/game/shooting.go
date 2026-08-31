@@ -1,6 +1,9 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Le tir automatique : le ciblage du plus proche à portée, la cadence qui ne se
+// consomme qu'en tirant, le vol des projectiles et ce qu'ils touchent.
+
 package game
 
 // tirer arme le tir automatique du joueur.

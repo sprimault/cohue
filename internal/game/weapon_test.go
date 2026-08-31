@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Les cas des armes : le manifeste livré monté sans rien injecter, les valeurs
+// de tir qui viennent du tireur, l'absence d'arme de base, et la cadence sous le
+// pas de simulation.
+
 package game
 
 import (

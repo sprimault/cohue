@@ -1,6 +1,11 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// La lecture d'un fichier JSON partagé, toute clé inconnue refusée. Le message
+// du décodeur ressort tel quel jusqu'à l'auteur du fichier, avec le chemin de la
+// clé fautive : le remplacer par « fichier invalide » détruirait la seule
+// information utile de la ligne.
+
 // Package manifest lit les fichiers JSON que le jeu partage, et rien de plus.
 //
 // Y entre ce qu'au moins deux paquets lisent, et rien d'autre. Le nom

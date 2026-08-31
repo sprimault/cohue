@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Les cas de la grille de coûts : une grille neuve est franchissable,
+// l'extérieur est un mur, une écriture hors bornes ne déborde pas, et un coût
+// intermédiaire ralentit sans arrêter.
+
 package game
 
 import "testing"

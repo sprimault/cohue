@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Les cas de la virgule fixe : l'arrondi au plus proche et sa symétrie, la
+// dérive qu'une troncature produirait sur une run, l'absence de débordement au
+// produit, et la saturation d'une valeur hors plage.
+
 package game
 
 import (

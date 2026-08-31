@@ -1,6 +1,9 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Les cas des flux : même graine et même suite, indépendance des quatre,
+// empreinte d'une suite connue, et bornes des tirages.
+
 package game
 
 import "testing"

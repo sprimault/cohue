@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// La lecture du manifeste des armes, le seul de `assets/` tenu à la main. Le
+// tireur y porte les valeurs de son tir : cadence, portée, dégâts, nombre de
+// projectiles et vitesse.
+
 package game
 
 import (

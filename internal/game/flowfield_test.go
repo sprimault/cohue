@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Les cas du champ de flux : la distance qui compte les coûts et non les cases,
+// le contournement de ce qui coûte cher, l'angle de deux murs qu'on ne coupe
+// pas, et la marche qui vérifie que toute case atteignable mène à la cible.
+
 package game
 
 import "testing"

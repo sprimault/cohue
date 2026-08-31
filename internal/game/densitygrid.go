@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// La grille de densité : le comptage des créatures par cellule, et la pente qui
+// s'en déduit. Elle répond à une question factuelle — combien, et dans quel sens
+// cela décroît ; la force que cette pente exerce se décide dans la boucle.
+
 package game
 
 // DensityGrid compte les entités par cellule, pour que la horde ne s'empile pas

@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// La lecture du manifeste de décor, et le catalogue de coûts qu'il en tire.
+// Aucun nom de forme n'est écrit dans le code : ajouter une flaque au générateur
+// suffit à ce que le champ de flux la contourne.
+
 package level
 
 import (

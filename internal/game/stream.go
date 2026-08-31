@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Les quatre flux aléatoires d'une partie, dérivés de sa graine et nommés par
+// leur usage. Un flux unique suffirait à rejouer une partie jouée et casserait
+// la run simulée sans rendu, où chaque tirage manquant décale tous les suivants.
+
 package game
 
 import "math/rand/v2"

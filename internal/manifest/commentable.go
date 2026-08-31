@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Le champ `$comment`, qu'embarque toute structure du format. Il n'est jamais
+// lu : il existe pour que le refus des clés inconnues accepte un commentaire là
+// où un auteur en met un.
+
 package manifest
 
 // Commentable donne à toute structure du format le droit de porter un

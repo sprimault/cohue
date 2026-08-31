@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Fixed est l'unité de longueur de la simulation, en virgule fixe, avec ses
+// conversions et ses opérations. Tout ce qui décide dans le jeu passe par ce
+// type, et rien de ce qu'il produit ne dépend de la machine.
+
 // Package game porte la simulation : bassins d'entités, champ de flux, profils
 // et boucle de mise à jour.
 //

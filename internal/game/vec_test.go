@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Les cas du vecteur : la direction toujours unitaire, la plus petite diagonale
+// qui reste une diagonale, le vecteur nul qui tire son orientation de l'index de
+// son entité, et le budget d'allocation.
+
 package game
 
 import "testing"

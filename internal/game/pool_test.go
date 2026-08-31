@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Les cas du bassin : la référence qui survit à un échange, celle qui meurt avec
+// son entité, la place recyclée qui ne ressuscite personne, la référence zéro
+// qui ne désigne rien, le plein qui refuse sans écraser, et le budget.
+
 package game
 
 import (

@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Les deux tests qui livrent l'étape 1 — trois cents poursuivants qui convergent
+// en contournant des obstacles, mille ticks sans une allocation — et les cas du
+// déplacement : le mur qu'on ne traverse pas, le coût qui divise la vitesse.
+
 package game
 
 import (

@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Le pas de simulation et la conversion des durées de manifeste. La simulation
+// ne connaît jamais le temps écoulé et n'accepte aucun delta : elle compte des
+// ticks, et une durée trop courte pour en faire un est refusée.
+
 package game
 
 import (

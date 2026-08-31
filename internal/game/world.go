@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// La partie en cours — bassins, champ de flux, densité, profils, arme — et
+// l'ordre d'un tick. Rien n'y est alloué après le montage : la réutilisation des
+// tableaux d'un tick à l'autre est ce qui tient le budget d'allocation.
+
 package game
 
 // flowPeriod est le nombre de ticks entre deux calculs du champ de flux.

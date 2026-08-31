@@ -93,6 +93,30 @@ son format :
 de quoi le copyright devient la godoc du paquet — ou, en Python, le docstring de
 module cesse d'en être un.
 
+Vient ensuite une **note de fichier**, quatre lignes au plus, qui résume ce qu'on
+y trouve. Elle dit le contenu et non ce que chaque déclaration fait — la godoc
+s'en charge deux lignes plus bas, et la redire donnerait deux descriptions du
+même objet.
+
+**Elle est détachée de `package` par une ligne vide, et c'est elle qui compte.**
+Collée, Go la lit comme un commentaire de paquet et concatène tous ceux d'un même
+paquet dans l'ordre alphabétique des fichiers : la godoc de `internal/game`
+s'ouvrirait sur une phrase à propos des coûts de terrain, parce que `costgrid.go`
+précède `fixed.go`. Ni `gofmt`, ni `go vet`, ni le linter ne le signalent.
+
+Dans le fichier qui porte le commentaire de paquet, la note vient au-dessus de
+lui, séparée de la même façon :
+
+```go
+// Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+// SPDX-License-Identifier: Apache-2.0
+
+// La grille de coûts : le prix de traversée d'une case, et la carte qui les
+// porte. Le chargeur de lieux l'écrit, le champ de flux la lit.
+
+package game
+```
+
 JSON n'a pas de commentaires : l'en-tête y est un `$comment` en **première
 clé**, le mot-clé que JSON Schema réserve à cet usage et que les validateurs
 ignorent. C'est ce que portent les manifestes de `assets/`, écrits par

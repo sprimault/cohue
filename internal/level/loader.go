@@ -1,6 +1,11 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// L'ouverture d'un dossier de lieu et la cuisson de sa grille de coûts, plus les
+// refus que l'appelant peut vouloir distinguer. Le nom du dossier et
+// l'identifiant doivent s'accorder, ce qui attrape la copie qu'on a renommée
+// sans toucher au champ.
+
 package level
 
 import (

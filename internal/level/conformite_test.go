@@ -1,6 +1,11 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Le montage du décor et du lieu publiés, sans rien injecter. C'est le seul
+// endroit qui exerce la chaîne entière — `go:embed`, le manifeste, la palette,
+// la cuisson — donc le seul qui tombe quand deux maillons cessent d'être
+// d'accord.
+
 package level
 
 import (

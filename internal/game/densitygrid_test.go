@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Les cas du gradient : son sens, son échelle, le bord qui pousse vers
+// l'intérieur, et la foule uniforme qui ne repousse rien — une propriété qui
+// ressemble à un défaut et n'en est pas un.
+
 package game
 
 import "testing"

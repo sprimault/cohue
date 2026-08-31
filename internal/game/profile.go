@@ -1,6 +1,11 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// La lecture du manifeste des personnages, et la table de profils que la
+// simulation indexe. Les champs qu'un seul rôle ou un seul comportement porte y
+// sont exigés là et refusés ailleurs, par une table unique qui dit les deux à la
+// fois.
+
 package game
 
 import (

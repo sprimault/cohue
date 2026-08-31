@@ -1,6 +1,11 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Les cas du chargeur : la cuisson en grille de coûts, la clé inconnue refusée,
+// le commentaire admis en tout point, les manquements listés en une fois, le
+// dossier renommé sans son identifiant, et le lieu qu'on tente d'ouvrir par un
+// fichier.
+
 package level
 
 import (

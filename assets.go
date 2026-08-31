@@ -1,6 +1,9 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// L'unique `go:embed` du dépôt : tout ce que le binaire distribue — manifestes,
+// images, sons et lieux livrés — pour que l'exécutable se suffise à lui-même.
+
 // Package cohue n'existe que pour embarquer les ressources dans le binaire.
 //
 // `go:embed` ne remonte pas au-dessus du répertoire de son paquet, et les

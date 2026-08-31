@@ -19,13 +19,20 @@ moins d'une seconde, même configuration.
 
 ## État
 
-**Rien ne tourne encore.** Le dépôt porte la conception, les outils de
-fabrication des ressources et l'échafaudage. L'étape 1 est la simulation nue.
+**Le jeu s'ouvre et se traverse, il ne se joue pas encore.** Les étapes 1 et 2
+sont livrées : la fenêtre montre un lieu, on s'y déplace au clavier, et la horde
+converge en contournant les obstacles.
 
-Ce qui est acquis : la géométrie isométrique 2:1 validée au pixel, le décor
-généré avec son manifeste, et les personnages générés eux aussi — un gabarit par
-famille, huit orientations, et les valeurs de jeu dans le même manifeste que le
-rendu.
+Ce qui manque pour que ce soit un jeu : la mort et la relance, les portes à
+ouvrir, les caisses à casser, les armes à ramasser, les montées de niveau, et
+l'enchaînement des lieux. Le décor est fait de rectangles colorés — les images
+existent, mais rien ne les charge encore.
+
+Ce qui est acquis : la simulation à trois cents créatures sans allocation par
+tick, le rendu isométrique avec sa projection, sa caméra et son tri en
+profondeur, le décor généré avec son manifeste, et les personnages générés eux
+aussi — un gabarit par famille, huit orientations, et les valeurs de jeu dans le
+même manifeste que le rendu.
 
 - [`docs/conception.md`](docs/conception.md) — la conception complète
 - [`ROADMAP.md`](ROADMAP.md) — les étapes et ce qui est hors périmètre v1

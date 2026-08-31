@@ -127,13 +127,13 @@ func TestManquementsListesEnUneFois(t *testing.T) {
 	if err == nil {
 		t.Fatal("un lieu invalide s'est chargé")
 	}
-	var invalide *manifest.Invalide
+	var invalide *manifest.Invalid
 	if !errors.As(err, &invalide) {
-		t.Fatalf("erreur de type %T, attendu *manifest.Invalide", err)
+		t.Fatalf("erreur de type %T, attendu *manifest.Invalid", err)
 	}
-	if len(invalide.Manques) < 4 {
+	if len(invalide.Missing) < 4 {
 		t.Errorf("%d manquement(s) listé(s), attendu au moins 4 :\n%v",
-			len(invalide.Manques), invalide.Manques)
+			len(invalide.Missing), invalide.Missing)
 	}
 }
 

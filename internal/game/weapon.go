@@ -94,7 +94,7 @@ func LoadWeapons(fsys fs.FS, chemin string) (*Weapons, error) {
 	}
 
 	if len(manques) > 0 {
-		return nil, &manifest.Invalide{Chemin: chemin, Manques: manques}
+		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
 	return table, nil
 }

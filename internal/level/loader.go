@@ -108,7 +108,7 @@ func (l *Loader) Load(dossier string) (*game.CostGrid, error) {
 	}
 
 	if manques := valider(nom, lieu, jeu, pieces); len(manques) > 0 {
-		return nil, &manifest.Invalide{Chemin: chemin, Manques: manques}
+		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
 	return cuire(lieu, jeu, pieces, l.couts), nil
 }

@@ -51,7 +51,7 @@ func run() error {
 	}
 
 	ebiten.SetWindowTitle(titreFenetre)
-	ebiten.SetWindowSize(render.Largeur, render.Hauteur)
+	ebiten.SetWindowSize(render.Width, render.Height)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	return ebiten.RunGame(render.NewScreen(partie.World, partie.Grid, partie.Tile))
 }

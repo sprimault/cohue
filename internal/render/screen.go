@@ -41,8 +41,8 @@ import (
 // vers la fenêtre est un réglage d'affichage, que l'étape 15 tranchera — voir
 // `Layout`, qui dit ce qu'il en est aujourd'hui.
 const (
-	Largeur = 960
-	Hauteur = 540
+	Width  = 960
+	Height = 540
 )
 
 // Les teintes du rendu provisoire, qui tiendront jusqu'à ce que l'atlas entre.
@@ -134,7 +134,7 @@ func (s *Screen) Draw(ecran *ebiten.Image) {
 // toutes deux dans le tampon : c'est le facteur d'échelle du système qui décide,
 // il se lit par `LayoutF`, et aucun des deux ne le connaît.
 func (s *Screen) Layout(largeurFenetre, hauteurFenetre int) (int, int) {
-	return Largeur, Hauteur
+	return Width, Height
 }
 
 // peindreSol pose la face de chaque case visible, teintée par son coût.

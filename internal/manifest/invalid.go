@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-// Invalide porte tout ce qui manque à un fichier, et non le premier manquement.
+// Invalid porte tout ce qui manque à un fichier, et non le premier manquement.
 //
 // C'est ici, et nulle part ailleurs, que « listés en une fois » devient vrai :
 // le décodage s'arrête au premier écart parce que la bibliothèque standard ne
@@ -24,16 +24,16 @@ import (
 // Le type vit ici et non chez le chargeur de lieux parce qu'un manifeste de
 // profils doit la même chose à qui l'écrit. La validation, elle, reste chez le
 // consommateur : lui seul sait ce que son format exige.
-type Invalide struct {
-	Chemin  string
-	Manques []string
+type Invalid struct {
+	Path    string
+	Missing []string
 }
 
 // Error énumère les manquements, un par ligne.
-func (e *Invalide) Error() string {
+func (e *Invalid) Error() string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "%s : %d manquement(s)", e.Chemin, len(e.Manques))
-	for _, m := range e.Manques {
+	fmt.Fprintf(&b, "%s : %d manquement(s)", e.Path, len(e.Missing))
+	for _, m := range e.Missing {
 		b.WriteString("\n  " + m)
 	}
 	return b.String()

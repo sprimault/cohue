@@ -128,7 +128,7 @@ func (p *planche) Update() error {
 func (p *planche) Draw(*ebiten.Image) {}
 
 // Layout donne au tampon la taille de celui du jeu.
-func (p *planche) Layout(_, _ int) (int, int) { return render.Largeur, render.Hauteur }
+func (p *planche) Layout(_, _ int) (int, int) { return render.Width, render.Height }
 
 // vue monte une partie, y pose la scène, la dessine et écrit le fichier.
 //
@@ -190,8 +190,8 @@ func run() error {
 	}
 
 	ebiten.SetWindowTitle("Cohue — planche")
-	ebiten.SetWindowSize(render.Largeur, render.Hauteur)
+	ebiten.SetWindowSize(render.Width, render.Height)
 	return ebiten.RunGame(&planche{
-		tampon: ebiten.NewImage(render.Largeur, render.Hauteur),
+		tampon: ebiten.NewImage(render.Width, render.Height),
 	})
 }

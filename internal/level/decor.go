@@ -123,7 +123,7 @@ func LoadDecor(fsys fs.FS, chemin string) (*Decor, map[string]game.Cost, error) 
 		couts[nom] = cout
 	}
 	if len(manques) > 0 {
-		return nil, nil, &manifest.Invalide{Chemin: chemin, Manques: manques}
+		return nil, nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
 	return decor, couts, nil
 }

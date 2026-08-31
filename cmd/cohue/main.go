@@ -15,15 +15,18 @@ import (
 	"os"
 
 	"github.com/sprimault/cohue"
+	"github.com/sprimault/cohue/internal/game"
 	"github.com/sprimault/cohue/internal/level"
 )
 
-// Les deux chemins que le binaire connaît. Ils sont ici et nulle part ailleurs :
-// le moteur ne reçoit qu'une grille de coûts, et c'est ce qui lui permet
-// d'ignorer que les ressources sont embarquées plutôt que posées à côté.
+// Les trois chemins que le binaire connaît. Ils sont ici et nulle part
+// ailleurs : le moteur ne reçoit qu'une grille de coûts et une table de
+// profils, et c'est ce qui lui permet d'ignorer que les ressources sont
+// embarquées plutôt que posées à côté.
 const (
-	manifesteDecor = "assets/decors/manifeste.json"
-	lieuDepart     = "assets/lieux/place"
+	manifesteDecor       = "assets/decors/manifeste.json"
+	manifestePersonnages = "assets/personnages/manifeste.json"
+	lieuDepart           = "assets/lieux/place"
 )
 
 // version est renseignée à la liaison par -ldflags, et vaut « dev » hors
@@ -57,6 +60,15 @@ func run() error {
 		return err
 	}
 	slog.Info("lieu chargé", "largeur", carte.Width(), "hauteur", carte.Height())
+
+	// Au lancement, et non à la première vague : un manifeste que le binaire
+	// refuse doit le dire tout de suite, pas trois minutes après le démarrage
+	// d'une partie.
+	profils, err := game.LoadProfiles(cohue.Assets, manifestePersonnages)
+	if err != nil {
+		return err
+	}
+	slog.Info("profils chargés", "enemies", len(profils.Enemies))
 
 	return errors.New("à implémenter : étape 1")
 }

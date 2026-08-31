@@ -19,13 +19,20 @@ PYTHON    ?= python3
 # directement perd ces variables, et l'échec est intermittent.
 -include makefile.local
 
-.PHONY: build run test race fmt lint vulncheck sec notices cover binary binaries clean tools ressources ressources-verif decors figurines objets sons controle entetes sommaire
+.PHONY: build run test race fmt lint vulncheck sec notices cover binary binaries clean tools ressources ressources-verif decors figurines objets sons controle entetes sommaire apercus
 
 build:
 	go build -trimpath -ldflags "$(LDFLAGS)" -o $(SORTIE)/$(BINAIRE) ./cmd/cohue
 
 run:
 	go run ./cmd/cohue
+
+# internal/render n'a pas de test et n'en aura pas : le rendu se juge à l'œil, et
+# une planche que rien ne fabrique ne relit rien. Elle ouvre une fenêtre le temps
+# d'obtenir un contexte graphique, donc elle ne tourne pas en intégration
+# continue — c'est une planche, pas un contrôle.
+apercus:
+	go run ./cmd/preview
 
 # Aucun test ne doit ouvrir de fenêtre : les runners sont sans écran, et un test
 # qui exigerait xvfb n'a rien à faire dans la suite par défaut.

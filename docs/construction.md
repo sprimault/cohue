@@ -5,6 +5,7 @@
 ```
 make build      # binaire dans .tmp/
 make run
+make apercus    # les vues du rendu, dans .tmp/apercus/
 make test
 make race
 make fmt
@@ -15,6 +16,13 @@ make entetes    # la mention de licence, sur ce que git publie
 make cover
 make tools      # installe golangci-lint, govulncheck, gosec
 ```
+
+`make apercus` écrit des vues du rendu dans `.tmp/apercus/`. C'est le seul moyen
+de relire `internal/render`, qui n'a pas de test et n'en aura pas — importer
+Ebitengine initialise GLFW, qui panique sans écran. La planche pilote le rendu du
+jeu et non une scène montée à côté, et elle est déterministe : c'est ce qui permet
+de comparer une image d'avant et d'après un changement. Elle exige un écran, donc
+elle ne tourne pas en intégration continue.
 
 `makefile.local` porte ce qui est propre au poste — `GOTMPDIR`, `GOCACHE` — et
 n'est pas versionné. Passer par le Makefile plutôt que d'appeler `go` à la main :

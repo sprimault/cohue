@@ -522,7 +522,9 @@ Dans tous les cas : orienter le sprite sur la direction de **visée**, pas de d�
 
 ### La grille et les tailles
 
-Tout découle des sprites de personnages, en 64×64 : la tuile de sol fait **64×32**, projection 2:1, origine au centre du losange.
+Tout découle des sprites de personnages, en 64×64 : la tuile de sol fait **64×32**, projection 2:1.
+
+**Le point du monde (u, v) est le sommet nord du losange de la case**, et non son centre — le centre tombe en (u+0,5 ; v+0,5), seize pixels plus bas. C'est la convention que le chapitre 12 pose déjà pour les pièces, où « la case (0, 0) est le sommet du losange ». L'ancrage d'une image, lui, n'est pas ce point : il est déclaré forme par forme dans le manifeste, parce qu'un mur de 64×96 et une flaque plate ne se posent pas de la même façon.
 
 Pour un objet couvrant plusieurs tuiles, `largeur = (tx + ty) × 32` et l'emprise au sol `hauteur = (tx + ty) × 16`.
 
@@ -758,9 +760,9 @@ Le descripteur porte un nom fixe plutôt que celui du lieu : un dossier de lieu 
   "empreinte_jeu_pieces": "a41f7c92",
   "grille": [4, 3],
   "pieces": [
-    { "id": "entree_caisses", "x": 0, "y": 0, "rotation": 0 },
-    { "id": "rayon_long",     "x": 1, "y": 0, "rotation": 1 },
-    { "id": "carrefour",      "x": 2, "y": 0, "rotation": 0 }
+    { "id": "entree_caisses", "u": 0, "v": 0 },
+    { "id": "rayon_long",     "u": 1, "v": 0 },
+    { "id": "carrefour",      "u": 2, "v": 0 }
   ],
   "pieces_personnalisees": [],
   "scenario": "standard_4min",
@@ -768,6 +770,8 @@ Le descripteur porte un nom fixe plutôt que celui du lieu : un dossier de lieu 
   "densite_caisses": 0.4
 }
 ```
+
+**Les axes sont `u` et `v`**, ceux que ce document pose plus haut et que le lieu livré emploie ; un lieu écrit avec `x` et `y` est refusé, le décodage n'admettant aucune clé inconnue. Et tout ce que montre cet exemple n'existe pas encore : la rotation reste à trancher, le scénario et l'objectif de sortie sont les étapes 4 et 8. Ce qu'un lieu porte aujourd'hui se lit dans `assets/lieux/place/lieu.json`.
 
 `pieces_personnalisees` embarque les pièces peintes à la main, quand il y en a — et il reste vide tant que le mode tuiles n'est pas implémenté. C'est le seul cas où le fichier grossit ; même alors, une pièce de 16×16 tuiles compressée pèse quelques centaines d'octets.
 
@@ -1051,7 +1055,9 @@ Il n'y a pas de bon ordre, il y a un ordre écrit une fois. Dans un tick :
 
 Les apparitions avant la densité, et c'est ce qui commande leur place : le champ de flux ne dépend que du joueur et des obstacles, une créature apparue après son calcul n'y perd rien. La densité, elle, dépend des ennemis — deux créatures apparues au même endroit se superposeraient exactement le temps d'une image, et personne ne retrouverait jamais l'origine de ce scintillement.
 
-La suppression par échange remonte la dernière entité active à l'index libéré. Cet index **n'est pas réexaminé dans la même image** : l'entité remontée attend le tick suivant. Sans cette règle, elle serait mise à jour deux fois ou zéro selon le sens du parcours, et le déterminisme dépendrait d'un détail d'écriture.
+La suppression par échange remonte la dernière entité active à l'index libéré. Cet index **n'est pas réexaminé par la passe de mise à jour en cours** : l'entité remontée y attend le tick suivant. Sans cette règle, elle serait mise à jour deux fois ou zéro selon le sens du parcours, et le déterminisme dépendrait d'un détail d'écriture.
+
+La passe qui *retire* les morts, elle, réexamine bien la place libérée, et elle le doit : elle ne fait que filtrer, sans rien avancer, et la sauter y laisserait un cadavre un tick de plus. C'est la même distinction dans les deux sens — ce qui avance ne repasse pas, ce qui trie repasse.
 
 ### La mort est un état, pas un événement
 
@@ -1073,31 +1079,33 @@ Le bassin de cadavres est donc entièrement cosmétique : il n'entre pas dans l'
 
 ### La structure des entités
 
-À trancher au premier jalon, pas après.
+Tranchée au premier jalon, et voici ce qu'elle est devenue :
 
 ```go
 type Enemy struct {
-    X, Y       float32
-    VX, VY     float32
-    HP         int16
-    Profile    uint8   // index dans []EnemyProfile, jamais un pointeur
-    Cycle      uint8
-    Frame      uint8
-    Generation uint16
+    Profile int   // index dans []EnemyProfile, jamais un pointeur
+    X, Y    Fixed // en tuiles, virgule fixe — voir « Les repères »
+    Hits    int   // la mort est cet état, pas un événement
 }
 
-type Pool struct {
-    enemies []Enemy // capacité fixe, jamais réallouée
-    active  int
+type Pool[T any] struct {
+    entities []T // capacité fixe, jamais réallouée
+    active   int
 }
 ```
+
+**Les positions sont en `Fixed` et non en flottants**, ce que « Les repères » exige quelques paragraphes plus haut : un bloc de code qui montrerait des `float32` inviterait à casser le déterminisme sans que rien ne le signale.
+
+Ce que la struct ne porte pas est aussi décidé. Pas de vitesse stockée : une créature lit le champ de flux sous ses pieds à chaque pas. Pas de génération : elle appartient au bassin, pour que rien n'incite à la lire hors du `Handle` — voir plus bas. Les champs d'animation, `Cycle` et `Frame`, viendront avec les sprites.
+
+Le bassin est **générique**, et c'est ce qui met le mécanisme en facteur plutôt que de le recopier pour les ennemis, les projectiles, les gemmes, les caisses, les particules et les cadavres. Six copies seraient six endroits où tenir la règle, et une copie qui la manquerait ne ferait échouer aucun test : elle ferait qu'une référence périmée désigne une entité vivante.
 
 Un `[]Enemy` de structures pleines plutôt qu'un `[]*Enemy`. À ce volume, l'argument du cache est secondaire — 300 structures tiennent en L2 et le temps d'image est dominé par les appels de dessin. Le vrai motif est **la pression sur le ramasse-miettes** : 300 objets alloués à chaque vague produisent les micro-saccades qui se voient.
 
 Trois principes, plus importants que le choix structures/pointeurs :
 
 - **Préallouer et ne jamais réallouer.** `make([]Enemy, 0, 512)` au démarrage ; suppression par échange avec le dernier actif puis décrément. Pas d'`append`, pas de trou.
-- **Ne pas faire sortir de pointeur du bassin.** Après un échange, un `*Enemy` conservé ailleurs désigne une autre entité. Pour référencer un ennemi qui vit plusieurs images — une cible verrouillée —, utiliser index + génération : au recyclage la génération est incrémentée, et le détenteur d'une référence périmée le voit.
+- **Ne pas faire sortir de pointeur du bassin.** Après un échange, un `*Enemy` conservé ailleurs désigne une autre entité. Pour référencer un ennemi qui vit plusieurs images — une cible verrouillée —, utiliser **un identifiant stable et sa génération, tous deux tenus par le bassin** : au recyclage la génération est incrémentée, et le détenteur d'une référence périmée le voit. L'identifiant n'est pas la place : l'échange ramène la dernière entité dans le trou, si bien qu'une référence indexée par la place se briserait parce qu'une *autre* entité est morte.
 - **Séparer le chaud du froid.** Vitesse, PV max, poids de séparation, tangentiel sont partagés par tous les ennemis d'un type : ils vivent dans un `[]EnemyProfile` et l'entité n'en garde que l'index. C'est ce qui garde la structure petite, seul levier qui compte réellement au parcours.
 
 En itérant, prendre l'adresse plutôt que la copie :

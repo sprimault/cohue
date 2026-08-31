@@ -12,6 +12,15 @@
 // calculer en flottants — interpolations, lissage de caméra — sans menacer le
 // déterminisme de la run, et ce qui interdit à une notion d'écran de redescendre
 // dans la simulation.
+//
+// **Ce paquet n'a pas de fichier de test, et n'en aura pas.** Importer
+// Ebitengine initialise GLFW, qui panique sans `DISPLAY` : sur un runner sans
+// écran, n'importe quel test du paquet tombe avant d'avoir commencé, y compris
+// un test qui n'ouvrirait aucune fenêtre. La suite par défaut reste donc
+// exécutable partout, et le rendu se juge à l'œil — c'est ce que la doctrine de
+// test énonçait déjà, et l'absence de tests ici en est la conséquence et non un
+// oubli. Ce qui doit être vérifié mécaniquement vit du côté simulation, qui
+// n'importe pas Ebitengine.
 package render
 
 import (

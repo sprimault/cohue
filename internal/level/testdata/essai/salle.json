@@ -1,5 +1,5 @@
 {
-  "$comment": "Mur plein au nord, ouverture pleine au sud : la convention se lit.",
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · mur plein au nord, ouverture pleine au sud : la convention se lit",
   "version_format": 1,
   "identifiant": "salle",
   "jeu": "commun",

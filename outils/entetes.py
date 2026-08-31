@@ -40,7 +40,14 @@ SUFFIXES_DISPENSES = {".md", ".png", ".jpg", ".wav", ".ogg", ".zip", ".gz"}
 
 # Le JSON n'a pas de commentaires : la mention y est un `$comment` en première
 # clé, et c'est `ressources.py --controle` qui l'exige sur les manifestes.
+#
+# La dispense s'arrête donc où s'arrête ce contrôle-là, c'est-à-dire à `assets/`.
+# Portée à toute l'extension, elle laissait sans garde les JSON du reste du
+# dépôt — ceux des données de test, écrits à la main et par personne d'autre. Un
+# contrôle qui saute ce que personne d'autre ne regarde ne signale plus l'écart,
+# il le certifie.
 SUFFIXES_JSON = {".json"}
+RACINE_RESSOURCES = "assets"
 
 
 def versionnes(racine):
@@ -74,7 +81,7 @@ def controler(racine):
     for relatif in versionnes(racine):
         if relatif.name in DISPENSES or relatif.suffix in SUFFIXES_DISPENSES:
             continue
-        if relatif.suffix in SUFFIXES_JSON:
+        if relatif.suffix in SUFFIXES_JSON and relatif.parts[0] == RACINE_RESSOURCES:
             continue
         if not porte_entete(racine / relatif):
             manquants.append(relatif)

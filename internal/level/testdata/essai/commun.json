@@ -1,5 +1,5 @@
 {
-  "$comment": "Jeu de pièces minimal, pour les tests du chargeur.",
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · jeu de pièces minimal, pour les tests du chargeur",
   "version_format": 1,
   "identifiant": "commun",
   "nom": "Commun",

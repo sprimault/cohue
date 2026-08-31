@@ -1,4 +1,5 @@
 {
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · lieu d'une seule pièce, pour les tests du chargeur",
   "version_format": 1,
   "identifiant": "essai",
   "jeu_pieces": "commun",

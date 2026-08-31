@@ -84,9 +84,21 @@ var vues = []vue{
 // écrirait ses images depuis `main` n'obtiendrait rien. D'où ce détour, dont
 // `Draw` reste vide — la fenêtre qui s'ouvre une fraction de seconde n'a rien à
 // montrer.
+//
+// **Elle n'appelle jamais `render.Screen.Update`, et c'est délibéré.** Cette
+// méthode lit les touches : une direction pressée pendant l'écriture déplacerait
+// le joueur, et les images cesseraient d'être comparables d'une exécution à
+// l'autre — le déterminisme reposerait sur la précaution de ne pas toucher au
+// clavier plutôt que sur une propriété. Ne pas l'appeler n'est pas une garde
+// qu'on pourrait contourner, c'est un chemin qui n'existe pas.
+//
+// Ce qu'elle en perd est nul : monter un écran cadre déjà sur le joueur, donc un
+// écran monté après la scène est cadré juste. Ce qui doit avancer d'un pas passe
+// par `World.Step`, où la direction est écrite et non lue.
 type planche struct {
 	monde  *game.World
-	ecran  *render.Screen
+	grille *game.CostGrid
+	tuile  [2]int
 	tampon *ebiten.Image
 	ecrit  bool
 }
@@ -112,16 +124,14 @@ func (p *planche) Draw(*ebiten.Image) {}
 // Layout donne au tampon la taille de celui du jeu.
 func (p *planche) Layout(_, _ int) (int, int) { return render.Largeur, render.Hauteur }
 
-// vue pose le joueur, dessine et écrit le fichier.
+// vue pose la scène, la dessine et écrit le fichier.
 //
 // Le joueur est posé au centre de sa case et non sur son coin, faute de quoi la
-// planche montrerait le cas qu'aucune partie ne produit.
+// planche montrerait un cas qu'aucune partie ne produit. L'écran vient après
+// lui, et non l'inverse : c'est son montage qui cadre.
 func (p *planche) vue(v vue) error {
 	p.monde.Place(game.FromInt(v.u)+game.One/2, game.FromInt(v.v)+game.One/2)
-	if err := p.ecran.Update(); err != nil {
-		return err
-	}
-	p.ecran.Draw(p.tampon)
+	render.NewScreen(p.monde, p.grille, p.tuile).Draw(p.tampon)
 
 	chemin := filepath.Join(sortie, v.nom+".png")
 
@@ -171,7 +181,8 @@ func run() error {
 	ebiten.SetWindowSize(render.Largeur, render.Hauteur)
 	return ebiten.RunGame(&planche{
 		monde:  partie.World,
-		ecran:  render.NewScreen(partie.World, partie.Grid, partie.Tile),
+		grille: partie.Grid,
+		tuile:  partie.Tile,
 		tampon: ebiten.NewImage(render.Largeur, render.Hauteur),
 	})
 }

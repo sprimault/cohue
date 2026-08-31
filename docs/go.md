@@ -363,6 +363,41 @@ comportement : un invariant se vérifie, il ne se surveille pas. Quand une
 seconde description est vraiment nécessaire sans être dérivable, alors c'est un
 test qui tient l'accord — pas une relecture.
 
+## La valeur zéro ne se partage pas entre l'absence et une valeur légitime
+
+Un défaut de cette famille ne naît pas d'une erreur qu'on pourrait relire, mais
+d'une omission qui n'a laissé aucune trace à relire. La valeur zéro est ce qu'on
+obtient **sans rien faire** : un champ qu'on n'a pas rempli, une structure
+copiée, une tranche agrandie. Quand elle signifie déjà quelque chose de
+légitime, l'oubli devient indiscernable du réglage, et il n'y a rien à
+l'endroit du défaut qui puisse attirer un regard.
+
+Ce n'est pas la valeur zéro utile qui est en cause — `sync.Mutex` et
+`bytes.Buffer` s'en servent bien. Ce qui l'est est plus étroit : **un champ dont
+le zéro est à la fois une valeur légitime et ce qu'un oubli produit.**
+
+Les cas de ce dépôt ont le même diagnostic et deux remèdes opposés, ce qui est
+la raison pour laquelle le motif est difficile à voir :
+
+| Le champ | Ce que zéro veut dire | Ce qui déménage |
+|---|---|---|
+| `cout_traversee` | la traversée est gratuite | l'absence, dans un `*int` |
+| `max_simultane` | aucun plafond de simultanéité | l'absence, dans un `*int` |
+| la génération d'un `Handle` | rien | la validité : les compteurs partent à 1 |
+
+D'où le critère, qui choisit au lieu d'interdire : **le zéro a-t-il une
+signification métier ?** S'il en a une, elle ne se retire pas, et c'est
+l'absence qui doit se représenter ailleurs. S'il n'en a pas, on lui en donne
+une, et le zéro devient l'état que rien de valide ne produit — `Handle{}` ne
+désigne alors aucune entité, ce qui est exactement ce qu'un champ oublié doit
+valoir.
+
+Cette règle est de la même famille que les deux du chapitre Tests, « un contrôle
+privé de son entrée échoue » et « une planche que rien ne fabrique ne relit
+rien » : toutes trois portent sur des défauts sans existence textuelle, qu'aucune
+relecture ne peut donc trouver. Ce qui les attrape est une forme choisie de
+telle sorte que le défaut ne puisse pas s'écrire.
+
 ## La projection isométrique ne se recalcule pas
 
 Toute conversion écran/tuile passe par `internal/render`. Un calcul recopié sur

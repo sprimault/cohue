@@ -136,7 +136,7 @@ func TestManquementsListesEnUneFois(t *testing.T) {
 	}`)}}
 
 	_, err := LoadProfiles(fsys, "m.json")
-	var invalide *manifest.Invalide
+	var invalide *manifest.Invalid
 	if !errors.As(err, &invalide) {
 		t.Fatalf("manifeste accepté, ou refusé autrement : %v", err)
 	}
@@ -145,8 +145,8 @@ func TestManquementsListesEnUneFois(t *testing.T) {
 		"cracheur.portee_tuiles : absent, alors que « tir » l'exige",
 		"marcheur.tangentiel : réservé à « flanc »",
 	}
-	if !slices.Equal(invalide.Manques, attendus) {
-		t.Errorf("manquements :\n  %v\nattendu :\n  %v", invalide.Manques, attendus)
+	if !slices.Equal(invalide.Missing, attendus) {
+		t.Errorf("manquements :\n  %v\nattendu :\n  %v", invalide.Missing, attendus)
 	}
 }
 
@@ -196,13 +196,13 @@ func TestRoleInconnuArreteLa(t *testing.T) {
 	}`)}}
 
 	_, err := LoadProfiles(fsys, "m.json")
-	var invalide *manifest.Invalide
+	var invalide *manifest.Invalid
 	if !errors.As(err, &invalide) {
 		t.Fatalf("rôle inconnu accepté, ou refusé autrement : %v", err)
 	}
 	// Le manquement du rôle, et celui du joueur qu'aucun profil ne fournit.
-	if len(invalide.Manques) != 2 {
-		t.Errorf("%d manquements, attendu 2 :\n  %v", len(invalide.Manques), invalide.Manques)
+	if len(invalide.Missing) != 2 {
+		t.Errorf("%d manquements, attendu 2 :\n  %v", len(invalide.Missing), invalide.Missing)
 	}
 }
 

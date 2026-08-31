@@ -54,14 +54,14 @@ func TestDecorRefuseLesCoutsContradictoires(t *testing.T) {
 	if err == nil {
 		t.Fatal("manifeste contradictoire accepté")
 	}
-	invalide, ok := err.(*manifest.Invalide)
+	invalide, ok := err.(*manifest.Invalid)
 	if !ok {
-		t.Fatalf("erreur %T, attendu *manifest.Invalide : %v", err, err)
+		t.Fatalf("erreur %T, attendu *manifest.Invalid : %v", err, err)
 	}
-	if len(invalide.Manques) != 2 {
-		t.Fatalf("%d manquement(s), attendu 2 :\n%v", len(invalide.Manques), invalide.Manques)
+	if len(invalide.Missing) != 2 {
+		t.Fatalf("%d manquement(s), attendu 2 :\n%v", len(invalide.Missing), invalide.Missing)
 	}
-	dit := strings.Join(invalide.Manques, "\n")
+	dit := strings.Join(invalide.Missing, "\n")
 	for _, attendu := range []string{"mur", "sol"} {
 		if !strings.Contains(dit, attendu) {
 			t.Errorf("« %s » absent du refus :\n%s", attendu, dit)

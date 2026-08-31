@@ -26,23 +26,23 @@ import (
 	"github.com/sprimault/cohue/internal/level"
 )
 
-// CapaciteHorde plafonne le bassin des ennemis.
+// HordeCapacity plafonne le bassin des ennemis.
 //
 // Trois cents entités vivantes, ce que la conception donne comme total en
 // comptant ce qui approche hors champ. Au-delà, ce n'est plus une horde mais un
 // mur uni : les profils cessent d'être distinguables, et avec eux la lisibilité
 // de l'échec. Le spawner rencontrera ce plafond, et c'est mieux que de laisser
 // la horde croître jusqu'à ce que l'image s'effondre.
-const CapaciteHorde = 300
+const HordeCapacity = 300
 
-// CapaciteTirs plafonne le bassin des projectiles.
+// ShotCapacity plafonne le bassin des projectiles.
 //
 // Large devant ce qu'une arme de base met en vol — quelques dizaines de ticks de
 // portée pour une salve toutes les vingt-quatre —, parce que les passifs
 // multiplient les projectiles bien plus vite que la cadence. Un bassin plein
 // perd le tir plutôt que de le différer : une file d'attente rendrait la cadence
 // élastique.
-const CapaciteTirs = 256
+const ShotCapacity = 256
 
 // Les deux réglages du semis provisoire.
 const (
@@ -101,7 +101,7 @@ func Open(fsys fs.FS, lieu string) (*Session, error) {
 	}
 	slog.Info("armes chargées", "base", armes.Base.Key)
 
-	monde := game.NewWorld(profils, armes.Base, grille, CapaciteHorde, CapaciteTirs)
+	monde := game.NewWorld(profils, armes.Base, grille, HordeCapacity, ShotCapacity)
 	placer(monde, grille)
 	peupler(monde, grille, profils)
 

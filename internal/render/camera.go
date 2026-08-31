@@ -52,8 +52,8 @@ func nouvelleCamera(tuile [2]int, carte *game.CostGrid) *camera {
 // suivre recentre la caméra sur un point du monde.
 func (c *camera) suivre(x, y game.Fixed) {
 	ex, ey := c.proj.pixel(x, y)
-	c.dx = cadrer(Largeur, ex, c.minX, c.maxX)
-	c.dy = cadrer(Hauteur, ey, c.minY, c.maxY)
+	c.dx = cadrer(Width, ex, c.minX, c.maxX)
+	c.dy = cadrer(Height, ey, c.minY, c.maxY)
 }
 
 // ecran rend le pixel du tampon où dessiner un point du monde.
@@ -78,7 +78,7 @@ func (c *camera) ecran(x, y game.Fixed) (int, int) {
 // l'écran y a encore son corps.
 func (c *camera) casesVisibles() (u0, v0, u1, v1 int) {
 	gauche, haut := -float64(c.dx), -float64(c.dy)
-	droite, bas := gauche+Largeur, haut+Hauteur
+	droite, bas := gauche+Width, haut+Height
 
 	u0, v0 = math.MaxInt, math.MaxInt
 	u1, v1 = math.MinInt, math.MinInt

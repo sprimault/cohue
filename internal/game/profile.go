@@ -202,7 +202,7 @@ func LoadProfiles(fsys fs.FS, chemin string) (*Profiles, error) {
 	}
 
 	if len(manques) > 0 {
-		return nil, &manifest.Invalide{Chemin: chemin, Manques: manques}
+		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
 	return table, nil
 }

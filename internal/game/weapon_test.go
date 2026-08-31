@@ -96,7 +96,7 @@ func TestArmeSansRoleDeBase(t *testing.T) {
 	}`)}}
 
 	_, err := LoadWeapons(fsys, "a.json")
-	var invalide *manifest.Invalide
+	var invalide *manifest.Invalid
 	if !errors.As(err, &invalide) {
 		t.Fatalf("manifeste sans arme de base accepté : %v", err)
 	}
@@ -111,12 +111,12 @@ func TestChampsDArmeManquantsListesEnUneFois(t *testing.T) {
 	}`)}}
 
 	_, err := LoadWeapons(fsys, "a.json")
-	var invalide *manifest.Invalide
+	var invalide *manifest.Invalid
 	if !errors.As(err, &invalide) {
 		t.Fatalf("arme sans aucune valeur acceptée : %v", err)
 	}
-	if len(invalide.Manques) != 5 {
-		t.Errorf("%d manquement(s), attendu 5 :\n  %v", len(invalide.Manques), invalide.Manques)
+	if len(invalide.Missing) != 5 {
+		t.Errorf("%d manquement(s), attendu 5 :\n  %v", len(invalide.Missing), invalide.Missing)
 	}
 }
 

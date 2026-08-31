@@ -77,6 +77,12 @@ jobs:
       - name: Mentions de licence
         run: make entetes
 
+      # Même job et même raison : un contrôle de documentation qui n'emploie que
+      # la bibliothèque standard, sur un dépôt fraîchement cloné. Un sommaire
+      # périmé ne casse rien à la compilation, donc rien d'autre ne le dirait.
+      - name: Sommaire des conventions
+        run: make sommaire
+
   controles:
     name: Contrôles
     runs-on: ubuntu-latest

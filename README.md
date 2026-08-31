@@ -57,11 +57,11 @@ not in a PNG.
 
 ## Levels and sharing
 
-A level is a list of placed pieces, not a map: a few hundred bytes, copyable as
+A level is a list of placed rooms, not a map: a few hundred bytes, copyable as
 base64 in a message.
 
 **A shared level contains no image and no sound.** It only references what the
-binary provides — pieces, objects, profiles, events. That is what makes
+binary provides — rooms, objects, profiles, events. That is what makes
 distribution trivial and removes any rights question about what passes through
 the game.
 

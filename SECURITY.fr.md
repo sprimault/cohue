@@ -1,5 +1,7 @@
 # Sécurité
 
+English: [SECURITY.md](SECURITY.md)
+
 ## Versions suivies
 
 La dernière version publiée. En `0.x`, il n'y a pas de branche de maintenance :

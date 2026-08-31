@@ -101,6 +101,20 @@ func (p *Pool[T]) Active() []T { return p.entities[:p.active] }
 // est un Handle.
 func (p *Pool[T]) At(place int) *T { return &p.entities[place] }
 
+// IDAt rend l'identifiant de l'entité qui occupe une place.
+//
+// L'identifiant seul, jamais le Handle : privé de sa génération, il ne résout
+// rien et ne permet donc pas de contourner le bassin. C'est délibéré — un Handle
+// rendu ici finirait conservé quelque part, et l'invariant tomberait par la porte
+// qu'on aurait ouverte pour un tri.
+//
+// Ce qu'il apporte est la seule propriété que la place n'a pas : il ne bouge
+// jamais. La suppression par échange ramène la dernière entité dans le trou, si
+// bien que deux entités changent de place sans que rien ne leur soit arrivé. Un
+// ordre qui se départagerait sur la place changerait donc parce qu'une troisième
+// est morte ailleurs, ce qui se voit à l'écran et se relie très mal à sa cause.
+func (p *Pool[T]) IDAt(place int) int { return p.ids[place] }
+
 // Spawn pose une entité et rend la référence qui la désignera.
 //
 // Le second résultat est faux quand le bassin est plein. Il l'est vraiment :

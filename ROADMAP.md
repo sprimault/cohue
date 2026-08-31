@@ -68,7 +68,13 @@ des obstacles, à budget d'allocation constant sur mille itérations.
 ## 2 — Rendu isométrique
 
 `internal/render` : conversion écran/tuile, tri en profondeur par compartiments,
-caméra en pixels entiers, tampon interne de 960×540 agrandi en entier.
+caméra en pixels entiers, tampon interne de 960×540.
+
+**L'agrandissement du tampon vers la fenêtre n'est pas ici, mais à l'étape 15.**
+Le tampon est fixe dès cette étape-ci, ce qui est la règle de pixel art ; le
+facteur qui l'agrandit, lui, oblige à choisir entre bandes noires, taille de
+fenêtre contrainte et redimensionnement par pas, et il se lit sur le facteur
+d'échelle du système. C'est un réglage d'affichage, pas une décision de caméra.
 
 Aucun asset final : des rectangles colorés. C'est le premier moment où la boucle
 se juge à l'œil plutôt qu'en test.
@@ -192,7 +198,10 @@ raisons : le champ existe dans le format depuis l'étape 10, mais rien ne l'écr
 
 ## 15 — Les écrans de réglages
 
-Sensibilité, volumes par catégorie de mixage, remappage des touches, difficulté.
+Sensibilité, volumes par catégorie de mixage, remappage des touches, difficulté,
+et l'agrandissement du tampon interne vers la fenêtre — en entier, par `LayoutF`
+et le facteur d'échelle du système, avec ce qu'il faut décider autour : plein
+écran, bandes noires ou fenêtre contrainte.
 
 Ici et pas plus tôt parce que leur contenu dépend de ce qu'il y aura à régler, et
 que la moitié n'existe pas avant : les catégories de mixage sont posées dès le

@@ -50,6 +50,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
   plus tard. Les créatures se recouvrent dans l'ordre de leur profondeur, et le
   joueur passe devant celles qui partagent la sienne.
 
+### À savoir
+
+- **La fenêtre agrandit l'image d'un facteur qui n'est pas entier**, si on la
+  redimensionne : les pixels deviennent alors inégaux. Le tampon interne, lui,
+  est bien fixe. L'agrandissement en entier est un réglage d'affichage, et il
+  arrivera avec les écrans de réglages.
+
 ***
 
 ### Added
@@ -65,6 +72,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
   at startup and does not arrive in waves: the pressure schedule comes later.
   Creatures overlap in depth order, and the player is drawn in front of those
   sharing the same depth.
+
+### Worth knowing
+
+- **The window scales the image by a factor that is not an integer** if you
+  resize it: pixels then come out uneven. The internal buffer itself is fixed.
+  Integer scaling is a display setting, and it will arrive with the settings
+  screens.
 
 ## [0.1.0] — 2026-08-31 — La simulation nue
 

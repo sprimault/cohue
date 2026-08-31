@@ -3,7 +3,8 @@
 
 // Les cas du bassin : la référence qui survit à un échange, celle qui meurt avec
 // son entité, la place recyclée qui ne ressuscite personne, la référence zéro
-// qui ne désigne rien, le plein qui refuse sans écraser, et le budget.
+// qui ne désigne rien, le plein qui refuse sans écraser, l'identité qui ne suit
+// pas la place, et le budget.
 
 package game
 
@@ -160,6 +161,39 @@ func TestParcoursSansTrou(t *testing.T) {
 		if !p.Alive(refs[i]) {
 			t.Errorf("la référence du profil %d est morte", i)
 		}
+	}
+}
+
+// TestLIdentiteNeSuitPasLaPlace garde ce que `IDAt` apporte, et qui n'est
+// justement pas la place.
+//
+// Trois entités, celle du milieu retirée : la dernière remonte dans le trou par
+// échange, donc sa place change alors que rien ne lui est arrivé. Son identifiant
+// ne bouge pas, et c'est toute la raison d'être de la méthode — un ordre
+// d'affichage qui s'y adosse ne change pas parce qu'une autre est morte.
+//
+// La mutation qu'il attrape est la seule qu'on écrirait : rendre la place, qui
+// est juste tant qu'aucune suppression n'a eu lieu.
+func TestLIdentiteNeSuitPasLaPlace(t *testing.T) {
+	p := NewPool[Enemy](3)
+	for i := range 3 {
+		p.Spawn(Enemy{Profile: i})
+	}
+
+	// L'identité de la dernière, relevée avant qu'elle ne change de place.
+	avant := p.IDAt(2)
+
+	p.RemoveAt(1)
+
+	if p.Len() != 2 {
+		t.Fatalf("%d vivantes, attendu 2", p.Len())
+	}
+	if p.At(1).Profile != 2 {
+		t.Fatalf("la place 1 porte le profil %d, attendu 2 — l'échange n'a pas eu lieu",
+			p.At(1).Profile)
+	}
+	if apres := p.IDAt(1); apres != avant {
+		t.Errorf("identité %d après l'échange, %d avant", apres, avant)
 	}
 }
 

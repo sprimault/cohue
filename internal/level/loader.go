@@ -95,7 +95,7 @@ func (l *Loader) Load(dossier string) (*game.CostGrid, error) {
 		return nil, err
 	}
 	if jeu.Format != FormatSet {
-		return nil, fmt.Errorf("%w : jeu de pièces en %d", manifest.ErrUnsupportedFormat, jeu.Format)
+		return nil, fmt.Errorf("%w : jeu de pieces en %d", manifest.ErrUnsupportedFormat, jeu.Format)
 	}
 
 	pieces := make([]*Room, 0, len(lieu.Placements))

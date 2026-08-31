@@ -33,6 +33,31 @@ de version sont ce que lit un auteur de niveau étranger avant de savoir s'il
 doit reprendre son travail. Ce préambule reste en français : il n'est jamais
 publié, et explique les conventions du dépôt à qui y contribue.
 
+## [Non publié]
+
+### Ajouté
+
+- **Le lieu s'affiche, et se parcourt au clavier** : les flèches, ou le carré de
+  touches à gauche — WASD sur un clavier américain, ZQSD sur un clavier français,
+  puisque c'est la place d'une touche qui compte et non la lettre inscrite
+  dessus. La caméra suit le joueur, se bloque aux bords du lieu plutôt que de
+  découvrir du vide, et centre une fois pour toutes un lieu qui tient dans
+  l'écran.
+- Le sol montre ce que la simulation lit d'une case — franchissable, coûteuse ou
+  mur — et non le décor, qui viendra avec les images.
+
+***
+
+### Added
+
+- **The level is drawn, and can be walked with the keyboard**: the arrow keys, or
+  the square of keys on the left — WASD on a US layout, ZQSD on a French one,
+  since what counts is where a key sits and not the letter printed on it. The
+  camera follows the player, stops at the level edges rather than revealing empty
+  space, and centres a level small enough to fit the screen once and for all.
+- The floor shows what the simulation reads from a tile — walkable, costly or
+  wall — and not the scenery, which comes with the images.
+
 ## [0.1.0] — 2026-08-31 — La simulation nue
 
 **Cette version ne se joue pas et ne montre rien.** Le binaire charge ses

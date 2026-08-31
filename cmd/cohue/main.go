@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Le point d'entrée : les chemins des ressources embarquées, leur chargement, le
-// montage du monde, et le marqueur de l'étape qui reste à écrire. C'est le seul
-// endroit du programme qui ait le droit de terminer le processus.
+// montage du monde et l'ouverture de la fenêtre. C'est le seul endroit du
+// programme qui ait le droit de terminer le processus.
 
 // Cohue est un action-roguelite urbain en vue isométrique, sous pression de
 // horde.
 //
-// Le jeu n'existe pas encore : la feuille de route en donne les étapes, et
-// `run` porte le marqueur de la première.
+// Le jeu se réduit pour l'instant à un lieu qu'on traverse : la feuille de route
+// en donne les étapes, et il n'y a personne d'autre à l'écran.
 package main
 
 import (
@@ -74,11 +74,11 @@ func main() {
 
 // run monte le jeu et le fait tourner jusqu'à ce que le joueur quitte.
 //
-// La fenêtre s'ouvre et ne montre qu'un fond uni : la simulation tourne en
-// mémoire depuis l'étape 1, mais rien ne la dessine encore. Les marqueurs de
-// l'étape 2 sont dans `render.Screen`, où ils attendent la projection.
+// Le lieu s'affiche et se parcourt au clavier, mais il n'y a personne d'autre à
+// l'écran : rien ne fait encore apparaître d'ennemi, ce qui est le sujet de
+// l'étape 4.
 func run() error {
-	_, couts, err := level.LoadDecor(cohue.Assets, manifesteDecor)
+	decor, couts, err := level.LoadDecor(cohue.Assets, manifesteDecor)
 	if err != nil {
 		return err
 	}
@@ -106,8 +106,17 @@ func run() error {
 	monde := game.NewWorld(profils, armes.Base, carte, capaciteHorde, capaciteTirs)
 	slog.Info("monde monté", "capacite", monde.Enemies().Cap())
 
+	// Au centre, faute de mieux : le format ne porte pas encore d'ancrage de
+	// départ, et l'inventer maintenant demanderait de trancher un champ sans
+	// usage réel. La position de départ dépendra du lieu, de la campagne et de
+	// la porte par laquelle on entre — trois choses que l'étape 8 apporte.
+	monde.Place(
+		game.FromInt(carte.Width()/2)+game.One/2,
+		game.FromInt(carte.Height()/2)+game.One/2,
+	)
+
 	ebiten.SetWindowTitle(titreFenetre)
 	ebiten.SetWindowSize(render.Largeur, render.Hauteur)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	return ebiten.RunGame(&render.Screen{})
+	return ebiten.RunGame(render.NewScreen(monde, carte, decor.Tile))
 }

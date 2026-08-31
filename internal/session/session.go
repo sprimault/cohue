@@ -26,6 +26,33 @@ import (
 	"github.com/sprimault/cohue/internal/level"
 )
 
+// CapaciteHorde plafonne le bassin des ennemis.
+//
+// Trois cents entités vivantes, ce que la conception donne comme total en
+// comptant ce qui approche hors champ. Au-delà, ce n'est plus une horde mais un
+// mur uni : les profils cessent d'être distinguables, et avec eux la lisibilité
+// de l'échec. Le spawner rencontrera ce plafond, et c'est mieux que de laisser
+// la horde croître jusqu'à ce que l'image s'effondre.
+const CapaciteHorde = 300
+
+// CapaciteTirs plafonne le bassin des projectiles.
+//
+// Large devant ce qu'une arme de base met en vol — quelques dizaines de ticks de
+// portée pour une salve toutes les vingt-quatre —, parce que les passifs
+// multiplient les projectiles bien plus vite que la cadence. Un bassin plein
+// perd le tir plutôt que de le différer : une file d'attente rendrait la cadence
+// élastique.
+const CapaciteTirs = 256
+
+// Les deux réglages du semis provisoire.
+const (
+	// pasDuSemis est l'écart entre deux créatures posées, en cases.
+	pasDuSemis = 3
+	// ecartAuJoueur tient la horde assez loin pour qu'on la voie converger, et
+	// assez près pour qu'elle tienne à l'écran.
+	ecartAuJoueur = 8
+)
+
 // Session est une partie montée, prête à tourner.
 //
 // La taille de tuile voyage avec le monde parce qu'elle vient du même
@@ -37,7 +64,7 @@ type Session struct {
 	Tile  [2]int
 }
 
-// Open monte une partie sur le lieu donné, avec les bassins demandés.
+// Open monte une partie sur le lieu donné.
 //
 // L'ordre n'est pas libre : le catalogue de coûts vient du manifeste de décor et
 // le chargeur de lieux en a besoin, si bien qu'un lieu ne peut pas se cuire avant
@@ -46,7 +73,12 @@ type Session struct {
 // Les manifestes sont lus au montage et non à la première vague : un fichier que
 // le binaire refuse doit le dire tout de suite, pas trois minutes après le début
 // d'une partie.
-func Open(fsys fs.FS, lieu string, ennemis, tirs int) (*Session, error) {
+//
+// Les capacités des bassins ne sont pas des paramètres : ce sont des plafonds de
+// la partie, pas des réglages de l'appelant. Les laisser choisir aurait fait
+// qu'une planche montre une horde plus petite que le jeu, donc qu'elle relise
+// autre chose que ce qui se joue.
+func Open(fsys fs.FS, lieu string) (*Session, error) {
 	decor, couts, err := level.LoadDecor(fsys, cohue.DecorManifest)
 	if err != nil {
 		return nil, err
@@ -69,8 +101,9 @@ func Open(fsys fs.FS, lieu string, ennemis, tirs int) (*Session, error) {
 	}
 	slog.Info("armes chargées", "base", armes.Base.Key)
 
-	monde := game.NewWorld(profils, armes.Base, grille, ennemis, tirs)
+	monde := game.NewWorld(profils, armes.Base, grille, CapaciteHorde, CapaciteTirs)
 	placer(monde, grille)
+	peupler(monde, grille, profils)
 
 	return &Session{World: monde, Grid: grille, Tile: decor.Tile}, nil
 }
@@ -89,4 +122,58 @@ func placer(monde *game.World, grille *game.CostGrid) {
 		game.FromInt(grille.Width()/2)+game.One/2,
 		game.FromInt(grille.Height()/2)+game.One/2,
 	)
+}
+
+// peupler sème la horde de départ, à intervalle régulier et à distance du joueur.
+//
+// **Provisoire, et ce n'est pas une approximation du spawner.** L'étape 4
+// achètera des créatures dans un budget de pression et les fera apparaître hors
+// du champ, sur un anneau autour du joueur. Ce qui est ici n'a qu'un objet : que
+// l'étape 1 se voie. Trois cents poursuivants qui convergent en contournant les
+// obstacles est ce qu'elle a livré, et un rendu qui ne le montrerait pas ne
+// livrerait pas ce que l'étape 2 promet.
+//
+// **Le semis est régulier et non tiré au sort.** La raison n'est pas le confort
+// de comparer deux planches — cela en découle, mais ne le motive pas : `World` ne
+// porte pas de graine, et lui en donner une depuis un montage ferait entrer une
+// décision de simulation par la porte de service. L'aléatoire d'une partie
+// appartient aux flux nommés, que le spawner branchera.
+//
+// L'écart au joueur se mesure en cases et non en tuiles du monde : ce qui est
+// semé l'est sur la grille, et un rayon exact n'apporterait rien à un motif dont
+// le pas vaut trois cases.
+func peupler(monde *game.World, grille *game.CostGrid, profils *game.Profiles) {
+	px, py := monde.Player()
+	pu, pv := px.Floor(), py.Floor()
+
+	profil := 0
+	for v := 0; v < grille.Height(); v += pasDuSemis {
+		for u := 0; u < grille.Width(); u += pasDuSemis {
+			if !grille.Passable(u, v) || ecart(u, v, pu, pv) < ecartAuJoueur {
+				continue
+			}
+			_, pose := monde.SpawnEnemy(
+				profil%len(profils.Enemies),
+				game.FromInt(u)+game.One/2,
+				game.FromInt(v)+game.One/2,
+			)
+			if !pose {
+				return
+			}
+			profil++
+		}
+	}
+}
+
+// ecart rend la distance entre deux cases, comptée en pas de grille.
+func ecart(u, v, pu, pv int) int {
+	return abs(u-pu) + abs(v-pv)
+}
+
+// abs rend la valeur absolue d'un entier.
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
 }

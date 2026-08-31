@@ -28,9 +28,16 @@ import (
 // est un défaut du niveau. Le jour où le lieu livré changera de dessin, c'est ce
 // test qui le dira plutôt qu'une partie où l'on ne peut pas bouger.
 func TestPartieLivreeSeMonte(t *testing.T) {
-	partie, err := Open(cohue.Assets, cohue.StartingLevel, 8, 4)
+	partie, err := Open(cohue.Assets, cohue.StartingLevel)
 	if err != nil {
 		t.Fatalf("montage de la partie livrée : %v", err)
+	}
+
+	// La horde est semée au montage, et le lieu livré est assez ouvert pour en
+	// porter. Zéro créature signifierait que le semis ne trouve aucune case, ce
+	// qu'un changement de pas ou d'écart au joueur produirait en silence.
+	if n := partie.World.Enemies().Len(); n == 0 {
+		t.Error("aucune créature semée sur le lieu livré")
 	}
 
 	if partie.Tile != [2]int{64, 32} {

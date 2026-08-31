@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Le tampon interne et ce qu'on y peint : le sol tel que la simulation le voit,
-// le joueur, et les touches qui le déplacent. C'est ici que le repère de l'écran
-// rencontre celui du monde.
+// ce qui s'y tient, et les touches qui déplacent le joueur. C'est ici que le
+// repère de l'écran rencontre celui du monde ; l'ordre de dessin est à côté.
 
 // Package render dessine ce que la simulation a calculé, et ne décide de rien.
 //
@@ -48,11 +48,17 @@ const (
 // d'autre. La palette fermée du jeu vaut pour les images du décor, qui sortent
 // des générateurs, et non pour ces aplats qui disparaîtront avec eux.
 var (
-	fond         = color.RGBA{R: 24, G: 24, B: 28, A: 255}
-	solBloque    = color.RGBA{R: 58, G: 58, B: 66, A: 255}
-	solLibre     = color.RGBA{R: 96, G: 98, B: 104, A: 255}
-	solLent      = color.RGBA{R: 74, G: 96, B: 120, A: 255}
+	fond      = color.RGBA{R: 24, G: 24, B: 28, A: 255}
+	solBloque = color.RGBA{R: 58, G: 58, B: 66, A: 255}
+	solLibre  = color.RGBA{R: 96, G: 98, B: 104, A: 255}
+	solLent   = color.RGBA{R: 74, G: 96, B: 120, A: 255}
+
+	// Le joueur en clair et les créatures en sombre : le chapitre de la
+	// lisibilité veut que le personnage reste distinguable à cent ennemis à
+	// l'écran, ce qui se joue d'abord sur la valeur et non sur la teinte.
 	teinteJoueur = color.RGBA{R: 236, G: 214, B: 120, A: 255}
+	teinteHorde  = color.RGBA{R: 150, G: 78, B: 74, A: 255}
+	teinteTir    = color.RGBA{R: 226, G: 232, B: 238, A: 255}
 )
 
 // Screen est le jeu tel qu'Ebitengine le voit.
@@ -61,10 +67,13 @@ type Screen struct {
 	carte *game.CostGrid
 	cam   *camera
 
-	// Les deux formes blanches que le dessin teinte au blit : la face d'une
-	// case, et la silhouette du joueur.
+	scene *scene
+
+	// Les trois formes blanches que le dessin teinte au blit : la face d'une
+	// case, la silhouette d'un personnage, et le point d'un projectile.
 	face     *ebiten.Image
 	figurine *ebiten.Image
+	eclat    *ebiten.Image
 	// demiTuile est l'abscisse du sommet dans l'image d'une face, ce que le
 	// manifeste appellera son ancrage quand les images viendront de lui.
 	demiTuile int
@@ -84,8 +93,10 @@ func NewScreen(monde *game.World, carte *game.CostGrid, tuile [2]int) *Screen {
 		monde:     monde,
 		carte:     carte,
 		cam:       nouvelleCamera(tuile, carte),
+		scene:     nouvelleScene(carte, monde.Enemies().Cap(), monde.Shots().Cap()),
 		face:      face(tuile),
 		figurine:  aplat(tuile[0]/4, tuile[0]*3/4),
+		eclat:     aplat(tuile[1]/8, tuile[1]/8),
 		demiTuile: tuile[0] / 2,
 	}
 	s.cam.suivre(monde.Player())
@@ -103,11 +114,11 @@ func (s *Screen) Update() error {
 	return nil
 }
 
-// Draw peint le tampon interne.
+// Draw peint le tampon interne : le sol, puis ce qui s'y tient, en profondeur.
 func (s *Screen) Draw(ecran *ebiten.Image) {
 	ecran.Fill(fond)
 	s.peindreSol(ecran)
-	s.peindreJoueur(ecran)
+	s.peindreEntites(ecran)
 }
 
 // Layout fixe la taille du tampon interne, quelle que soit celle de la fenêtre.
@@ -146,15 +157,41 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 	}
 }
 
-// peindreJoueur pose la silhouette, son pied sur le point où le monde la situe.
-func (s *Screen) peindreJoueur(ecran *ebiten.Image) {
-	x, y := s.cam.ecran(s.monde.Player())
-	taille := s.figurine.Bounds()
+// peindreEntites pose ce qui se tient sur le sol, du plus lointain au plus
+// proche.
+//
+// La position est relue dans le bassin plutôt que portée par la séquence : le
+// tri range des rangs, pas des coordonnées, et une copie faite au moment du tri
+// aurait une image de retard le jour où quelque chose bougera entre les deux.
+func (s *Screen) peindreEntites(ecran *ebiten.Image) {
+	for _, e := range s.scene.ranger(s.monde) {
+		switch e.sorte {
+		case sorteEnnemi:
+			c := s.monde.Enemies().At(e.place)
+			s.silhouette(ecran, s.figurine, c.X, c.Y, teinteHorde)
+		case sorteTir:
+			p := s.monde.Shots().At(e.place)
+			s.silhouette(ecran, s.eclat, p.X, p.Y, teinteTir)
+		case sorteJoueur:
+			x, y := s.monde.Player()
+			s.silhouette(ecran, s.figurine, x, y, teinteJoueur)
+		}
+	}
+}
+
+// silhouette pose une forme teintée, son pied sur le point où le monde la situe.
+//
+// L'appui est au milieu du bas, ce que sera l'ancrage d'un sprite de personnage
+// quand le manifeste en fournira : c'est le point qui touche le sol, et le seul
+// qui puisse coïncider avec une position du monde.
+func (s *Screen) silhouette(ecran, forme *ebiten.Image, x, y game.Fixed, teinte color.RGBA) {
+	ex, ey := s.cam.ecran(x, y)
+	taille := forme.Bounds()
 	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(x-taille.Dx()/2), float64(y-taille.Dy()))
+	s.op.GeoM.Translate(float64(ex-taille.Dx()/2), float64(ey-taille.Dy()))
 	s.op.ColorScale.Reset()
-	s.op.ColorScale.ScaleWithColor(teinteJoueur)
-	ecran.DrawImage(s.figurine, &s.op)
+	s.op.ColorScale.ScaleWithColor(teinte)
+	ecran.DrawImage(forme, &s.op)
 }
 
 // teinte dit de quelle couleur une case se peint, selon ce qu'elle coûte.

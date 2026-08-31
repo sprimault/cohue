@@ -26,24 +26,6 @@ import (
 // titreFenetre est ce que le gestionnaire de fenêtres affiche.
 const titreFenetre = "Cohue"
 
-// capaciteHorde plafonne le bassin des ennemis.
-//
-// Trois cents entités vivantes, ce que la conception donne comme total en
-// comptant ce qui approche hors champ. Au-delà, ce n'est plus une horde mais un
-// mur uni : les profils cessent d'être distinguables, et avec eux la lisibilité
-// de l'échec. Le spawner rencontrera ce plafond, et c'est mieux que de laisser
-// la horde croître jusqu'à ce que l'image s'effondre.
-const capaciteHorde = 300
-
-// capaciteTirs plafonne le bassin des projectiles.
-//
-// Large devant ce qu'une arme de base met en vol — quelques dizaines de ticks de
-// portée pour une salve toutes les vingt-quatre —, parce que les passifs
-// multiplient les projectiles bien plus vite que la cadence. Un bassin plein
-// perd le tir plutôt que de le différer : une file d'attente rendrait la cadence
-// élastique.
-const capaciteTirs = 256
-
 // version est renseignée à la liaison par -ldflags, et vaut « dev » hors
 // publication.
 var version = "dev"
@@ -61,11 +43,10 @@ func main() {
 
 // run monte le jeu et le fait tourner jusqu'à ce que le joueur quitte.
 //
-// Le lieu s'affiche et se parcourt au clavier, mais il n'y a personne d'autre à
-// l'écran : rien ne fait encore apparaître d'ennemi, ce qui est le sujet de
-// l'étape 4.
+// La horde est semée au montage et n'arrive jamais par vagues : le spawner et sa
+// courbe de pression sont le sujet de l'étape 4.
 func run() error {
-	partie, err := session.Open(cohue.Assets, cohue.StartingLevel, capaciteHorde, capaciteTirs)
+	partie, err := session.Open(cohue.Assets, cohue.StartingLevel)
 	if err != nil {
 		return err
 	}

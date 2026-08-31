@@ -7,7 +7,10 @@
 
 package game
 
-import "testing"
+import (
+	"runtime"
+	"testing"
+)
 
 // grilleDepuis bâtit une grille de coûts à partir d'un dessin.
 //
@@ -184,8 +187,12 @@ func TestLaDirectionNeCoupePasUnAngle(t *testing.T) {
 // TestLeChampNalloueRien garde le budget : le champ est reconstruit toutes les
 // cinq ou six images, donc dans la boucle de mise à jour.
 //
-// Les seaux sont réutilisés avec `[:0]` et leur capacité se stabilise au premier
-// parcours, que `AllocsPerRun` joue en préchauffage.
+// **Il reconstruit depuis une cible fixe, et c'est ce qui le limite.** Les seaux
+// sont réutilisés avec `[:0]`, si bien qu'une capacité acquise suffit tant que la
+// distribution des distances ne change pas — ce qu'une cible immobile garantit,
+// et ce qu'un joueur qui traverse le lieu défait. La capacité venant désormais du
+// montage, la distinction ne décide plus de rien ici ; elle décidait avant, et
+// c'est `TestLeChampNalloueRienCibleMobile` qui la garde.
 func TestLeChampNalloueRien(t *testing.T) {
 	g := grilleDepuis(
 		"................",
@@ -204,6 +211,52 @@ func TestLeChampNalloueRien(t *testing.T) {
 	})
 	if moyenne != 0 {
 		t.Errorf("%v allocation(s) par reconstruction, attendu aucune", moyenne)
+	}
+}
+
+// TestLeChampNalloueRienCibleMobile garde ce que la cible fixe ne peut pas
+// garder : la capacité des seaux ne se constitue pas au fil des reconstructions.
+//
+// Son jumeau `TestLeChampNalloueRien` mesure le régime établi, et il y est aveugle
+// par construction — `AllocsPerRun` préchauffe, donc il joue lui-même les tours
+// pendant lesquels une capacité manquante se constituerait, puis mesure ceux où
+// elle ne manque plus. Supprimer l'un des deux au motif que l'autre couvre les
+// allocations du champ laisserait la moitié de la propriété sans garde.
+//
+// D'où les deux écarts avec lui : le champ est **neuf**, et la cible **change à
+// chaque pas**. C'est cette seconde condition qui compte — les seaux étant
+// réutilisés avec `[:0]`, une capacité acquise suffit tant que la distribution
+// des distances ne change pas, et seule une cible qui se déplace la renouvelle.
+// C'est ce que fait un joueur qui traverse le lieu.
+func TestLeChampNalloueRienCibleMobile(t *testing.T) {
+	g := grilleDepuis(
+		"................",
+		".#####..####....",
+		".....#..#..#....",
+		"..~~.#..#..#....",
+		"..~~.#..####....",
+		".....#..........",
+		"..############..",
+		"................",
+	)
+	f := NewFlowField(g)
+
+	cibles := [][2]int{
+		{15, 7}, {0, 0}, {8, 5}, {1, 7}, {14, 0}, {6, 0}, {0, 4}, {12, 7},
+		{2, 0}, {15, 0}, {9, 7}, {0, 7}, {13, 5}, {4, 7}, {11, 0}, {7, 5},
+	}
+
+	var avant, apres runtime.MemStats
+	runtime.GC()
+	runtime.ReadMemStats(&avant)
+	for _, c := range cibles {
+		f.Rebuild(FromInt(c[0]), FromInt(c[1]))
+	}
+	runtime.ReadMemStats(&apres)
+
+	if n := apres.Mallocs - avant.Mallocs; n != 0 {
+		t.Errorf("%d allocation(s) sur %d reconstructions depuis un champ neuf",
+			n, len(cibles))
 	}
 }
 

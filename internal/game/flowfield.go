@@ -80,11 +80,27 @@ func NewFlowField(g *CostGrid) *FlowField {
 	// est en train de vider.
 	nbSeaux := uint32(maxCout) + 1
 
+	// Chaque seau reçoit ici la place du pire cas, et le pire cas est la grille
+	// entière : rien n'interdit à un parcours de mettre toutes les cellules dans
+	// le même seau. Une borne plus fine — la grille divisée par le nombre de
+	// seaux, un front estimé — serait une seconde description du parcours, et
+	// c'est `append` qui rattraperait l'erreur en allouant dans la boucle.
+	//
+	// Sans cette réservation, les seaux naissent à `nil` et croissent au fil des
+	// reconstructions. Ils se stabilisent vite, mais seulement pour la
+	// distribution de distances qu'ils ont vue : le joueur qui traverse le lieu
+	// en présente une nouvelle, et l'allocation revient là où l'invariant
+	// l'interdit.
+	seaux := make([][]int, nbSeaux)
+	for i := range seaux {
+		seaux[i] = make([]int, 0, cellules)
+	}
+
 	return &FlowField{
 		grille:  g,
 		dist:    make([]uint32, cellules),
 		dir:     make([]Vec, cellules),
-		seaux:   make([][]int, nbSeaux),
+		seaux:   seaux,
 		nbSeaux: nbSeaux,
 	}
 }

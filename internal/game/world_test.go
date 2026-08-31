@@ -3,7 +3,8 @@
 
 // Les deux tests qui livrent l'étape 1 — trois cents poursuivants qui convergent
 // en contournant des obstacles, mille ticks sans une allocation — et les cas du
-// déplacement : le mur qu'on ne traverse pas, le coût qui divise la vitesse.
+// déplacement : le mur qu'on ne traverse pas, l'angle qu'un pas diagonal ne coupe
+// pas, le coût qui divise la vitesse.
 
 package game
 
@@ -207,6 +208,81 @@ func TestRienNeTraverseUnMur(t *testing.T) {
 		if !w.passable(e.X, e.Y) {
 			t.Fatalf("la créature est entrée dans un mur, en (%0.2f, %0.2f)", e.X.Float(), e.Y.Float())
 		}
+	}
+}
+
+// TestLeGlissementNeCoupeAucunAngle éprouve ce qu'un pas diagonal franchirait
+// sans qu'aucune des deux cases qu'il longe ne l'arrête.
+//
+// Il garde la même règle que `TestLaDirectionNeCoupePasUnAngle`, à l'autre bout
+// du tick. Celui-là garde ce que le champ **propose** — l'orientation d'une
+// cellule ne désigne jamais une diagonale fermée par deux murs — et ne dit rien
+// de ce qu'une entité fait de cette proposition ; celui-ci garde ce que le
+// déplacement **applique**, y compris pour qui n'obéit pas au champ, à commencer
+// par le joueur. Supprimer l'un laisse l'autre moitié sans protection.
+//
+// Les deux cas ne se gardent pas contre la même faute, et c'est pourquoi il en
+// faut deux :
+//
+//   - **l'angle** éprouve la version qui ne testerait que la case d'arrivée.
+//     Elle est libre, donc le pas passerait, en traversant l'arête où deux murs
+//     se touchent — le défaut se voit tout de suite à l'écran, et se relie au
+//     déplacement bien plus tard ;
+//   - **le pilier** éprouve l'ordre des deux tests. Le second porte sur `nx`
+//     déjà corrigé, jamais sur `x` : sur `x`, une entité qui longe un obstacle
+//     par le côté libre finirait dans l'obstacle même.
+func TestLeGlissementNeCoupeAucunAngle(t *testing.T) {
+	profils, err := LoadProfiles(cohue.Assets, "assets/personnages/manifeste.json")
+	if err != nil {
+		t.Fatalf("profils livrés : %v", err)
+	}
+
+	cas := []struct {
+		nom      string
+		grille   []string
+		depart   [2]int
+		interdit [2]int
+	}{
+		{
+			nom: "l'angle de deux murs",
+			grille: []string{
+				"..#.",
+				".#..",
+				"....",
+				"....",
+			},
+			depart:   [2]int{1, 0},
+			interdit: [2]int{2, 1},
+		},
+		{
+			nom: "le coin d'un pilier",
+			grille: []string{
+				"....",
+				"....",
+				"..#.",
+				"....",
+			},
+			depart:   [2]int{1, 1},
+			interdit: [2]int{2, 2},
+		},
+	}
+
+	for _, c := range cas {
+		t.Run(c.nom, func(t *testing.T) {
+			// Arme inerte et bassin d'une place : ce test isole le déplacement.
+			w := NewWorld(profils, Weapon{}, grilleDepuis(c.grille...), 1, 1)
+			w.Place(FromInt(c.depart[0])+One/2, FromInt(c.depart[1])+One/2)
+
+			// Vers le sud-est du monde, c'est-à-dire vers la case en diagonale.
+			for range 2 * TPS {
+				w.Step(Vec{X: One, Y: One})
+				x, y := w.Player()
+				if u, v := x.Floor(), y.Floor(); u == c.interdit[0] && v == c.interdit[1] {
+					t.Fatalf("le joueur a franchi l'angle : (%d, %d) au tick %d",
+						u, v, w.Tick())
+				}
+			}
+		})
 	}
 }
 

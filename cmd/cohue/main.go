@@ -29,6 +29,15 @@ const (
 	lieuDepart           = "assets/lieux/place"
 )
 
+// capaciteHorde plafonne le bassin des ennemis.
+//
+// Trois cents entités vivantes, ce que la conception donne comme total en
+// comptant ce qui approche hors champ. Au-delà, ce n'est plus une horde mais un
+// mur uni : les profils cessent d'être distinguables, et avec eux la lisibilité
+// de l'échec. Le spawner rencontrera ce plafond, et c'est mieux que de laisser
+// la horde croître jusqu'à ce que l'image s'effondre.
+const capaciteHorde = 300
+
 // version est renseignée à la liaison par -ldflags, et vaut « dev » hors
 // publication.
 var version = "dev"
@@ -46,10 +55,10 @@ func main() {
 
 // run monte le jeu et le fait tourner jusqu'à ce que le joueur quitte.
 //
-// Elle rendra la struct de dépendances construite ici — bassins, champ de flux,
-// rendu — quand il y aura quelque chose à monter. Le chargement, lui, se fait
-// déjà : c'est ce qui met les ressources dans le binaire, un `go:embed` que rien
-// n'importe restant un fichier sans effet.
+// Le montage se fait, la boucle tourne — mais rien ne l'appelle encore, faute de
+// fenêtre et d'entrées : l'étape 1 est sans rendu par construction, et c'est la
+// suivante qui donnera quelque chose à voir. Le marqueur ci-dessous désigne donc
+// l'étape 2, et il disparaîtra avec elle.
 func run() error {
 	_, couts, err := level.LoadDecor(cohue.Assets, manifesteDecor)
 	if err != nil {
@@ -70,5 +79,8 @@ func run() error {
 	}
 	slog.Info("profils chargés", "enemies", len(profils.Enemies))
 
-	return errors.New("à implémenter : étape 1")
+	monde := game.NewWorld(profils, carte, capaciteHorde)
+	slog.Info("monde monté", "capacite", monde.Enemies().Cap())
+
+	return errors.New("à implémenter : étape 2")
 }

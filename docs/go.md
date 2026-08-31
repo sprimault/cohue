@@ -293,7 +293,11 @@ Trois règles qui ne se négocient pas — elles sont dans les invariants :
   dans la boucle de mise à jour, pas de trou.
 - **Aucun pointeur ne sort du bassin.** Après un échange, un `*Enemy` conservé
   ailleurs désigne une autre entité. Une référence qui vit plusieurs images est
-  un couple index + génération.
+  un couple identifiant + génération, que le bassin résout en place courante.
+  **L'identifiant n'est pas cette place** : l'échange ramène la dernière entité
+  dans le trou, si bien qu'une référence indexée par la place se briserait parce
+  qu'une *autre* entité est morte. Le bassin tient donc la redirection dans les
+  deux sens, sur des tableaux qui ne se compactent pas.
 - Ce qui est partagé par un type d'ennemi — vitesse, PV max, poids de
   séparation — vit dans un `[]EnemyProfile`, et l'entité n'en garde que l'index.
 

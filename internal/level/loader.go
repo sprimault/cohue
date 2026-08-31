@@ -19,8 +19,6 @@ var (
 	ErrUnknownRoom = errors.New("piece inconnue du jeu")
 	// ErrEmptyLevel signale un lieu sans aucune pièce posée.
 	ErrEmptyLevel = errors.New("lieu sans piece")
-	// ErrUnsupportedFormat signale une version de format que ce binaire ne lit pas.
-	ErrUnsupportedFormat = errors.New("version de format non prise en charge")
 )
 
 // Formats lus par ce binaire. Chacun a sa vie : un lieu circule entre joueurs,
@@ -81,7 +79,7 @@ func (l *Loader) Load(dossier string) (*game.CostGrid, error) {
 	}
 	if lieu.Format != FormatLevel {
 		return nil, fmt.Errorf("%s: %w : %d, ce binaire lit la %d",
-			chemin, ErrUnsupportedFormat, lieu.Format, FormatLevel)
+			chemin, manifest.ErrUnsupportedFormat, lieu.Format, FormatLevel)
 	}
 	if len(lieu.Placements) == 0 {
 		return nil, fmt.Errorf("%s: %w", chemin, ErrEmptyLevel)
@@ -92,7 +90,7 @@ func (l *Loader) Load(dossier string) (*game.CostGrid, error) {
 		return nil, err
 	}
 	if jeu.Format != FormatSet {
-		return nil, fmt.Errorf("%w : jeu de pièces en %d", ErrUnsupportedFormat, jeu.Format)
+		return nil, fmt.Errorf("%w : jeu de pièces en %d", manifest.ErrUnsupportedFormat, jeu.Format)
 	}
 
 	pieces := make([]*Room, 0, len(lieu.Placements))

@@ -193,7 +193,7 @@ func TestFormatNonPrisEnCharge(t *testing.T) {
 		}`)},
 	}
 	_, err := NewLoader(fsys, couts).Load("x")
-	if !errors.Is(err, ErrUnsupportedFormat) {
+	if !errors.Is(err, manifest.ErrUnsupportedFormat) {
 		t.Errorf("format 99 accepté, ou refusé pour une autre raison : %v", err)
 	}
 }

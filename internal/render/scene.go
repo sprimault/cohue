@@ -12,11 +12,14 @@ import "github.com/sprimault/cohue/internal/game"
 // sorte dit dans quel bassin une place se résout.
 //
 // Le rendu mêle des entités venues de bassins différents dans une seule
-// séquence, et une place ne veut rien dire sans savoir d'où elle vient. L'ordre
-// des valeurs n'a pas d'importance : `avant` traite le joueur par sa sorte et
-// non par son rang.
+// séquence, et une place ne veut rien dire sans savoir d'où elle vient.
 type sorte uint8
 
+// Les bassins d'où une place se résout.
+//
+// L'ordre des valeurs ne décide de rien : `avant` traite le joueur par sa sorte
+// et non par son rang, et n'en compare deux que pour départager ce que deux
+// bassins ont numéroté chacun de son côté.
 const (
 	sorteEnnemi sorte = iota
 	sorteTir
@@ -197,13 +200,19 @@ func insertion(s []entite) {
 //
 // La clé est **totale et stable**, ce que la conception exige et ce que ses
 // derniers critères achètent. La profondeur range ; l'abscisse départage deux
-// entités d'une même bande ; l'identifiant tranche ce qui reste. Sans ce dernier,
-// l'ordre retomberait sur celui du bassin, que l'échange à la suppression change
-// dès qu'une entité meurt ailleurs — deux sprites superposés se relaieraient au
-// premier plan d'une image à l'autre, et le scintillement se voit tout de suite.
+// entités d'une même bande ; la sorte sépare ce que deux bassins numérotent
+// chacun de son côté ; l'identifiant tranche à l'intérieur d'un bassin. Sans ces
+// deux derniers, l'ordre retomberait sur celui des bassins, que l'échange à la
+// suppression change dès qu'une entité meurt ailleurs — deux sprites superposés
+// se relaieraient au premier plan d'une image à l'autre, et le scintillement se
+// voit tout de suite.
 //
-// **Trois de ces critères ne sont pas encore éprouvés, et il faut le savoir.**
-// La profondeur exacte, l'abscisse et l'identifiant ne s'atteignent que si deux
+// La sorte n'est donc pas décorative : `Pool.IDAt` numérote par bassin, si bien
+// qu'un ennemi et un projectile peuvent porter le même identifiant sans avoir
+// rien de commun.
+//
+// **Quatre de ces critères ne sont pas encore éprouvés, et il faut le savoir.**
+// La profondeur exacte, l'abscisse, la sorte et l'identifiant ne s'atteignent que si deux
 // entités ont exactement la même profondeur en virgule fixe, ce que rien ne
 // produit aujourd'hui : un seau fait une tuile, soit seize pixels d'ordonnée,
 // alors que deux entités d'un même seau sont le plus souvent très écartées en

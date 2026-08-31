@@ -98,6 +98,7 @@ var vues = []vue{
 // Ce qu'elle en perd est nul : monter un écran cadre déjà sur le joueur, donc un
 // écran monté après la scène est cadré juste. Ce qui doit avancer d'un pas passe
 // par `World.Step`, où la direction est écrite et non lue.
+//
 // **Chaque vue monte sa propre partie**, et n'hérite donc pas de ce que les
 // précédentes ont joué. Une vue qui avance de quatre secondes laisserait sinon
 // une horde déplacée aux suivantes, et l'ordre de la table déciderait de ce

@@ -105,6 +105,12 @@ jobs:
       - name: Tests
         run: make test
 
+      # Les notices accompagnent chaque archive publiée : une manquante est un
+      # manquement légal. Le contrôle croise les cibles publiées, donc il a
+      # besoin de la chaîne Go — d'où sa place ici plutôt qu'avec les en-têtes.
+      - name: Notices de licence
+        run: make notices
+
       # Le détecteur de course exige cgo, donc un compilateur C. Il est présent
       # sur les runners Ubuntu, ce qui n'est pas le cas partout.
       - name: Détecteur de course

@@ -77,11 +77,12 @@ vulncheck:
 sec:
 	gosec -exclude-dir=.tmp ./...
 
-# Les licences des dépendances liées au binaire. À rebrancher sur un test de
-# fraîcheur quand internal/quality existera — en attendant, le fichier se tient
-# à la main et CREDITS.md porte les ressources graphiques.
+# Les licences des dépendances liées au binaire. Le contrôle confronte le fichier
+# à ce que `go list -deps` rapporte pour les cibles publiées, dans les deux sens
+# et versions comprises : une notice manquante est un manquement légal, une
+# notice de trop désigne un composant que le binaire n'embarque pas.
 notices:
-	@echo "THIRD-PARTY-NOTICES se tient à la main tant que internal/quality n'existe pas"
+	$(PYTHON) outils/notices.py
 
 # Décor et personnages sortent des mêmes primitives isométriques et sont
 # versionnés : une forme se corrige dans le script, jamais dans le PNG. Les

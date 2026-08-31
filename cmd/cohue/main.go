@@ -13,14 +13,16 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 
+	"github.com/hajimehoshi/ebiten/v2"
+
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/game"
 	"github.com/sprimault/cohue/internal/level"
+	"github.com/sprimault/cohue/internal/render"
 )
 
 // Les trois chemins que le binaire connaît. Ils sont ici et nulle part
@@ -32,6 +34,9 @@ const (
 	manifestePersonnages = "assets/personnages/manifeste.json"
 	manifesteArmes       = "assets/armes/manifeste.json"
 	lieuDepart           = "assets/lieux/place"
+
+	// titreFenetre est ce que le gestionnaire de fenêtres affiche.
+	titreFenetre = "Cohue"
 )
 
 // capaciteHorde plafonne le bassin des ennemis.
@@ -69,10 +74,9 @@ func main() {
 
 // run monte le jeu et le fait tourner jusqu'à ce que le joueur quitte.
 //
-// Le montage se fait, la boucle tourne — mais rien ne l'appelle encore, faute de
-// fenêtre et d'entrées : l'étape 1 est sans rendu par construction, et c'est la
-// suivante qui donnera quelque chose à voir. Le marqueur ci-dessous désigne donc
-// l'étape 2, et il disparaîtra avec elle.
+// La fenêtre s'ouvre et ne montre qu'un fond uni : la simulation tourne en
+// mémoire depuis l'étape 1, mais rien ne la dessine encore. Les marqueurs de
+// l'étape 2 sont dans `render.Screen`, où ils attendent la projection.
 func run() error {
 	_, couts, err := level.LoadDecor(cohue.Assets, manifesteDecor)
 	if err != nil {
@@ -102,5 +106,8 @@ func run() error {
 	monde := game.NewWorld(profils, armes.Base, carte, capaciteHorde, capaciteTirs)
 	slog.Info("monde monté", "capacite", monde.Enemies().Cap())
 
-	return errors.New("à implémenter : étape 2")
+	ebiten.SetWindowTitle(titreFenetre)
+	ebiten.SetWindowSize(render.Largeur, render.Hauteur)
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	return ebiten.RunGame(&render.Screen{})
 }

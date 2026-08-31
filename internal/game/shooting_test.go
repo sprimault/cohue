@@ -40,6 +40,20 @@ func champDeTir(t *testing.T) (*World, *Profiles) {
 	return w, profils
 }
 
+// champSansTir monte la même salle, mais avec une arme inerte : les tests qui
+// éprouvent la mort ne doivent pas voir le joueur abattre leurs cobayes.
+func champSansTir(t *testing.T) (*World, *Profiles) {
+	t.Helper()
+	profils, err := LoadProfiles(cohue.Assets, manifestePersonnages)
+	if err != nil {
+		t.Fatalf("profils livrés : %v", err)
+	}
+	g := NewCostGrid(32, 32)
+	w := NewWorld(profils, Weapon{}, g, 16, 64)
+	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
+	return w, profils
+}
+
 // TestSansCibleLArmeNeConsommeRienEprouve le cas limite que la conception nomme.
 //
 // Si la cadence se consommait à vide, le joueur qui sort d'un couloir désert
@@ -183,38 +197,84 @@ func TestLeTirTueEtLaCreatureQuitteLeBassin(t *testing.T) {
 	}
 }
 
-// TestLaSuppressionEstImmediate dit lequel des deux chemins le code emprunte.
+// TestUnMortCesseDEtreUneCibleSansQuitterLeBassin garde la règle que la
+// conception fixe : l'entité morte reste en place jusqu'à la fin du tick, pour
+// que les index tiennent, mais un projectile traité plus tard l'ignore.
 //
-// Le résultat visible serait le même avec une suppression différée à la fin du
-// tick, mais pas le chemin : là, une garde sur la résistance empêcherait un
-// second projectile de toucher un mort resté dans le bassin. Ici la créature en
-// sort à l'instant où sa résistance tombe, si bien que le ciblage du même tick
-// ne peut pas la voir — et ce test tomberait si quelqu'un différait la
-// suppression en croyant coller à l'ordre de mise à jour.
-func TestLaSuppressionEstImmediate(t *testing.T) {
-	w, profils := champDeTir(t)
+// Le test force une résistance à zéro, ce que le système ne produit qu'au milieu
+// d'un tick — c'est le seul moyen d'observer de l'extérieur un état qui, en
+// marche normale, ne survit pas à la passe de nettoyage.
+//
+// Le test précédent vérifiait qu'aucun mort ne reste après un `Step` : c'est vrai
+// des deux implémentations, donc il ne gardait rien. Celui-ci tombe si la garde
+// disparaît.
+func TestUnMortCesseDEtreUneCibleSansQuitterLeBassin(t *testing.T) {
+	w, profils := champSansTir(t)
 	px, py := w.Player()
-	// Un Secouriste, trois touches, posé au contact du joueur pour que le
-	// projectile l'atteigne dès le tick de son tir.
-	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "soigneur"), px+One/4, py); !ok {
+
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), px+FromInt(2), py); !ok {
 		t.Fatal("créature refusée")
 	}
+	w.Enemies().At(0).Hits = 0
 
-	vivantes := w.Enemies().Len()
-	for range 10 * TPS {
-		w.Step(Vec{})
-		// À chaque tick, le bassin ne contient que des créatures vivantes : une
-		// résistance nulle ou négative signifierait une mort en attente.
-		for i := range w.Enemies().Active() {
-			if h := w.Enemies().At(i).Hits; h <= 0 {
-				t.Fatalf("une créature à %d touche(s) est encore dans le bassin", h)
-			}
-		}
-		if w.Enemies().Len() < vivantes {
-			return
+	// Le projectile est posé un pas en arrière de la créature et avance d'un pas :
+	// il arrive donc sur elle au moment où `toucher` s'exécute. La poser à un
+	// rayon d'elle ne suffirait pas — la créature se déplace plus tôt dans le
+	// tick, et le contact se manquerait pour une raison géométrique, sans rapport
+	// avec ce que le test annonce garder.
+	e := w.Enemies().At(0)
+	if _, ok := w.Shots().Spawn(Projectile{
+		X: e.X - One/8, Y: e.Y,
+		Step:      Vec{One / 8, 0},
+		Remaining: FromInt(4),
+		Hits:      1,
+	}); !ok {
+		t.Fatal("projectile refusé")
+	}
+
+	w.Step(Vec{})
+
+	if n := w.Shots().Len(); n != 1 {
+		t.Errorf("%d projectile(s) en vol, attendu 1 : le tir a été absorbé par une "+
+			"créature qui n'était plus une cible", n)
+	}
+	if n := w.Enemies().Len(); n != 0 {
+		t.Errorf("%d créature(s) restante(s) : le nettoyage de fin de tick n'a pas eu lieu", n)
+	}
+}
+
+// TestLeNettoyageNeLaisseAucunMort vérifie que la passe de fin de tick réexamine
+// la place qu'elle libère.
+//
+// C'est le seul endroit du paquet où la place libérée doit être réexaminée : une
+// passe de mise à jour ferait avancer deux fois l'entité remontée, alors que
+// celle-ci ne fait que filtrer. La sauter laisserait un mort jusqu'au tick
+// suivant, et deux morts adjacents suffisent à le montrer.
+func TestLeNettoyageNeLaisseAucunMort(t *testing.T) {
+	w, profils := champSansTir(t)
+	px, py := w.Player()
+	marcheur := indexDuProfil(t, profils, "marcheur")
+
+	for i := range 3 {
+		if _, ok := w.SpawnEnemy(marcheur, px+FromInt(2+i), py); !ok {
+			t.Fatal("créature refusée")
 		}
 	}
-	t.Fatal("la créature n'est jamais morte")
+	// Les deux dernières places : la première retirée fait remonter la seconde
+	// à l'endroit qu'on vient de vider.
+	w.Enemies().At(1).Hits = 0
+	w.Enemies().At(2).Hits = 0
+
+	w.Step(Vec{})
+
+	if n := w.Enemies().Len(); n != 1 {
+		t.Errorf("%d créature(s) vivante(s), attendu 1", n)
+	}
+	for i := range w.Enemies().Active() {
+		if h := w.Enemies().At(i).Hits; h <= 0 {
+			t.Errorf("une créature à %d touche(s) a survécu au nettoyage", h)
+		}
+	}
 }
 
 // TestLeProjectileMeurtAuBoutDeSaPortee vérifie la seconde cause de suppression.

@@ -343,7 +343,7 @@ phrase devienne fausse. Si la réponse n'est pas dans la phrase, elle y manque.
 `log/slog` uniquement, structuré. Clés en anglais, message en français :
 
 ```go
-slog.Info("niveau charge", "name", nom, "pieces", nb, "graine", graine)
+slog.Info("niveau charge", "name", nom, "rooms", nb, "seed", graine)
 ```
 
 Jamais de `fmt.Println` de débogage laissé derrière soi. Et rien dans la boucle

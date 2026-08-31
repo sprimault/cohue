@@ -87,7 +87,7 @@ func Open(fsys fs.FS, lieu string) (*Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	slog.Info("lieu chargé", "name", lieu, "largeur", grille.Width(), "hauteur", grille.Height())
+	slog.Info("lieu chargé", "name", lieu, "width", grille.Width(), "height", grille.Height())
 
 	profils, err := game.LoadProfiles(fsys, cohue.CharacterManifest)
 	if err != nil {

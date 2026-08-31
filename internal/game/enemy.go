@@ -17,4 +17,13 @@ type Enemy struct {
 	Profile int
 	// X et Y sont sa position dans le monde, en tuiles.
 	X, Y Fixed
+	// Hits est ce qu'il lui reste à encaisser, dans l'unité où s'exprime la
+	// résistance : des touches de l'arme de base à son premier niveau.
+	//
+	// **La mort est cet état, pas un événement.** Une résistance tombée à zéro
+	// *est* la mort : pas de drapeau à côté, rien à synchroniser, et savoir si
+	// une créature est une cible valide reste une lecture. Ce qui se déclenche
+	// une fois est la transition — l'endroit qui applique les dégâts constate
+	// qu'elle était positive et ne l'est plus.
+	Hits int
 }

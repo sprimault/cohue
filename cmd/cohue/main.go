@@ -39,6 +39,15 @@ const (
 // la horde croître jusqu'à ce que l'image s'effondre.
 const capaciteHorde = 300
 
+// capaciteTirs plafonne le bassin des projectiles.
+//
+// Large devant ce qu'une arme de base met en vol — quelques dizaines de ticks de
+// portée pour une salve toutes les vingt-quatre —, parce que les passifs
+// multiplient les projectiles bien plus vite que la cadence. Un bassin plein
+// perd le tir plutôt que de le différer : une file d'attente rendrait la cadence
+// élastique.
+const capaciteTirs = 256
+
 // version est renseignée à la liaison par -ldflags, et vaut « dev » hors
 // publication.
 var version = "dev"
@@ -86,7 +95,7 @@ func run() error {
 	}
 	slog.Info("armes chargées", "base", armes.Base.Key)
 
-	monde := game.NewWorld(profils, carte, capaciteHorde)
+	monde := game.NewWorld(profils, armes.Base, carte, capaciteHorde, capaciteTirs)
 	slog.Info("monde monté", "capacite", monde.Enemies().Cap())
 
 	return errors.New("à implémenter : étape 2")

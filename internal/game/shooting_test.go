@@ -54,7 +54,7 @@ func champSansTir(t *testing.T) (*World, *Profiles) {
 	return w, profils
 }
 
-// TestSansCibleLArmeNeConsommeRienEprouve le cas limite que la conception nomme.
+// TestSansCibleLArmeNeConsommeRien éprouve le cas limite que la conception nomme.
 //
 // Si la cadence se consommait à vide, le joueur qui sort d'un couloir désert
 // tirerait sa première salve avec un retard fonction du temps passé sans rien à

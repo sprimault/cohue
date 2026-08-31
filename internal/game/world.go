@@ -9,9 +9,10 @@ package game
 
 // flowPeriod est le nombre de ticks entre deux calculs du champ de flux.
 //
-// Le champ ne dépend que du joueur et des obstacles, et le joueur ne traverse
-// pas une tuile en six centièmes de seconde : le recalculer à chaque image
-// paierait plein tarif pour une information qui n'a pas changé. C'est un
+// Le champ ne dépend que du joueur et des obstacles, et six ticks font un
+// dixième de seconde : à cinq tuiles par seconde, le joueur y parcourt une
+// demi-tuile. Le recalculer à chaque image paierait plein tarif pour une
+// information qui n'a pas bougé d'une case. C'est un
 // compromis de coût, pas un réglage de jeu — le baisser ne rend pas la horde
 // plus maligne, il la rend plus chère.
 const flowPeriod Tick = 6
@@ -48,9 +49,10 @@ type World struct {
 
 // NewWorld monte une partie sur une carte et une table de profils.
 //
-// La capacité du bassin est fixée ici et pour de bon : c'est le plafond que le
-// spawner rencontrera, et il vaut mieux qu'il le rencontre plutôt que de laisser
-// la horde croître jusqu'à ce que l'image s'effondre.
+// Les deux capacités sont celles des bassins — les ennemis, puis les
+// projectiles — et ne changent plus après le montage. Les plafonds eux-mêmes et
+// ce qui les justifie vivent dans `internal/session`, qui monte les parties : ce
+// sont des valeurs de jeu, pas un paramètre que chaque appelant choisirait.
 func NewWorld(profils *Profiles, arme Weapon, grille *CostGrid, capacite, tirs int) *World {
 	return &World{
 		profils: profils,
@@ -99,9 +101,10 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 //
 // L'ordre est celui de la conception, et il est écrit une fois : les entrées, le
 // champ de flux si c'est son tick, la densité, les intentions et leur
-// projection, puis les suppressions en dernier. Ce qui manque encore y prendra
-// sa place — les apparitions entre les entrées et le champ, les contacts avant
-// les suppressions.
+// projection, le tir puis le vol des projectiles avec ce qu'ils touchent, et les
+// suppressions en dernier. Ce qui manque encore y prendra sa place — les
+// apparitions entre les entrées et le champ, les dégâts de contact avant les
+// suppressions.
 //
 // Les intentions et la projection tiennent en une seule passe alors que la
 // conception les énumère séparément, et c'est équivalent — **à une condition qui

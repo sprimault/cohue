@@ -79,8 +79,8 @@ func TestVecteurNulPrendLaDirectionDeSonIndex(t *testing.T) {
 	}
 }
 
-// TestDirectionNegativeNestPasIndexee vérifie que le cas nul répond aussi pour
-// un index quelconque, sans sortir de la table.
+// TestDirectionResteDansLaTable vérifie que le cas nul répond aussi pour un
+// index quelconque, sans sortir de la table.
 func TestDirectionResteDansLaTable(t *testing.T) {
 	for _, index := range []int{0, 1, 7, 8, 300, 2999} {
 		if l := (Vec{}).Direction(index).Len(); l != One {

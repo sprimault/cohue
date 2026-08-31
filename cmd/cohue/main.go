@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Le point d'entrée : les chemins des ressources embarquées, leur chargement, le
+// montage du monde, et le marqueur de l'étape qui reste à écrire. C'est le seul
+// endroit du programme qui ait le droit de terminer le processus.
+
 // Cohue est un action-roguelite urbain en vue isométrique, sous pression de
 // horde.
 //

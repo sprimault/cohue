@@ -1,6 +1,9 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Room est le descripteur d'une pièce : sa taille, sa grille de caractères et
+// ses ancrages.
+
 package level
 
 import "github.com/sprimault/cohue/internal/manifest"

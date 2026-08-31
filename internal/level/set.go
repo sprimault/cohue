@@ -1,6 +1,9 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Set est un jeu de pièces : la palette qui donne un sens aux caractères d'une
+// grille de pièce.
+
 package level
 
 import "github.com/sprimault/cohue/internal/manifest"

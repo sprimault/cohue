@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// La grille de coûts : le prix de traversée d'une case, et la carte qui les
+// porte. Le chargeur de lieux l'écrit, le champ de flux la lit, et ni l'un ni
+// l'autre ne connaît le vocabulaire de son voisin.
+
 package game
 
 import "math"

@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Ce qui empêche un lieu de se charger, accumulé plutôt que rendu au premier
+// manquement : qui met au point un niveau veut la liste, pas un aller-retour par
+// défaut.
+
 package level
 
 import "fmt"

@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// La sentinelle d'une version de format que ce binaire ne lit pas — le seul
+// défaut de chargement qu'un joueur puisse rencontrer sans avoir rien fait de
+// mal.
+
 package manifest
 
 import "errors"

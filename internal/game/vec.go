@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Vec est un déplacement du monde en virgule fixe, avec ses opérations et les
+// huit orientations tabulées. La normalisation y traite le cas nul, qui n'a pas
+// de réponse mathématique et en exige une.
+
 package game
 
 import "math"

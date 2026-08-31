@@ -1,6 +1,9 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Level est le descripteur d'un lieu : son identifiant, le jeu de pièces dont il
+// tire ses tuiles, et les pièces qu'il pose avec leurs positions.
+
 // Package level lit les lieux et les cuit en une carte que la simulation
 // consomme.
 //

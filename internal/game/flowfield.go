@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Le champ de flux : un parcours à seaux depuis la case du joueur, puis une
+// distance et une direction par cellule. Il est calculé une fois pour toute la
+// horde — un ennemi n'y cherche rien, il lit la cellule sous ses pieds.
+
 package game
 
 import "math"

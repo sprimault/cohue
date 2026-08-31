@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// L'erreur qui porte tous les manquements d'un fichier, et non le premier. La
+// validation, elle, reste chez le consommateur : lui seul sait ce que son format
+// exige.
+
 package manifest
 
 import (

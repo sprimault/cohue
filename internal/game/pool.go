@@ -1,6 +1,11 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Le bassin d'entités de capacité fixe, et le Handle qui survit à ses échanges.
+// Le mécanisme est le même pour les six bassins qu'annoncent les invariants,
+// d'où le paramètre de type : six copies seraient six endroits où tenir une
+// règle qu'aucun test ne verrait manquer.
+
 package game
 
 // Handle est une référence à une entité qui survit à plusieurs images.

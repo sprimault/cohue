@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Les cas du tir : l'arme prête qui reste prête, le plus proche visé quel que
+// soit l'ordre du bassin, la créature qui en sort à l'instant de sa mort, et le
+// projectile qui disparaît au bout de sa portée.
+
 package game
 
 import (

@@ -1,6 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
+// Projectile est un tir en vol : sa position, son pas, ce qui lui reste de
+// portée et ce qu'il retire à ce qu'il touche. Second occupant d'un bassin, il
+// n'a demandé aucune contrainte que l'ennemi n'ait demandée.
+
 package game
 
 // Projectile est un tir en vol.

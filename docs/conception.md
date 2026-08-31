@@ -157,6 +157,8 @@ func (e *Enemy) desiredDirection(champ *FlowField, densite *DensityGrid) Vector 
 
 Le champ `Tangential` suffit à transformer un suiveur bête en flanqueur : il descend le gradient tout en dérivant sur le côté, ce qui referme progressivement le cercle autour du joueur.
 
+**La dérive se prend sur l'attirance seule, jamais sur la somme des forces.** Le pseudo-code ci-dessus le fait sans le dire, et c'est ce que la prochaine réécriture perdrait. Sur la somme, un flanqueur serré par ses voisines tournerait autour d'elles plutôt qu'autour du joueur : son comportement dépendrait de la densité locale, et il cesserait d'être un flanqueur au moment précis où il devrait l'être, c'est-à-dire en groupe.
+
 **Le vecteur nul a sa direction, et elle vient de l'entité.** La somme peut s'annuler — une créature pile sur le joueur, deux créatures exactement superposées dans le gradient de densité, ce qu'un anneau d'apparition finit toujours par produire. Normaliser n'a alors pas de réponse, et il en faut une : une direction fixe serait la pire, puisque deux entités superposées recevraient la même correction et le resteraient indéfiniment.
 
 La direction se dérive donc de **l'index de l'entité dans son bassin**. Deux entités vivantes ont toujours des index distincts, donc deux directions différentes, donc elles se séparent au tick suivant. C'est déterministe, identique sur toutes les machines, et cela ne consomme aucun tirage aléatoire.

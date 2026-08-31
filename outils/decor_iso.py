@@ -667,9 +667,11 @@ def main():
             "bloquant": nom not in FRANCHISSABLES,
             **({} if nom not in FRANCHISSABLES
                else {"cout_traversee": FRANCHISSABLES[nom]}),
-            # Au-delà de la limite, l'objet masque un personnage : le rendu doit
-            # le passer en semi-transparence quand le joueur est derrière.
-            "transparence_si_derriere": haut > PLAFOND_OBSTACLE_BAS,
+            # Au-delà de la limite, la forme masque un personnage de 64. Le
+            # champ dit ce fait et non le remède : le rendu redessine la
+            # silhouette de ce qui est caché plutôt que d'effacer le décor, et
+            # c'est sa décision, pas celle du manifeste.
+            "masquant": haut > PLAFOND_OBSTACLE_BAS,
         }
         alerte = "" if haut <= PLAFOND_OBSTACLE_BAS else "   masque le joueur"
         print(f"{THEME_DE[nom]:12} {nom:22} {img.width:3}x{img.height:<3} "

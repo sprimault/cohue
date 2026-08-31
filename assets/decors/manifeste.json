@@ -23,7 +23,7 @@
         0.7
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "ambulance": {
       "theme": "parking",
@@ -42,7 +42,7 @@
         0.91
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "banc": {
       "theme": "quartier",
@@ -61,7 +61,7 @@
         0.5
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "barriere": {
       "theme": "parking",
@@ -80,7 +80,7 @@
         0.12
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "borne": {
       "theme": "parking",
@@ -99,7 +99,7 @@
         0.25
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "bouche_egout": {
       "theme": "commun",
@@ -119,7 +119,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 1,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "boutique": {
       "theme": "quartier",
@@ -138,7 +138,7 @@
         1.4
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "bus": {
       "theme": "quartier",
@@ -157,7 +157,7 @@
         0.8
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "caddie": {
       "theme": "supermarche",
@@ -176,7 +176,7 @@
         0.5
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "camion": {
       "theme": "parking",
@@ -195,7 +195,7 @@
         0.91
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "camion_benne": {
       "theme": "parking",
@@ -214,7 +214,7 @@
         0.91
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "camionnette": {
       "theme": "parking",
@@ -233,7 +233,7 @@
         0.88
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "cloison": {
       "theme": "commun",
@@ -252,7 +252,7 @@
         0.18
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "comptoir": {
       "theme": "supermarche",
@@ -271,7 +271,7 @@
         1.0
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "comptoir_confiserie": {
       "theme": "cinema",
@@ -290,7 +290,7 @@
         1.0
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "conteneur": {
       "theme": "quartier",
@@ -309,7 +309,7 @@
         0.7
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "distributeur": {
       "theme": "station",
@@ -328,7 +328,7 @@
         0.469
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "ecran": {
       "theme": "cinema",
@@ -347,7 +347,7 @@
         0.15
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "feu_tricolore": {
       "theme": "quartier",
@@ -366,7 +366,7 @@
         0.125
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "flaque": {
       "theme": "commun",
@@ -386,7 +386,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 2,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "fleche_sol": {
       "theme": "commun",
@@ -406,7 +406,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 1,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "frigo": {
       "theme": "supermarche",
@@ -425,7 +425,7 @@
         1.0
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "gondole": {
       "theme": "supermarche",
@@ -444,7 +444,7 @@
         0.7
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "gondole_courte": {
       "theme": "supermarche",
@@ -463,7 +463,7 @@
         0.7
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "immeuble_haut": {
       "theme": "quartier",
@@ -482,7 +482,7 @@
         2.0
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "immeuble_petit": {
       "theme": "quartier",
@@ -501,7 +501,7 @@
         2.0
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "jardiniere": {
       "theme": "quartier",
@@ -520,7 +520,7 @@
         0.625
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "lampadaire": {
       "theme": "quartier",
@@ -539,7 +539,7 @@
         0.125
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "mur": {
       "theme": "commun",
@@ -558,7 +558,7 @@
         1.0
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "mur_angle": {
       "theme": "commun",
@@ -577,7 +577,7 @@
         1.0
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "mur_ouverture": {
       "theme": "commun",
@@ -596,7 +596,7 @@
         0.2
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "mur_te": {
       "theme": "commun",
@@ -615,7 +615,7 @@
         1.0
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "muret": {
       "theme": "commun",
@@ -634,7 +634,7 @@
         1.0
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "panneau": {
       "theme": "commun",
@@ -653,7 +653,7 @@
         0.125
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "panneau_horaires": {
       "theme": "station",
@@ -672,7 +672,7 @@
         0.125
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "pilier": {
       "theme": "commun",
@@ -691,7 +691,7 @@
         0.5
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "plot": {
       "theme": "parking",
@@ -710,7 +710,7 @@
         0.188
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "porte_fermee": {
       "theme": "commun",
@@ -729,7 +729,7 @@
         0.2
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "porte_ouverte": {
       "theme": "commun",
@@ -749,7 +749,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 1,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "porte_sortie": {
       "theme": "commun",
@@ -768,7 +768,7 @@
         0.2
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "portique_antivol": {
       "theme": "supermarche",
@@ -787,7 +787,7 @@
         1.0
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "poteau_cordon": {
       "theme": "cinema",
@@ -806,7 +806,7 @@
         0.219
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "poubelle": {
       "theme": "quartier",
@@ -825,7 +825,7 @@
         0.406
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "quai": {
       "theme": "station",
@@ -845,7 +845,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 1,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "rail": {
       "theme": "station",
@@ -865,7 +865,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 1,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "rangee_fauteuils": {
       "theme": "cinema",
@@ -884,7 +884,7 @@
         0.8
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "scooter": {
       "theme": "quartier",
@@ -903,7 +903,7 @@
         0.3
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "sol": {
       "theme": "commun",
@@ -923,7 +923,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 1,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "sol_carrele": {
       "theme": "commun",
@@ -943,7 +943,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 1,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "sol_fissure": {
       "theme": "commun",
@@ -963,7 +963,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 2,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "sol_parking": {
       "theme": "parking",
@@ -983,7 +983,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 1,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "sol_sale": {
       "theme": "commun",
@@ -1003,7 +1003,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 2,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "sol_use": {
       "theme": "commun",
@@ -1023,7 +1023,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 1,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "taxi": {
       "theme": "parking",
@@ -1042,7 +1042,7 @@
         0.78
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "tete_gondole": {
       "theme": "supermarche",
@@ -1061,7 +1061,7 @@
         1.0
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "tourniquet": {
       "theme": "station",
@@ -1080,7 +1080,7 @@
         0.531
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "trottoir": {
       "theme": "quartier",
@@ -1100,7 +1100,7 @@
       ],
       "bloquant": false,
       "cout_traversee": 1,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "voiture": {
       "theme": "parking",
@@ -1119,7 +1119,7 @@
         0.78
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "voiture_epave": {
       "theme": "parking",
@@ -1138,7 +1138,7 @@
         0.78
       ],
       "bloquant": true,
-      "transparence_si_derriere": false
+      "masquant": false
     },
     "wagon": {
       "theme": "station",
@@ -1157,7 +1157,7 @@
         0.94
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     },
     "wagon_tete": {
       "theme": "station",
@@ -1176,7 +1176,7 @@
         0.94
       ],
       "bloquant": true,
-      "transparence_si_derriere": true
+      "masquant": true
     }
   }
 }

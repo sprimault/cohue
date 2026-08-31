@@ -17,7 +17,7 @@
       ],
       "elevation": 16,
       "categorie": "obstacle_bas",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": true,
       "destruction": {
@@ -46,7 +46,7 @@
       ],
       "elevation": 9,
       "categorie": "sol",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -65,7 +65,7 @@
       ],
       "elevation": 6,
       "categorie": "obstacle_bas",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": true
     },
@@ -84,7 +84,7 @@
       ],
       "elevation": 3,
       "categorie": "sol",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": false,
       "experience": 1,
@@ -110,7 +110,7 @@
       ],
       "elevation": 40,
       "categorie": "haut",
-      "transparence_si_derriere": true,
+      "masquant": true,
       "famille": "monde",
       "bloquant": true,
       "destruction": {
@@ -136,7 +136,7 @@
       ],
       "elevation": 10,
       "categorie": "sol",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -155,7 +155,7 @@
       ],
       "elevation": 34,
       "categorie": "haut",
-      "transparence_si_derriere": true,
+      "masquant": true,
       "famille": "monde",
       "bloquant": true,
       "destruction": {
@@ -181,7 +181,7 @@
       ],
       "elevation": 12,
       "categorie": "sol",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -200,7 +200,7 @@
       ],
       "elevation": 22,
       "categorie": "obstacle_bas",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": true,
       "destruction": {
@@ -226,7 +226,7 @@
       ],
       "elevation": 8,
       "categorie": "sol",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -245,7 +245,7 @@
       ],
       "elevation": 46,
       "categorie": "haut",
-      "transparence_si_derriere": true,
+      "masquant": true,
       "famille": "monde",
       "bloquant": true,
       "destruction": {
@@ -271,7 +271,7 @@
       ],
       "elevation": 13,
       "categorie": "sol",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -290,7 +290,7 @@
       ],
       "elevation": 0,
       "categorie": "sol",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -309,7 +309,7 @@
       ],
       "elevation": 0,
       "categorie": "sol",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -328,7 +328,7 @@
       ],
       "elevation": 0,
       "categorie": "sol",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": false
     },
@@ -347,7 +347,7 @@
       ],
       "elevation": 0,
       "categorie": "sol",
-      "transparence_si_derriere": false,
+      "masquant": false,
       "famille": "monde",
       "bloquant": false,
       "soin": 30,

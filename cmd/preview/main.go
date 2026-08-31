@@ -38,8 +38,8 @@ import (
 
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/game"
-	"github.com/sprimault/cohue/internal/level"
 	"github.com/sprimault/cohue/internal/render"
+	"github.com/sprimault/cohue/internal/session"
 )
 
 // sortie est le dossier des planches.
@@ -156,35 +156,22 @@ func main() {
 	}
 }
 
-// run monte le jeu comme le fait le binaire, puis lance la planche.
+// run monte une partie par le même chemin que le binaire, puis lance la planche.
 func run() error {
 	if err := os.MkdirAll(sortie, 0o750); err != nil {
 		return err
 	}
 
-	decor, couts, err := level.LoadDecor(cohue.Assets, cohue.DecorManifest)
-	if err != nil {
-		return err
-	}
-	carte, err := level.NewLoader(cohue.Assets, couts).Load(cohue.StartingLevel)
-	if err != nil {
-		return err
-	}
-	profils, err := game.LoadProfiles(cohue.Assets, cohue.CharacterManifest)
-	if err != nil {
-		return err
-	}
-	armes, err := game.LoadWeapons(cohue.Assets, cohue.WeaponManifest)
+	partie, err := session.Open(cohue.Assets, cohue.StartingLevel, capacite, tirs)
 	if err != nil {
 		return err
 	}
 
-	monde := game.NewWorld(profils, armes.Base, carte, capacite, tirs)
 	ebiten.SetWindowTitle("Cohue — planche")
 	ebiten.SetWindowSize(render.Largeur, render.Hauteur)
 	return ebiten.RunGame(&planche{
-		monde:  monde,
-		ecran:  render.NewScreen(monde, carte, decor.Tile),
+		monde:  partie.World,
+		ecran:  render.NewScreen(partie.World, partie.Grid, partie.Tile),
 		tampon: ebiten.NewImage(render.Largeur, render.Hauteur),
 	})
 }

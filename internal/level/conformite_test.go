@@ -45,10 +45,14 @@ func TestManifesteLivreDonneLeCatalogue(t *testing.T) {
 
 // TestLieuLivre monte le lieu publié sur le catalogue publié, sans rien injecter.
 //
-// C'est le seul test qui exerce la chaîne entière — `go:embed`, le manifeste du
-// décor, la palette du jeu de pièces, la cuisson — et donc le seul qui tombe
-// quand deux maillons cessent d'être d'accord. Un renommage de forme dans le
-// générateur casse ici, pas au lancement du jeu.
+// Il exerce la chaîne du lieu — `go:embed`, le manifeste du décor, la palette du
+// jeu de pièces, la cuisson — et tombe quand deux de ces maillons cessent d'être
+// d'accord. Un renommage de forme dans le générateur casse ici, pas au lancement
+// du jeu.
+//
+// Il s'arrête à la grille, et `TestPartieLivreeSeMonte` reprend au-delà : celui-là
+// monte profils, armes et joueur, mais ne regarde aucune case. Le supprimer au
+// motif que l'autre monte davantage laisserait la cuisson sans épreuve.
 func TestLieuLivre(t *testing.T) {
 	_, couts, err := LoadDecor(cohue.Assets, "assets/decors/manifeste.json")
 	if err != nil {

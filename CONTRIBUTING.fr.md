@@ -96,6 +96,13 @@ la forme d'un fichier :
 make ressources-verif && make entetes
 ```
 
+Un troisième dès qu'une dépendance entre ou sort, parce que les notices
+accompagnent chaque archive publiée :
+
+```
+make notices
+```
+
 `govulncheck` interroge sa base d'avis **en direct** : un job vert le matin peut
 être rouge l'après-midi sur exactement le même code. Ne pas se reposer sur
 l'intégration continue seule, qui valide une fois la branche déjà poussée.

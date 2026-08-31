@@ -1,9 +1,9 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// Le point d'entrée : les chemins des ressources embarquées, leur chargement, le
-// montage du monde et l'ouverture de la fenêtre. C'est le seul endroit du
-// programme qui ait le droit de terminer le processus.
+// Le point d'entrée : le chargement des ressources, le montage du monde et
+// l'ouverture de la fenêtre. C'est le seul endroit du programme qui ait le droit
+// de terminer le processus.
 
 // Cohue est un action-roguelite urbain en vue isométrique, sous pression de
 // horde.
@@ -25,19 +25,13 @@ import (
 	"github.com/sprimault/cohue/internal/render"
 )
 
-// Les trois chemins que le binaire connaît. Ils sont ici et nulle part
-// ailleurs : le moteur ne reçoit qu'une grille de coûts et une table de
-// profils, et c'est ce qui lui permet d'ignorer que les ressources sont
-// embarquées plutôt que posées à côté.
-const (
-	manifesteDecor       = "assets/decors/manifeste.json"
-	manifestePersonnages = "assets/personnages/manifeste.json"
-	manifesteArmes       = "assets/armes/manifeste.json"
-	lieuDepart           = "assets/lieux/place"
-
-	// titreFenetre est ce que le gestionnaire de fenêtres affiche.
-	titreFenetre = "Cohue"
-)
+// titreFenetre est ce que le gestionnaire de fenêtres affiche.
+//
+// Les chemins des ressources, eux, vivent auprès de l'embed qui les contient :
+// le moteur ne reçoit qu'une grille de coûts et une table de profils, et c'est
+// ce qui lui permet d'ignorer que les ressources sont embarquées plutôt que
+// posées à côté.
+const titreFenetre = "Cohue"
 
 // capaciteHorde plafonne le bassin des ennemis.
 //
@@ -78,11 +72,11 @@ func main() {
 // l'écran : rien ne fait encore apparaître d'ennemi, ce qui est le sujet de
 // l'étape 4.
 func run() error {
-	decor, couts, err := level.LoadDecor(cohue.Assets, manifesteDecor)
+	decor, couts, err := level.LoadDecor(cohue.Assets, cohue.DecorManifest)
 	if err != nil {
 		return err
 	}
-	carte, err := level.NewLoader(cohue.Assets, couts).Load(lieuDepart)
+	carte, err := level.NewLoader(cohue.Assets, couts).Load(cohue.StartingLevel)
 	if err != nil {
 		return err
 	}
@@ -91,13 +85,13 @@ func run() error {
 	// Au lancement, et non à la première vague : un manifeste que le binaire
 	// refuse doit le dire tout de suite, pas trois minutes après le démarrage
 	// d'une partie.
-	profils, err := game.LoadProfiles(cohue.Assets, manifestePersonnages)
+	profils, err := game.LoadProfiles(cohue.Assets, cohue.CharacterManifest)
 	if err != nil {
 		return err
 	}
 	slog.Info("profils chargés", "enemies", len(profils.Enemies))
 
-	armes, err := game.LoadWeapons(cohue.Assets, manifesteArmes)
+	armes, err := game.LoadWeapons(cohue.Assets, cohue.WeaponManifest)
 	if err != nil {
 		return err
 	}

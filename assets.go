@@ -25,3 +25,16 @@ import "embed"
 //
 //go:embed assets
 var Assets embed.FS
+
+// Ce que le binaire charge au lancement, par leur chemin dans `Assets`.
+//
+// Ils vivent auprès de l'embed et non dans le programme qui les lit, parce
+// qu'ils en décrivent le contenu : un lieu renommé casse ici, où le renommage se
+// fait, plutôt que dans un `cmd/` qu'on ne pense pas à rouvrir. Deux programmes
+// les lisent, et deux copies d'un chemin ne restent d'accord que par vigilance.
+const (
+	DecorManifest     = "assets/decors/manifeste.json"
+	CharacterManifest = "assets/personnages/manifeste.json"
+	WeaponManifest    = "assets/armes/manifeste.json"
+	StartingLevel     = "assets/lieux/place"
+)

@@ -78,11 +78,19 @@ manuelle d'un PNG.
 
 ## La police et l'interface
 
-L'interface se partage en deux, et `outils/interface.py` porte les deux moitiés.
-Les jauges, cadres, pastilles et icônes de touche sont de la géométrie, comme le
-décor et les objets. La police, elle, est **tierce**, et c'est la première
-ressource du dépôt à l'être — dessiner quarante glyphes lisibles et accentués est
-un métier, et le temps qu'il coûterait ne va pas au jalon de l'étape 3.
+`outils/interface.py` ne produit qu'une image, la planche de glyphes. **Les
+jauges, cadres et cases n'en sont pas** : ce sont des rectangles unis dont la
+taille dépend de leur contenu — une jauge suit la vie, une carte son texte, une
+case son icône. Une image fixe devrait être étirée, ce qui casserait le pixel
+entier, et le découpage en neuf morceaux n'a d'intérêt que si le cadre porte un
+motif, biseau ou rivets, qu'aucune décision n'a demandé. Le rendu les dessine
+donc, à partir des **réglages** que le manifeste porte : épaisseur du bord,
+marge, hauteur de jauge, teintes. Aucune dimension d'élément n'y figure — elle
+serait une seconde description de ce que le contenu impose.
+
+La police, elle, est **tierce**, et c'est la première ressource du dépôt à
+l'être — dessiner quarante glyphes lisibles et accentués est un métier, et le
+temps qu'il coûterait ne va pas au jalon de l'étape 3.
 
 Trois exigences la contraignent :
 

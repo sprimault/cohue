@@ -150,6 +150,73 @@
         8,
         4
       ]
+    },
+    "reglages": {
+      "bord_px": 1,
+      "marge_px": 4,
+      "hauteur_jauge_px": 6,
+      "teintes": {
+        "cadre_fond": [
+          26,
+          28,
+          34,
+          205
+        ],
+        "cadre_bord": [
+          92,
+          96,
+          106,
+          255
+        ],
+        "bandeau_fond": [
+          16,
+          17,
+          21,
+          200
+        ],
+        "jauge_fond": [
+          40,
+          42,
+          48,
+          255
+        ],
+        "jauge_vie": [
+          176,
+          62,
+          58,
+          255
+        ],
+        "jauge_experience": [
+          86,
+          132,
+          186,
+          255
+        ],
+        "texte": [
+          232,
+          234,
+          238,
+          255
+        ],
+        "texte_attenue": [
+          150,
+          154,
+          162,
+          255
+        ],
+        "texte_valeur": [
+          236,
+          196,
+          96,
+          255
+        ],
+        "texte_contour": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
     }
   }
 }

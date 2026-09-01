@@ -7,10 +7,7 @@
 
 package game
 
-import (
-	"runtime"
-	"testing"
-)
+import "testing"
 
 // grilleDepuis bâtit une grille de coûts à partir d'un dessin.
 //
@@ -192,7 +189,7 @@ func TestLaDirectionNeCoupePasUnAngle(t *testing.T) {
 // distribution des distances ne change pas — ce qu'une cible immobile garantit,
 // et ce qu'un joueur qui traverse le lieu défait. La capacité venant désormais du
 // montage, la distinction ne décide plus de rien ici ; elle décidait avant, et
-// c'est `TestLeChampNalloueRienCibleMobile` qui la garde.
+// c'est `TestLesSeauxNeGrandissentPasAuFilDesReconstructions` qui la garde.
 func TestLeChampNalloueRien(t *testing.T) {
 	g := grilleDepuis(
 		"................",
@@ -214,8 +211,9 @@ func TestLeChampNalloueRien(t *testing.T) {
 	}
 }
 
-// TestLeChampNalloueRienCibleMobile garde ce que la cible fixe ne peut pas
-// garder : la capacité des seaux ne se constitue pas au fil des reconstructions.
+// TestLesSeauxNeGrandissentPasAuFilDesReconstructions garde ce que la cible fixe
+// ne peut pas garder : la capacité des seaux vient du montage, elle ne se
+// constitue pas reconstruction après reconstruction.
 //
 // Son jumeau `TestLeChampNalloueRien` mesure le régime établi, et il y est aveugle
 // par construction — `AllocsPerRun` préchauffe, donc il joue lui-même les tours
@@ -228,7 +226,21 @@ func TestLeChampNalloueRien(t *testing.T) {
 // réutilisés avec `[:0]`, une capacité acquise suffit tant que la distribution
 // des distances ne change pas, et seule une cible qui se déplace la renouvelle.
 // C'est ce que fait un joueur qui traverse le lieu.
-func TestLeChampNalloueRienCibleMobile(t *testing.T) {
+//
+// **Il lit les capacités plutôt qu'il ne compte les allocations.**
+// `runtime.ReadMemStats` mesure tout le processus : les finaliseurs et les
+// goroutines laissés par les tests précédents tombent dans la fenêtre, et le
+// verdict dépend alors de ce qui entoure le test au lieu de ce qu'il garde. La
+// capacité d'un seau, elle, est la propriété elle-même.
+//
+// **Le relevé part du montage et non de la première reconstruction**, faute de
+// quoi le test se désarme : la première cible fait croître les seaux jusqu'à son
+// pire cas, les quinze suivantes n'en demandent pas davantage, et la préallocation
+// peut disparaître sans que rien ne bouge entre les deux mesures.
+//
+// La cible mobile reste nécessaire pour l'autre moitié : une croissance qu'une
+// seule distribution de distances ne provoquerait pas.
+func TestLesSeauxNeGrandissentPasAuFilDesReconstructions(t *testing.T) {
 	g := grilleDepuis(
 		"................",
 		".#####..####....",
@@ -246,17 +258,20 @@ func TestLeChampNalloueRienCibleMobile(t *testing.T) {
 		{2, 0}, {15, 0}, {9, 7}, {0, 7}, {13, 5}, {4, 7}, {11, 0}, {7, 5},
 	}
 
-	var avant, apres runtime.MemStats
-	runtime.GC()
-	runtime.ReadMemStats(&avant)
+	auMontage := make([]int, len(f.seaux))
+	for i, seau := range f.seaux {
+		auMontage[i] = cap(seau)
+	}
+
 	for _, c := range cibles {
 		f.Rebuild(FromInt(c[0]), FromInt(c[1]))
 	}
-	runtime.ReadMemStats(&apres)
 
-	if n := apres.Mallocs - avant.Mallocs; n != 0 {
-		t.Errorf("%d allocation(s) sur %d reconstructions depuis un champ neuf",
-			n, len(cibles))
+	for i, seau := range f.seaux {
+		if cap(seau) != auMontage[i] {
+			t.Errorf("seau %d : capacité de %d au montage, %d après %d reconstructions",
+				i, auMontage[i], cap(seau), len(cibles))
+		}
 	}
 }
 

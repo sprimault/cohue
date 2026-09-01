@@ -100,6 +100,13 @@ Trois exigences la contraignent :
   générateur ne l'écrivant, il se tient à la main, comme
   `assets/armes/manifeste.json`.
 
+Entre deux fontes qui les respectent, le départage se fait sur le É. Beaucoup
+réservent la ligne d'accent aux minuscules : le é est correct, et la capitale
+accentuée bute sur le bord de sa cellule. Les libellés s'écrivant en casse
+mixte — la conception dit pourquoi —, cela ne bloque rien ; mais avoir à changer
+de fonte le jour d'un titre en capitales coûterait plus cher que de le vérifier
+maintenant.
+
 Le texte se pose en coordonnées entières, au même titre que la caméra : une fonte
 bitmap posée à une position fractionnaire perd ce pour quoi on l'a choisie.
 

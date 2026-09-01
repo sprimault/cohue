@@ -886,6 +886,14 @@ Corollaire : la voie du rendu 3D précalculé (modèles Mixamo ou low-poly rendu
 
 Point de vigilance sans précédent à copier : les jeux rétro n'ont jamais affiché autant de sprites simultanés. Contours foncés sur les ennemis, teinte réservée au seul personnage joueur, projectiles ennemis dans une couleur qui n'existe nulle part ailleurs dans la palette. Une palette fermée rend cette discipline tenable ; des sprites rendus l'auraient rendue impossible.
 
+### La lisibilité du texte
+
+Les libellés s'écrivent en casse mixte, jamais en capitales. Ce n'est pas une concession à la fonte mais le meilleur choix en soi : les mots en capitales ont tous la même silhouette rectangulaire, et c'est la silhouette qui porte la lecture rapide. Une carte d'amélioration se lit en une seconde, et « Cadence +15 % » s'y lit plus vite que « CADENCE +15 % ».
+
+L'ordre de ces deux raisons compte. Les capitales accentuées sont aussi ce qui déborde le plus souvent d'une cellule bitmap, mais adosser la règle à cette limite la ferait tomber au premier changement de fonte : on remettrait des capitales au motif que la nouvelle les supporte, en perdant ce qu'on avait gagné en lecture.
+
+Les chiffres de dégâts jaillissent au-dessus de n'importe quoi — décor clair, flaque, carrelage. Ils portent donc un contour ou une ombre portée d'un pixel, sans quoi leur couleur, distincte pour les critiques, ne suffit pas à les détacher du fond. C'est la discipline des contours foncés du paragraphe précédent, appliquée à ce qui n'est pas un sprite.
+
 ### Les tuiles
 
 **Générées**, par `outils/decor_iso.py` : une soixantaine de formes réparties en six thèmes, à partir d'une seule fonction qui calcule la face supérieure en coordonnées de tuile. Le compte exact est celui du manifeste, qui est le seul endroit où il ne peut pas dériver.

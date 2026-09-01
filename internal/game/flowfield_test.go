@@ -190,6 +190,11 @@ func TestLaDirectionNeCoupePasUnAngle(t *testing.T) {
 // et ce qu'un joueur qui traverse le lieu défait. La capacité venant désormais du
 // montage, la distinction ne décide plus de rien ici ; elle décidait avant, et
 // c'est `TestLesSeauxNeGrandissentPasAuFilDesReconstructions` qui la garde.
+//
+// `TestLaBoucleNalloueRien` couvre le même budget à l'échelle du tick, et ne
+// remplace pas celui-ci : il mesure un assemblage, si bien qu'un échec y dit
+// qu'une allocation a eu lieu sans dire d'où. Celui-ci isole le champ, et c'est
+// à quoi sert de le garder quand l'autre passe déjà.
 func TestLeChampNalloueRien(t *testing.T) {
 	g := grilleDepuis(
 		"................",

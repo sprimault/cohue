@@ -125,7 +125,7 @@ func TestTroisCentsPoursuivantsConvergent(t *testing.T) {
 			depart, arrivee, ticks)
 	}
 	// La convergence doit être franche : une horde qui grignote un dixième de
-	// tuile passerait le test précédent en ne poursuivant rien.
+	// tuile passerait la comparaison ci-dessus en ne poursuivant rien.
 	if arrivee > depart/2 {
 		t.Errorf("distance moyenne passée de %0.2f à %0.2f seulement", depart, arrivee)
 	}
@@ -157,6 +157,10 @@ func TestTroisCentsPoursuivantsConvergent(t *testing.T) {
 // deux sous-systèmes qui vont bien chacun de leur côté. Le second peut tomber
 // alors que le premier passe, et c'est le second qu'on serait tenté de
 // supprimer, parce qu'il est le plus lent à exécuter.
+//
+// `TestBassinNalloueRien` ne le remplace pas davantage : un tick ordinaire ne
+// supprime pas assez d'entités pour éprouver l'échange du bassin, que celui-là
+// exerce en propre.
 func TestLaBoucleNalloueRien(t *testing.T) {
 	w, profils := mondeDEssai(t, 64, 64)
 	w.Place(FromInt(32)+One/2, FromInt(32)+One/2)

@@ -335,3 +335,110 @@ func TestLeTirNalloueRien(t *testing.T) {
 		t.Errorf("%v allocation(s) par tick avec tir, attendu aucune", moyenne)
 	}
 }
+
+// TestLeTirTouchePremierCeQuIlRencontre garde l'ordre le long du segment.
+//
+// Deux créatures sur la trajectoire, la plus proche doit tomber. Retenir la
+// première du bassin ferait mourir celle de derrière — un projectile qui tue à
+// travers un corps, ce qui se verra dès que la horde sera dense.
+//
+// **Le projectile est forgé et la passe appelée directement, parce qu'un tir
+// ordinaire ne discrimine pas.** Il avance de 0,2 tuile par tick pour un rayon
+// de 0,125 : deux cibles espacées d'une tuile ne sont jamais candidates dans le
+// même tick, si bien qu'un test joué en entier passerait quel que soit l'ordre
+// retenu. Il faut donc un segment qui les couvre toutes les deux, et c'est un
+// cas que la cadence ne produit pas d'elle-même.
+//
+// `TestLeTirNEnjambePasSaCible` garde l'autre moitié : que la passe soit
+// appelée, et qu'une cible enjambée soit atteinte par le chemin complet.
+func TestLeTirTouchePremierCeQuIlRencontre(t *testing.T) {
+	w, profils := champDeTir(t)
+	px, py := w.Player()
+	marcheur := indexDuProfil(t, profils, "marcheur")
+
+	// La lointaine d'abord : sans tri le long du segment, c'est elle que le
+	// parcours du bassin trouverait en premier.
+	loin, ok := w.SpawnEnemy(marcheur, px+FromInt(2)+One/4, py)
+	if !ok {
+		t.Fatal("créature refusée")
+	}
+	pres, ok := w.SpawnEnemy(marcheur, px+FromInt(2), py)
+	if !ok {
+		t.Fatal("créature refusée")
+	}
+
+	restant := func(h Handle) int {
+		place, vivant := w.Enemies().Slot(h)
+		if !vivant {
+			return 0
+		}
+		return w.Enemies().At(place).Hits
+	}
+	depart := restant(loin)
+
+	// Un segment qui part juste avant la plus proche et couvre les deux.
+	tir := Projectile{
+		X: px + FromInt(2) - One/16, Y: py,
+		Step:      Vec{X: One/2 + One/4},
+		Remaining: FromInt(6),
+		Hits:      1,
+	}
+	if !w.toucher(Vec{tir.X, tir.Y}, &tir) {
+		t.Fatal("le segment ne touche personne : le cas ne teste rien")
+	}
+
+	if restant(loin) != depart {
+		t.Errorf("la créature de derrière a encaissé : le tir traverse celle de devant")
+	}
+	if restant(pres) >= depart {
+		t.Errorf("la créature de devant est intacte : le tir ne l'a pas rencontrée")
+	}
+}
+
+// TestLeTirNEnjambePasSaCible garde ce que le point d'arrivée ne peut pas voir.
+//
+// Un projectile avance de 0,2 tuile par tick et une créature en fait 0,125 de
+// rayon : une cible qui tombe entre deux positions échantillonnées n'est jamais
+// dans le rayon au moment du test, et le tir la traverse sans effet. Le défaut
+// est resté invisible tant qu'aucune créature n'approchait à moins d'un
+// demi-tuile.
+//
+// **Le cas est posé et la passe appelée directement.** Un tir joué en entier ne
+// discrimine pas : la cible bouge d'un tick à l'autre, et une créature enjambée
+// une fois se retrouve à portée du point d'arrivée au suivant — le test
+// passerait alors avec ou sans le correctif, pour une raison qui n'est pas la
+// sienne. Ce qui est éprouvé ici est un segment et une position, sans rien qui
+// bouge entre les deux.
+func TestLeTirNEnjambePasSaCible(t *testing.T) {
+	w, profils := champDeTir(t)
+	px, py := w.Player()
+	marcheur := indexDuProfil(t, profils, "marcheur")
+
+	// À un cinquième de tuile : le pas la dépasse, et le point d'arrivée la
+	// laisse hors du rayon de 0,125.
+	cible, ok := w.SpawnEnemy(marcheur, px+One/5, py)
+	if !ok {
+		t.Fatal("créature refusée")
+	}
+	depart := profils.Enemies[marcheur].Hits
+
+	tir := Projectile{X: px, Y: py, Step: Vec{X: One * 2 / 5},
+		Remaining: FromInt(6), Hits: 1}
+
+	// Le cas doit être celui qu'on croit : la cible est hors de portée du seul
+	// point d'arrivée, sinon le test ne dirait rien du segment.
+	fin := Vec{tir.X + tir.Step.X, tir.Y}
+	rayon := profils.Enemies[marcheur].Radius
+	e := w.Enemies().At(0)
+	if (Vec{e.X - fin.X, e.Y - fin.Y}).carres() <= int64(rayon)*int64(rayon) {
+		t.Fatal("la cible est à portée du point d'arrivée : le cas ne teste pas le segment")
+	}
+
+	if !w.toucher(Vec{tir.X, tir.Y}, &tir) {
+		t.Fatal("le projectile enjambe sa cible")
+	}
+	place, vivant := w.Enemies().Slot(cible)
+	if !vivant || w.Enemies().At(place).Hits >= depart {
+		t.Error("la cible n'a rien encaissé")
+	}
+}

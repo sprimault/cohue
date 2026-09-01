@@ -31,6 +31,7 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"image/png"
 	"os"
 	"path/filepath"
@@ -50,12 +51,26 @@ import (
 // écart à excepter, et elle pèserait dans le binaire de qui l'a régénérée.
 const sortie = ".tmp/apercus"
 
+// echelle agrandit le tampon avant l'écriture, en entier.
+//
+// **La planche montre ce que le joueur verra, et non le tampon nu.** Une image
+// écrite à la taille du tampon se relit à la loupe, et une image agrandie d'un
+// facteur qui n'est pas entier épaissit un pixel sur deux : un glyphe y paraît
+// bancal alors que le jeu le rend net, et le jugement porte sur l'agrandissement
+// plutôt que sur ce qu'on croit juger.
+//
+// Deux et non trois parce que c'est le facteur d'une fenêtre de 1080p, le cas
+// courant. Ce que la fenêtre du jeu fera de son côté est un réglage d'affichage
+// que l'étape 15 tranchera ; ici, on montre le tampon multiplié.
+const echelle = 2
+
 // vue est une scène à écrire : où poser le joueur, combien de pas jouer avant de
-// dessiner, et le nom du fichier qui en sort.
+// dessiner, si l'on y pose du texte, et le nom du fichier qui en sort.
 type vue struct {
 	nom   string
 	u, v  int
 	ticks int
+	texte bool
 }
 
 // vues énumère ce que la planche donne à relire.
@@ -78,6 +93,32 @@ var vues = []vue{
 	{nom: "est", u: 29, v: 2},
 	{nom: "sud", u: 29, v: 29},
 	{nom: "melee", u: 16, v: 16, ticks: 4 * game.TPS},
+	{nom: "texte", u: 16, v: 16, texte: true},
+}
+
+// echantillons sont les chaînes que la vue de texte affiche.
+//
+// **Ce sont des échantillons de mesure, pas les libellés du jeu.** Ni les cartes
+// ni l'écran de mort n'existent encore ; ces chaînes sont ici parce qu'il faut
+// du texte réel pour juger une police — des mots français avec leurs accents,
+// des chiffres, un pourcentage, une durée. Le jour où l'étape 3 écrira les vrais
+// libellés, ils viendront de là et cette table disparaîtra : deux listes de
+// libellés divergeraient, et c'est celle-ci qu'on oublierait.
+//
+// Les espaces insécables y sont écrites par leur code : posées en littéral,
+// elles se confondent avec des espaces ordinaires dans le source. Elles sont ce
+// que le français impose devant un pourcentage et entre les milliers, et la vue
+// est le premier usage réel du glyphe que la table déclare.
+var echantillons = []string{
+	"Niveau 5 " + string(rune(0x2014)) + " choisissez une amélioration",
+	"Rafale",
+	"+1 projectile",
+	"Trois projectiles au lieu de deux.",
+	"Cadence +15" + string(rune(0x00A0)) + "%",
+	"Portée +2 tuiles",
+	"L'arme tire plus souvent.",
+	"Espace pour relancer",
+	"ÀÉÈÊÇÎÔÙŸŒÆ «»",
 }
 
 // planche écrit toutes les vues au premier pas, puis demande l'arrêt.
@@ -106,7 +147,10 @@ var vues = []vue{
 // planche ne doit pas avoir. Le montage coûte quelques millisecondes.
 type planche struct {
 	tampon *ebiten.Image
-	ecrit  bool
+	// agrandi porte le tampon multiplié par `echelle`, et c'est lui qu'on écrit.
+	agrandi *ebiten.Image
+	police  *render.Font
+	ecrit   bool
 }
 
 // Update écrit les vues, puis rend la fin de partie.
@@ -147,6 +191,16 @@ func (p *planche) vue(v vue) error {
 		partie.World.Step(game.Vec{})
 	}
 	render.NewScreen(partie.World, partie.Grid, partie.Tile).Draw(p.tampon)
+	if v.texte {
+		p.poser()
+	}
+
+	// L'agrandissement se fait au plus proche voisin, qui est le filtre par
+	// défaut : un lissage rendrait la planche inutilisable pour juger du pixel
+	// art, qui est précisément ce qu'elle donne à relire.
+	var op ebiten.DrawImageOptions
+	op.GeoM.Scale(echelle, echelle)
+	p.agrandi.DrawImage(p.tampon, &op)
 
 	chemin := filepath.Join(sortie, v.nom+".png")
 
@@ -162,7 +216,7 @@ func (p *planche) vue(v vue) error {
 	// La fermeture est signalée, mais elle ne masque pas l'écriture : un encodage
 	// qui échoue dit ce qui ne va pas, là où la fermeture d'un fichier déjà
 	// fautif ne dirait que le symptôme.
-	err = png.Encode(f, p.tampon)
+	err = png.Encode(f, p.agrandi)
 	if cerr := f.Close(); err == nil {
 		err = cerr
 	}
@@ -171,6 +225,50 @@ func (p *planche) vue(v vue) error {
 	}
 	fmt.Println(chemin)
 	return nil
+}
+
+// Les teintes de la vue de texte, provisoires comme ses chaînes.
+//
+// Elles vivent ici et non dans le rendu pour la même raison que les
+// échantillons : le jeu n'a pas encore d'interface, donc pas de teintes à en
+// tirer. Quand il en aura, c'est de lui qu'elles viendront.
+var (
+	texteClair = color.RGBA{R: 232, G: 234, B: 238, A: 255}
+	texteOr    = color.RGBA{R: 236, G: 196, B: 96, A: 255}
+	texteNoir  = color.RGBA{A: 255}
+)
+
+// poser écrit les échantillons sur la scène déjà dessinée.
+//
+// Trois situations, et ce sont elles qui font la vue : une colonne de texte nu
+// sur le décor, deux chiffres contourés posés là où le fond est le plus clair,
+// et deux lignes alignées sur le bord droit par mesure plutôt qu'à distance
+// fixe. La troisième est ce qui manquait à la planche qui a fait écrire la règle
+// — un minuteur placé au jugé déborde dès qu'il s'allonge.
+func (p *planche) poser() {
+	y := 12
+	for _, s := range echantillons {
+		p.police.Draw(p.tampon, s, 12, y, texteClair)
+		y += p.police.Height() + 4
+	}
+
+	// Sur le monde et non sur un cadre : c'est le cas que la conception vise
+	// quand elle exige un contour.
+	//
+	// **Le fond le plus hostile n'est pas à l'image, et ne peut pas y être
+	// aujourd'hui.** Le contour existe pour un chiffre posé sur du décor clair,
+	// or le rendu provisoire ne peint que trois gris et un bleu : le cas se
+	// jugera quand les sprites entreront, à l'étape 5. Ce que la vue montre est
+	// que le contour ne nuit pas sur fond moyen, pas qu'il suffit sur fond clair.
+	p.police.DrawOutlined(p.tampon, "247", render.Width/2-40, render.Height/2-60,
+		texteOr, texteNoir)
+	p.police.DrawOutlined(p.tampon, "12", render.Width/2+30, render.Height/2-20,
+		texteClair, texteNoir)
+
+	for i, s := range []string{"07:41", "1" + string(rune(0x00A0)) + "340 pts"} {
+		x := render.Width - 12 - p.police.Advance(s)
+		p.police.Draw(p.tampon, s, x, 12+i*(p.police.Height()+2), texteClair)
+	}
 }
 
 // main écrit la planche, ou sort en échec.
@@ -189,9 +287,16 @@ func run() error {
 		return err
 	}
 
+	police, err := render.LoadFont(cohue.Assets, cohue.InterfaceManifest)
+	if err != nil {
+		return err
+	}
+
 	ebiten.SetWindowTitle("Cohue — planche")
 	ebiten.SetWindowSize(render.Width, render.Height)
 	return ebiten.RunGame(&planche{
-		tampon: ebiten.NewImage(render.Width, render.Height),
+		tampon:  ebiten.NewImage(render.Width, render.Height),
+		agrandi: ebiten.NewImage(render.Width*echelle, render.Height*echelle),
+		police:  police,
 	})
 }

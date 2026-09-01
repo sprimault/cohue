@@ -38,6 +38,13 @@ DISPENSES = {
 # commentaire et c'est le manifeste de leur lot qui porte la mention pour eux.
 SUFFIXES_DISPENSES = {".md", ".png", ".jpg", ".wav", ".ogg", ".zip", ".gz"}
 
+# Une fonte tierce ne se modifie pas sans cesser d'être la copie qu'on déclare :
+# la mention vit dans son manifeste et dans CREDITS, jamais dans le fichier. Le
+# texte de licence qui l'accompagne suit la même règle que LICENSE, dont il ne
+# porte pas le nom exact.
+SUFFIXES_TIERS = {".ttf", ".otf"}
+NOMS_LICENCE_TIERCE = {"LICENSE.txt", "COPYING", "COPYING.txt"}
+
 # Le JSON n'a pas de commentaires : la mention y est un `$comment` en première
 # clé, et c'est `ressources.py --controle` qui l'exige sur les manifestes.
 #
@@ -80,6 +87,8 @@ def controler(racine):
     manquants = []
     for relatif in versionnes(racine):
         if relatif.name in DISPENSES or relatif.suffix in SUFFIXES_DISPENSES:
+            continue
+        if relatif.suffix in SUFFIXES_TIERS or relatif.name in NOMS_LICENCE_TIERCE:
             continue
         if relatif.suffix in SUFFIXES_JSON and relatif.parts[0] == RACINE_RESSOURCES:
             continue

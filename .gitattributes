@@ -31,3 +31,13 @@ Makefile text eol=lf
 *.gz binary
 *.exe binary
 *.wasm binary
+*.ttf binary
+*.otf binary
+
+# Le texte de licence d'une ressource tierce se conserve tel qu'il a été reçu,
+# fins de ligne comprises : c'est le seul fichier du dépôt dont l'identité à la
+# copie d'origine est la propriété qui compte, et `docs/go.md` l'en dispense
+# d'en-tête pour cette raison même. Un chemin nommé plutôt qu'une extension —
+# une exception par extension finirait par attraper un fichier qu'on voulait
+# normaliser.
+assets/polices/LICENSE.txt -text

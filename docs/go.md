@@ -23,6 +23,7 @@ index.
 | avec quelles permissions écrire | [Écriture de fichiers](#7-écriture-de-fichiers) |
 | si un chiffre a le droit d'être écrit | [Une affirmation de nombre](#8-une-affirmation-de-nombre-sadosse-à-un-test-ou-perd-son-quantificateur) |
 | comment formuler une justification qui vieillira | [Une condition vaut mieux qu'une conclusion](#une-condition-vaut-mieux-quune-conclusion) |
+| comment citer un test, une section, un fichier | [Un renvoi nomme sa cible](#un-renvoi-nomme-sa-cible) |
 | quoi journaliser, et où ne pas le faire | [Journalisation](#9-journalisation) |
 | ce qui a le droit de tourner en parallèle | [Concurrence](#10-concurrence) |
 | comment garder une référence sur une entité | [Le bassin d'entités](#le-bassin-dentités) |
@@ -340,6 +341,32 @@ signalé ; la seconde nomme d'avance ce qui la fera tomber.
 Le test est simple : demander ce qui devrait changer dans le code pour que la
 phrase devienne fausse. Si la réponse n'est pas dans la phrase, elle y manque.
 
+## Un renvoi nomme sa cible
+
+Un test, une section, un fichier : ce qu'on cite se nomme. Les désignations
+relatives — « la règle précédente », « ci-dessus », « le test de l'étape » — n'en
+sont pas. Elles deviennent fausses par un **déplacement** plutôt que par une
+modification, si bien que personne ne les relit au moment où elles cessent d'être
+vraies : rien n'a changé à l'endroit du défaut.
+
+Rien ne les rattrape non plus. Le contrôle du sommaire résout des ancres, et un
+renvoi par position n'a rien à résoudre — c'est un renvoi qu'aucun outil ne peut
+suivre, ce qui est exactement ce qu'on lui reproche.
+
+Un nom, lui, se vérifie : un `` `TestXxx` `` cité entre accents graves doit se
+résoudre sur une déclaration, un lien de section sur un titre existant.
+
+**Et un renvoi va dans les deux sens.** Deux textes — deux tests, deux sections,
+deux godoc — dont la suppression de l'un paraîtrait sans conséquence doivent
+chacun dire **ce que l'autre ne garde pas**. Un renvoi unilatéral est pire que
+pas de renvoi du tout : il rassure qui lit le texte bavard et laisse sans défense
+qui lit l'autre, c'est-à-dire précisément celui qu'on supprimera, puisque rien en
+lui ne dit sa raison d'être.
+
+« Voir aussi X » n'en est donc pas un. Il nomme sa cible, ce qui satisfait la
+première moitié, mais il ne protège rien : ce qui protège est la phrase qui dit
+ce qu'on perdrait en retirant l'autre.
+
 ## 9. Journalisation
 
 `log/slog` uniquement, structuré. Clés en anglais, message en français :
@@ -595,6 +622,39 @@ a pas de moyen d'y suppléer autrement que de regarder.
 D'où la règle : **toute planche de relecture sort d'une cible du `Makefile`**,
 dans le même geste que ce qu'elle donne à relire. Ajouter des vues à une planche
 que personne ne produit ne corrige rien et donne le sentiment du contraire.
+
+Elle ne dit rien, en revanche, de ce que la planche **montre** — une planche
+fabriquée peut présenter autre chose que ce que le joueur verra, et le jugement
+qu'on en tire est alors faux sans que rien ne manque au mécanisme. C'est [Une
+planche se juge dans les conditions du
+jeu](#une-planche-se-juge-dans-les-conditions-du-jeu) qui garde cette moitié-là.
+
+### Une planche se juge dans les conditions du jeu
+
+[Une planche que rien ne
+fabrique](#une-planche-que-rien-ne-fabrique-ne-relit-rien) garantit qu'une
+planche existe et se refait ; elle ne garantit pas qu'elle montre ce qu'on croit
+regarder. `make apercus` la respecte —
+fabriqué, déterministe, sorti d'une cible — et a pourtant rendu un verdict faux
+sur la lisibilité d'une police, présentée à un agrandissement d'une fois et
+demie : à cette échelle un pixel sur deux est doublé, les traits d'un glyphe
+s'épaississent irrégulièrement, et ce qu'on jugeait n'était pas ce que le jeu
+affiche.
+
+Ce qui doit être vrai : **ce qu'on juge sur la planche est ce qu'on verra en
+jouant.** Formulée ainsi, elle dit quoi vérifier — l'agrandissement, mais aussi
+le fond sur lequel un élément est posé. La même planche concluait que les
+chiffres de dégâts restaient lisibles sur le décor clair, alors qu'aucun n'y
+était posé : ils tombaient tous sur des créatures sombres, et le cas hostile
+n'était pas à l'image.
+
+Elle ne vaut que pour ce qui se juge à l'œil. Une planche qui sert à comparer
+deux états — l'identité au bit près avant et après un remaniement — ne demande
+aucun jugement, et l'échelle à laquelle on la regarde n'y change rien.
+
+C'est la structure de [Un contrôle privé de son
+entrée](#un-contrôle-privé-de-son-entrée-échoue-il-ne-passe-pas) : le mécanisme
+est en place, et son résultat ne veut rien dire.
 
 ### Dans un paquet sans tests, ce que rien n'exerce est invérifiable
 

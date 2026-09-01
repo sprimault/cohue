@@ -41,6 +41,13 @@ type World struct {
 	tirs    *Pool[Projectile]
 
 	playerX, playerY Fixed
+	// vie est ce qu'il reste au joueur, en points. À zéro, il est mort — la
+	// valeur est l'état, comme la résistance d'une créature.
+	vie int
+	// degatsSubis est le reste de l'accumulateur de contact, en points-ticks.
+	// Il porte ce qui n'a pas encore fait un point entier ; sa raison d'être est
+	// dans `subir`.
+	degatsSubis int
 	// cooldown est ce qui reste à attendre avant le prochain tir. Il descend à
 	// zéro et y demeure : sans cible, l'arme ne tire pas et ne consomme rien.
 	cooldown Tick
@@ -57,6 +64,7 @@ func NewWorld(profils *Profiles, arme Weapon, grille *CostGrid, capacite, tirs i
 	return &World{
 		profils: profils,
 		arme:    arme,
+		vie:     profils.Player.Health,
 		grille:  grille,
 		flux:    NewFlowField(grille),
 		densite: NewDensityGrid(grille.Width(), grille.Height()),
@@ -101,10 +109,18 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 //
 // L'ordre est celui de la conception, et il est écrit une fois : les entrées, le
 // champ de flux si c'est son tick, la densité, les intentions et leur
-// projection, le tir puis le vol des projectiles avec ce qu'ils touchent, et les
-// suppressions en dernier. Ce qui manque encore y prendra sa place — les
-// apparitions entre les entrées et le champ, les dégâts de contact avant les
-// suppressions.
+// projection, les dégâts de contact, le tir puis le vol des projectiles avec ce
+// qu'ils touchent, et les suppressions en dernier. Ce qui manque encore y
+// prendra sa place — les apparitions, entre les entrées et le champ.
+//
+// **Le contact se constate après le déplacement et non avant**, sinon une
+// créature qui vient de se coller ne blesserait qu'au tick suivant et le joueur
+// verrait la horde le traverser sans effet pendant une image.
+//
+// **La simulation continue de tourner après la mort**, et `subir` cesse
+// seulement d'appliquer des dégâts. Figer le monde ici serait une décision
+// d'écran — ce que la mort suspend, ce qu'elle laisse courir — et elle
+// appartient à qui l'affichera, pas à la boucle.
 //
 // Les intentions et la projection tiennent en une seule passe alors que la
 // conception les énumère séparément, et c'est équivalent — **à une condition qui
@@ -124,6 +140,7 @@ func (w *World) Step(voulu Vec) {
 	}
 	w.compterDensite()
 	w.deplacerEnnemis()
+	w.subir()
 	w.tirer()
 	w.deplacerTirs()
 	w.retirerLesMorts()

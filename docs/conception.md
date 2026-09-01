@@ -892,6 +892,8 @@ Les libellés s'écrivent en casse mixte, jamais en capitales. Ce n'est pas une 
 
 L'ordre de ces deux raisons compte. Les capitales accentuées sont aussi ce qui déborde le plus souvent d'une cellule bitmap, mais adosser la règle à cette limite la ferait tomber au premier changement de fonte : on remettrait des capitales au motif que la nouvelle les supporte, en perdant ce qu'on avait gagné en lecture.
 
+Un libellé d'emplacement porte la **touche**, jamais le nom. L'icône dit déjà de quoi il s'agit, et ce que le joueur cherche sous la case en jouant est ce qu'il doit presser. Un « 1 » tient là où « Aimant » déborde de sa case, mais la largeur n'est pas la raison : le nom serait au mauvais endroit même s'il tenait.
+
 Les chiffres de dégâts jaillissent au-dessus de n'importe quoi — décor clair, flaque, carrelage. Ils portent donc un contour ou une ombre portée d'un pixel, sans quoi leur couleur, distincte pour les critiques, ne suffit pas à les détacher du fond. C'est la discipline des contours foncés du paragraphe précédent, appliquée à ce qui n'est pas un sprite.
 
 ### Les tuiles

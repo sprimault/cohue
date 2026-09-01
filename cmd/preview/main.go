@@ -98,6 +98,12 @@ var vues = []vue{
 	{nom: "melee", u: 16, v: 16, ticks: 4 * game.TPS},
 	{nom: "texte", u: 16, v: 16, texte: true},
 	{nom: "interface", u: 16, v: 16, hud: true},
+
+	// La mort ne se pose pas, elle s'obtient : le joueur reste immobile au
+	// milieu du lieu et la horde finit par l'avoir. Vingt secondes couvrent
+	// largement la convergence puis les cinq secondes que le plafond de dégâts
+	// impose — c'est la seule vue dont la scène est jouée plutôt que montée.
+	{nom: "mort", u: 16, v: 16, ticks: 20 * game.TPS},
 }
 
 // carte est une amélioration proposée, telle qu'une carte l'affiche.
@@ -210,7 +216,7 @@ func (p *planche) vue(v vue) error {
 	for range v.ticks {
 		partie.World.Step(game.Vec{})
 	}
-	render.NewScreen(partie.World, partie.Grid, partie.Tile).Draw(p.tampon)
+	render.NewScreen(partie.World, partie.Grid, partie.Tile).WithHUD(p.hud).Draw(p.tampon)
 	if v.texte {
 		p.poser()
 	}

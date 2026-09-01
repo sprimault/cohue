@@ -62,6 +62,34 @@ type Session struct {
 	World *game.World
 	Grid  *game.CostGrid
 	Tile  [2]int
+
+	// Ce que la relance conserve, parce que rien ne l'a modifié : les tables du
+	// manifeste et le lieu cuit. Les relire coûterait un décodage complet pour
+	// rendre exactement les mêmes valeurs.
+	profils *game.Profiles
+	arme    game.Weapon
+}
+
+// Restart rejoue le même lieu, sans rien redemander.
+//
+// **La règle de ce remontage n'est pas qu'il ait lieu, mais ce qu'il conserve et
+// ce qu'il remet à zéro.** Aujourd'hui il ne conserve rien de la partie
+// précédente : ni vie, ni horde, ni tick, ni compteur. Ce qui survit est ce que
+// la partie n'a pas touché — les tables et la carte —, et cette liste est vide
+// de tout état de jeu par construction plutôt que par vigilance.
+//
+// C'est pour cela que le remontage vit ici et non dans le rendu : ce qu'il
+// conserve se mesure, et un remontage piloté par l'écran serait juste et
+// invérifiable.
+//
+// La graine ne s'y trouve pas parce que rien ne tire encore au sort — le semis
+// est régulier. Elle entrera avec le spawner, et la règle est déjà fixée :
+// nouvelle graine à chaque relance, dérivée de la précédente de façon
+// déterministe, pour que la suite des runs d'une session soit rejouable.
+func (s *Session) Restart() {
+	s.World = game.NewWorld(s.profils, s.arme, s.Grid, HordeCapacity, ShotCapacity)
+	placer(s.World, s.Grid)
+	peupler(s.World, s.Grid, s.profils)
 }
 
 // Open monte une partie sur le lieu donné.
@@ -101,11 +129,9 @@ func Open(fsys fs.FS, lieu string) (*Session, error) {
 	}
 	slog.Info("armes chargées", "base", armes.Base.Key)
 
-	monde := game.NewWorld(profils, armes.Base, grille, HordeCapacity, ShotCapacity)
-	placer(monde, grille)
-	peupler(monde, grille, profils)
-
-	return &Session{World: monde, Grid: grille, Tile: decor.Tile}, nil
+	partie := &Session{Grid: grille, Tile: decor.Tile, profils: profils, arme: armes.Base}
+	partie.Restart()
+	return partie, nil
 }
 
 // placer pose le joueur au centre du lieu.

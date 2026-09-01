@@ -205,9 +205,10 @@ func TestLeTirTueEtLaCreatureQuitteLeBassin(t *testing.T) {
 // d'un tick — c'est le seul moyen d'observer de l'extérieur un état qui, en
 // marche normale, ne survit pas à la passe de nettoyage.
 //
-// Le test précédent vérifiait qu'aucun mort ne reste après un `Step` : c'est vrai
-// des deux implémentations, donc il ne gardait rien. Celui-ci tombe si la garde
-// disparaît.
+// `TestLeNettoyageNeLaisseAucunMort` vérifie qu'aucun mort ne reste après un
+// `Step`, ce qui est vrai que la garde existe ou non : il ne garde donc pas
+// celle-ci. Elle ne se voit qu'en observant le milieu du tick, et c'est ce que
+// fait celui-ci.
 func TestUnMortCesseDEtreUneCibleSansQuitterLeBassin(t *testing.T) {
 	w, profils := champSansTir(t)
 	px, py := w.Player()
@@ -250,6 +251,10 @@ func TestUnMortCesseDEtreUneCibleSansQuitterLeBassin(t *testing.T) {
 // passe de mise à jour ferait avancer deux fois l'entité remontée, alors que
 // celle-ci ne fait que filtrer. La sauter laisserait un mort jusqu'au tick
 // suivant, et deux morts adjacents suffisent à le montrer.
+//
+// Il ne dit rien de ce qui se passe **pendant** le tick : un mort encore en
+// place cesse d'être une cible, ce qu'aucune observation de fin de tick ne peut
+// voir. C'est `TestUnMortCesseDEtreUneCibleSansQuitterLeBassin` qui le garde.
 func TestLeNettoyageNeLaisseAucunMort(t *testing.T) {
 	w, profils := champSansTir(t)
 	px, py := w.Player()

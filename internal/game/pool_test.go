@@ -197,10 +197,16 @@ func TestLIdentiteNeSuitPasLaPlace(t *testing.T) {
 	}
 }
 
-// TestBassinNalloueRien est le jumeau du test de l'étape, à l'échelle du bassin.
+// TestBassinNalloueRien est le jumeau de `TestLaBoucleNalloueRien`, à l'échelle
+// du bassin.
 //
 // C'est l'invariant le plus facile à casser sans s'en apercevoir : un `append`
 // qui réalloue, une conversion qui échappe. `AllocsPerRun` le dit en un chiffre.
+//
+// Ce que la boucle ne garde pas : elle ne supprime pas assez pour éprouver
+// l'échange et la redirection des identités, qui sont l'endroit où un `append`
+// se glisse. Celui-ci remplit le bassin, puis retire, et c'est ce parcours-là
+// qu'aucun tick ordinaire ne reproduit.
 func TestBassinNalloueRien(t *testing.T) {
 	p := NewPool[Enemy](300)
 	refs := make([]Handle, 300)

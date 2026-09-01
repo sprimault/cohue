@@ -26,6 +26,15 @@ const flowPeriod Tick = 6
 // cherchera au jalon 3, avec la vitesse relative et le plafond de dégâts.
 const separationScale = One / 8
 
+// rabattement est la distance sous laquelle une créature vise le joueur plutôt
+// que la cellule suivante du champ de flux, en tuiles.
+//
+// Une tuile et demie : de quoi couvrir la cellule de la cible et le bord des
+// huit voisines, là où la direction tabulée cesse de rapprocher. Plus large, on
+// court-circuiterait le contournement d'obstacles qui est la raison d'être du
+// champ ; plus étroit, on retrouverait la horde arrêtée au bord de la case.
+const rabattement = One * 3 / 2
+
 // World est une partie en cours : tout ce qu'un tick lit et modifie.
 //
 // La struct porte les tableaux plutôt que de les rendre à l'appelant, parce que
@@ -181,6 +190,25 @@ func (w *World) deplacerEnnemis() {
 
 		u, v := w.flux.Cell(e.X, e.Y)
 		attirance := w.flux.Direction(u, v)
+
+		// **Près du joueur, viser sa position et non la cellule suivante.** Le
+		// champ mène de case en case, et sa direction est nulle dans celle de la
+		// cible : une créature qui y entre n'a plus rien qui l'attire, tandis que
+		// la densité — forte là où tout le monde converge — continue de la
+		// pousser dehors. La horde encerclait donc à un demi-tuile sans jamais
+		// toucher, et le contact n'arrivait que par accident.
+		//
+		// **Le rabattement se déclenche sur une distance et non sur la case.**
+		// Sur la case, une créature restée dans la voisine garderait la direction
+		// tabulée jusqu'au bord, ce qui est exactement la position mesurée.
+		//
+		// Le seuil vaut une tuile et demie : au-delà, le champ fait mieux
+		// puisqu'il contourne les obstacles ; en deçà, il ne dit plus rien
+		// d'utile, et le glissement empêche de toute façon de traverser un mur.
+		ecart := Vec{X: w.playerX - e.X, Y: w.playerY - e.Y}
+		if ecart.carres() < int64(rabattement)*int64(rabattement) {
+			attirance = ecart.Direction(i)
+		}
 		repulsion := w.densite.Gradient(u, v).Scale(profil.SeparationWeight).Scale(separationScale)
 
 		voulu := attirance.Sub(repulsion)

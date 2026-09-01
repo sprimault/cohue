@@ -103,6 +103,10 @@ func distanceMoyenne(w *World) float64 {
 // Trois cents créatures, une cible qui se déplace, des obstacles à contourner.
 // Ce n'est pas un test de valeurs mais d'une propriété : la horde se rapproche,
 // et aucune de ses créatures n'a traversé un mur pour le faire.
+//
+// Il ne dit rien du dernier demi-tuile : une moyenne qui tombe de trente à
+// quatorze reste vraie d'une horde qui s'arrête au bord de la case du joueur.
+// C'est `TestLaHordeRejointVraimentLeJoueur` qui garde cette moitié-là.
 func TestTroisCentsPoursuivantsConvergent(t *testing.T) {
 	w, profils := mondeDEssai(t, 64, 64)
 	marcheur := indexDuProfil(t, profils, "marcheur")
@@ -138,6 +142,66 @@ func TestTroisCentsPoursuivantsConvergent(t *testing.T) {
 		}
 	}
 	t.Logf("distance moyenne : %0.2f -> %0.2f tuiles en %d ticks", depart, arrivee, ticks)
+}
+
+// distanceLaPlusCourte rend l'éloignement de la créature la plus proche.
+func distanceLaPlusCourte(w *World) Fixed {
+	px, py := w.Player()
+	mini := FromInt(1 << 10)
+	for i := range w.Enemies().Active() {
+		e := w.Enemies().At(i)
+		if d := (Vec{e.X - px, e.Y - py}).Len(); d < mini {
+			mini = d
+		}
+	}
+	return mini
+}
+
+// TestLaHordeRejointVraimentLeJoueur garde le dernier demi-tuile.
+//
+// **Ce que `TestTroisCentsPoursuivantsConvergent` ne garde pas.** Celui-là
+// mesure une distance *moyenne* sur une cible en fuite, et il est resté vert
+// pendant que la horde encerclait le joueur à un demi-tuile sans jamais le
+// toucher : le champ de flux mène de case en case, sa direction est nulle dans
+// celle de la cible, et la densité y éjectait les créatures qui y entraient.
+// Une moyenne qui tombe de trente à quatorze ne dit rien du dernier demi-tuile,
+// qui est pourtant le seul où le contact existe.
+//
+// Réciproquement, celui-ci ne dit rien du contournement d'obstacles ni de la
+// convergence d'ensemble : une seule créature arrivée au but le ferait passer.
+// Les deux gardent deux moitiés du même déplacement.
+//
+// La cible ne fuit pas, parce que c'est l'encerclement qu'on mesure : contre une
+// cible plus rapide qu'elles, les créatures resteraient derrière sans que cela
+// dise rien du rabattement.
+func TestLaHordeRejointVraimentLeJoueur(t *testing.T) {
+	w, profils := mondeDEssai(t, 64, 64)
+	marcheur := indexDuProfil(t, profils, "marcheur")
+
+	px, py := FromInt(32)+One/2, FromInt(32)+One/2
+	w.Place(px, py)
+
+	// Un anneau à trois tuiles plutôt que le semis d'ensemble : celui-ci part
+	// d'un coin, et l'arme abat les arrivantes une à une, si bien qu'on
+	// mesurerait la portée du tir au lieu de l'approche.
+	for k := range 24 {
+		a := Heading(k % Headings).Scale(FromInt(3))
+		if _, ok := w.SpawnEnemy(marcheur, px+a.X, py+a.Y); !ok {
+			t.Fatal("bassin plein")
+		}
+	}
+
+	for range 5 * TPS {
+		w.Step(Vec{})
+	}
+
+	// Le contact vaut la somme des deux rayons ; la plus proche doit être
+	// franchement en deçà, sinon elle ne fait que le frôler par accident.
+	contact := profils.Player.Radius + profils.Enemies[marcheur].Radius
+	if mini := distanceLaPlusCourte(w); mini >= contact {
+		t.Errorf("la plus proche est à %0.3f tuile, contact à %0.3f : la horde encercle sans toucher",
+			mini.Float(), contact.Float())
+	}
 }
 
 // TestLaBoucleNalloueRien est l'autre moitié du critère de l'étape.

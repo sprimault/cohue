@@ -78,11 +78,11 @@ manuelle d'un PNG.
 
 ## La police et l'interface
 
-L'interface se partage en deux. Les jauges, cadres, pastilles et icônes de touche
-sont de la géométrie : elles viennent d'un sixième générateur, sur le modèle des
-cinq autres. La police, elle, est **tierce**, et c'est la première ressource du
-dépôt à l'être — dessiner quarante glyphes lisibles et accentués est un métier,
-et le temps qu'il coûterait ne va pas au jalon de l'étape 3.
+L'interface se partage en deux, et `outils/interface.py` porte les deux moitiés.
+Les jauges, cadres, pastilles et icônes de touche sont de la géométrie, comme le
+décor et les objets. La police, elle, est **tierce**, et c'est la première
+ressource du dépôt à l'être — dessiner quarante glyphes lisibles et accentués est
+un métier, et le temps qu'il coûterait ne va pas au jalon de l'étape 3.
 
 Trois exigences la contraignent :
 
@@ -141,7 +141,7 @@ proportions d'un profil, ajouter un gabarit ou une variante de teinte se fait
 dans ce fichier, puis :
 
 ```
-make ressources        # les quatre générateurs, puis le contrôle
+make ressources        # les cinq générateurs, puis le contrôle
 make ressources-verif  # régénère à côté et exige l'identique
 ```
 
@@ -156,6 +156,7 @@ python outils/decor_iso.py --theme parking --sortie assets/decors
 python outils/decor_iso.py voiture camion --sortie assets/decors
 python outils/figurines.py --apercu            # planches dans .tmp/controle/
 python outils/objets.py --sortie assets/objets
+python outils/interface.py --sortie assets/interface
 python outils/ressources.py --controle        # sans rien régénérer
 python outils/ressources.py --controle --pentes
 ```

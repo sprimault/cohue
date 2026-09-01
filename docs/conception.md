@@ -949,6 +949,8 @@ Composition : `poser` place un objet **en coordonnées de tuile**, pas en pixels
 
 **`sons.py`** génère les bruitages par synthèse, sur le même principe de graine et de manifeste — le procédé est décrit plus bas, à la section du son.
 
+**`interface.py`** ne dessine pas, il rastérise : il cuit la police tierce en planche de glyphes et déclare dans son manifeste la cellule, la ligne de base, la chaîne des glyphes et leur avance. C'est le seul générateur dont la source est un fichier reçu plutôt qu'une fonction — `assets/polices/` porte ce qu'on a téléchargé, `assets/interface/` ce qu'on en fabrique —, et c'est ce qui met le texte dans le même régime que le reste : une image qu'on régénère et qu'on compare, au lieu d'un rendu qui dépendrait de la version d'une bibliothèque.
+
 ### Les manifestes
 
 Chaque lot produit un manifeste JSON, et c'est lui qui fait contrat entre les images et le moteur.

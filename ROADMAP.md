@@ -87,6 +87,18 @@ sous-pixel.
 Écran de mort, relance sur une touche en moins d'une seconde, même
 configuration. Une arme, un profil d'ennemi, une courbe de pression.
 
+**Et l'aimant, avec l'effacement des gemmes qui lui donne sa contre-force.** Ce
+n'est pas un avancement de l'étape 7 : un objet ramassé, une touche, un effet se
+tient sans le système de consommables, dont il n'emprunte que le patron
+d'interface. Ce qui le range ici est le jalon lui-même — la conception en fait le
+moment de plaisir maximal du genre, et une sensation jugée sans lui serait jugée
+amputée. Les deux branches du test sont donc remplies : il se tient seul, et son
+absence fausserait le jugement de l'étape.
+
+Ce qui se règle avant de juger relève de la conduite du jalon, au chapitre 2 de
+la conception : ce que le critère mesure se règle à l'intention, le reste se
+neutralise.
+
 **Jalon éliminatoire.** Il tranche une seule question : le déplacement et le tir
 sont-ils agréables ? Si la réponse est non, aucun sprite ne le sauvera et on ne
 continue pas — c'est le seul jalon qui puisse arrêter le projet, et il arrive
@@ -141,7 +153,8 @@ conditionnel et lisible.
 
 Caisse cassée en la traversant, avec délai de contact et ralentissement.
 Blocante dans le champ de flux, rafraîchissement local à sa destruction.
-Consommables limités à deux ou trois emplacements, sans menu.
+Consommables limités à deux ou trois emplacements, sans menu — l'aimant de
+l'étape 3 n'entre pas dans ce compte, il garde le sien.
 
 ## 8 — L'enchaînement de salles, points et score
 

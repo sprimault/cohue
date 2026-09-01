@@ -31,7 +31,6 @@ package main
 
 import (
 	"fmt"
-	"image/color"
 	"image/png"
 	"os"
 	"path/filepath"
@@ -65,12 +64,16 @@ const sortie = ".tmp/apercus"
 const echelle = 2
 
 // vue est une scène à écrire : où poser le joueur, combien de pas jouer avant de
-// dessiner, si l'on y pose du texte, et le nom du fichier qui en sort.
+// dessiner, ce qu'on pose par-dessus, et le nom du fichier qui en sort.
 type vue struct {
 	nom   string
 	u, v  int
 	ticks int
+	// texte pose les échantillons nus, pour juger la police seule ; hud pose
+	// l'interface, pour juger ce qui l'entoure. Les deux sont séparés parce
+	// qu'un cadre sous un texte change ce qu'on lit de la police.
 	texte bool
+	hud   bool
 }
 
 // vues énumère ce que la planche donne à relire.
@@ -94,6 +97,23 @@ var vues = []vue{
 	{nom: "sud", u: 29, v: 29},
 	{nom: "melee", u: 16, v: 16, ticks: 4 * game.TPS},
 	{nom: "texte", u: 16, v: 16, texte: true},
+	{nom: "interface", u: 16, v: 16, hud: true},
+}
+
+// carte est une amélioration proposée, telle qu'une carte l'affiche.
+//
+// Trois lignes de nature différente — un nom, un effet chiffré, une phrase —
+// parce que c'est ce qui décide de la largeur d'une carte et de la lisibilité
+// d'une hiérarchie à cette taille.
+type carte struct {
+	nom, effet, phrase string
+}
+
+// cartes sont les échantillons du choix de niveau, provisoires comme les autres.
+var cartes = []carte{
+	{"Rafale", "+1 projectile", "Trois projectiles au lieu de deux."},
+	{"Cadence", "+15" + string(rune(0x00A0)) + "%", "L'arme tire plus souvent."},
+	{"Portée", "+2 tuiles", "Les tirs vont plus loin."},
 }
 
 // echantillons sont les chaînes que la vue de texte affiche.
@@ -149,7 +169,7 @@ type planche struct {
 	tampon *ebiten.Image
 	// agrandi porte le tampon multiplié par `echelle`, et c'est lui qu'on écrit.
 	agrandi *ebiten.Image
-	police  *render.Font
+	hud     *render.HUD
 	ecrit   bool
 }
 
@@ -194,6 +214,9 @@ func (p *planche) vue(v vue) error {
 	if v.texte {
 		p.poser()
 	}
+	if v.hud {
+		p.poserInterface()
+	}
 
 	// L'agrandissement se fait au plus proche voisin, qui est le filtre par
 	// défaut : un lissage rendrait la planche inutilisable pour juger du pixel
@@ -232,12 +255,6 @@ func (p *planche) vue(v vue) error {
 // Elles vivent ici et non dans le rendu pour la même raison que les
 // échantillons : le jeu n'a pas encore d'interface, donc pas de teintes à en
 // tirer. Quand il en aura, c'est de lui qu'elles viendront.
-var (
-	texteClair = color.RGBA{R: 232, G: 234, B: 238, A: 255}
-	texteOr    = color.RGBA{R: 236, G: 196, B: 96, A: 255}
-	texteNoir  = color.RGBA{A: 255}
-)
-
 // poser écrit les échantillons sur la scène déjà dessinée.
 //
 // Trois situations, et ce sont elles qui font la vue : une colonne de texte nu
@@ -246,10 +263,11 @@ var (
 // fixe. La troisième est ce qui manquait à la planche qui a fait écrire la règle
 // — un minuteur placé au jugé déborde dès qu'il s'allonge.
 func (p *planche) poser() {
+	h := p.hud
 	y := 12
 	for _, s := range echantillons {
-		p.police.Draw(p.tampon, s, 12, y, texteClair)
-		y += p.police.Height() + 4
+		h.Font.Draw(p.tampon, s, 12, y, h.Color("texte"))
+		y += h.Font.Height() + 4
 	}
 
 	// Sur le monde et non sur un cadre : c'est le cas que la conception vise
@@ -260,14 +278,107 @@ func (p *planche) poser() {
 	// or le rendu provisoire ne peint que trois gris et un bleu : le cas se
 	// jugera quand les sprites entreront, à l'étape 5. Ce que la vue montre est
 	// que le contour ne nuit pas sur fond moyen, pas qu'il suffit sur fond clair.
-	p.police.DrawOutlined(p.tampon, "247", render.Width/2-40, render.Height/2-60,
-		texteOr, texteNoir)
-	p.police.DrawOutlined(p.tampon, "12", render.Width/2+30, render.Height/2-20,
-		texteClair, texteNoir)
+	contour := h.Color("texte_contour")
+	h.Font.DrawOutlined(p.tampon, "247", render.Width/2-40, render.Height/2-60,
+		h.Color("texte_valeur"), contour)
+	h.Font.DrawOutlined(p.tampon, "12", render.Width/2+30, render.Height/2-20,
+		h.Color("texte"), contour)
 
 	for i, s := range []string{"07:41", "1" + string(rune(0x00A0)) + "340 pts"} {
-		x := render.Width - 12 - p.police.Advance(s)
-		p.police.Draw(p.tampon, s, x, 12+i*(p.police.Height()+2), texteClair)
+		x := render.Width - 12 - h.Font.Advance(s)
+		h.Font.Draw(p.tampon, s, x, 12+i*(h.Font.Height()+2), h.Color("texte"))
+	}
+}
+
+// poserInterface compose l'écran de jeu tel que l'étape 3 le demandera.
+//
+// **Chaque élément se dimensionne sur son contenu**, jamais sur une constante :
+// la carte prend la largeur de sa plus longue ligne, la case le côté de ce
+// qu'elle contient, le minuteur sa place mesurée depuis le bord droit. C'est ce
+// que la planche doit donner à juger — si une dimension y était écrite, on
+// jugerait le chiffre plutôt que la règle qui le produit.
+func (p *planche) poserInterface() {
+	h := p.hud
+	marge, hauteur := h.Margin(), h.Font.Height()
+
+	// Les jauges et leur état, en haut à gauche.
+	p.poserJauges(12, 12)
+
+	// Les emplacements, sous les jauges. Le contenu vaut deux lignes faute
+	// d'icône : elles viendront à l'étape 5, et c'est leur taille réelle qui
+	// fixera le côté de la case — d'où un côté calculé plutôt que réglé.
+	x := 12
+	for _, touche := range []string{"1", "2"} {
+		x += h.Slot(p.tampon, x, 62, hauteur*2, touche) + marge
+	}
+
+	// Le minuteur et le score, alignés sur le bord droit par mesure.
+	for i, s := range []string{"07:41", "1" + string(rune(0x00A0)) + "340 pts"} {
+		h.Font.Draw(p.tampon, s, render.Width-12-h.Font.Advance(s),
+			12+i*(hauteur+2), h.Color("texte"))
+	}
+
+	// Le choix occupe le bas de l'écran jusqu'au bord, et non un cadre flottant
+	// au milieu. Deux raisons, dont la seconde est la vraie : une bande basse
+	// laisse toute la hauteur utile au combat qui continue derrière, et le titre
+	// y est lisible sans bandeau propre — posé à même le décor, il disparaissait
+	// dès que le sol s'éclaircissait.
+	titre := "Niveau 5 " + string(rune(0x2014)) + " choisissez une amélioration"
+	panneau := 2*marge + hauteur + marge + p.hauteurCarte() + marge
+	haut := render.Height - panneau
+	h.Band(p.tampon, haut, panneau)
+	h.Font.Draw(p.tampon, titre, (render.Width-h.Font.Advance(titre))/2, haut+marge,
+		h.Color("texte"))
+
+	p.poserCartes(haut + 2*marge + hauteur)
+}
+
+// hauteurCarte rend la hauteur d'une carte, qui vaut ses trois lignes.
+//
+// Elle est calculée et non réglée : le nombre de lignes d'une carte est ce qui
+// la fixe, et une hauteur déclarée deviendrait fausse à la quatrième ligne sans
+// que rien ne le dise.
+func (p *planche) hauteurCarte() int {
+	h := p.hud
+	return 3*(h.Font.Height()+2) + 2*(h.Margin()+h.Border())
+}
+
+// poserJauges pose la vie et l'expérience, avec ce qu'elles valent.
+func (p *planche) poserJauges(x, y int) {
+	h := p.hud
+	const largeur = 148
+
+	h.Gauge(p.tampon, x, y, largeur, 0.62, h.Color("jauge_vie"))
+	h.Font.Draw(p.tampon, "62 / 100", x+largeur+8, y-1, h.Color("texte"))
+
+	y += h.Font.Height()
+	h.Gauge(p.tampon, x, y, largeur, 0.35, h.Color("jauge_experience"))
+	h.Font.Draw(p.tampon, "Niveau 4", x+largeur+8, y-1, h.Color("texte_attenue"))
+}
+
+// poserCartes pose les trois choix, chacun large de sa plus longue ligne.
+func (p *planche) poserCartes(y int) {
+	h := p.hud
+	marge, hauteur := h.Margin(), h.Font.Height()
+	interligne := hauteur + 2
+
+	largeur := 0
+	for _, c := range cartes {
+		for _, ligne := range []string{c.nom, c.effet, c.phrase} {
+			largeur = max(largeur, h.Font.Advance(ligne))
+		}
+	}
+	largeur += 2 * (marge + h.Border())
+
+	x := (render.Width - 3*largeur - 2*marge) / 2
+	for _, c := range cartes {
+		h.Frame(p.tampon, x, y, largeur, p.hauteurCarte())
+		texte := x + marge + h.Border()
+		ligne := y + marge + h.Border()
+		h.Font.Draw(p.tampon, c.nom, texte, ligne, h.Color("texte"))
+		h.Font.Draw(p.tampon, c.effet, texte, ligne+interligne, h.Color("texte_valeur"))
+		h.Font.Draw(p.tampon, c.phrase, texte, ligne+2*interligne, h.Color("texte_attenue"))
+		x += largeur + marge
 	}
 }
 
@@ -287,7 +398,7 @@ func run() error {
 		return err
 	}
 
-	police, err := render.LoadFont(cohue.Assets, cohue.InterfaceManifest)
+	hud, err := render.LoadHUD(cohue.Assets, cohue.InterfaceManifest)
 	if err != nil {
 		return err
 	}
@@ -297,6 +408,6 @@ func run() error {
 	return ebiten.RunGame(&planche{
 		tampon:  ebiten.NewImage(render.Width, render.Height),
 		agrandi: ebiten.NewImage(render.Width*echelle, render.Height*echelle),
-		police:  police,
+		hud:     hud,
 	})
 }

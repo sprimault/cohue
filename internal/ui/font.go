@@ -162,7 +162,8 @@ type rawInterface struct {
 // rawEntries regroupe ce que le manifeste d'interface déclare.
 type rawEntries struct {
 	manifest.Commentable
-	Font rawFont `json:"police"`
+	Font     rawFont     `json:"police"`
+	Settings rawSettings `json:"reglages"`
 }
 
 // rawFont porte les mesures de la planche de glyphes.

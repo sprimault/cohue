@@ -63,6 +63,44 @@ GLYPHES = (
 # témoin : tous les caractères absents rendent le même dessin, `.notdef`.
 TEMOIN = ""
 
+# Ce que l'interface règle, et que le rendu ne code pas.
+#
+# **Aucune image ne sort d'ici.** Une jauge, un cadre, une case sont des
+# rectangles unis dont la taille dépend de leur contenu : une image fixe devrait
+# être étirée, ce qui casserait le pixel entier, et un découpage en neuf morceaux
+# n'a d'intérêt que si le cadre porte un motif — biseau, rivets — qu'aucune
+# décision n'a demandé. Ce qui reste à sortir du code est donc l'apparence seule.
+#
+# **Des faits d'apparence, jamais des dimensions calculées.** L'épaisseur d'un
+# bord et une marge sont des réglages ; la largeur d'une carte dépend de son
+# texte et le côté d'une case de la taille de son icône, si bien que les déclarer
+# ici en ferait une seconde description de ce que le contenu impose.
+#
+# Elles vivent dans ce script plutôt que dans un fichier tenu à la main parce que
+# le régler ne coûte qu'une régénération d'une seconde — la police est le seul
+# dessin de ce générateur. Le manifeste des armes, lui, se tient à la main parce
+# que le sien coûterait six cents images.
+REGLAGES = {
+    "bord_px": 1,
+    "marge_px": 4,
+    "hauteur_jauge_px": 6,
+    # Les teintes sont en RVBA. Le fond d'un cadre et celui d'un bandeau sont
+    # translucides : posés sur le décor, ils doivent laisser deviner ce qu'ils
+    # couvrent, sans quoi une carte de choix masquerait la horde qui approche.
+    "teintes": {
+        "cadre_fond": [26, 28, 34, 205],
+        "cadre_bord": [92, 96, 106, 255],
+        "bandeau_fond": [16, 17, 21, 200],
+        "jauge_fond": [40, 42, 48, 255],
+        "jauge_vie": [176, 62, 58, 255],
+        "jauge_experience": [86, 132, 186, 255],
+        "texte": [232, 234, 238, 255],
+        "texte_attenue": [150, 154, 162, 255],
+        "texte_valeur": [236, 196, 96, 255],
+        "texte_contour": [0, 0, 0, 255],
+    },
+}
+
 
 def absents(police):
     """Rend les glyphes que la fonte ne dessine pas.
@@ -135,6 +173,7 @@ def main():
                 "glyphes": GLYPHES,
                 "avances": avances,
             },
+            "reglages": REGLAGES,
         },
     })
     print(f"police    {len(GLYPHES)} glyphes, cellule {cellule[0]}x{cellule[1]},"

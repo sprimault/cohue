@@ -31,6 +31,21 @@ tiennent plus au regard de ce que le projet est devenu, c'est le test qui est en
 cause et non le cas qu'on examine. Ce qui doit se reposer est la question
 entière, pas la case suivante d'un quota.
 
+**Une ligne mal rangée n'est pas un avancement, et la distinction se
+vérifie :** *si elle restait à son étape, qu'est-ce qui manquerait à cette
+étape ?* Un avancement prend une partie d'une étape et laisse le reste debout ;
+une ligne mal rangée n'appartient pas à l'étape où elle est écrite, et l'en
+retirer n'y laisse pas de trou. La déplacer ne consomme donc pas d'avancement —
+mais elle se trace à l'arrivée, faute de quoi le déplacement ne laisserait qu'un
+diff là où l'avancement laisse une déclaration.
+
+**Le seuil compte le total, réalisés et promis confondus.** Un avancement porté
+par une étape livrée est réalisé, un avancement inscrit dans une étape non écrite
+est promis : cela se lit en lisant les étapes, sans rien à tenir à jour. La
+distinction sert à la relecture — savoir ce qui a été éprouvé —, jamais à
+alléger le compte, sans quoi on accumulerait des promesses sans jamais
+déclencher.
+
 **Chaque étape franchie est publiée**, qu'elle donne à voir quelque chose ou non,
 et qu'elle soit jouable ou non. L'étape N porte la version 0.N.0 — le
 `CHANGELOG` dit déjà que le mineur marque une étape et non une rupture d'API ;
@@ -111,6 +126,17 @@ règle des quarante-cinq secondes appartiennent à la boucle de compulsion, au
 chapitre 2 de la conception. Le jalon ne peut pas juger cette boucle en lui
 retirant son seul moment de décision.
 
+**Les dégâts au contact, continus et plafonnés par seconde quel que soit le
+nombre d'ennemis collés.** Sans le plafond, un encerclement tue instantanément et
+la mort devient illisible.
+
+Cette ligne était écrite à l'étape 4 et n'y était pas chez elle : l'en retirer
+n'y laisse aucun trou, puisque cette étape a pour sujet les comportements comme
+données. Elle vaut dès qu'une créature touche le joueur, et le plafond suppose
+une foule — que l'étape 3 a déjà. **Ce n'est donc pas un troisième avancement
+mais un rangement corrigé**, et sans mort il n'y aurait rien à juger ici plutôt
+qu'une boucle amputée.
+
 Ce qui se règle avant de juger relève de la conduite du jalon, au chapitre 2 de
 la conception : ce que le critère mesure se règle à l'intention, le reste se
 neutralise.
@@ -134,9 +160,10 @@ de table.
 Le spawner achète des ennemis dans un budget de pression par seconde plutôt que
 de poser des compteurs fixes : c'est ce qui gardera les niveaux tiers jouables.
 
-Les dégâts au contact sont continus, avec un plafond par seconde quel que soit le
-nombre d'ennemis collés. Sans lui, un encerclement tue instantanément et la mort
-devient illisible.
+**Le contact ordinaire est parti à l'étape 3**, où la mort le réclamait. Ce qui
+reste ici est ce qui en dévie — notamment la charge du Molosse, le tir de la Buse
+et l'explosion de la Baudruche : c'est la variété des façons de blesser qui
+appartient aux profils, pas le fait de blesser.
 
 La résistance d'un profil s'exprime en touches de l'arme de base au premier
 niveau, jamais en points absolus : l'arme grossit toute la run, un chiffre

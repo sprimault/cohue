@@ -45,6 +45,14 @@ Quatre minutes et non deux, parce que c'est ce qui amène la toute-puissance à 
 
 Le choix compte plus que la récompense. Trois cartes, dont deux tentantes. Si le joueur prend systématiquement la même, l'équilibrage est cassé — la bonne carte est celle qui fait hésiter.
 
+**C'est le seuil qui monte, jamais la valeur d'une gemme.** Une gemme vaut la même chose du début à la fin, quel que soit ce qui l'a laissée tomber ; c'est le seuil du niveau suivant qui croît, et c'est lui qu'on règle pour espacer les choix. L'inverse mélangerait deux questions que ce chapitre traite séparément — ce que vaut un kill, et à quel rythme les choix arrivent —, et un Badaud vaudrait davantage en fin de run pour une raison qui ne le concerne pas. Un profil qui doit rapporter plus laisse tomber **plusieurs** gemmes : la quantité au sol dit alors ce qu'on va gagner, ce dont l'aimant a besoin pour qu'on estime sa récolte avant de déclencher.
+
+**Le temps compte aussi**, et c'est ce qui rend la règle des quarante-cinq secondes vraie par construction. Un joueur qui a tenu quarante-cinq secondes a fait quelque chose — il a kité, esquivé, survécu — et le jeu le reconnaît par une montée. Ce n'est pas un rattrapage mais une seconde source de progression, trois fois plus lente que le tempo nominal, si bien que fuir sans ramasser reste le mauvais calcul.
+
+Elle est nécessaire parce que les deux autres décisions tirent en sens contraire : à valeur fixe chaque niveau demande davantage de gemmes, et les gemmes s'effacent. Sans plancher, le tempo dépendrait du taux de ramassage alors qu'il est une règle dure — avec lui, une partie où l'on ne ramasse rien produit une montée toutes les quarante-cinq secondes, et c'est un test qui l'exige.
+
+**Il ne remet aucun compteur à zéro.** Les gemmes déjà ramassées comptent pour le niveau suivant : un joueur puni par sa lenteur perdrait sinon ce qu'il avait collecté, et le plancher cesserait d'être purement additif.
+
 ### La montée de niveau ne casse pas le rythme
 
 Le choix des trois cartes met le jeu en pause, mais **brièvement et sans cérémonie** : un fondu court, les cartes, le choix, un fondu, et on repart. Pas d'écran plein, pas d'animation d'entrée, pas de son long.

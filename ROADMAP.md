@@ -22,6 +22,15 @@ il porte son motif. Au-delà de deux ou trois, ce ne sont plus des dépendances 
 c'est que la numérotation est fausse, et c'est elle qu'il faut refaire,
 marqueurs compris.
 
+**Deux avancements ont été accordés, et un troisième cas ne se tranche pas au
+même endroit.** Le test qui les a rangés — la chose se tient sans l'étape
+d'origine, et le jalon ne peut pas juger sans elle — n'a encore jamais refusé.
+Au troisième, on relit l'ordre des étapes, leurs marqueurs et les deux
+avancements déjà accordés avant de l'appliquer une fois de plus : s'ils ne
+tiennent plus au regard de ce que le projet est devenu, c'est le test qui est en
+cause et non le cas qu'on examine. Ce qui doit se reposer est la question
+entière, pas la case suivante d'un quota.
+
 **Chaque étape franchie est publiée**, qu'elle donne à voir quelque chose ou non,
 et qu'elle soit jouable ou non. L'étape N porte la version 0.N.0 — le
 `CHANGELOG` dit déjà que le mineur marque une étape et non une rupture d'API ;
@@ -95,6 +104,13 @@ moment de plaisir maximal du genre, et une sensation jugée sans lui serait jug�
 amputée. Les deux branches du test sont donc remplies : il se tient seul, et son
 absence fausserait le jugement de l'étape.
 
+**Et les trois cartes de la montée de niveau**, offrant des variantes de l'arme
+unique. Elles n'empruntent rien à l'étape 6 : celle-ci apporte la table — les
+passifs, les synergies, les recettes de fusion —, quand le choix ternaire et la
+règle des quarante-cinq secondes appartiennent à la boucle de compulsion, au
+chapitre 2 de la conception. Le jalon ne peut pas juger cette boucle en lui
+retirant son seul moment de décision.
+
 Ce qui se règle avant de juger relève de la conduite du jalon, au chapitre 2 de
 la conception : ce que le critère mesure se règle à l'intention, le reste se
 neutralise.
@@ -145,9 +161,12 @@ un nombre d'images codé en dur.
 
 ## 6 — Armes, niveaux et synergies
 
-Table d'armes et de passifs, trois choix par montée de niveau, recettes de
-fusion. Armement de base infini ; armes lourdes à charges, déclenchement
-conditionnel et lisible.
+Table d'armes et de passifs, recettes de fusion. Armement de base infini ; armes
+lourdes à charges, déclenchement conditionnel et lisible.
+
+**Le choix ternaire vient de l'étape 3**, où il présente des variantes de l'arme
+unique. Ce que cette étape apporte est la table où il puise — c'est ici qu'on
+reviendrait chercher les cartes sans les y trouver.
 
 ## 7 — Ressources et caisses
 

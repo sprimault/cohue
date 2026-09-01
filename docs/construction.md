@@ -76,6 +76,36 @@ La sortie est déterministe. Un diff sur `assets/` après régénération sans
 changement de script signale un problème — version de Pillow, ou retouche
 manuelle d'un PNG.
 
+## La police et l'interface
+
+L'interface se partage en deux. Les jauges, cadres, pastilles et icônes de touche
+sont de la géométrie : elles viennent d'un sixième générateur, sur le modèle des
+cinq autres. La police, elle, est **tierce**, et c'est la première ressource du
+dépôt à l'être — dessiner quarante glyphes lisibles et accentués est un métier,
+et le temps qu'il coûterait ne va pas au jalon de l'étape 3.
+
+Trois exigences la contraignent :
+
+- **bitmap et non vectorielle.** Un rendu vectoriel dans le tampon interne
+  réintroduit de l'anticrénelage, et le pixel art tombe avec lui.
+- **les accents français**, qui ne sont pas acquis sur une fonte de jeu
+  anglophone, et une cellule d'au moins sept pixels de haut : en deçà, l'accent
+  n'a pas de ligne libre au-dessus de la capitale et vient se coller à la lettre.
+  C'est une propriété de la fonte, vraie à n'importe quel agrandissement — donc
+  indépendante de ce que l'étape 15 décidera de l'affichage.
+- **un manifeste**, comme tout ce que le moteur lit. Taille de cellule, avance,
+  hauteur de ligne et table des glyphes s'y déclarent ; sans lui les métriques
+  deviennent des constantes du rendu, et changer de fonte redevient un changement
+  de code — c'est-à-dire exactement ce qu'un manifeste existe pour éviter. Aucun
+  générateur ne l'écrivant, il se tient à la main, comme
+  `assets/armes/manifeste.json`.
+
+Le texte se pose en coordonnées entières, au même titre que la caméra : une fonte
+bitmap posée à une position fractionnaire perd ce pour quoi on l'a choisie.
+
+La ligne de [`../CREDITS.md`](../CREDITS.md) s'écrit avec le choix de la fonte,
+sa règle étant de tenir dès l'introduction de la ressource.
+
 ## Les cibles publiées
 
 Ebitengine ne se compile en croisé que vers Windows et WebAssembly ; Linux et

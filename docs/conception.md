@@ -68,6 +68,16 @@ Cette phase de toute-puissance est indispensable. C'est le souvenir que le joueu
 
 D'où un critère qui rend l'intention vérifiable, et qui est le vrai contenu du jalon éliminatoire : **si la bascule n'est pas ressentie avant la minute 9, la courbe est trop lente.**
 
+### La conduite du jalon éliminatoire
+
+Ce critère ne vaut que si l'on mesure ce qu'il prétend mesurer. Au moment de juger, tout réglage capable de fausser la lecture sans être ce que le critère interroge se sort du chemin : les gemmes ne s'effacent pas, la portée de ramassage est large. Sinon un échec est ambigu, et l'on conclut « la courbe est trop lente » là où le joueur perdait simplement ses gemmes.
+
+**Neutraliser n'est pas adoucir**, et c'est la confusion qui rendrait la règle nuisible. La courbe de pression est exactement ce que le critère mesure : l'adoucir ferait passer le jalon trivialement. D'où une question qui classe un réglage au lieu de prescrire une direction — **ce réglage est-il ce que le critère chiffré mesure ?** Si oui, il se règle à l'intention et rien d'autre ; sinon, on le neutralise.
+
+L'erreur à craindre n'est pas symétrique, et c'est ce qui justifie la précaution. Un échec ambigu se rejoue : on cherche, on trouve, on recommence. Un succès ambigu se clôt — c'est le seul jalon qui puisse arrêter le projet, donc un oui ferme la question définitivement, et l'on découvrirait trois étapes plus loin qu'on a validé une sensation fabriquée pour l'occasion.
+
+Cette conduite ne vaut que pour ce jalon-là. Une règle générale d'évaluation n'aurait qu'un seul cas d'application, ce qui est le signe qu'elle n'est pas générale.
+
 ### Le feedback par kill
 
 Quinze minutes ne passent que si chaque seconde est satisfaisante.
@@ -78,7 +88,25 @@ Quinze minutes ne passent que si chaque seconde est satisfaisante.
 - Tremblement d'écran très court, très faible, cumulatif quand ça part en masse.
 - Cadavres au sol pendant quelques secondes, effacés progressivement, pour que la salle porte la trace du carnage.
 
-Le moment de plaisir maximal du genre n'est pas le kill, c'est **l'aimant** : deux cents gemmes qui convergent d'un coup avec une montée sonore. Objet dédié, apparition régulière, déclenchement au choix du joueur.
+Le moment de plaisir maximal du genre n'est pas le kill, c'est **l'aimant** : deux cents gemmes qui convergent d'un coup avec une montée sonore.
+
+### L'aimant
+
+Objet dédié, apparition régulière, et **une charge que le joueur garde** : il se ramasse, il ne se déclenche pas au contact. C'est ce qui en fait une décision plutôt qu'un cadeau.
+
+C'est aussi ce qui permet de garder la portée de ramassage courte. Sans aimant, elle devrait être généreuse — sinon chaque gemme laissée derrière est une perte sèche que le joueur voit s'accumuler sans recours —, et une portée généreuse retire au ramassage tout caractère de décision.
+
+**Il a son emplacement propre, jamais partagé avec les fioles.** Mis en concurrence avec le soin, il ne serait jamais gardé : la vie est la seule ressource véritablement rare, le joueur prudent choisit toujours elle, et le pic n'aurait jamais lieu. Un objet dont la mécanique est détruite par la mise en concurrence ne partage pas ses emplacements.
+
+**Sa contre-force est que les gemmes s'effacent.** Sans elle, la valeur du déclenchement croît strictement avec l'attente : attendre est toujours rationnel, et le joueur meurt avec sa charge. Un objet dont la valeur ne fait que monter n'est pas une décision, c'est un compte à rebours qu'on ne lance jamais.
+
+L'effacement travaille au-delà de l'aimant. Ramasser oblige à revenir là où l'on vient de tuer, c'est-à-dire là où la horde converge : le trajet de collecte va contre le trajet de fuite, et le kiting en cercle dans un coin cesse d'être gratuit sans qu'on ait rien interdit.
+
+**La portée de ramassage et la durée de vie d'une gemme forment un couple** et ne se règlent pas séparément, parce que chacune punit le non-ramassage. La tension vient de ce qu'on perd par choix, le vol de ce qu'on perd sans recours : la portée courte laisse le déplacement comme recours, l'effacement laisse l'aimant. Cumulés, ils n'en laissent qu'un, et il est consommable — c'est là que la collecte bascule de la tension au vol.
+
+**Une gemme s'éteint progressivement, elle ne clignote pas**, et pas seulement pour épargner un signal clignotant à un écran déjà chargé où il concurrencerait les télégraphes. L'extinction donne une information continue : l'âge d'une gemme se lit, donc la récolte d'un déclenchement s'estime avant d'appuyer. C'est ce qui fait du déclenchement une lecture de la salle plutôt qu'un réflexe, et c'est ce qu'on casserait en revenant au clignotement pour une raison de lisibilité.
+
+**La montée sonore du déclenchement reste à écrire, et les huit degrés du ramassage ordinaire ne la fournissent pas.** Ils sont conçus pour une volée de quelques gemmes, où la hauteur monte puis retombe après un silence ; deux cents gemmes les parcourent vingt-cinq fois, ce qui donne une scie. Ce qui est décidé est qu'il s'agit d'un son unique, attaché au déclenchement et non à chaque gemme aspirée — le reste se décide en écoutant.
 
 ### La lisibilité de l'échec
 
@@ -1177,12 +1205,12 @@ Note de prudence : survivor, roguelite, exploration, ressources et éditeur avec
 - **La portée du tir de base**, qui remplace l'angle du cône comme réglage décisif du kiting : trop courte, il faut faire face pour toucher ; trop longue, la horde meurt avant d'être une menace.
 - **Le plafond de dégâts par seconde** et le rapport entre contact ordinaire et charge du Molosse : deux chiffres qui décident si l'encerclement est tendu ou injuste.
 - **La vitesse du joueur rapportée à celle des profils** : à 60 % de sa vitesse un Badaud ne rattrape jamais, à 90 % la fuite ne suffit plus. Tout le kiting tient dans ce rapport, et il se règle en jouant. Le point de départ est cinq tuiles par seconde pour le joueur — un peu plus de trois secondes pour traverser l'écran — ce qui donne au Molosse en charge un gain d'une tuile trois quarts par seconde, franc plutôt que rapide.
-- **La portée de ramassage des gemmes** : c'est elle qui rend l'aimant nécessaire ou décoratif.
+- **La portée de ramassage des gemmes et la durée de vie d'une gemme** : deux valeurs, un seul réglage — le chapitre 2 dit pourquoi elles ne se décident pas séparément.
 - **Le pilote de persistance** : SQLite si et seulement si il se compile pour `js/wasm`, sinon un fichier JSON.
 - **La courbe de résistance** au fil de la run, et le **temps de référence** de chaque lieu : c'est lui qui fixe le poids réel du bonus de temps face aux points d'ennemis.
 - **La bibliothèque d'interface pour l'éditeur** : `ebitenui` ou tout dessiner à la main. À évaluer avant le chantier de l'éditeur, pas pendant.
 
-Tranché en cours de route : aucun asset importable dans le contenu utilisateur, et mode tuiles différé après la première version de l'éditeur.
+Tranché en cours de route : aucun asset importable dans le contenu utilisateur, mode tuiles différé après la première version de l'éditeur, et l'aimant gardé — avec son emplacement propre et l'effacement des gemmes pour contre-force.
 
 Tranché avant d'écrire la première ligne d'`internal/game`, parce que ce sont les décisions que reprendre plus tard toucherait tout le code de jeu : le pas de simulation et la conversion des durées, la tuile en virgule fixe comme repère unique, les quatre flux aléatoires et leur algorithme, la visée omnidirectionnelle sans cône, la passabilité par coût plutôt que par booléen, le Vigile comme seul corps que le joueur ne traverse pas, le domicile de la table d'armes, et l'ordre de mise à jour dans une image.
 

@@ -36,5 +36,6 @@ const (
 	DecorManifest     = "assets/decors/manifeste.json"
 	CharacterManifest = "assets/personnages/manifeste.json"
 	WeaponManifest    = "assets/armes/manifeste.json"
+	InterfaceManifest = "assets/interface/manifeste.json"
 	StartingLevel     = "assets/lieux/place"
 )

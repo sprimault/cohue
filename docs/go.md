@@ -31,6 +31,7 @@ index.
 | pourquoi un champ absent se comporte comme un champ nul | [La valeur zéro](#la-valeur-zéro-ne-se-partage-pas-entre-labsence-et-une-valeur-légitime) |
 | où convertir entre le monde et l'écran | [La projection isométrique](#la-projection-isométrique-ne-se-recalcule-pas) |
 | ce qu'un test doit garder, et comment | [Tests](#11-tests) |
+| pourquoi un test échoue sur un diff qui ne l'atteint pas | [Un rouge que le diff ne peut pas atteindre](#un-rouge-que-le-diff-ne-peut-pas-atteindre-vient-de-linstrument) |
 | si un test vert prouve quelque chose | [Trois façons d'avoir un test vert](#trois-façons-davoir-un-test-vert-qui-ne-prouve-rien) |
 | comment défendre un test qu'on croirait faux | [Le test contre-intuitif](#le-test-qui-garde-une-propriété-contre-intuitive) |
 | pourquoi un contrôle passe sans rien vérifier | [Un contrôle privé de son entrée](#un-contrôle-privé-de-son-entrée-échoue-il-ne-passe-pas) |
@@ -678,6 +679,26 @@ Le piège, dans ce cas-là : **un test ajouté pour couvrir une ligne inutile
 devient ensuite la preuve qu'elle est nécessaire.** C'est le mécanisme exact par
 lequel du code mort se fossilise, et c'est pourquoi le bon geste était de
 corriger le commentaire, pas d'inventer un test.
+
+### Un rouge que le diff ne peut pas atteindre vient de l'instrument
+
+C'est le pendant du précédent : celui-là dit qu'un vert peut ne rien prouver,
+celui-ci qu'un rouge peut n'accuser personne. Avant de chercher ce qui a changé,
+regarder ce que le test mesure — quand le changement ne peut pas atteindre le
+code testé, l'impossibilité est elle-même le signal, et elle désigne le test
+avant qu'on l'ait ouvert.
+
+Le cas : `TestLesSeauxNeGrandissentPasAuFilDesReconstructions` annonçait en godoc
+la capacité des seaux du champ de flux et comptait dans son corps les allocations
+du processus entier. Deux propriétés différentes, dont la seconde dépend des
+finaliseurs et des goroutines laissés par les tests voisins ; il a viré au rouge
+sur un lot qui ne touchait que deux documents.
+
+Le désaccord était lisible dans le fichier, sans aucune exécution : une godoc et
+un corps qui décrivent deux choses sont deux descriptions de la même propriété,
+et l'une des deux ment. Ce que la section [Deux
+descriptions](#deux-descriptions-de-la-même-chose-finissent-par-diverger) dit des
+données vaut ici d'un test et de ce qu'il promet.
 
 ### Trois façons d'avoir un test vert qui ne prouve rien
 

@@ -19,7 +19,7 @@ PYTHON    ?= python3
 # directement perd ces variables, et l'échec est intermittent.
 -include makefile.local
 
-.PHONY: build run test race fmt lint vulncheck sec notices cover binary binaries clean tools ressources ressources-verif decors figurines objets sons controle entetes sommaire apercus
+.PHONY: build run test race fmt lint vulncheck sec notices cover binary binaries clean tools ressources ressources-verif decors figurines objets sons interface controle entetes sommaire apercus
 
 build:
 	go build -trimpath -ldflags "$(LDFLAGS)" -o $(SORTIE)/$(BINAIRE) ./cmd/cohue
@@ -112,6 +112,9 @@ objets:
 
 sons:
 	$(PYTHON) outils/sons.py --sortie assets/sons
+
+interface:
+	$(PYTHON) outils/interface.py --sortie assets/interface
 
 controle:
 	$(PYTHON) outils/ressources.py --controle

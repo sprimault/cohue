@@ -33,6 +33,7 @@ GENERATEURS = (
     ("créatures", "figurines.py", "personnages"),
     ("objets", "objets.py", "objets"),
     ("sons", "sons.py", "sons"),
+    ("interface", "interface.py", "interface"),
 )
 
 # Seuils du contrôle. Ils ne sont pas décoratifs : chacun a coûté une erreur.
@@ -78,7 +79,7 @@ def _pentes(masque):
 
 # Sous quelle clé chaque manifeste range ses entrées. Liste close : un manifeste
 # nouveau s'y déclare, et c'est le geste qui le fait entrer dans les contrôles.
-CLES_D_ENTREES = ("formes", "objets", "profils", "sons", "armes")
+CLES_D_ENTREES = ("formes", "objets", "profils", "sons", "armes", "interface")
 
 
 def _entrees(chemin):
@@ -104,18 +105,36 @@ def _entrees(chemin):
 
 
 def _cotes_de_grille(sortie):
-    """Dossiers dont les images sont des cases de taille fixe.
+    """Ce dont les images sont des cases de taille fixe, et ce que la case admet.
 
     Une bande d'animation vit dans une grille : ses marges transparentes sont
     voulues, et son nombre de couleurs se compte image par image. Confondre les
     deux familles fait remonter des centaines de faux défauts.
+
+    Rend `chemin -> (largeur, hauteur, vides_admises)`. La clé est un dossier
+    pour une bande — toutes les images d'un profil partagent sa case — et un
+    fichier pour une planche de glyphes, qui est une image unique.
+
+    **Le manifeste déclare `cote` pour un carré et `cellule` pour un rectangle,
+    et ce n'est pas la même notion.** Un sprite isométrique vit dans une case
+    carrée par construction ; une police a une cellule dont la hauteur porte la
+    ligne d'accent et le jambage, et qui n'a aucune raison d'égaler sa largeur.
+    C'est ici que les deux se ramènent à un couple, et nulle part dans les
+    manifestes : le format des quatre autres n'a pas à changer pour un besoin
+    qui n'est pas le leur.
     """
     cotes = {}
     for chemin in sortie.rglob("manifeste.json"):
         contenu = _entrees(chemin)
         for nom, info in contenu.items():
             if "cote" in info and "cycles" in info:
-                cotes[chemin.parent / nom] = info["cote"]
+                cotes[chemin.parent / nom] = (info["cote"], info["cote"], False)
+            # Une planche de glyphes porte des cases vides — l'espace, l'espace
+            # insécable — qui sont des glyphes légitimes sans dessin, là où une
+            # image vide dans une bande d'animation est un défaut.
+            elif "cellule" in info and "glyphes" in info:
+                largeur, hauteur = info["cellule"]
+                cotes[chemin.parent / info["fichier"]] = (largeur, hauteur, True)
     return cotes
 
 
@@ -163,8 +182,9 @@ def controler(sortie, pentes=False):
         controlees += 1
         nom = chemin.relative_to(sortie)
 
-        cote = next((c for dossier, c in grilles.items()
-                     if dossier in chemin.parents), None)
+        case = grilles.get(chemin) or next(
+            (c for dossier, c in grilles.items() if dossier in chemin.parents), None)
+        cote = case[0] if case else None
 
         # Icônes d'interface et bandes d'objets : leur case est fixe et leurs
         # marges sont voulues, comme pour les créatures.
@@ -173,14 +193,16 @@ def controler(sortie, pentes=False):
             "etincelle", "souffle") or chemin.stem.startswith("eclats_")
 
         # Un anneau ou une gerbe de particules est creux par nature : chercher
-        # une silhouette pleine n'a pas de sens sur un effet.
-        effet = chemin.stem in ("etincelle", "souffle")
+        # une silhouette pleine n'a pas de sens sur un effet. Une planche de
+        # glyphes non plus : le contre-intérieur d'un « o », d'un « e », d'un
+        # « à » en fabrique des centaines, et ce sont eux qui font la lettre.
+        creux = chemin.stem in ("etincelle", "souffle") or (case and case[2])
 
         if not set(np.unique(pixels[:, :, 3]).tolist()) <= {0, 255}:
             defauts.append((nom, "alpha non binaire : le moteur attend un masque net"))
 
         trous = int((ndimage.binary_fill_holes(masque) & ~masque).sum())
-        if trous > TROUS_TOLERES and not effet:
+        if trous > TROUS_TOLERES and not creux:
             defauts.append((nom, f"{trous} pixels de trou dans la silhouette"))
 
         # Sur une bande, chaque image se compte séparément : concaténer trois
@@ -190,16 +212,18 @@ def controler(sortie, pentes=False):
         for tranche in tranches:
             visible = tranche[:, :, 3] > 0
             if not visible.any():
-                defauts.append((nom, "image entièrement vide dans la bande"))
+                if not (case and case[2]):
+                    defauts.append((nom, "image entièrement vide dans la bande"))
                 continue
             couleurs = len({tuple(c) for c in tranche[visible][:, :3]})
             if couleurs > COULEURS_MAX:
                 defauts.append((nom, f"{couleurs} couleurs, au-dessus de {COULEURS_MAX}"))
                 break
 
-        if cote:
-            if image.height != cote or image.width % cote:
-                defauts.append((nom, f"bande hors grille de {cote} px"))
+        if case:
+            largeur, hauteur, _ = case
+            if image.height != hauteur or image.width % largeur:
+                defauts.append((nom, f"bande hors grille de {largeur}x{hauteur} px"))
         elif not case_fixe and image.getbbox() != (0, 0, image.width, image.height):
             defauts.append((nom, "non recadré : des colonnes ou lignes vides au bord"))
 
@@ -410,6 +434,49 @@ def manifestes(sortie):
     return defauts
 
 
+def police(sortie):
+    """Confronte la planche de glyphes à ce que son manifeste en déclare.
+
+    C'est le contrôle des bandes appliqué à une grille rectangulaire : la
+    largeur de la planche vaut le nombre de glyphes multiplié par celle de la
+    cellule. Il attrape le glyphe ajouté à la table sans régénération, qui
+    décalerait tout le texte d'une cellule à partir de lui.
+
+    Les avances sont une liste parallèle aux glyphes, donc un décalage se lit
+    sur les longueurs — c'est ce qui a décidé de la liste contre un
+    dictionnaire, où un décalage n'aurait eu aucune trace.
+    """
+    chemin = sortie / "interface" / "manifeste.json"
+    if not chemin.exists():
+        return []
+
+    defauts = []
+    for nom, info in _entrees(chemin).items():
+        if "glyphes" not in info:
+            continue
+        glyphes, avances = info["glyphes"], info["avances"]
+        largeur, hauteur = info["cellule"]
+        planche = chemin.parent / info["fichier"]
+        if not planche.exists():
+            defauts.append((nom, f"planche annoncée mais absente : {info['fichier']}"))
+            continue
+        image = Image.open(planche)
+        if image.width != largeur * len(glyphes):
+            defauts.append((nom, f"{image.width} px pour {len(glyphes)} glyphes"
+                                 f" de {largeur} px"))
+        if len(avances) != len(glyphes):
+            defauts.append((nom, f"{len(avances)} avances pour {len(glyphes)} glyphes"))
+        if not 0 < info["ligne_de_base"] < hauteur:
+            defauts.append((nom, f"ligne de base {info['ligne_de_base']} hors"
+                                 f" d'une cellule de {hauteur} px"))
+        # Un doublon décale la lecture sans rien casser à la génération : le
+        # second exemplaire est simplement inatteignable, et le texte qui
+        # l'emploie rend le premier.
+        if len(set(glyphes)) != len(glyphes):
+            defauts.append((nom, "la table des glyphes porte un doublon"))
+    return defauts
+
+
 def renvois_de_sons(sortie):
     """Vérifie que chaque son nommé par un objet existe réellement.
 
@@ -556,6 +623,7 @@ def main():
     defauts += profils(options.sortie)
     defauts += objets(options.sortie)
     defauts += formes(options.sortie)
+    defauts += police(options.sortie)
     defauts += controler_sons(options.sortie)
     defauts += renvois_de_sons(options.sortie)
     sons = len(list(options.sortie.rglob("*.wav")))

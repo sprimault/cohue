@@ -40,6 +40,46 @@ func main() {
 	}
 }
 
+// boucle enchaîne les parties : elle tient celle qui se joue et la remplace
+// quand le joueur relance.
+//
+// **Elle n'est ici que parce qu'aucun des deux autres n'a le droit de la
+// porter.** Le remontage appartient à `internal/session`, qui sait ce qu'une
+// relance conserve et le prouve par un test ; la lecture de la touche appartient
+// à `internal/render`, qui connaît déjà le clavier. Ce qui reste — appeler l'un
+// quand l'autre le demande — est le seul geste que rien ne peut éprouver, et
+// c'est pour cela qu'il est réduit à trois lignes.
+type boucle struct {
+	partie *session.Session
+	ecran  *render.Screen
+	hud    *render.HUD
+}
+
+// Update avance la partie, ou en monte une neuve si le joueur relance.
+func (b *boucle) Update() error {
+	if b.ecran.WantsRestart() {
+		b.partie.Restart()
+		b.monter()
+		return nil
+	}
+	return b.ecran.Update()
+}
+
+// Draw peint la partie en cours.
+func (b *boucle) Draw(ecran *ebiten.Image) { b.ecran.Draw(ecran) }
+
+// Layout délègue à l'écran, qui fixe le tampon interne.
+func (b *boucle) Layout(largeur, hauteur int) (int, int) { return b.ecran.Layout(largeur, hauteur) }
+
+// monter accroche un écran neuf sur la partie courante.
+//
+// L'écran se remonte parce qu'il cadre sur le joueur à sa construction : le
+// réutiliser laisserait la caméra là où la partie précédente s'est terminée, et
+// la relance montrerait un premier instant décadré.
+func (b *boucle) monter() {
+	b.ecran = render.NewScreen(b.partie.World, b.partie.Grid, b.partie.Tile).WithHUD(b.hud)
+}
+
 // run monte le jeu et le fait tourner jusqu'à ce que le joueur quitte.
 //
 // La horde est semée au montage et n'arrive jamais par vagues : le spawner et sa
@@ -49,9 +89,16 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	hud, err := render.LoadHUD(cohue.Assets, cohue.InterfaceManifest)
+	if err != nil {
+		return err
+	}
+
+	jeu := &boucle{partie: partie, hud: hud}
+	jeu.monter()
 
 	ebiten.SetWindowTitle(titreFenetre)
 	ebiten.SetWindowSize(render.Width, render.Height)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	return ebiten.RunGame(render.NewScreen(partie.World, partie.Grid, partie.Tile))
+	return ebiten.RunGame(jeu)
 }

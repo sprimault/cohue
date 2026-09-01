@@ -82,9 +82,24 @@ type Screen struct {
 	// manifeste appellera son ancrage quand les images viendront de lui.
 	demiTuile int
 
+	// hud pose le texte de l'écran de mort. Il peut être nul : la planche de
+	// relecture monte des écrans sans lui, et une partie sans interface se
+	// dessine quand même — ce qu'elle perd est le seul texte du jeu.
+	hud *HUD
+
 	// op est réutilisée d'un blit à l'autre, et remise à zéro à chaque fois :
 	// une case visible en produit un millier par image.
 	op ebiten.DrawImageOptions
+}
+
+// WithHUD attache l'interface à un écran.
+//
+// Séparée du constructeur parce que tous les appelants n'en ont pas : la planche
+// de relecture dessine des scènes sans interface, et l'ajouter au montage
+// l'aurait obligée à charger un manifeste dont elle ne se sert pas.
+func (s *Screen) WithHUD(h *HUD) *Screen {
+	s.hud = h
+	return s
 }
 
 // NewScreen monte le rendu sur une partie et le lieu qu'elle joue.
@@ -113,6 +128,15 @@ func NewScreen(monde *game.World, carte *game.CostGrid, tuile [2]int) *Screen {
 // à cadence fixe et rattrape un retard en l'appelant plusieurs fois d'affilée,
 // ce qui est exactement ce que la simulation attend d'un appelant.
 func (s *Screen) Update() error {
+	// **La mort fige la scène**, et c'est ici que la décision se prend puisque
+	// `World.Step` la laisse ouverte. Le chapitre 2 veut que le joueur puisse se
+	// raconter sa mort ; une horde qui continue d'avancer sous le voile efface
+	// en deux secondes la configuration qui l'a tué, c'est-à-dire ce qu'il y
+	// avait à comprendre.
+	if !s.monde.Alive() {
+		return nil
+	}
+
 	s.monde.Step(voulu())
 	s.cam.suivre(s.monde.Player())
 	return nil
@@ -123,6 +147,9 @@ func (s *Screen) Draw(ecran *ebiten.Image) {
 	ecran.Fill(fond)
 	s.peindreSol(ecran)
 	s.peindreEntites(ecran)
+	if !s.monde.Alive() {
+		s.peindreMort(ecran)
+	}
 }
 
 // Layout fixe la taille du tampon interne, quelle que soit celle de la fenêtre.

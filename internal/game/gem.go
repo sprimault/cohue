@@ -38,6 +38,13 @@ type Gem struct {
 	// l'âge que le rendu veut — l'extinction progressive est une fraction de la
 	// durée de vie, pas un seuil.
 	Born Tick
+	// Pulled dit que l'aimant l'a saisie.
+	//
+	// **Une gemme attirée cesse de vieillir.** Sans cela, déclencher l'aimant sur
+	// un tas ancien en perdrait la moitié en vol : il échouerait précisément sur
+	// les gemmes pour lesquelles on l'a dépensé. Il est le recours contre
+	// l'effacement, il ne peut pas en être la victime.
+	Pulled bool
 }
 
 // Gems rend le bassin des gemmes au sol.
@@ -101,6 +108,8 @@ func (w *World) lacher(e *Enemy) {
 // c'est le sens qu'il faut : le joueur l'avait sous les pieds, la lui retirer
 // pour une milliseconde ferait un vol que rien à l'écran n'expliquerait.
 //
+// Une gemme que l'aimant a saisie n'expire plus : la raison est sur `Gem.Pulled`.
+//
 // Le compte est rendu plutôt que porté à l'expérience ici : ce que vaut une
 // gemme est une question de progression, et une passe de ramassage qui la
 // trancherait aurait donné un second domicile au rythme des choix.
@@ -121,7 +130,7 @@ func (w *World) ramasser() int {
 		case (Vec{X: g.X - w.playerX, Y: g.Y - w.playerY}).carres() <= portee*portee:
 			w.gemmes.RemoveAt(i)
 			recoltees++
-		case w.tick-g.Born >= w.progression.GemLife:
+		case !g.Pulled && w.tick-g.Born >= w.progression.GemLife:
 			w.gemmes.RemoveAt(i)
 		default:
 			i++

@@ -99,6 +99,16 @@ type vue struct {
 	// restent ont toutes le même âge. Il faut donc les poser, comme la vue de
 	// mêlée doit jouer des pas pour que la horde soit arrivée.
 	semeDesGemmes bool
+	// chargeLAimant donne une charge sans la dépenser, pour que l'emplacement du
+	// bandeau se juge plein.
+	chargeLAimant bool
+	// declencheLAimant lance la ruée après les pas joués, et dessine l'image en
+	// plein vol.
+	//
+	// La charge est donnée plutôt que ramassée : ce que cette vue montre est la
+	// convergence, et jouer les trente secondes qu'une apparition demande y
+	// ajouterait une horde qui a tué le joueur entre-temps.
+	declencheLAimant bool
 	// jusquAuChoix arrête les pas dès qu'un choix s'ouvre, plutôt qu'au compte.
 	// Le nombre de ticks devient alors un plafond : il tient la planche
 	// déterministe même si l'équilibrage change ce qu'il faut de temps.
@@ -146,7 +156,19 @@ var vues = []vue{
 	// regarde n'est pas une teinte mais un écart : deux âges voisins doivent se
 	// distinguer, sinon l'information continue que l'effacement promet n'arrive
 	// pas au joueur. Une seule gemme, si pâle soit-elle, ne dirait rien de ça.
-	{nom: "gemmes", u: 16, v: 16, videLaHorde: true, semeDesGemmes: true},
+	{nom: "gemmes", u: 16, v: 16, videLaHorde: true, semeDesGemmes: true,
+		chargeLAimant: true},
+
+	// **La ruée est ce qui juge une anticipation du projet.** Les gemmes sont
+	// entrées dans la séquence de tri en profondeur parce qu'on prévoyait que
+	// l'aimant les ferait traverser la horde à hauteur de torse ; rien ne l'avait
+	// vérifié. Cette vue est le premier endroit où ça se voit : la horde reste,
+	// les gemmes sont semées au loin, et l'aimant est déclenché.
+	//
+	// Quatre secondes de convergence de la horde d'abord, pour qu'elle soit
+	// arrivée : des gemmes qui traverseraient une salle vide ne diraient rien.
+	{nom: "ruee", u: 16, v: 16, ticks: 4 * game.TPS,
+		semeDesGemmes: true, declencheLAimant: true},
 
 	// La mort ne se pose pas, elle s'obtient : le joueur reste immobile au
 	// milieu du lieu et la horde finit par l'avoir. Vingt secondes couvrent
@@ -252,9 +274,6 @@ func (p *planche) vue(v vue) error {
 			horde.RemoveAt(0)
 		}
 	}
-	if v.semeDesGemmes {
-		semerDesAges(partie.World, v.u, v.v)
-	}
 
 	// **La mort arrête les pas dès qu'une vue en dépend.** `World.Step` continue
 	// de tourner après elle — c'est l'écran qui fige, et la planche l'appelle
@@ -266,6 +285,28 @@ func (p *planche) vue(v vue) error {
 		}
 		partie.World.Step(game.Vec{})
 	}
+
+	// **Les gemmes se sèment après les pas, jamais avant.** Elles vivent six
+	// secondes : semées d'abord, celles des vues qui jouent des pas se seraient
+	// éteintes avant qu'on dessine, et la vue de la ruée montrait un sol vide.
+	if v.semeDesGemmes {
+		semerDesAges(partie.World, v.u, v.v)
+	}
+	if v.chargeLAimant {
+		partie.World.Charge()
+	}
+
+	// La ruée se dessine en plein vol : quelques ticks suffisent à ce que les
+	// gemmes soient parties sans être arrivées, ce qui est le seul état où la
+	// convergence se juge.
+	if v.declencheLAimant {
+		partie.World.Charge()
+		partie.World.Attract()
+		for range game.TPS / 4 {
+			partie.World.Step(game.Vec{})
+		}
+	}
+
 	render.NewScreen(partie.World, partie.Grid, partie.Tile).WithHUD(p.hud).Draw(p.tampon)
 	if v.texte {
 		p.poser()

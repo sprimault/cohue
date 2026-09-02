@@ -74,6 +74,16 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   temps et ce qu'une gemme rapporte se règlent dans ce fichier, tenu à la main
   comme la table d'armes.
 
+- **L'aimant.** Un objet violet apparaît toutes les trente secondes, toujours à
+  bonne distance : on le ramasse et on le garde, il ne se déclenche pas au
+  contact. La touche 1 dépense la charge, et **toutes les gemmes au sol
+  convergent d'un coup** — elles cessent alors de s'effacer, l'aimant étant le
+  recours contre l'effacement et non sa victime. Un seul en main, un seul au sol :
+  un aimant qu'on voit sans pouvoir le prendre est une raison de dépenser le sien.
+- **Le choix des cartes passe aux flèches**, gauche, bas et droite : la touche
+  désigne la carte qu'elle montre. Les chiffres reviennent aux emplacements, qui
+  les gardent toute la partie — une carte mal choisie se rattrape au niveau
+  suivant, un aimant déclenché à vide est perdu.
 - **Les gemmes s'effacent.** Une gemme laissée au sol s'éteint progressivement
   et disparaît au bout de six secondes. L'extinction est continue et non
   clignotante : l'âge d'une gemme se lit, donc ce qu'un tas vaut encore
@@ -150,6 +160,16 @@ pauses the game to offer **three cards**, one of which you take.
 - **`assets/progression/manifeste.json`.** Level thresholds, the time floor and
   what a gem is worth are tuned in this file, hand-held like the weapon table.
 
+- **The magnet.** A violet object appears every thirty seconds, always at a
+  distance: you pick it up and keep it, it does not trigger on contact. Key 1
+  spends the charge and **every gem on the ground converges at once** — those
+  gems then stop fading, the magnet being the recourse against erasure rather
+  than its victim. One in hand, one on the ground: a magnet you can see but
+  cannot take is a reason to spend the one you hold.
+- **Cards are now chosen with the arrow keys**, left, down and right: the key
+  points at the card it takes. Numbers go back to the slots, which keep them for
+  the whole run — a badly chosen card is made up for at the next level, a magnet
+  fired with nothing held is lost.
 - **Gems fade away.** A gem left on the ground dims progressively and vanishes
   after six seconds. The fade is continuous rather than blinking: a gem's age
   can be read, so what a pile is still worth can be estimated. This is what will

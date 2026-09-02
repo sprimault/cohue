@@ -32,6 +32,21 @@ const margeEcran = 12
 // Cent quarante-huit en donnent une et demie par point.
 const largeurJauge = 148
 
+// contenuEmplacement est le côté de ce qu'une case d'emplacement contient.
+//
+// Il fixe la case, et non l'inverse : `Slot` en dérive son côté en ajoutant la
+// marge et le bord. Douze pixels aujourd'hui, ce que fera une icône d'objet à
+// l'étape 5 — et c'est alors sa taille réelle qui prendra la place de ce chiffre.
+const contenuEmplacement = 12
+
+// toucheAimant est ce que le joueur presse pour déclencher sa charge.
+//
+// **Les chiffres appartiennent aux emplacements**, et ils les gardent toute la
+// partie. C'est ce qui a fait passer le choix des cartes aux flèches : une carte
+// mal choisie se rattrape au niveau suivant, un aimant déclenché à vide est perdu
+// jusqu'à la prochaine apparition, et le coût n'est pas symétrique.
+const toucheAimant = "1"
+
 // Readings est ce que le bandeau montre d'une partie.
 //
 // Des nombres et non le monde : la planche de relecture compose le bandeau sans
@@ -47,6 +62,8 @@ type Readings struct {
 	Experience, Threshold int
 	// Elapsed est l'âge de la partie.
 	Elapsed game.Tick
+	// Charged dit si le joueur tient un aimant.
+	Charged bool
 }
 
 // Panel pose les trois lectures : la vie, l'expérience et le temps écoulé.
@@ -80,6 +97,33 @@ func (h *HUD) Panel(dst *ebiten.Image, r Readings) {
 	temps := minuteur(r.Elapsed)
 	h.libelle(dst, temps, Width-margeEcran-h.Font.Advance(temps), margeEcran,
 		h.Color("texte"))
+
+	h.emplacement(dst, margeEcran, y+h.Font.Height()+h.Margin(), r.Charged)
+}
+
+// emplacement pose la case de l'aimant sous les jauges.
+//
+// **La case est toujours là, pleine ou vide.** Un emplacement qui n'apparaîtrait
+// qu'une fois chargé apprendrait au joueur l'existence de l'objet au moment où il
+// le tient déjà, et une case vide est ce qui fait chercher l'aimant dans la
+// salle. Ce que la charge change est ce qu'il y a dedans, pas la case.
+//
+// La touche s'écrit dessous et non le nom, comme la conception l'exige d'un
+// emplacement : ce que le joueur cherche sous la case en jouant est ce qu'il doit
+// presser, et l'icône dira de quoi il s'agit quand elle existera.
+func (h *HUD) emplacement(dst *ebiten.Image, x, y int, chargee bool) {
+	cote := h.Slot(dst, x, y, contenuEmplacement, toucheAimant)
+	if !chargee {
+		return
+	}
+
+	// Un aplat centré tient lieu d'icône, dans **la teinte de l'objet au sol** et
+	// non dans une couleur du thème : sans elle, rien ne dirait que la case et ce
+	// qu'on vient de ramasser sont la même chose. C'est la seule chose que le
+	// bandeau emprunte au monde plutôt qu'au manifeste d'interface, et ça cessera
+	// quand l'icône de l'aimant existera.
+	bord := (cote - contenuEmplacement) / 2
+	h.Rect(dst, x+bord, y+bord, contenuEmplacement, contenuEmplacement, teinteAimant)
 }
 
 // libelle pose un texte du bandeau, aligné sur la jauge qu'il commente.
@@ -132,5 +176,6 @@ func (s *Screen) peindreBandeau(ecran *ebiten.Image) {
 		Experience: s.monde.Experience(),
 		Threshold:  s.monde.Threshold(),
 		Elapsed:    s.monde.Tick(),
+		Charged:    s.monde.Charged(),
 	})
 }

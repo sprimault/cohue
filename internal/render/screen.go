@@ -27,6 +27,7 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"github.com/sprimault/cohue/internal/game"
 )
@@ -67,6 +68,11 @@ var (
 	// teinte saturée que rien d'autre ne porte, sans quoi un tas au sol
 	// disparaît sous la horde au moment où l'on cherche à l'estimer.
 	teinteGemme = color.RGBA{R: 96, G: 214, B: 168, A: 255}
+	// L'aimant doit se voir de loin, puisque tout son intérêt est qu'on décide
+	// d'aller le chercher. Un violet clair, la seule famille qu'aucune autre
+	// entité n'occupe — le joueur tient le jaune, la horde le rouge, les gemmes
+	// le vert, les projectiles le blanc.
+	teinteAimant = color.RGBA{R: 196, G: 138, B: 226, A: 255}
 )
 
 // Screen est le jeu tel qu'Ebitengine le voit.
@@ -77,13 +83,14 @@ type Screen struct {
 
 	scene *scene
 
-	// Les quatre formes blanches que le dessin teinte au blit : la face d'une
-	// case, la silhouette d'un personnage, le point d'un projectile et celui
-	// d'une gemme.
+	// Les cinq formes blanches que le dessin teinte au blit : la face d'une
+	// case, la silhouette d'un personnage, le point d'un projectile, celui d'une
+	// gemme et celui d'un aimant.
 	face     *ebiten.Image
 	figurine *ebiten.Image
 	eclat    *ebiten.Image
 	gemme    *ebiten.Image
+	aimant   *ebiten.Image
 	// demiTuile est l'abscisse du sommet dans l'image d'une face, ce que le
 	// manifeste appellera son ancrage quand les images viendront de lui.
 	demiTuile int
@@ -119,14 +126,18 @@ func NewScreen(monde *game.World, carte *game.CostGrid, tuile [2]int) *Screen {
 		monde: monde,
 		carte: carte,
 		cam:   nouvelleCamera(tuile, carte),
-		scene: nouvelleScene(carte,
-			monde.Enemies().Cap(), monde.Shots().Cap(), monde.Gems().Cap()),
+		scene: nouvelleScene(carte, monde.Enemies().Cap(), monde.Shots().Cap(),
+			monde.Gems().Cap(), monde.Magnets().Cap()),
 		face:     face(tuile),
 		figurine: aplat(tuile[0]/4, tuile[0]*3/4),
 		eclat:    aplat(tuile[1]/8, tuile[1]/8),
 		// Deux fois l'éclat : assez pour qu'un tas se compte d'un coup d'œil,
 		// assez peu pour qu'une gemme ne masque pas ce qui la piétine.
-		gemme:     aplat(tuile[1]/4, tuile[1]/4),
+		gemme: aplat(tuile[1]/4, tuile[1]/4),
+		// Deux fois la gemme : il ne s'agit pas d'estimer un tas mais de
+		// repérer un objet unique à l'autre bout de la salle, et c'est la
+		// taille qui porte ça avant la teinte.
+		aimant:    aplat(tuile[1]/2, tuile[1]/2),
 		demiTuile: tuile[0] / 2,
 	}
 	s.cam.suivre(monde.Player())
@@ -156,6 +167,13 @@ func (s *Screen) Update() error {
 	if s.monde.Choosing() {
 		s.choisir()
 		return nil
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.Key1) {
+		// Sur l'enfoncement, comme la relance et le choix d'une carte : au
+		// maintien, la charge partirait à l'image où le doigt se pose et le
+		// joueur ne saurait jamais s'il l'a dépensée exprès.
+		s.monde.Attract()
 	}
 
 	s.monde.Step(voulu())
@@ -230,8 +248,20 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 			s.silhouette(ecran, s.eclat, p.X, p.Y, teinteTir)
 		case sorteGemme:
 			g := s.monde.Gems().At(e.place)
-			s.silhouette(ecran, s.gemme, g.X, g.Y, eteindre(teinteGemme,
-				s.monde.GemAge(g), s.monde.GemLife()))
+			// **Une gemme attirée reprend sa teinte pleine.** L'extinction dit
+			// « ceci va disparaître » ; une gemme que l'aimant tient ne
+			// disparaîtra pas, et la montrer éteinte serait montrer une
+			// information fausse. Accessoirement, une ruée de gemmes anciennes
+			// serait un feu d'artifice en gris — l'inverse de ce que la
+			// conception appelle le moment de plaisir maximal du genre.
+			teinte := teinteGemme
+			if !g.Pulled {
+				teinte = eteindre(teinte, s.monde.GemAge(g), s.monde.GemLife())
+			}
+			s.silhouette(ecran, s.gemme, g.X, g.Y, teinte)
+		case sorteAimant:
+			a := s.monde.Magnets().At(e.place)
+			s.silhouette(ecran, s.aimant, a.X, a.Y, teinteAimant)
 		case sorteJoueur:
 			x, y := s.monde.Player()
 			s.silhouette(ecran, s.figurine, x, y, teinteJoueur)

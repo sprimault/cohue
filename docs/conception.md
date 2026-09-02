@@ -932,6 +932,10 @@ L'ordre de ces deux raisons compte. Les capitales accentuées sont aussi ce qui 
 
 Un libellé d'emplacement porte la **touche**, jamais le nom. L'icône dit déjà de quoi il s'agit, et ce que le joueur cherche sous la case en jouant est ce qu'il doit presser. Un « 1 » tient là où « Aimant » déborde de sa case, mais la largeur n'est pas la raison : le nom serait au mauvais endroit même s'il tenait.
 
+**Cette règle vise ce qu'on lit en jouant, donc sous pression, et rien d'autre.** Un panneau qui met le jeu en pause n'est pas dans ce régime : il a un titre, où l'instruction s'écrit une fois pour tous ses choix au lieu d'être répétée sous chacun. C'est ce qui permet à l'écran de montée de niveau de dire « choisissez avec les flèches » plutôt que d'étiqueter trois cartes. Sans cette précision, quelqu'un appliquera la règle au panneau et retirera l'instruction, qui est la seule chose y indiquant qu'on choisit au clavier.
+
+**Les chiffres appartiennent aux emplacements et les gardent toute la partie.** Ce qui a écarté les chiffres du choix des cartes n'est pas l'encombrement mais l'asymétrie du coût : une carte mal choisie se rattrape à la montée suivante, un aimant déclenché à vide est perdu jusqu'à la prochaine apparition. Le choix sous pause peut donc emprunter des touches réservées à ce moment — les flèches, libres puisque le déplacement est suspendu, et dont le geste désigne spatialement la carte qu'il prend sans qu'aucune étiquette ne l'explique.
+
 Les chiffres de dégâts jaillissent au-dessus de n'importe quoi — décor clair, flaque, carrelage. Ils portent donc un contour ou une ombre portée d'un pixel, sans quoi leur couleur, distincte pour les critiques, ne suffit pas à les détacher du fond. C'est la discipline des contours foncés du paragraphe précédent, appliquée à ce qui n'est pas un sprite.
 
 ### Les tuiles
@@ -1029,7 +1033,7 @@ Côté **armes** : `assets/armes/manifeste.json`, tenu à la main et non génér
 
 Les mettre ailleurs aurait dupliqué la liste des profils à deux endroits. Un nouveau profil reste une ligne de table.
 
-Côté **progression** : `assets/progression/manifeste.json`, tenu à la main lui aussi — le seuil du premier niveau, ce que chaque niveau ajoute au seuil du suivant, le plancher de quarante-cinq secondes, et tout ce qui concerne la gemme : ce qu'elle rapporte, la portée à laquelle elle se ramasse, le temps qu'elle reste au sol. Ces deux dernières forment le couple que ce document interdit de régler séparément, et c'est pour cela que la portée a quitté le profil du joueur — celui qui touche à l'une doit voir l'autre. Ces chiffres se règlent en rejouant, et c'est le même critère qui les sort d'un fichier généré.
+Côté **progression** : `assets/progression/manifeste.json`, tenu à la main lui aussi — le seuil du premier niveau, ce que chaque niveau ajoute au seuil du suivant, le plancher de quarante-cinq secondes, le rythme de l'aimant avec la distance minimale de son apparition et la vitesse de sa ruée, et tout ce qui concerne la gemme : ce qu'elle rapporte, la portée à laquelle elle se ramasse, le temps qu'elle reste au sol. Ces deux dernières forment le couple que ce document interdit de régler séparément, et c'est pour cela que la portée a quitté le profil du joueur — celui qui touche à l'une doit voir l'autre. Ces chiffres se règlent en rejouant, et c'est le même critère qui les sort d'un fichier généré.
 
 Il ne vit pas auprès des armes, et la raison n'est pas qu'un manifeste de plus soit plus propre : **un seuil appartient à la partie**. Il vaut quelle que soit l'arme équipée, il continuerait d'exister si la table d'armes changeait entièrement, et il commande le rythme des choix plutôt que leur contenu. La courbe de pression du spawner s'y rangera pour la même raison, d'où des sections nommées plutôt que des champs à plat.
 

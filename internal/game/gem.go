@@ -31,6 +31,13 @@ const rayonVolee = One / 4
 // une information qui n'en a qu'une.
 type Gem struct {
 	X, Y Fixed
+	// Born est le tick où elle est tombée.
+	//
+	// La naissance et non le reste à vivre : un compte à rebours demanderait une
+	// écriture par gemme et par tick, là où une date se pose une fois. Et c'est
+	// l'âge que le rendu veut — l'extinction progressive est une fraction de la
+	// durée de vie, pas un seuil.
+	Born Tick
 }
 
 // Gems rend le bassin des gemmes au sol.
@@ -75,13 +82,24 @@ func (w *World) lacher(e *Enemy) {
 			ecart := Heading(rang * 3).Scale(rayonVolee * Fixed(1+rang/Headings))
 			x, y = x+ecart.X, y+ecart.Y
 		}
-		if _, pose := w.gemmes.Spawn(Gem{X: x, Y: y}); !pose {
+		if _, pose := w.gemmes.Spawn(Gem{X: x, Y: y, Born: w.tick}); !pose {
 			return
 		}
 	}
 }
 
-// ramasser retire les gemmes que le joueur atteint, et rend leur nombre.
+// ramasser retire les gemmes que le joueur atteint et celles qui se sont
+// éteintes, et rend le nombre des premières.
+//
+// **Deux causes, une seule suppression**, comme pour un projectile qui disparaît
+// qu'il ait touché ou épuisé sa portée. Les écrire en deux passes finirait par en
+// laisser une oublier de libérer sa place, et le nom de cette fonction dit son
+// produit — la récolte — plutôt que la liste de ce qu'elle retire.
+//
+// **L'ordre entre les deux n'est pas indifférent : le ramassage passe en
+// premier.** Une gemme atteinte au tick même où elle expire est ramassée, et
+// c'est le sens qu'il faut : le joueur l'avait sous les pieds, la lui retirer
+// pour une milliseconde ferait un vol que rien à l'écran n'expliquerait.
 //
 // Le compte est rendu plutôt que porté à l'expérience ici : ce que vaut une
 // gemme est une question de progression, et une passe de ramassage qui la
@@ -95,16 +113,30 @@ func (w *World) lacher(e *Enemy) {
 // même raison : cette passe ne fait que filtrer, sans rien avancer, et la sauter
 // laisserait au sol une gemme que le joueur a déjà traversée.
 func (w *World) ramasser() int {
-	portee := int64(w.profils.Player.PickupRange)
+	portee := int64(w.progression.PickupRange)
 	recoltees := 0
 	for i := 0; i < w.gemmes.Len(); {
 		g := w.gemmes.At(i)
-		if (Vec{X: g.X - w.playerX, Y: g.Y - w.playerY}).carres() <= portee*portee {
+		switch {
+		case (Vec{X: g.X - w.playerX, Y: g.Y - w.playerY}).carres() <= portee*portee:
 			w.gemmes.RemoveAt(i)
 			recoltees++
-			continue
+		case w.tick-g.Born >= w.progression.GemLife:
+			w.gemmes.RemoveAt(i)
+		default:
+			i++
 		}
-		i++
 	}
 	return recoltees
 }
+
+// GemAge rend l'âge d'une gemme, en ticks.
+//
+// Elle sort du paquet pour le rendu, qui en tire l'extinction progressive : une
+// gemme s'éteint et ne clignote pas, parce que l'âge doit se lire en continu —
+// c'est ce qui permet d'estimer sa récolte avant de déclencher l'aimant, et ce
+// qui fait du déclenchement une lecture de la salle plutôt qu'un réflexe.
+func (w *World) GemAge(g *Gem) Tick { return w.tick - g.Born }
+
+// GemLife rend le temps qu'une gemme reste au sol, en ticks.
+func (w *World) GemLife() Tick { return w.progression.GemLife }

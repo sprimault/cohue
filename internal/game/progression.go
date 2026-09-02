@@ -37,6 +37,21 @@ type Progression struct {
 	// Floor est le temps au bout duquel un niveau est donné sans rien ramasser,
 	// en ticks.
 	Floor Tick
+	// PickupRange est la distance à laquelle une gemme se ramasse, en tuiles.
+	//
+	// Elle vit avec la durée de vie et non sur le profil du joueur, parce que la
+	// conception en fait un couple qu'on ne règle pas séparément : chacune punit
+	// le non-ramassage, et le lecteur qui touche à l'une doit voir l'autre.
+	PickupRange Fixed
+	// GemLife est le temps qu'une gemme reste au sol, en ticks.
+	//
+	// **C'est la contre-force de l'aimant.** Sans elle, la valeur d'un
+	// déclenchement croît strictement avec l'attente : attendre est toujours
+	// rationnel, et le joueur meurt avec sa charge. Elle travaille au-delà de
+	// l'aimant, d'ailleurs — ramasser oblige à revenir là où l'on vient de tuer,
+	// donc là où la horde converge, et le kiting en cercle cesse d'être gratuit
+	// sans qu'on ait rien interdit.
+	GemLife Tick
 	// GemValue est ce qu'une gemme ramassée porte à l'expérience.
 	//
 	// Un scalaire et non une table, parce que la simulation ne distingue pas
@@ -119,6 +134,25 @@ func LoadProgression(fsys fs.FS, chemin string) (*Progression, error) {
 			"gemme que le joueur ramasse pour rien", table.GemValue)
 	}
 
+	table.PickupRange = FromFloat(exige("gemmes", "portee_ramassage_tuiles", g.TileRange, dire))
+	if g.TileRange != nil && table.PickupRange < 1 {
+		dire("gemmes.portee_ramassage_tuiles : %v, une portée que la virgule "+
+			"fixe arrondit a zero ne ramasse rien", *g.TileRange)
+	}
+
+	if ms := exige("gemmes", "duree_vie_ms", g.LifeMs, dire); ms > 0 {
+		ticks, err := TicksFromMs(ms)
+		if err != nil {
+			dire("gemmes.duree_vie_ms : %v", err)
+		}
+		table.GemLife = ticks
+	} else if g.LifeMs != nil {
+		// Une durée nulle efface la gemme dans le tick où elle tombe : le joueur
+		// verrait la créature mourir sans rien laisser, ce qui ressemble à un
+		// butin manquant et non à un effacement.
+		dire("gemmes.duree_vie_ms : %d, une gemme qui ne dure pas n'existe pas", ms)
+	}
+
 	if len(manques) > 0 {
 		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
@@ -160,6 +194,10 @@ type rawGems struct {
 	Object string `json:"objet"`
 	// Experience est ce que son ramassage porte au compteur.
 	Experience *int `json:"experience"`
+	// TileRange est la portée de ramassage, en tuiles.
+	TileRange *float64 `json:"portee_ramassage_tuiles"`
+	// LifeMs est le temps qu'une gemme reste au sol.
+	LifeMs *int `json:"duree_vie_ms"`
 }
 
 // rawLevels porte les seuils, en pointeurs pour les valeurs dont zéro est une

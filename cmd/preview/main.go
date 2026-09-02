@@ -90,6 +90,15 @@ type vue struct {
 	// planche met de côté est ce qui empêche d'y arriver, pas ce qu'elle donne à
 	// juger.
 	videLaHorde bool
+	// semeDesGemmes pose une rangée de gemmes d'âges échelonnés, hors de portée
+	// du joueur.
+	//
+	// **L'extinction ne se juge pas autrement.** Une gemme vit six secondes et se
+	// ramasse dès qu'on la frôle : dans une partie jouée, aucune ne reste assez
+	// longtemps au sol pour qu'on voie sa teinte descendre, et celles qui y
+	// restent ont toutes le même âge. Il faut donc les poser, comme la vue de
+	// mêlée doit jouer des pas pour que la horde soit arrivée.
+	semeDesGemmes bool
 	// jusquAuChoix arrête les pas dès qu'un choix s'ouvre, plutôt qu'au compte.
 	// Le nombre de ticks devient alors un plafond : il tient la planche
 	// déterministe même si l'équilibrage change ce qu'il faut de temps.
@@ -132,6 +141,12 @@ var vues = []vue{
 	// pas, pas le compte, si bien que la vue tient encore quand le plancher change.
 	{nom: "cartes", u: 16, v: 16, ticks: 90 * game.TPS,
 		videLaHorde: true, jusquAuChoix: true},
+
+	// **L'extinction se juge sur une rangée, pas sur une gemme.** Ce qu'on
+	// regarde n'est pas une teinte mais un écart : deux âges voisins doivent se
+	// distinguer, sinon l'information continue que l'effacement promet n'arrive
+	// pas au joueur. Une seule gemme, si pâle soit-elle, ne dirait rien de ça.
+	{nom: "gemmes", u: 16, v: 16, videLaHorde: true, semeDesGemmes: true},
 
 	// La mort ne se pose pas, elle s'obtient : le joueur reste immobile au
 	// milieu du lieu et la horde finit par l'avoir. Vingt secondes couvrent
@@ -236,6 +251,9 @@ func (p *planche) vue(v vue) error {
 		for horde.Len() > 0 {
 			horde.RemoveAt(0)
 		}
+	}
+	if v.semeDesGemmes {
+		semerDesAges(partie.World, v.u, v.v)
 	}
 
 	// **La mort arrête les pas dès qu'une vue en dépend.** `World.Step` continue
@@ -396,4 +414,34 @@ func run() error {
 		agrandi: ebiten.NewImage(render.Width*echelle, render.Height*echelle),
 		hud:     hud,
 	})
+}
+
+// semerDesAges pose une rangée de gemmes échelonnées sur toute leur durée de vie.
+//
+// Hors de portée du joueur, sinon la première passe de ramassage les retirerait
+// avant qu'on les voie. Et sur une ligne plutôt qu'en tas : ce qu'il faut juger
+// est l'écart entre deux âges voisins, qu'un chevauchement rendrait illisible.
+//
+// Les gemmes sont posées directement dans le bassin, ce que le jeu ne fait
+// jamais — il passe par la mort d'une créature. C'est du même ordre que la horde
+// retirée : la planche met de côté ce qui empêche d'arriver à l'état qu'elle
+// montre, jamais l'état lui-même.
+func semerDesAges(monde *game.World, u, v int) {
+	// Le compteur est un `game.Tick` et non un entier, si bien que le calcul de
+	// l'âge ne convertit rien : une conversion vers l'entier du compteur de
+	// ticks est un débordement possible, et le contrôle de sécurité a raison de
+	// le dire même quand les bornes l'excluent ici.
+	const rangee game.Tick = 6
+
+	vie := monde.GemLife()
+	for i := range rangee {
+		monde.Gems().Spawn(game.Gem{
+			X: game.FromInt(u+2+int(i)) + game.One/2,
+			Y: game.FromInt(v) + game.One/2,
+			// Le dernier rang est à un tick de disparaître, pas au-delà : une
+			// gemme déjà expirée serait retirée au premier pas et la rangée
+			// perdrait l'extrémité qui compte le plus.
+			Born: -(vie - 1) * i / (rangee - 1),
+		})
+	}
 }

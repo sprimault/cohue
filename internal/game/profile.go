@@ -76,13 +76,6 @@ type Player struct {
 	// d'ennemis au contact. Sans lui, un encerclement tue instantanément et la
 	// mort devient illisible.
 	DamageCap int
-	// PickupRange est la distance à laquelle une gemme se ramasse, en tuiles.
-	//
-	// Courte à dessein : c'est elle qui fait du ramassage une décision, une
-	// gemme laissée derrière étant perdue. Elle forme un couple avec la durée de
-	// vie d'une gemme, qui n'existe pas encore — les deux punissent le
-	// non-ramassage, et la conception les règle ensemble.
-	PickupRange Fixed
 }
 
 // EnemyProfile est ce qu'une sorte d'ennemi partage avec toutes ses instances.
@@ -249,7 +242,6 @@ type rawProfile struct {
 	TilesPerSec *float64 `json:"vitesse_tuiles_s,omitempty"`
 	Health      *int     `json:"vie,omitempty"`
 	DamageCap   *int     `json:"plafond_degats_s,omitempty"`
-	PickupRange *float64 `json:"portee_ramassage_tuiles,omitempty"`
 
 	RelSpeed     *float64 `json:"vitesse_relative,omitempty"`
 	Hits         *int     `json:"touches,omitempty"`
@@ -324,7 +316,6 @@ var champsConditionnels = []struct {
 	{"vitesse_tuiles_s", "un joueur", estRole(rolePlayer), func(p rawProfile) bool { return p.TilesPerSec != nil }},
 	{"vie", "un joueur", estRole(rolePlayer), func(p rawProfile) bool { return p.Health != nil }},
 	{"plafond_degats_s", "un joueur", estRole(rolePlayer), func(p rawProfile) bool { return p.DamageCap != nil }},
-	{"portee_ramassage_tuiles", "un joueur", estRole(rolePlayer), func(p rawProfile) bool { return p.PickupRange != nil }},
 
 	{"vitesse_relative", "un ennemi ou une ambiance", nonJoueur, func(p rawProfile) bool { return p.RelSpeed != nil }},
 	{"touches", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Hits != nil }},
@@ -397,12 +388,11 @@ func controler(cle string, p rawProfile, dire func(string, ...any)) {
 // s'interrompt en route. Ce qu'elle produit alors n'est jamais rendu.
 func (p rawProfile) joueur() Player {
 	return Player{
-		Name:        p.Name,
-		Speed:       parTick(ou0(p.TilesPerSec)),
-		Radius:      FromFloat(ou0(p.TileRadius)),
-		Health:      ou0(p.Health),
-		DamageCap:   ou0(p.DamageCap),
-		PickupRange: FromFloat(ou0(p.PickupRange)),
+		Name:      p.Name,
+		Speed:     parTick(ou0(p.TilesPerSec)),
+		Radius:    FromFloat(ou0(p.TileRadius)),
+		Health:    ou0(p.Health),
+		DamageCap: ou0(p.DamageCap),
 	}
 }
 

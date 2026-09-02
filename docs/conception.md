@@ -1007,7 +1007,7 @@ Côté **décor** : taille, ancrage, élévation, catégorie, thème, et quatre 
 
 Côté **personnages** : le rendu — cycles, cadences, bouclage, directions, point d'appui, gabarit, variantes — **et les valeurs de jeu**, dans le même fichier.
 
-Un **rôle** décide d'abord, et il en a trois : le joueur porte une vie, un plafond de dégâts, une portée de ramassage et la seule vitesse absolue du jeu ; un ennemi porte résistance, points, coût de pression, poids de séparation, plafond de simultanéité, dégâts de contact et nombre de gemmes ; une entité d'ambiance ne porte ni l'un ni l'autre.
+Un **rôle** décide d'abord, et il en a trois : le joueur porte une vie, un plafond de dégâts et la seule vitesse absolue du jeu ; un ennemi porte résistance, points, coût de pression, poids de séparation, plafond de simultanéité, dégâts de contact et nombre de gemmes ; une entité d'ambiance ne porte ni l'un ni l'autre.
 
 Le nombre de gemmes est un **nombre et non une valeur**, ce que le chapitre 2 impose : une gemme rapporte la même chose du début à la fin, et c'est le seuil du niveau suivant qui monte. Un profil qui doit rapporter davantage en laisse donc plusieurs, et c'est la quantité au sol qui dit au joueur ce qu'il va gagner. Un booléen n'en aurait couvert que deux, le troisième cas se lisant dans son absence — le genre de défaut par défaut qu'on ne voit pas.
 
@@ -1029,7 +1029,7 @@ Côté **armes** : `assets/armes/manifeste.json`, tenu à la main et non génér
 
 Les mettre ailleurs aurait dupliqué la liste des profils à deux endroits. Un nouveau profil reste une ligne de table.
 
-Côté **progression** : `assets/progression/manifeste.json`, tenu à la main lui aussi — le seuil du premier niveau, ce que chaque niveau ajoute au seuil du suivant, le plancher de quarante-cinq secondes, et ce qu'une gemme ramassée rapporte. Ces chiffres se règlent en rejouant, et c'est le même critère qui les sort d'un fichier généré.
+Côté **progression** : `assets/progression/manifeste.json`, tenu à la main lui aussi — le seuil du premier niveau, ce que chaque niveau ajoute au seuil du suivant, le plancher de quarante-cinq secondes, et tout ce qui concerne la gemme : ce qu'elle rapporte, la portée à laquelle elle se ramasse, le temps qu'elle reste au sol. Ces deux dernières forment le couple que ce document interdit de régler séparément, et c'est pour cela que la portée a quitté le profil du joueur — celui qui touche à l'une doit voir l'autre. Ces chiffres se règlent en rejouant, et c'est le même critère qui les sort d'un fichier généré.
 
 Il ne vit pas auprès des armes, et la raison n'est pas qu'un manifeste de plus soit plus propre : **un seuil appartient à la partie**. Il vaut quelle que soit l'arme équipée, il continuerait d'exister si la table d'armes changeait entièrement, et il commande le rythme des choix plutôt que leur contenu. La courbe de pression du spawner s'y rangera pour la même raison, d'où des sections nommées plutôt que des champs à plat.
 

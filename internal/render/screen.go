@@ -230,7 +230,8 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 			s.silhouette(ecran, s.eclat, p.X, p.Y, teinteTir)
 		case sorteGemme:
 			g := s.monde.Gems().At(e.place)
-			s.silhouette(ecran, s.gemme, g.X, g.Y, teinteGemme)
+			s.silhouette(ecran, s.gemme, g.X, g.Y, eteindre(teinteGemme,
+				s.monde.GemAge(g), s.monde.GemLife()))
 		case sorteJoueur:
 			x, y := s.monde.Player()
 			s.silhouette(ecran, s.figurine, x, y, teinteJoueur)
@@ -251,6 +252,50 @@ func (s *Screen) silhouette(ecran, forme *ebiten.Image, x, y game.Fixed, teinte 
 	s.op.ColorScale.Reset()
 	s.op.ColorScale.ScaleWithColor(teinte)
 	ecran.DrawImage(forme, &s.op)
+}
+
+// braiseGemme est ce qu'il reste d'une gemme au dernier tick de sa vie.
+//
+// **Elle ne descend pas à zéro**, et ce n'est pas une prudence d'affichage :
+// une gemme invisible mais ramassable est un objet qui ment. Le joueur qui ne la
+// voit plus a toutes les raisons de la croire partie, et la ramasser au passage
+// sans comprendre pourquoi son compteur bouge est un défaut de lisibilité plus
+// insidieux qu'une absence d'affichage — il ne manque rien, quelque chose de
+// faux est montré. Un quart de la teinte reste lisible sur le sol tout en disant
+// que la gemme s'en va.
+const braiseGemme = 0.25
+
+// eteindre affaiblit une teinte à mesure que la gemme vieillit.
+//
+// **Une extinction continue et non un clignotement.** Le clignotement dirait
+// « bientôt » sans dire « dans combien de temps », et il entrerait en
+// concurrence avec les télégraphes d'attaque sur un écran déjà chargé.
+// L'extinction, elle, donne l'âge en continu : c'est ce qui permet d'estimer une
+// récolte avant de déclencher l'aimant, donc de faire du déclenchement une
+// lecture de la salle plutôt qu'un réflexe.
+//
+// Linéaire sur toute la vie, et non sur sa fin seule : une gemme qui ne
+// changerait qu'au dernier moment ne se distinguerait pas d'une gemme neuve
+// pendant l'essentiel de son existence, et l'information n'arriverait qu'une
+// fois inutile.
+//
+// **La fin de l'extinction et la disparition coïncident tant que l'échelle vient
+// de la durée de vie elle-même**, ce qu'assure la signature : il n'existe pas de
+// durée d'extinction distincte qui pourrait s'en écarter. En introduire une
+// rouvrirait l'écart — une vie rallongée sans que l'extinction le soit rendrait
+// des gemmes éteintes bien avant de partir, et la braise ne protégerait plus de
+// rien.
+func eteindre(teinte color.RGBA, age, vie game.Tick) color.RGBA {
+	if vie <= 0 {
+		return teinte
+	}
+	part := 1 - (1-braiseGemme)*min(float64(age)/float64(vie), 1)
+	return color.RGBA{
+		R: uint8(float64(teinte.R) * part),
+		G: uint8(float64(teinte.G) * part),
+		B: uint8(float64(teinte.B) * part),
+		A: teinte.A,
+	}
 }
 
 // teinte dit de quelle couleur une case se peint, selon ce qu'elle coûte.

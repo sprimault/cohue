@@ -81,7 +81,7 @@ type Session struct {
 	// manifeste et le lieu cuit. Les relire coûterait un décodage complet pour
 	// rendre exactement les mêmes valeurs.
 	profils     *game.Profiles
-	arme        game.Weapon
+	armes       *game.Weapons
 	progression *game.Progression
 }
 
@@ -113,7 +113,7 @@ func (s *Session) Restart() {
 // session sur une graine en jouerait une autre, ce qui se serait vu au moment
 // d'écrire un lieu de défi.
 func (s *Session) monter() {
-	s.World = game.NewWorld(s.profils, s.arme, s.progression, s.Grid, s.Seed,
+	s.World = game.NewWorld(s.profils, s.armes, s.progression, s.Grid, s.Seed,
 		HordeCapacity, ShotCapacity, GemCapacity)
 	placer(s.World, s.Grid)
 	peupler(s.World, s.Grid, s.profils)
@@ -172,7 +172,7 @@ func Open(fsys fs.FS, lieu string, graine uint64) (*Session, error) {
 		Tile:        decor.Tile,
 		Seed:        graine,
 		profils:     profils,
-		arme:        armes.Base,
+		armes:       armes,
 		progression: progression,
 	}
 	partie.monter()
@@ -214,6 +214,13 @@ func placer(monde *game.World, grille *game.CostGrid) {
 // L'écart au joueur se mesure en cases et non en tuiles du monde : ce qui est
 // semé l'est sur la grille, et un rayon exact n'apporterait rien à un motif dont
 // le pas vaut trois cases.
+//
+// **Ce qu'il coûte, mesuré :** trois cents créatures d'un coup convergent en
+// cinq secondes, et le joueur tombe vers la sixième avec au plus six gemmes des
+// dix que le premier niveau demande. Aucune position de départ ni direction de
+// fuite n'ouvre une montée de niveau vivant. Ce n'est pas un défaut de la
+// progression mais du semis : la courbe de pression achète les créatures dans un
+// budget qui commence bas, et c'est elle qui rendra le jalon mesurable.
 func peupler(monde *game.World, grille *game.CostGrid, profils *game.Profiles) {
 	px, py := monde.Player()
 	pu, pv := px.Floor(), py.Floor()

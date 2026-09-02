@@ -224,14 +224,29 @@ func (w *World) progresser(recoltees int) {
 	}
 }
 
-// monter passe au niveau suivant.
+// monter passe au niveau suivant et ouvre le choix qui l'accompagne.
 //
-// Chemin unique, et c'est la raison d'être de cette méthode d'une ligne et
-// demie : la montée par expérience et la montée forcée doivent emprunter le même
-// jusqu'au choix présenté. Deux chemins parallèles resteraient d'accord tant que
-// personne n'y touche, et cesseront de l'être quand les trois cartes viendront
-// s'y brancher.
+// Chemin unique : la montée par expérience et la montée forcée l'empruntent
+// toutes deux jusqu'au choix présenté. Deux chemins parallèles resteraient
+// d'accord tant que personne n'y touche, et cesseraient de l'être au premier
+// réglage — c'est ici que les trois cartes se branchent, et elles ne connaissent
+// pas la source de la montée.
+//
+// **Le niveau monte avant le choix, pas après.** C'est ce qui fait terminer la
+// boucle de distribution : le seuil du niveau suivant est plus haut, donc
+// l'expérience finit par ne plus l'atteindre. Un niveau qui n'avancerait qu'au
+// choix laisserait cette boucle tourner sur un seuil qui ne bouge pas.
+//
+// Un choix déjà ouvert n'est pas remplacé, il fait la queue. Une récolte
+// abondante donne deux montées dans le même tick, et écraser la première en
+// retirerait une au joueur sans que rien ne le dise.
 func (w *World) monter() {
 	w.niveau++
 	w.depuisChoix = 0
+
+	if w.Choosing() {
+		w.enAttente++
+		return
+	}
+	w.offrir()
 }

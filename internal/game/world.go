@@ -42,8 +42,12 @@ const rabattement = One * 3 / 2
 // leur réutilisation d'un tick à l'autre est ce qui tient le budget
 // d'allocation. Rien n'y est alloué après la construction.
 type World struct {
-	profils     *Profiles
+	profils *Profiles
+	// arme est la copie que la partie transforme. Les passifs la modifient, si
+	// bien qu'une relance repart de la table sans qu'on ait à défaire quoi que
+	// ce soit.
 	arme        Weapon
+	passifs     *Passives
 	progression *Progression
 	grille      *CostGrid
 	flux        *FlowField
@@ -80,9 +84,24 @@ type World struct {
 	// qu'en soit la source. C'est lui que le plancher de temps surveille, et son
 	// nom dit qu'il ne mesure pas l'âge de la run.
 	depuisChoix Tick
+	// cartes sont les places offertes, vides quand aucun choix n'est ouvert.
+	// La tranche est réutilisée d'un choix à l'autre.
+	cartes []Card
+	// paliers compte ce qui a été pris sur chaque axe, indexé comme
+	// `Passives.Axes`. Un compteur par axe plutôt qu'une liste de cartes prises :
+	// c'est le rang qui décide de ce que la carte suivante offre.
+	paliers []int
+	// enAttente est le nombre de choix dus au joueur, en plus de celui qui est
+	// ouvert. Une récolte abondante en donne deux d'un coup, et les présenter
+	// l'un après l'autre est la seule façon de n'en perdre aucun.
+	enAttente int
 }
 
-// NewWorld monte une partie sur une carte et une table de profils.
+// NewWorld monte une partie sur une carte et les tables du manifeste.
+//
+// La table d'armes entre entière plutôt que sa seule arme de base : les passifs
+// y vivent, et le monde en a besoin dès la première montée de niveau. Les passer
+// à côté aurait fait deux paramètres pour ce qui est un seul fichier.
 //
 // Les deux capacités sont celles des bassins — les ennemis, puis les
 // projectiles — et ne changent plus après le montage. Les plafonds eux-mêmes et
@@ -92,11 +111,12 @@ type World struct {
 // La graine en est un, en revanche, et elle vient du montage : lui seul sait de
 // quelle run il s'agit dans la suite d'une session. Une partie qui tirerait la
 // sienne ne se rejouerait plus.
-func NewWorld(profils *Profiles, arme Weapon, progression *Progression, grille *CostGrid,
+func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, grille *CostGrid,
 	graine uint64, capacite, tirs, gemmes int) *World {
 	return &World{
 		profils:     profils,
-		arme:        arme,
+		arme:        armes.Base,
+		passifs:     armes.Passives,
 		progression: progression,
 		vie:         profils.Player.Health,
 		niveau:      1,
@@ -107,6 +127,8 @@ func NewWorld(profils *Profiles, arme Weapon, progression *Progression, grille *
 		tirs:        NewPool[Projectile](tirs),
 		gemmes:      NewPool[Gem](gemmes),
 		hasard:      NewStreams(graine),
+		cartes:      make([]Card, 0, Choices),
+		paliers:     make([]int, len(armes.Passives.Axes)),
 	}
 }
 

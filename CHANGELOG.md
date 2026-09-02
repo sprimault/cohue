@@ -74,7 +74,11 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   temps et ce qu'une gemme rapporte se règlent dans ce fichier, tenu à la main
   comme la table d'armes.
 
-- **L'aimant.** Un objet violet apparaît toutes les trente secondes, toujours à
+- **L'aimant entre au catalogue** : un fer à cheval de cuivre dans
+  `assets/objets/`, et sa montée sonore dans `assets/sons/`. Le son est une
+  glissade d'une octave qui finit là où commence la gamme du ramassage ordinaire,
+  pour qu'on reconnaisse la même chose en grand. Rien ne joue encore de son.
+- **L'aimant.** Un objet apparaît toutes les trente secondes, toujours à
   bonne distance : on le ramasse et on le garde, il ne se déclenche pas au
   contact. La touche 1 dépense la charge, et **toutes les gemmes au sol
   convergent d'un coup** — elles cessent alors de s'effacer, l'aimant étant le
@@ -160,7 +164,11 @@ pauses the game to offer **three cards**, one of which you take.
 - **`assets/progression/manifeste.json`.** Level thresholds, the time floor and
   what a gem is worth are tuned in this file, hand-held like the weapon table.
 
-- **The magnet.** A violet object appears every thirty seconds, always at a
+- **The magnet joins the catalogue**: a copper horseshoe in `assets/objets/`, and
+  its rising sound in `assets/sons/`. The sound sweeps up one octave and ends
+  where the ordinary pickup scale begins, so it is recognisably the same thing
+  writ large. Nothing plays sound yet.
+- **The magnet.** An object appears every thirty seconds, always at a
   distance: you pick it up and keep it, it does not trigger on contact. Key 1
   spends the charge and **every gem on the ground converges at once** — those
   gems then stop fading, the magnet being the recourse against erasure rather

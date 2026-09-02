@@ -69,10 +69,14 @@ var (
 	// disparaît sous la horde au moment où l'on cherche à l'estimer.
 	teinteGemme = color.RGBA{R: 96, G: 214, B: 168, A: 255}
 	// L'aimant doit se voir de loin, puisque tout son intérêt est qu'on décide
-	// d'aller le chercher. Un violet clair, la seule famille qu'aucune autre
-	// entité n'occupe — le joueur tient le jaune, la horde le rouge, les gemmes
-	// le vert, les projectiles le blanc.
-	teinteAimant = color.RGBA{R: 196, G: 138, B: 226, A: 255}
+	// d'aller le chercher. Le cuivre d'une bobine, qui ne dispute sa teinte à
+	// personne — le joueur tient le jaune, la horde le rouge, les gemmes le vert,
+	// les projectiles le blanc.
+	//
+	// C'est la teinte du sprite de `assets/objets/`, recopiée ici le temps que le
+	// rendu lise les images. Deux descriptions de la même couleur, donc, et elles
+	// cesseront de l'être à l'étape 5 : c'est l'aplat qui disparaîtra.
+	teinteAimant = color.RGBA{R: 198, G: 126, B: 78, A: 255}
 )
 
 // Screen est le jeu tel qu'Ebitengine le voit.

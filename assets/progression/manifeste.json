@@ -18,6 +18,7 @@
     },
     "aimant": {
       "$comment": "periode_ms — l'écart entre deux apparitions. Trente secondes donnent six à huit aimants sur un lieu de trois à quatre minutes : assez pour que ce soit un rythme, assez peu pour qu'en manquer un coûte. || distance_min_tuiles — la distance au joueur en dessous de laquelle l'apparition est refusée. Elle n'est pas une prudence : aller le chercher doit être un trajet, donc une décision, comme la collecte des gemmes. La contrainte est d'être loin et non d'être hors champ, à l'inverse de l'anneau d'apparition des créatures — une créature qui surgit devant est une injustice, un objet qu'on voit au loin est une invitation. Six tuiles font un peu plus d'une seconde de course et restent largement dans le champ. || vitesse_gemme_tuiles_s — la vitesse à laquelle une gemme attirée rejoint le joueur. Celle d'un projectile, la chose la plus rapide que le jeu dessine : la convergence doit se lire comme une ruée et non comme une dérive, et la conception en fait le moment de plaisir maximal du genre. || Ces trois chiffres se règlent en jouant.",
+      "objet": "aimant",
       "periode_ms": 30000,
       "distance_min_tuiles": 6.0,
       "vitesse_gemme_tuiles_s": 12.0

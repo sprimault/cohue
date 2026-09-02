@@ -440,9 +440,13 @@ func ou0[T any](v *T) T {
 	return *v
 }
 
-// parTick convertit une vitesse en tuiles par seconde vers le pas de simulation.
-func parTick(tuilesParSeconde float64) Fixed {
-	return FromFloat(tuilesParSeconde / TPS)
+// parTick convertit un débit par seconde vers le pas de simulation.
+//
+// Les vitesses en tuiles par seconde d'abord, et le budget de pression d'un
+// scénario ensuite : un débit se ramène au tick de la même façon, et l'écrire
+// deux fois aurait donné deux arrondis à tenir d'accord.
+func parTick(parSeconde float64) Fixed {
+	return FromFloat(parSeconde / TPS)
 }
 
 // liste énumère des valeurs admises pour un message de refus, ce qui vaut mieux

@@ -51,9 +51,18 @@ func mondeDEssai(t *testing.T, largeur, hauteur int) (*World, *Profiles) {
 	if err != nil {
 		t.Fatalf("armes livrées : %v", err)
 	}
-	return NewWorld(profils, armes, progressionLivree(t), g, graineDeTest,
+	return NewWorld(profils, armes, progressionLivree(t), sansVagues(), g, graineDeTest,
 		300, 256, 512), profils
 }
+
+// sansVagues rend le scénario d'un lieu qui n'achète rien.
+//
+// La plupart des cas du paquet posent leur horde à la main : ils éprouvent ce
+// qu'elle fait, pas la façon dont elle arrive. Un scénario vide leur évite de
+// composer une courbe dont rien ne dépend, et surtout d'en subir les
+// apparitions — une créature achetée en cours de route décalerait des comptes
+// que ces cas relèvent à l'unité.
+func sansVagues() *Scenario { return &Scenario{} }
 
 // armesInertes rend la table livrée, arme de base neutralisée.
 //
@@ -289,7 +298,7 @@ func TestRienNeTraverseUnMur(t *testing.T) {
 
 	// Arme inerte : ce test isole le déplacement, et un joueur qui abat la
 	// créature dont on suit la trajectoire ne mesurerait plus rien.
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), g, graineDeTest, 4, 1, 8)
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g, graineDeTest, 4, 1, 8)
 	w.Place(FromInt(4)+One/2, FromInt(1)+One/2)
 	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), One/2+One, One/2+One); !ok {
 		t.Fatal("créature refusée")
@@ -363,7 +372,7 @@ func TestLeGlissementNeCoupeAucunAngle(t *testing.T) {
 	for _, c := range cas {
 		t.Run(c.nom, func(t *testing.T) {
 			// Arme inerte et bassin d'une place : ce test isole le déplacement.
-			w := NewWorld(profils, armesInertes(t), progressionLivree(t),
+			w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(),
 				grilleDepuis(c.grille...), graineDeTest, 1, 1, 4)
 			w.Place(FromInt(c.depart[0])+One/2, FromInt(c.depart[1])+One/2)
 
@@ -399,7 +408,7 @@ func TestLeCoutDeLaCaseDiviseLaVitesse(t *testing.T) {
 			g.Set(u, 2, Blocked)
 			g.Set(u, 1, cout)
 		}
-		w := NewWorld(profils, armesInertes(t), progressionLivree(t), g, graineDeTest, 1, 1, 4)
+		w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g, graineDeTest, 1, 1, 4)
 		w.Place(FromInt(1)+One/2, FromInt(1)+One/2)
 		depart := FromInt(10) + One/2
 		if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), depart, FromInt(1)+One/2); !ok {

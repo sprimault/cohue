@@ -41,11 +41,24 @@ func TestPartieLivreeSeMonte(t *testing.T) {
 		t.Fatalf("montage de la partie livrée : %v", err)
 	}
 
-	// La horde est semée au montage, et le lieu livré est assez ouvert pour en
-	// porter. Zéro créature signifierait que le semis ne trouve aucune case, ce
-	// qu'un changement de pas ou d'écart au joueur produirait en silence.
+	// **La horde n'existe pas au montage, elle s'achète** — et c'est la chaîne
+	// entière que ces deux relevés éprouvent sur les données publiées : le
+	// scénario lu dans le lieu, le budget accumulé, et l'anneau qui trouve une
+	// case franchissable à dix-neuf tuiles du joueur. Zéro créature après
+	// quelques secondes signifierait qu'il n'en trouve aucune, ce qu'un lieu trop
+	// étroit ou un rayon mal réglé produirait en silence.
+	//
+	// Trois secondes, et pas davantage : l'anneau pose les créatures hors de
+	// portée de l'arme, si bien qu'aucune n'est encore morte et que le compte
+	// reste celui des apparitions.
+	if n := partie.World.Enemies().Len(); n != 0 {
+		t.Errorf("%d créature(s) au premier tick, alors que la horde s'achète", n)
+	}
+	for range 3 * game.TPS {
+		partie.World.Step(game.Vec{})
+	}
 	if n := partie.World.Enemies().Len(); n == 0 {
-		t.Error("aucune créature semée sur le lieu livré")
+		t.Error("aucune créature après trois secondes de jeu sur le lieu livré")
 	}
 
 	if partie.Tile != [2]int{64, 32} {

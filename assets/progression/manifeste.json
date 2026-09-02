@@ -2,7 +2,7 @@
   "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> — SPDX-License-Identifier: Apache-2.0 — le rythme des montées de niveau, tenu à la main comme assets/armes/manifeste.json : ce qui se règle en rejouant ne doit pas passer par un générateur",
   "version_format": 1,
   "progression": {
-    "$comment": "Des sections nommées plutôt que des champs à plat, parce que la courbe de pression du spawner viendra s'y ranger : elle appartient à la partie au même titre que les seuils, et deux réglages sans rapport dans un même espace de noms finiraient par se disputer un nom.",
+    "$comment": "Des sections nommées plutôt que des champs à plat : deux réglages sans rapport dans un même espace de noms finiraient par se disputer un nom. || Ce qui est ici appartient à la partie et non au lieu, et le partage est net : un auteur de lieu écrit le rythme de ses vagues dans son lieu.json, il ne décide pas de la distance à laquelle une créature se matérialise ni de ce que devient un budget non dépensé.",
     "niveaux": {
       "$comment": "seuil_premier — les gemmes qui mènent du niveau 1 au niveau 2. Dix, soit douze secondes de tir réglementaire : une salve toutes les 400 ms, trois touches pour abattre un Badaud. || seuil_increment — ce que chaque niveau ajoute au seuil du suivant. C'est le seuil qui monte et jamais la valeur d'une gemme, qui rapporte la même chose du début à la fin. Deux tient l'écart entre deux choix dans la fenêtre de quinze à vingt secondes sur les premiers niveaux, puis l'allonge, ce que la conception demande. || plancher_ms — le temps au bout duquel un niveau est donné sans rien ramasser. Quarante-cinq secondes est une règle dure du chapitre 2 : jamais plus longtemps sans un choix à faire. Converti en ticks au chargement, et jamais relu en millisecondes. || Les deux seuils sont provisoires tant que le spawner n'existe pas : c'est la cadence de récolte réelle qui les jugera.",
       "seuil_premier": 10,
@@ -22,6 +22,11 @@
       "periode_ms": 30000,
       "distance_min_tuiles": 6.0,
       "vitesse_gemme_tuiles_s": 12.0
+    },
+    "pression": {
+      "$comment": "rayon_apparition_tuiles — la distance au joueur à laquelle une créature apparaît. Dix-neuf tuiles : le point du monde le plus éloigné qu'un tampon de 960×540 laisse voir est à 15,9 tuiles, et la conception veut trois tuiles au-delà du bord de l'écran. Ce chiffre est donc dérivé du tampon fixe, et il est à revoir si ce tampon change — sans quoi on verrait les créatures se matérialiser. Il vit ici et non dans le lieu parce qu'il ne s'agit pas du rythme d'un auteur : un rayon tiré de la fenêtre donnerait à deux joueurs des apparitions différentes sur la même graine, et le déterminisme tomberait. || report_ms — la borne du budget non dépensé. Une apparition abandonnée, faute de position libre sur l'anneau, reporte son budget au tick suivant : sans report, un couloir étroit serait un abri où la pression tombe à zéro. Mais sans borne, vingt secondes passées dans un cul-de-sac se libèrent d'un coup à la sortie, ce qui est le mur d'ennemis que la règle « jamais dans le champ de vision » cherche à interdire. Trois secondes : se terrer coûte du temps, pas une punition différée qu'on ne relie plus à sa cause. || Le plafond d'effectif n'est pas ici : c'est la capacité du bassin des ennemis, et deux chiffres pour une même limite finiraient par se contredire en silence.",
+      "rayon_apparition_tuiles": 19.0,
+      "report_ms": 3000
     }
   }
 }

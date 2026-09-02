@@ -14,7 +14,10 @@
 // temps.
 package level
 
-import "github.com/sprimault/cohue/internal/manifest"
+import (
+	"github.com/sprimault/cohue/internal/game"
+	"github.com/sprimault/cohue/internal/manifest"
+)
 
 // Level est un lieu : une liste de pièces posées, et rien de plus.
 //
@@ -36,6 +39,12 @@ type Level struct {
 	SetFingerprint string `json:"empreinte_jeu_pieces,omitempty"`
 	// Placements sont les pièces posées, avec leur case d'origine.
 	Placements []Placement `json:"pieces"`
+	// Waves est la courbe de pression du lieu, absente pour une salle sans horde.
+	//
+	// Le type vient d'`internal/game` : c'est une table de jeu, et son sens
+	// appartient au paquet qui l'exécute. La décrire ici en aurait fait une
+	// seconde description, à tenir d'accord avec la première.
+	Waves game.WaveScenario `json:"vagues,omitempty"`
 }
 
 // Placement est une pièce posée dans un lieu.

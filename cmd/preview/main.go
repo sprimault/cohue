@@ -19,10 +19,10 @@
 //
 // **Elle est déterministe, et doit le rester.** Deux exécutions écrivent des
 // octets identiques, sans quoi comparer une planche d'avant et d'après un
-// changement ne dirait rien. Rien n'y est tiré au sort : la horde vient du semis
-// régulier du montage, et les vues qui jouent des pas les jouent avec une
-// direction nulle. La graine, elle, est fixée d'avance, pour que la propriété
-// tienne encore quand un tirage entrera dans la simulation.
+// changement ne dirait rien. Ce qui la tient n'est plus l'absence de tirage — le
+// spawner en fait à chaque tick — mais la graine fixée d'avance, et des pas
+// joués avec une direction nulle. C'est pour cette échéance qu'elle avait été
+// écrite ainsi.
 //
 // Elle exige un écran et ne tourne donc pas en intégration continue. Ce n'est
 // pas un contrôle mais une planche : ce qui se vérifie mécaniquement vit du côté
@@ -120,14 +120,20 @@ type vue struct {
 	nom   string
 	ou    repere
 	ticks int
-	// videLaHorde retire les créatures avant de jouer les pas.
+	// videLaHorde retire les créatures à chaque pas.
 	//
-	// **Le seul moyen d'atteindre une montée de niveau aujourd'hui.** Avec le
-	// semis provisoire, le joueur meurt vers six secondes en ayant ramassé au
-	// plus six gemmes sur les dix du premier seuil : aucune position et aucune
-	// direction de fuite n'ouvre un choix vivant. Ce n'est pas un défaut du choix
-	// mais du semis, que la courbe de pression remplacera — et d'ici là, une vue
-	// qui prétendrait obtenir le panneau en jouant montrerait un écran de mort.
+	// **À chaque pas et non une fois avant**, depuis que le spawner existe : la
+	// pression rachète au tick suivant ce qu'on vient de retirer, et une salle
+	// vidée d'un coup se repeuple pendant les pas joués.
+	//
+	// **Ce que ce dégagement contourne a changé de nature.** Il servait à un semis
+	// qui rendait toute montée de niveau inatteignable ; la courbe de pression a
+	// levé cela, et une partie jouée atteint le niveau deux avant la minute. Ce
+	// qui reste est que la planche joue avec une direction nulle : un joueur
+	// immobile meurt à la vingtième seconde, quand le plancher de temps en demande
+	// quarante-cinq. Le lever demanderait de donner une trajectoire à ces pas, et
+	// une trajectoire de fuite dépend de l'équilibrage que le lot du réglage va
+	// changer — la vue mesurerait alors autre chose à chaque retouche.
 	//
 	// La salle vide reste la salle du jeu, dessinée par son écran : ce que la
 	// planche met de côté est ce qui empêche d'y arriver, pas ce qu'elle donne à
@@ -171,18 +177,22 @@ type vue struct {
 // chose, et ils couvrent les deux axes dans les deux sens.
 //
 // **La mêlée est la seule qui juge l'exception du joueur**, et c'est pourquoi
-// elle joue des pas : la horde semée converge, et il faut qu'elle soit arrivée
-// pour qu'on voie si le personnage reste devant ce qui l'entoure. Une horde qui
-// approche encore ne le dirait pas — elle est derrière lui ou devant lui, jamais
-// autour. Quatre secondes suffisent à ce que les plus proches le rejoignent sans
-// que l'arme de base en ait abattu assez pour dégager la place.
+// elle joue des pas : il faut qu'une créature soit arrivée pour qu'on voie si le
+// personnage reste devant ce qui l'entoure. Une horde qui approche encore ne le
+// dirait pas — elle est derrière lui ou devant lui, jamais autour.
+//
+// **Quinze secondes depuis que la horde s'achète.** Elle était semée d'un bloc et
+// quatre secondes suffisaient à ce que les plus proches rejoignent ; la pression
+// commence à trois par seconde, si bien qu'à quatre secondes la salle est vide.
+// Quinze est le plus qu'on puisse jouer : le joueur immobile tombe à la
+// vingtième, et c'est la vue de la mort qui montre la suite.
 var vues = []vue{
 	{nom: "centre"},
 	{nom: "nord", ou: nord},
 	{nom: "ouest", ou: ouest},
 	{nom: "est", ou: est},
 	{nom: "sud", ou: sud},
-	{nom: "melee", ticks: 4 * game.TPS},
+	{nom: "melee", ticks: 15 * game.TPS},
 	{nom: "texte", texte: true},
 	{nom: "interface", hud: true},
 
@@ -208,15 +218,16 @@ var vues = []vue{
 	// vérifié. Cette vue est le premier endroit où ça se voit : la horde reste,
 	// les gemmes sont semées au loin, et l'aimant est déclenché.
 	//
-	// Quatre secondes de convergence de la horde d'abord, pour qu'elle soit
-	// arrivée : des gemmes qui traverseraient une salle vide ne diraient rien.
-	{nom: "ruee", ticks: 4 * game.TPS,
+	// Quinze secondes de convergence d'abord, comme la mêlée et pour la même
+	// raison : des gemmes qui traverseraient une salle vide ne diraient rien.
+	{nom: "ruee", ticks: 15 * game.TPS,
 		semeDesGemmes: true, declencheLAimant: true},
 
 	// La mort ne se pose pas, elle s'obtient : le joueur reste immobile au
-	// milieu du lieu et la horde finit par l'avoir. Vingt secondes couvrent
-	// largement la convergence puis les cinq secondes que le plafond de dégâts
-	// impose — c'est la seule vue dont la scène est jouée plutôt que montée.
+	// milieu du lieu et la horde finit par l'avoir. Vingt secondes est ce qu'il
+	// faut à la pression de départ pour en poser assez — c'est la seule vue dont
+	// la scène est jouée plutôt que montée, et la seule dont le compte de ticks
+	// devra suivre l'équilibrage.
 	{nom: "mort", ticks: 20 * game.TPS},
 }
 
@@ -312,13 +323,6 @@ func (p *planche) vue(v vue) error {
 	}
 	pu, pv := v.ou.cases(partie.Grid)
 	partie.World.Place(game.FromInt(pu)+game.One/2, game.FromInt(pv)+game.One/2)
-	if v.videLaHorde {
-		horde := partie.World.Enemies()
-		for horde.Len() > 0 {
-			horde.RemoveAt(0)
-		}
-	}
-
 	// **La mort arrête les pas dès qu'une vue en dépend.** `World.Step` continue
 	// de tourner après elle — c'est l'écran qui fige, et la planche l'appelle
 	// directement —, si bien qu'un cadavre continue de tirer et de ramasser. La
@@ -327,7 +331,13 @@ func (p *planche) vue(v vue) error {
 		if v.jusquAuChoix && (partie.World.Choosing() || !partie.World.Alive()) {
 			break
 		}
+		if v.videLaHorde {
+			degagerLaHorde(partie.World)
+		}
 		partie.World.Step(game.Vec{})
+	}
+	if v.videLaHorde {
+		degagerLaHorde(partie.World)
 	}
 
 	// **Les gemmes se sèment après les pas, jamais avant.** Elles vivent six
@@ -528,5 +538,17 @@ func semerDesAges(monde *game.World, u, v int) {
 			// perdrait l'extrémité qui compte le plus.
 			Born: -(vie - 1) * i / (rangee - 1),
 		})
+	}
+}
+
+// degagerLaHorde retire toutes les créatures de la salle.
+//
+// Appelée avant chaque pas et après le dernier : le spawner rachète à chaque
+// tick, et une salle vidée seulement au départ se serait repeuplée avant qu'on
+// dessine.
+func degagerLaHorde(monde *game.World) {
+	horde := monde.Enemies()
+	for horde.Len() > 0 {
+		horde.RemoveAt(0)
 	}
 }

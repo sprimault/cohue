@@ -73,6 +73,23 @@ type Progression struct {
 	// n'aille l'y chercher. Le jour où une grosse gemme existera, c'est `Gem` qui
 	// portera sa sorte, et ce champ deviendra une table indexée comme les profils.
 	GemValue int
+	// SpawnRadius est la distance au joueur à laquelle une créature apparaît, en
+	// tuiles.
+	//
+	// **Une donnée et non une dérivée de la fenêtre**, et la contrainte est plus
+	// forte qu'un cloisonnement de paquets : un rayon tiré de l'écran donnerait à
+	// deux joueurs aux fenêtres différentes des apparitions différentes sur la
+	// même graine, ce que le déterminisme de la run interdit. Le chiffre publié
+	// est dérivé du tampon fixe et le manifeste dit lequel.
+	SpawnRadius Fixed
+	// CarryOver borne le budget de pression reporté d'un tick au suivant, en
+	// ticks de budget.
+	//
+	// Une apparition abandonnée faute de place reporte son budget, sans quoi un
+	// couloir étroit serait un abri où la pression tombe. Bornée, sans quoi le
+	// temps passé à se terrer se libère d'un coup à la sortie — le mur d'ennemis
+	// que la règle « jamais dans le champ de vision » existe pour interdire.
+	CarryOver Tick
 }
 
 // Threshold rend ce que coûte le passage d'un niveau au suivant, en gemmes.
@@ -196,6 +213,28 @@ func LoadProgression(fsys fs.FS, chemin string) (*Progression, error) {
 			"pas ne rejoint jamais le joueur", *a.GemSpeed)
 	}
 
+	s := brut.Progression.Pressure
+	table.SpawnRadius = FromFloat(exige("pression", "rayon_apparition_tuiles", s.Radius, dire))
+	if s.Radius != nil && table.SpawnRadius < One {
+		// Sous une tuile, la créature naît sur le joueur. La borne ne prétend pas
+		// vérifier la règle vraie — hors du champ de vision —, que ce paquet ne
+		// peut pas connaître : elle attrape le zéro et l'oubli de virgule.
+		dire("pression.rayon_apparition_tuiles : %v, une créature apparaîtrait sur "+
+			"le joueur", *s.Radius)
+	}
+
+	// Zéro passe sans rien dire, à l'inverse des autres durées de ce fichier : un
+	// report nul rend la pression strictement instantanée, ce qui est un réglage
+	// et non une saisie manquée. C'est aussi ce qu'on écrira pour retrouver le
+	// comportement d'avant le report, le jour où l'on voudra le comparer.
+	if ms := exige("pression", "report_ms", s.CarryMs, dire); ms > 0 {
+		ticks, err := TicksFromMs(ms)
+		if err != nil {
+			dire("pression.report_ms : %v", err)
+		}
+		table.CarryOver = ticks
+	}
+
 	if len(manques) > 0 {
 		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
@@ -213,10 +252,9 @@ type rawProgression struct {
 
 // rawSections groupe ce qui commande le déroulé d'une run.
 //
-// Une section et non les champs à plat : la courbe de pression du spawner vient
-// s'y ranger, et elle appartient à la partie au même titre que les seuils. Les
-// mettre à plat aurait mêlé deux réglages sans rapport dans un même espace de
-// noms, où `plancher_ms` aurait fini par désigner deux choses.
+// Des sections et non les champs à plat : les mettre à plat aurait mêlé des
+// réglages sans rapport dans un même espace de noms, où `plancher_ms` aurait
+// fini par désigner deux choses.
 type rawSections struct {
 	manifest.Commentable
 	// Levels est le rythme des montées de niveau.
@@ -225,6 +263,20 @@ type rawSections struct {
 	Gems rawGems `json:"gemmes"`
 	// Magnet porte le rythme de l'aimant et ce qu'il fait.
 	Magnet rawMagnet `json:"aimant"`
+	// Pressure porte ce que le spawner tient de la partie, par opposition à ce
+	// que le lieu lui dit. Le partage est net : un auteur écrit le rythme de ses
+	// vagues, il ne décide pas d'où sortent les créatures.
+	Pressure rawPressure `json:"pression"`
+}
+
+// rawPressure déclare ce que le spawner tient de la partie.
+type rawPressure struct {
+	manifest.Commentable
+
+	// Radius est la distance d'apparition, en tuiles.
+	Radius *float64 `json:"rayon_apparition_tuiles"`
+	// CarryMs borne le budget reporté d'un tick au suivant.
+	CarryMs *int `json:"report_ms"`
 }
 
 // rawMagnet déclare l'apparition de l'aimant et la ruée qu'il déclenche.

@@ -86,6 +86,12 @@ what records what was delivered, and merging it deletes the branch on both sides
 make fmt && make lint && make test && make race && make vulncheck && make sec
 ```
 
+**The list is fixed and is run whole**, never narrowed to what the change you
+just wrote touches. Composing your own list means checking only what you already
+have in mind, and the defect is elsewhere by construction: had it been where you
+were looking, you would have seen it while writing. **The check that finds it is
+the one you had no reason to run.**
+
 Two more apply as soon as a change touches `assets/`, `outils/`, or the shape of
 a file:
 

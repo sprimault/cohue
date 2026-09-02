@@ -17,11 +17,25 @@ import (
 
 // choix sont les touches qui prennent une carte, dans l'ordre de l'écran.
 //
-// Les chiffres du rang principal et non le pavé numérique : c'est la rangée que
-// tout clavier porte, et celle où la main gauche est déjà posée pendant qu'on
-// joue de l'autre. La touche s'écrit sous chaque carte, parce que ce que le
-// joueur cherche est ce qu'il doit presser.
-var choix = [game.Choices]ebiten.Key{ebiten.Key1, ebiten.Key2, ebiten.Key3}
+// **Les flèches, et le geste porte le sens : la touche de gauche prend la carte
+// de gauche.** Aucune étiquette n'a besoin de l'expliquer, ce qui tombe bien —
+// la police n'a pas de glyphe de flèche.
+//
+// **Des flèches et non des lettres**, parce que `ebiten.Key` désigne une place
+// et non un caractère : `KeyA` est la touche marquée Q sur un clavier français,
+// et une carte étiquetée « A » serait fausse pour la moitié des joueurs. C'est le
+// genre de défaut qu'on ne voit pas du tout quand on a le clavier qui
+// correspond.
+//
+// **Et non les chiffres**, qui appartiennent aux emplacements et les gardent
+// toute la partie. Le coût d'une confusion n'est pas symétrique : une carte mal
+// choisie se rattrape au niveau suivant, un aimant déclenché à vide est perdu
+// jusqu'à la prochaine apparition.
+//
+// Elles sont libres pendant le choix, qui met le déplacement en pause.
+var choix = [game.Choices]ebiten.Key{
+	ebiten.KeyArrowLeft, ebiten.KeyArrowDown, ebiten.KeyArrowRight,
+}
 
 // interligne est l'écart entre deux lignes d'une carte, en pixels.
 //
@@ -68,12 +82,19 @@ func (s *Screen) peindreCartes(ecran *ebiten.Image) {
 	marge, ligne := h.Margin(), h.Font.Height()
 	hauteurCarte := 3*(ligne+interligne) + 2*(marge+h.Border())
 
-	// La touche s'écrit sous la carte, donc le panneau la compte.
-	panneau := 2*marge + ligne + marge + hauteurCarte + ligne + marge
+	// Le titre, puis les cartes, chacun avec sa marge. Rien sous les cartes
+	// depuis que l'instruction est passée dans le titre.
+	panneau := 2*marge + ligne + marge + hauteurCarte + marge
 	haut := Height - panneau
 	h.Band(ecran, haut, panneau)
 
-	titre := fmt.Sprintf("Niveau %d %c choisissez une amélioration",
+	// **L'instruction est dans le titre, pas sous les cartes.** La règle qui veut
+	// qu'un libellé porte sa touche vise ce qu'on lit *en jouant*, donc sous
+	// pression et sans phrase disponible ; un panneau qui met le jeu en pause
+	// n'est pas dans ce régime, et il a un titre où l'écrire une fois pour les
+	// trois. Elle est utile ici parce que rien sur les cartes ne dit qu'on choisit
+	// au clavier.
+	titre := fmt.Sprintf("Niveau %d %c choisissez avec les flèches",
 		s.monde.Level(), '—')
 	h.Font.Draw(ecran, titre, (Width-h.Font.Advance(titre))/2, haut+marge,
 		h.Color("texte"))
@@ -88,7 +109,7 @@ func (s *Screen) peindreCartes(ecran *ebiten.Image) {
 
 	x := (Width - len(cartes)*largeur - (len(cartes)-1)*marge) / 2
 	y := haut + 2*marge + ligne
-	for rang, c := range cartes {
+	for _, c := range cartes {
 		h.Frame(ecran, x, y, largeur, hauteurCarte)
 
 		texte, courante := x+marge+h.Border(), y+marge+h.Border()
@@ -98,9 +119,6 @@ func (s *Screen) peindreCartes(ecran *ebiten.Image) {
 		h.Font.Draw(ecran, c.Phrase, texte, courante+2*(ligne+interligne),
 			h.Color("texte_attenue"))
 
-		touche := fmt.Sprintf("%d", rang+1)
-		h.Font.Draw(ecran, touche, x+(largeur-h.Font.Advance(touche))/2,
-			y+hauteurCarte+interligne, h.Color("texte_attenue"))
 		x += largeur + marge
 	}
 }

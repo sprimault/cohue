@@ -55,6 +55,10 @@ type World struct {
 	ennemis     *Pool[Enemy]
 	tirs        *Pool[Projectile]
 	gemmes      *Pool[Gem]
+	// aimants tient au plus un objet, la règle du lot étant qu'un seul soit au
+	// sol à la fois. Un bassin quand même : le rendu parcourt les bassins, et une
+	// entité rangée autrement y serait un cas particulier.
+	aimants *Pool[Magnet]
 	// hasard porte les quatre flux de la partie. Aucun n'est encore lu : le
 	// premier tirage viendra du spawner, à l'étape 4. Ils vivent ici plutôt que
 	// dans le montage parce que c'est le tick qui les consommera, et qu'un
@@ -95,6 +99,13 @@ type World struct {
 	// ouvert. Une récolte abondante en donne deux d'un coup, et les présenter
 	// l'un après l'autre est la seule façon de n'en perdre aucun.
 	enAttente int
+	// charge dit que le joueur tient un aimant. Un booléen et non un compteur :
+	// la conception parle d'une charge, et pouvoir en empiler retirerait la
+	// décision de dépenser.
+	charge bool
+	// dernierAimant est le tick de la dernière apparition, ou de la dernière
+	// tentative abandonnée.
+	dernierAimant Tick
 }
 
 // NewWorld monte une partie sur une carte et les tables du manifeste.
@@ -126,6 +137,7 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, grill
 		ennemis:     NewPool[Enemy](capacite),
 		tirs:        NewPool[Projectile](tirs),
 		gemmes:      NewPool[Gem](gemmes),
+		aimants:     NewPool[Magnet](1),
 		hasard:      NewStreams(graine),
 		cartes:      make([]Card, 0, Choices),
 		paliers:     make([]int, len(armes.Passives.Axes)),
@@ -176,10 +188,15 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 //
 // L'ordre est celui de la conception, et il est écrit une fois : les entrées, le
 // champ de flux si c'est son tick, la densité, les intentions et leur
-// projection, les dégâts de contact puis le ramassage et ce qu'il fait monter,
-// le tir puis le vol des projectiles avec ce qu'ils touchent, et les
-// suppressions en dernier. Ce qui manque encore y prendra sa place — les
-// apparitions, entre les entrées et le champ.
+// projection, les dégâts de contact, l'aimant et sa ruée, puis le ramassage et
+// ce qu'il fait monter, le tir puis le vol des projectiles avec ce qu'ils
+// touchent, et les suppressions en dernier. Ce qui manque encore y prendra sa
+// place — les apparitions de créatures, entre les entrées et le champ.
+//
+// **La ruée avance avant le ramassage**, sans quoi une gemme arrivée sur le
+// joueur attendrait le tick suivant pour être prise : la convergence se
+// terminerait par un temps mort d'une image, exactement là où la conception veut
+// un coup.
 //
 // Le ramassage est rangé avec les contacts, dont il est un : ce que le joueur
 // touche en se déplaçant. Il vient après les dégâts parce qu'une gemme ramassée
@@ -214,6 +231,9 @@ func (w *World) Step(voulu Vec) {
 	w.compterDensite()
 	w.deplacerEnnemis()
 	w.subir()
+	w.poserAimant()
+	w.attirer()
+	w.prendreAimant()
 	w.progresser(w.ramasser())
 	w.tirer()
 	w.deplacerTirs()

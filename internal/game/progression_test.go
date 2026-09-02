@@ -29,7 +29,7 @@ func progressionLivree(t *testing.T) *Progression {
 	return p
 }
 
-// collecte complète des seuils forgés par ce que la gemme exige.
+// collecte complète des seuils forgés par ce que la collecte exige.
 //
 // **Sans cela, ces cas passent pour une mauvaise raison.** `semer` pose les
 // gemmes exactement sur le joueur : une portée nulle les ramasse quand même, la
@@ -37,12 +37,17 @@ func progressionLivree(t *testing.T) *Progression {
 // ramassage est évalué avant l'expiration. Les deux réglages seraient
 // indiscernables de leur absence, et c'est ce que la mutation a montré.
 //
-// Une portée d'une tuile et une vie hors d'atteinte : ces cas comptent des
-// niveaux, pas des distances ni des âges, et ce qui les concerne a ses propres
-// tests.
+// **La période d'aimant est mise hors d'atteinte pour la raison inverse** : à
+// zéro, un aimant apparaît dès le premier tick de tous ces cas, consomme le flux
+// des positions et se ramasse peut-être — un mécanisme entier qui tourne dans
+// des cas qui ne parlent pas de lui.
+//
+// Ces cas comptent des niveaux, pas des distances, des âges ni des aimants, et
+// ce qui les concerne a ses propres tests.
 func collecte(p *Progression) *Progression {
 	p.PickupRange = One
 	p.GemLife = 100000
+	p.MagnetPeriod = 100000
 	return p
 }
 
@@ -331,11 +336,12 @@ func TestChampsDeProgressionManquantsListesEnUneFois(t *testing.T) {
 	if !errors.As(err, &invalide) {
 		t.Fatalf("section de niveaux vide acceptée : %v", err)
 	}
-	// Les trois seuils et les quatre champs de la gemme. Une absence compte pour
-	// une ligne : les bornes ne se prononcent que sur un champ présent, faute de
-	// quoi le nombre de lignes cesserait d'être le nombre de choses à corriger.
-	if len(invalide.Missing) != 7 {
-		t.Errorf("%d manquement(s), attendu 7 :\n  %v", len(invalide.Missing), invalide.Missing)
+	// Les trois seuils, les quatre champs de la gemme et les trois de l'aimant.
+	// Une absence compte pour une ligne : les bornes ne se prononcent que sur un
+	// champ présent, faute de quoi le nombre de lignes cesserait d'être le
+	// nombre de choses à corriger.
+	if len(invalide.Missing) != 10 {
+		t.Errorf("%d manquement(s), attendu 10 :\n  %v", len(invalide.Missing), invalide.Missing)
 	}
 }
 

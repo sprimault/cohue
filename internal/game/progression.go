@@ -52,6 +52,18 @@ type Progression struct {
 	// donc là où la horde converge, et le kiting en cercle cesse d'être gratuit
 	// sans qu'on ait rien interdit.
 	GemLife Tick
+	// MagnetPeriod est l'écart entre deux apparitions d'aimant, en ticks.
+	MagnetPeriod Tick
+	// MagnetMinRange est la distance au joueur sous laquelle une apparition est
+	// refusée, en tuiles.
+	//
+	// **La contrainte est d'être loin, pas d'être hors champ** — l'inverse de
+	// l'anneau qui posera les créatures. Une créature qui surgit devant est une
+	// injustice ; un objet qu'on voit au loin est une invitation, et le trajet
+	// pour l'atteindre est ce qui en fait une décision.
+	MagnetMinRange Fixed
+	// PullSpeed est la vitesse d'une gemme attirée, en tuiles par tick.
+	PullSpeed Fixed
 	// GemValue est ce qu'une gemme ramassée porte à l'expérience.
 	//
 	// Un scalaire et non une table, parce que la simulation ne distingue pas
@@ -153,6 +165,34 @@ func LoadProgression(fsys fs.FS, chemin string) (*Progression, error) {
 		dire("gemmes.duree_vie_ms : %d, une gemme qui ne dure pas n'existe pas", ms)
 	}
 
+	a := brut.Progression.Magnet
+	if ms := exige("aimant", "periode_ms", a.PeriodMs, dire); ms > 0 {
+		ticks, err := TicksFromMs(ms)
+		if err != nil {
+			dire("aimant.periode_ms : %v", err)
+		}
+		table.MagnetPeriod = ticks
+	} else if a.PeriodMs != nil {
+		// Une période nulle poserait un aimant à chaque tick : le sol en serait
+		// couvert, et l'objet cesserait d'être l'événement que la conception en
+		// fait.
+		dire("aimant.periode_ms : %d, un aimant à chaque tick n'est plus un événement", ms)
+	}
+
+	table.MagnetMinRange = FromFloat(exige("aimant", "distance_min_tuiles", a.MinTiles, dire))
+	if a.MinTiles != nil && table.MagnetMinRange < One {
+		// Sous une tuile, l'aimant tombe dans la portée de ramassage et se prend
+		// sans qu'on ait bougé : il cesse d'être un trajet, donc une décision.
+		dire("aimant.distance_min_tuiles : %v, un aimant qu'on ramasse sans "+
+			"bouger n'est pas une decision", *a.MinTiles)
+	}
+
+	table.PullSpeed = parTick(exige("aimant", "vitesse_gemme_tuiles_s", a.GemSpeed, dire))
+	if a.GemSpeed != nil && table.PullSpeed < 1 {
+		dire("aimant.vitesse_gemme_tuiles_s : %v, une gemme attirée qui n'avance "+
+			"pas ne rejoint jamais le joueur", *a.GemSpeed)
+	}
+
 	if len(manques) > 0 {
 		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
@@ -180,6 +220,20 @@ type rawSections struct {
 	Levels rawLevels `json:"niveaux"`
 	// Gems porte ce que rapporte une gemme.
 	Gems rawGems `json:"gemmes"`
+	// Magnet porte le rythme de l'aimant et ce qu'il fait.
+	Magnet rawMagnet `json:"aimant"`
+}
+
+// rawMagnet déclare l'apparition de l'aimant et la ruée qu'il déclenche.
+type rawMagnet struct {
+	manifest.Commentable
+
+	// PeriodMs est l'écart entre deux apparitions.
+	PeriodMs *int `json:"periode_ms"`
+	// MinTiles est la distance au joueur sous laquelle l'apparition est refusée.
+	MinTiles *float64 `json:"distance_min_tuiles"`
+	// GemSpeed est la vitesse d'une gemme attirée, en tuiles par seconde.
+	GemSpeed *float64 `json:"vitesse_gemme_tuiles_s"`
 }
 
 // rawGems déclare la valeur d'une gemme et l'objet qu'elle décrit.

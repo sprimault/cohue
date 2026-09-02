@@ -24,6 +24,7 @@ const (
 	sorteEnnemi sorte = iota
 	sorteTir
 	sorteGemme
+	sorteAimant
 	sorteJoueur
 )
 
@@ -69,9 +70,18 @@ type entite struct {
 // statique : posées, elles pourraient être peintes avec le décor, puisqu'un
 // personnage a son appui en bas de son image et ne descend jamais sous ses
 // pieds. C'est l'aimant qui l'interdit — une gemme qui converge vers le joueur
-// se dessine à hauteur de torse et croise la horde, si bien qu'elle a une
-// profondeur à disputer. Les ranger avec le décor aujourd'hui obligerait à les
-// en sortir dès ce moment-là.
+// traverse la horde, si bien qu'elle a une profondeur à disputer. Les ranger avec
+// le décor aujourd'hui obligerait à les en sortir dès ce moment-là.
+//
+// **L'anticipation était juste, sa raison ne l'était pas.** On avait écrit que la
+// gemme volerait « à hauteur de torse » ; la ruée montre qu'elle rase le sol —
+// huit pixels de haut contre quarante-huit pour une créature, l'appui de l'une et
+// de l'autre sur leur position. Ce que la séquence décide n'est donc pas un
+// croisement à mi-corps mais **le passage devant ou derrière des pieds** : une
+// gemme un peu plus proche se peint sur le bas d'une silhouette, une gemme un peu
+// plus loin disparaît dessous. La conclusion tient, le mécanisme est autre, et
+// c'est ce genre d'écart qu'une anticipation laissée non vérifiée fait passer
+// pour acquis.
 type scene struct {
 	// comptes porte, par seau, le nombre d'entités puis leur position de départ
 	// dans la séquence. Sa taille vient de l'englobant du lieu et jamais d'une
@@ -87,10 +97,10 @@ type scene struct {
 //
 // La profondeur d'un point du lieu va de zéro, au sommet du losange, à la somme
 // de ses deux côtés, à sa pointe basse : il faut donc un seau de plus que cette
-// somme. La capacité des séquences couvre les trois bassins pleins et le joueur,
-// c'est-à-dire le plus grand nombre d'entités qu'une image puisse porter.
-func nouvelleScene(carte *game.CostGrid, ennemis, tirs, gemmes int) *scene {
-	total := ennemis + tirs + gemmes + 1
+// somme. La capacité des séquences couvre les quatre bassins pleins et le
+// joueur, c'est-à-dire le plus grand nombre d'entités qu'une image puisse porter.
+func nouvelleScene(carte *game.CostGrid, ennemis, tirs, gemmes, aimants int) *scene {
+	total := ennemis + tirs + gemmes + aimants + 1
 	return &scene{
 		comptes: make([]int, carte.Width()+carte.Height()+1),
 		recueil: make([]entite, 0, total),
@@ -126,6 +136,12 @@ func (s *scene) recueillir(monde *game.World) {
 	for i := range gemmes.Active() {
 		g := gemmes.At(i)
 		s.ajouter(g.X, g.Y, gemmes.IDAt(i), sorteGemme, i)
+	}
+
+	aimants := monde.Magnets()
+	for i := range aimants.Active() {
+		a := aimants.At(i)
+		s.ajouter(a.X, a.Y, aimants.IDAt(i), sorteAimant, i)
 	}
 
 	// Le joueur ne vit dans aucun bassin : il est seul, donc son identité ne

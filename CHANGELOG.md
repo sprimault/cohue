@@ -119,6 +119,18 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   manifeste de progression : une valeur vit à côté de ce qu'elle alimente, et
   celle-ci alimente les seuils. Le manifeste de progression nomme l'objet qu'elle
   décrit, et le contrôle des ressources exige qu'il existe.
+- **Le lieu de démonstration fait neuf fois la surface** — quatre-vingt-dix-huit
+  cases de côté au lieu de trente-deux. L'ancienne carte tenait tout entière dans
+  un écran et se traversait en six secondes et demie. Neuf blocs et une enceinte
+  la composent, et c'est le premier lieu du dépôt à poser plus d'une pièce.
+- **Un lieu couvre son étendue exactement une fois**, et le chargeur refuse les
+  deux écarts en nommant la première case fautive : une case qu'aucune pièce ne
+  pose se traverse sans se dessiner, et deux pièces qui se recouvrent se
+  départagent par l'ordre des poses, que rien n'annonce.
+- **`u` et `v` sont la case d'origine d'une pièce**, jamais son rang dans une
+  trame : des pièces de tailles différentes se composent dans un même lieu, ce
+  que l'enceinte du lieu livré fait. La conception montrait un champ `grille` et
+  des positions de rang, que rien n'a jamais lus.
 
 ### À savoir
 
@@ -126,9 +138,9 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   collée au joueur. On en voit peu au sol, et c'est normal tant que rien ne tue
   à distance.
 - **L'écran de choix ne s'atteint pas en jouant**, et ce n'est pas un défaut de
-  la progression. Le semis provisoire pose trois cents créatures d'un coup :
-  elles convergent en cinq secondes, et le joueur tombe vers la sixième avec au
-  plus six gemmes des dix que le premier niveau demande. La courbe de pression,
+  la progression. Le semis provisoire pose cent vingt et une créatures d'un coup
+  autour du joueur : elles convergent en cinq secondes, et il tombe à la sixième
+  avec une gemme des dix que le premier niveau demande. La courbe de pression,
   qui achète les créatures dans un budget croissant, est ce qui rendra la
   première montée atteignable.
 
@@ -207,6 +219,19 @@ pauses the game to offer **three cards**, one of which you take.
   progression manifest: a value lives next to what it feeds, and this one feeds
   the thresholds. The progression manifest names the object it describes, and the
   resource check requires that object to exist.
+- **The demonstration place is nine times the area** — ninety-eight cells a side
+  instead of thirty-two. The old map fitted entirely within one screen and was
+  crossed in six and a half seconds. Nine blocks and a perimeter wall make up the
+  new one, and it is the first place in the repository to lay down more than one
+  room.
+- **A place covers its extent exactly once**, and the loader refuses both ways
+  out of that, naming the first offending cell: a cell no room lays down is
+  walked over without being drawn, and two overlapping rooms are settled by the
+  order of the placements, which nothing announces.
+- **`u` and `v` are a room's origin cell**, never its rank in a lattice: rooms of
+  different sizes compose within one place, which is what the shipped place's
+  perimeter does. The design document showed a `grille` field and rank positions
+  that nothing ever read.
 
 ### Good to know
 
@@ -214,11 +239,11 @@ pauses the game to offer **three cards**, one of which you take.
   pressed against the player. Few are seen on the ground, and that is expected
   as long as nothing kills at a distance.
 - **The choice screen cannot be reached by playing**, and that is not a defect
-  of progression. The provisional seeding places three hundred creatures at
-  once: they converge in five seconds, and the player falls around the sixth
-  with at most six of the ten gems the first level asks for. The pressure curve,
-  which buys creatures from a growing budget, is what will make the first level
-  up reachable.
+  of progression. The provisional seeding places a hundred and twenty-one
+  creatures at once around the player: they converge in five seconds, and the
+  player falls on the sixth with one of the ten gems the first level asks for.
+  The pressure curve, which buys creatures from a growing budget, is what will
+  make the first level up reachable.
 
 ## [0.2.1] — 2026-09-01 — Ce que la relecture a corrigé
 

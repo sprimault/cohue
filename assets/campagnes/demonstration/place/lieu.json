@@ -4,6 +4,24 @@
   "identifiant": "place",
   "jeu_pieces": "quartier",
   "pieces": [
-    { "id": "carrefour", "u": 0, "v": 0 }
+    {
+      "$comment": "L'enceinte est posée à part parce que les neuf blocs sont ouverts sur leurs quatre côtés : sans elle, le lieu s'arrêterait sur le vide, que le rendu ne dessine pas.",
+      "id": "enceinte_u", "u": 0, "v": 0
+    },
+    { "id": "enceinte_u", "u": 0, "v": 97 },
+    { "id": "enceinte_v", "u": 0, "v": 1 },
+    { "id": "enceinte_v", "u": 97, "v": 1 },
+
+    { "id": "carrefour", "u": 1, "v": 1 },
+    { "id": "avenue", "u": 33, "v": 1 },
+    { "id": "esplanade", "u": 65, "v": 1 },
+
+    { "id": "avenue", "u": 1, "v": 33 },
+    { "id": "esplanade", "u": 33, "v": 33 },
+    { "id": "carrefour", "u": 65, "v": 33 },
+
+    { "id": "esplanade", "u": 1, "v": 65 },
+    { "id": "carrefour", "u": 33, "v": 65 },
+    { "id": "avenue", "u": 65, "v": 65 }
   ]
 }

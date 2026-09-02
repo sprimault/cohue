@@ -61,20 +61,28 @@ func TestLieuLivre(t *testing.T) {
 	if err != nil {
 		t.Fatalf("chargement du lieu : %v", err)
 	}
-	if grille.Width() != 32 || grille.Height() != 32 {
-		t.Fatalf("grille %dx%d, attendu 32x32", grille.Width(), grille.Height())
+	if grille.Width() != 98 || grille.Height() != 98 {
+		t.Fatalf("grille %dx%d, attendu 98x98", grille.Width(), grille.Height())
 	}
 
-	// Quatre cases relevées sur le dessin de `carrefour.json`, en `[u, v]`.
+	// Une case par pièce posée, relevée sur son dessin et décalée de son
+	// origine, en `[u, v]`.
+	//
+	// **C'est la pose qui est éprouvée ici, pas le dessin.** Une seule case
+	// suffirait à dire que la cuisson lit une grille ; il en faut une par pièce
+	// pour dire qu'elle les pose au bon endroit, et un lieu qui n'en portait
+	// qu'une n'a jamais rien demandé à ce code.
 	cases := []struct {
 		u, v int
 		quoi string
 		veut game.Cost
 	}{
-		{0, 0, "mur du bord", game.Blocked},
-		{16, 16, "sol au centre", game.Free},
-		{14, 12, "flaque", 2},
-		{2, 8, "muret de la chicane", game.Blocked},
+		{0, 0, "enceinte du nord", game.Blocked},
+		{0, 50, "enceinte de l'ouest", game.Blocked},
+		{3, 9, "muret de la chicane de « carrefour »", game.Blocked},
+		{49, 13, "muret long d'« avenue »", game.Blocked},
+		{41, 54, "flaque d'« esplanade »", 2},
+		{49, 49, "sol au centre du lieu", game.Free},
 	}
 	for _, c := range cases {
 		if a := grille.At(c.u, c.v); a != c.veut {

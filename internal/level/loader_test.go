@@ -291,3 +291,83 @@ func TestJeuDePiecesQuiDementLeLieu(t *testing.T) {
 		t.Fatalf("jeu de pièces étranger au lieu accepté : %v", err)
 	}
 }
+
+// lieuDePoses monte un lieu d'une seule sorte de pièce, posée où on le demande.
+//
+// Les trois cas de couverture ne diffèrent que par des positions : leur donner
+// chacun son système de fichiers aurait mis trois fois le même carré de quatre
+// sur trois sous les yeux du lecteur, qui aurait à le comparer pour trouver ce
+// qui change.
+func lieuDePoses(poses string) fstest.MapFS {
+	return fstest.MapFS{
+		"x/lieu.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "x", "jeu_pieces": "commun",
+			"pieces": [` + poses + `]
+		}`)},
+		"x/jeu.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "commun", "palette": {".": "sol"}
+		}`)},
+		"x/pieces/salle.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "salle", "jeu": "commun",
+			"taille": [4, 3], "grille": ["....", "....", "...."]
+		}`)},
+	}
+}
+
+// TestCaseQueNullePieceNePose refuse le lieu qui laisse un trou.
+//
+// **Le trou est franchissable et invisible**, ce qui en fait le pire défaut que
+// ce format puisse produire : une grille neuve vaut le coût d'un sol ordinaire,
+// si bien qu'une case oubliée se marche comme les autres et ne se dessine pas.
+// Personne ne la voit avant qu'une créature y flotte.
+func TestCaseQueNullePieceNePose(t *testing.T) {
+	fsys := lieuDePoses(`{"id": "salle", "u": 0, "v": 0}, {"id": "salle", "u": 8, "v": 0}`)
+
+	_, err := NewLoader(fsys, couts).Load("x")
+	var invalide *manifest.Invalid
+	if !errors.As(err, &invalide) {
+		t.Fatalf("un lieu troué s'est chargé : %v", err)
+	}
+	// Douze cases, et la première en (4, 0) : un message qui dirait seulement
+	// « trou » laisserait à chercher de quel côté.
+	if !strings.Contains(invalide.Error(), "(4, 0)") {
+		t.Errorf("le message ne situe pas le trou : %v", invalide)
+	}
+}
+
+// TestCasePoseeDeuxFois refuse le lieu dont deux pièces se recouvrent.
+//
+// Le recouvrement se résout aujourd'hui par l'ordre des poses, la dernière
+// écrivant par-dessus la première. Rien n'annonce cet ordre, et le refuser le
+// rend sans effet — ce qui vaut mieux que de l'écrire dans un document que
+// l'auteur d'un éditeur ne lira pas.
+func TestCasePoseeDeuxFois(t *testing.T) {
+	fsys := lieuDePoses(`{"id": "salle", "u": 0, "v": 0}, {"id": "salle", "u": 2, "v": 0}`)
+
+	_, err := NewLoader(fsys, couts).Load("x")
+	var invalide *manifest.Invalid
+	if !errors.As(err, &invalide) {
+		t.Fatalf("deux pièces superposées se sont chargées : %v", err)
+	}
+	if !strings.Contains(invalide.Error(), "(2, 0)") {
+		t.Errorf("le message ne situe pas le recouvrement : %v", invalide)
+	}
+}
+
+// TestPoseAvantLOrigine refuse la pièce posée en amont du coin du lieu.
+//
+// La cuisson laisse tomber ce qui sort de la grille : une pièce posée en `u` de
+// moins un perdrait sa première colonne sans un mot, et le lieu s'ouvrirait avec
+// un mur en moins là où son auteur en avait dessiné un.
+func TestPoseAvantLOrigine(t *testing.T) {
+	fsys := lieuDePoses(`{"id": "salle", "u": -1, "v": 0}`)
+
+	_, err := NewLoader(fsys, couts).Load("x")
+	var invalide *manifest.Invalid
+	if !errors.As(err, &invalide) {
+		t.Fatalf("une pièce posée avant l'origine s'est chargée : %v", err)
+	}
+	if !strings.Contains(invalide.Error(), "(-1, 0)") {
+		t.Errorf("le message ne dit pas où la pièce est posée : %v", invalide)
+	}
+}

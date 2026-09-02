@@ -71,11 +71,54 @@ const echelle = 2
 // réglage partagé avec le jeu, qui a la sienne pour une autre raison.
 const graine uint64 = 1
 
+// repere est un endroit du lieu, résolu sur sa grille plutôt qu'écrit en cases.
+//
+// **Les cases étaient écrites, et elles ont menti dès que le lieu a grandi.**
+// Les quatre coins du losange étaient ceux d'une carte de trente-deux cases : la
+// planche a continué de les nommer coins en les posant au premier neuvième d'un
+// lieu qui en fait trois fois plus, là où la caméra ne bute sur rien. Un repère
+// se résout sur la grille reçue, donc il suit.
+type repere int
+
+// Les endroits que la planche sait nommer. Le centre vaut zéro : une vue qui ne
+// dit rien s'y pose, ce qui est le cas de toutes celles qui jugent autre chose
+// que le cadrage.
+const (
+	centre repere = iota
+	nord
+	ouest
+	est
+	sud
+)
+
+// margeDuCoin est la distance au bord à laquelle un repère de coin se pose.
+//
+// Deux cases : le trottoir du lieu en fait autant, si bien que le joueur y est
+// posé sur du sol quel que soit le bloc qui touche le coin.
+const margeDuCoin = 2
+
+// cases résout un repère sur une grille.
+func (r repere) cases(g *game.CostGrid) (int, int) {
+	loinU, loinV := g.Width()-1-margeDuCoin, g.Height()-1-margeDuCoin
+	switch r {
+	case nord:
+		return margeDuCoin, margeDuCoin
+	case ouest:
+		return margeDuCoin, loinV
+	case est:
+		return loinU, margeDuCoin
+	case sud:
+		return loinU, loinV
+	default:
+		return g.Width() / 2, g.Height() / 2
+	}
+}
+
 // vue est une scène à écrire : où poser le joueur, combien de pas jouer avant de
 // dessiner, ce qu'on pose par-dessus, et le nom du fichier qui en sort.
 type vue struct {
 	nom   string
-	u, v  int
+	ou    repere
 	ticks int
 	// videLaHorde retire les créatures avant de jouer les pas.
 	//
@@ -134,14 +177,14 @@ type vue struct {
 // autour. Quatre secondes suffisent à ce que les plus proches le rejoignent sans
 // que l'arme de base en ait abattu assez pour dégager la place.
 var vues = []vue{
-	{nom: "centre", u: 16, v: 16},
-	{nom: "nord", u: 2, v: 2},
-	{nom: "ouest", u: 2, v: 29},
-	{nom: "est", u: 29, v: 2},
-	{nom: "sud", u: 29, v: 29},
-	{nom: "melee", u: 16, v: 16, ticks: 4 * game.TPS},
-	{nom: "texte", u: 16, v: 16, texte: true},
-	{nom: "interface", u: 16, v: 16, hud: true},
+	{nom: "centre"},
+	{nom: "nord", ou: nord},
+	{nom: "ouest", ou: ouest},
+	{nom: "est", ou: est},
+	{nom: "sud", ou: sud},
+	{nom: "melee", ticks: 4 * game.TPS},
+	{nom: "texte", texte: true},
+	{nom: "interface", hud: true},
 
 	// **Le choix ne se pose pas non plus, il s'obtient** — comme la mort, et pour
 	// la même raison : une maquette de cartes divergerait du panneau que le jeu
@@ -149,14 +192,14 @@ var vues = []vue{
 	// qu'elle rend la montée inatteignable, et c'est alors le plancher de temps
 	// qui la donne. Le plafond de ticks est large : c'est le choix qui arrête les
 	// pas, pas le compte, si bien que la vue tient encore quand le plancher change.
-	{nom: "cartes", u: 16, v: 16, ticks: 90 * game.TPS,
+	{nom: "cartes", ticks: 90 * game.TPS,
 		videLaHorde: true, jusquAuChoix: true},
 
 	// **L'extinction se juge sur une rangée, pas sur une gemme.** Ce qu'on
 	// regarde n'est pas une teinte mais un écart : deux âges voisins doivent se
 	// distinguer, sinon l'information continue que l'effacement promet n'arrive
 	// pas au joueur. Une seule gemme, si pâle soit-elle, ne dirait rien de ça.
-	{nom: "gemmes", u: 16, v: 16, videLaHorde: true, semeDesGemmes: true,
+	{nom: "gemmes", videLaHorde: true, semeDesGemmes: true,
 		chargeLAimant: true},
 
 	// **La ruée est ce qui juge une anticipation du projet.** Les gemmes sont
@@ -167,14 +210,14 @@ var vues = []vue{
 	//
 	// Quatre secondes de convergence de la horde d'abord, pour qu'elle soit
 	// arrivée : des gemmes qui traverseraient une salle vide ne diraient rien.
-	{nom: "ruee", u: 16, v: 16, ticks: 4 * game.TPS,
+	{nom: "ruee", ticks: 4 * game.TPS,
 		semeDesGemmes: true, declencheLAimant: true},
 
 	// La mort ne se pose pas, elle s'obtient : le joueur reste immobile au
 	// milieu du lieu et la horde finit par l'avoir. Vingt secondes couvrent
 	// largement la convergence puis les cinq secondes que le plafond de dégâts
 	// impose — c'est la seule vue dont la scène est jouée plutôt que montée.
-	{nom: "mort", u: 16, v: 16, ticks: 20 * game.TPS},
+	{nom: "mort", ticks: 20 * game.TPS},
 }
 
 // echantillons sont les chaînes que la vue de texte affiche.
@@ -267,7 +310,8 @@ func (p *planche) vue(v vue) error {
 	if err != nil {
 		return err
 	}
-	partie.World.Place(game.FromInt(v.u)+game.One/2, game.FromInt(v.v)+game.One/2)
+	pu, pv := v.ou.cases(partie.Grid)
+	partie.World.Place(game.FromInt(pu)+game.One/2, game.FromInt(pv)+game.One/2)
 	if v.videLaHorde {
 		horde := partie.World.Enemies()
 		for horde.Len() > 0 {
@@ -290,7 +334,7 @@ func (p *planche) vue(v vue) error {
 	// secondes : semées d'abord, celles des vues qui jouent des pas se seraient
 	// éteintes avant qu'on dessine, et la vue de la ruée montrait un sol vide.
 	if v.semeDesGemmes {
-		semerDesAges(partie.World, v.u, v.v)
+		semerDesAges(partie.World, pu, pv)
 	}
 	if v.chargeLAimant {
 		partie.World.Charge()

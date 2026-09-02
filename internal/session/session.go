@@ -56,9 +56,17 @@ const GemCapacity = 512
 const (
 	// pasDuSemis est l'écart entre deux créatures posées, en cases.
 	pasDuSemis = 3
-	// ecartAuJoueur tient la horde assez loin pour qu'on la voie converger, et
-	// assez près pour qu'elle tienne à l'écran.
+	// ecartAuJoueur tient la horde assez loin pour qu'on la voie converger.
 	ecartAuJoueur = 8
+	// porteeDuSemis la tient assez près pour qu'elle arrive.
+	//
+	// **Cette borne était tenue par le lieu, et par personne quand il a grandi.**
+	// Sur trente-deux cases de côté, le semis couvrait la carte entière et le
+	// bord faisait la limite ; sur quatre-vingt-dix-huit, le parcours remplit le
+	// bassin avant d'avoir quitté la bande nord, et la horde naît toute d'un
+	// côté. Une propriété qu'on lit dans un commentaire sans qu'aucune ligne ne
+	// la tienne se perd au premier changement d'échelle.
+	porteeDuSemis = 24
 )
 
 // Session est une partie montée, prête à tourner.
@@ -229,12 +237,12 @@ func placer(monde *game.World, grille *game.CostGrid) {
 // semé l'est sur la grille, et un rayon exact n'apporterait rien à un motif dont
 // le pas vaut trois cases.
 //
-// **Ce qu'il coûte, mesuré :** trois cents créatures d'un coup convergent en
-// cinq secondes, et le joueur tombe vers la sixième avec au plus six gemmes des
-// dix que le premier niveau demande. Aucune position de départ ni direction de
-// fuite n'ouvre une montée de niveau vivant. Ce n'est pas un défaut de la
-// progression mais du semis : la courbe de pression achète les créatures dans un
-// budget qui commence bas, et c'est elle qui rendra le jalon mesurable.
+// **Ce qu'il coûte, mesuré :** cent vingt et une créatures posées d'un coup dans
+// la couronne convergent en cinq secondes, et le joueur tombe à la sixième avec
+// une gemme des dix que le premier niveau demande. Aucune position de départ ni
+// direction de fuite n'ouvre une montée de niveau vivant. Ce n'est pas un défaut
+// de la progression mais du semis : la courbe de pression achète les créatures
+// dans un budget qui commence bas, et c'est elle qui rendra le jalon mesurable.
 func peupler(monde *game.World, grille *game.CostGrid, profils *game.Profiles) {
 	px, py := monde.Player()
 	pu, pv := px.Floor(), py.Floor()
@@ -242,7 +250,10 @@ func peupler(monde *game.World, grille *game.CostGrid, profils *game.Profiles) {
 	profil := 0
 	for v := 0; v < grille.Height(); v += pasDuSemis {
 		for u := 0; u < grille.Width(); u += pasDuSemis {
-			if !grille.Passable(u, v) || ecart(u, v, pu, pv) < ecartAuJoueur {
+			if d := ecart(u, v, pu, pv); d < ecartAuJoueur || d > porteeDuSemis {
+				continue
+			}
+			if !grille.Passable(u, v) {
 				continue
 			}
 			_, pose := monde.SpawnEnemy(

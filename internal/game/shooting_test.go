@@ -447,3 +447,122 @@ func TestLeTirNEnjambePasSaCible(t *testing.T) {
 		t.Error("la cible n'a rien encaissé")
 	}
 }
+
+// TestLeTirNeCoupePasUnAngle garde ce qu'une seule partie jouée a montré.
+//
+// **Le défaut demandait de raser un angle**, ce qui explique qu'il ait fallu
+// jouer pour le voir : le pas d'un projectile vaut deux dixièmes de tuile, et il
+// faut qu'il entre dans une case bloquée et en ressorte à l'intérieur du même
+// pas. Aucun des deux bouts n'y tombe alors, et le tir passait au travers.
+//
+// Le cas pose la case bloquée en diagonale du départ, sur l'angle où quatre
+// cases se rencontrent : c'est la seule géométrie où le pas courbe la règle.
+func TestLeTirNeCoupePasUnAngle(t *testing.T) {
+	profils, err := LoadProfiles(cohue.Assets, manifestePersonnages)
+	if err != nil {
+		t.Fatalf("profils livrés : %v", err)
+	}
+
+	g := NewCostGrid(8, 8)
+	g.Set(1, 1, Blocked)
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g,
+		graineDeTest, 4, 4, 4)
+
+	// De la case (2,1) vers la case (1,2), en passant par l'angle du coin (2,2).
+	// Le départ et l'arrivée sont franchissables ; seule (1,1) ne l'est pas.
+	depart := Vec{X: FromFloat(2.02), Y: FromFloat(1.98)}
+	if _, ok := w.tirs.Spawn(Projectile{
+		X: depart.X, Y: depart.Y,
+		Step:      Vec{X: FromFloat(-0.04), Y: FromFloat(0.04)},
+		Remaining: FromInt(6),
+		Hits:      1,
+	}); !ok {
+		t.Fatal("projectile refusé")
+	}
+
+	w.deplacerTirs()
+	if w.tirs.Len() != 0 {
+		p := w.tirs.At(0)
+		t.Errorf("le tir a franchi l'angle et se trouve en (%v, %v)", p.X, p.Y)
+	}
+}
+
+// TestLeTirViseOuLaCibleSera garde ce qu'une partie jouée a fait remarquer.
+//
+// **La cible traverse, et c'est le cas que la visée manquait.** Le projectile met
+// une demi-seconde à parcourir six tuiles ; un Badaud en couvre une et demie dans
+// ce temps, pour un rayon d'un huitième. Viser sa position rendait le tir sans
+// effet sur tout ce qui ne venait pas droit dessus, et le joueur n'a aucun moyen
+// de corriger une visée qu'il ne tient pas.
+//
+// La créature est avancée à la main : ce que le cas éprouve est la prédiction, et
+// une cible que le champ de flux ramènerait vers le joueur serait précisément
+// celle que l'ancienne visée touchait déjà.
+func TestLeTirViseOuLaCibleSera(t *testing.T) {
+	w, profils := champDeTir(t)
+	marcheur := indexDuProfil(t, profils, "marcheur")
+	if _, ok := w.SpawnEnemy(marcheur, FromInt(20)+One/2, FromInt(16)+One/2); !ok {
+		t.Fatal("créature refusée")
+	}
+
+	// Quatre tuiles à l'est du joueur, traversant plein sud à sa vitesse.
+	e := w.ennemis.At(0)
+	e.Step = Vec{Y: profils.Enemies[marcheur].Speed}
+	resistance := e.Hits
+
+	w.tirer()
+	if w.tirs.Len() == 0 {
+		t.Fatal("aucun tir parti")
+	}
+	for range 2 * TPS {
+		cible := w.ennemis.At(0)
+		cible.X, cible.Y = cible.X+cible.Step.X, cible.Y+cible.Step.Y
+		w.deplacerTirs()
+		if w.tirs.Len() == 0 {
+			break
+		}
+	}
+
+	if w.ennemis.At(0).Hits >= resistance {
+		t.Error("le tir a manqué une cible qui traverse")
+	}
+}
+
+// TestLEclairSAllumeAuCoupEtSEteintSeul garde le seul retour qu'une touche
+// produise.
+//
+// **Une créature encaisse trois touches et le joueur ne voyait que la dernière.**
+// Rien ne distinguait un tir qui rate d'un tir qui entame, si bien qu'en jouant
+// on déduisait les ratés au lieu de les lire. Le cas garde les deux moitiés du
+// mécanisme : l'éclair s'allume au coup, et il s'éteint sans que personne
+// n'ait à le remettre à zéro.
+func TestLEclairSAllumeAuCoupEtSEteintSeul(t *testing.T) {
+	w, profils := champDeTir(t)
+	// Le Vigile encaisse douze touches : la créature survit assez pour qu'on
+	// voie son éclair s'éteindre.
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "bloqueur"),
+		FromInt(19)+One/2, FromInt(16)+One/2); !ok {
+		t.Fatal("créature refusée")
+	}
+
+	touche := 0
+	for range 4 * TPS {
+		w.Step(Vec{})
+		if w.ennemis.At(0).Flash > 0 {
+			break
+		}
+		touche++
+	}
+	if w.ennemis.At(0).Flash == 0 {
+		t.Fatal("aucun éclair après quatre secondes de tir")
+	}
+
+	// La cadence vaut vingt-quatre ticks et l'éclair quatre : aucun second coup
+	// ne peut le rallumer dans cet intervalle.
+	for range eclairImpact {
+		w.Step(Vec{})
+	}
+	if reste := w.ennemis.At(0).Flash; reste != 0 {
+		t.Errorf("éclair encore à %d après sa durée : il ne s'éteint pas", reste)
+	}
+}

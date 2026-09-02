@@ -90,6 +90,9 @@ REGLAGES = {
     "teintes": {
         "cadre_fond": [26, 28, 34, 205],
         "cadre_bord": [92, 96, 106, 255],
+        # Le bord de la carte sur laquelle porte le choix, dans l'ambre qui
+        # designe deja la valeur qui change : le meme sens, applique au cadre.
+        "cadre_choisi": [236, 196, 96, 255],
         "bandeau_fond": [16, 17, 21, 200],
         "jauge_fond": [40, 42, 48, 255],
         "jauge_vie": [176, 62, 58, 255],

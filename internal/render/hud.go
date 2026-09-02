@@ -80,7 +80,15 @@ func (h *HUD) Rect(dst *ebiten.Image, x, y, largeur, hauteur int, teinte color.R
 func (h *HUD) Frame(dst *ebiten.Image, x, y, largeur, hauteur int) {
 	h.Rect(dst, x, y, largeur, hauteur, h.theme.Color("cadre_fond"))
 
-	bord, teinte := h.theme.Border, h.theme.Color("cadre_bord")
+	h.Outline(dst, x, y, largeur, hauteur, h.theme.Color("cadre_bord"))
+}
+
+// Outline repeint le bord d'un cadre dans une autre teinte.
+//
+// Elle existe pour la désignation d'une carte : c'est le bord qui la porte, un
+// fond assombri masquant la horde que le joueur doit continuer de lire.
+func (h *HUD) Outline(dst *ebiten.Image, x, y, largeur, hauteur int, teinte color.RGBA) {
+	bord := h.theme.Border
 	h.Rect(dst, x, y, largeur, bord, teinte)
 	h.Rect(dst, x, y+hauteur-bord, largeur, bord, teinte)
 	h.Rect(dst, x, y, bord, hauteur, teinte)

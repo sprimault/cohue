@@ -27,6 +27,19 @@ const flowPeriod Tick = 6
 // cherchera au jalon 3, avec la vitesse relative et le plafond de dégâts.
 const separationScale = One / 8
 
+// eclairImpact est la durée de l'éclair qu'une créature touchée porte, en ticks.
+//
+// **Une créature encaisse trois touches et le joueur ne voyait que la troisième.**
+// Rien ne distinguait un tir qui rate d'un tir qui entame, si bien qu'on
+// déduisait les ratés au lieu de les lire — c'est le premier reproche qu'une
+// partie jouée a fait au tir.
+//
+// Quatre ticks, un quinzième de seconde : assez pour se voir sur une cadence de
+// vingt-quatre, trop court pour qu'une foule dense clignote en permanence. Le
+// chiffre vit ici parce que le décompte y vit ; ce que le rendu en fait lui
+// appartient.
+const eclairImpact Tick = 4
+
 // rabattement est la distance sous laquelle une créature vise le joueur plutôt
 // que la cellule suivante du champ de flux, en tuiles.
 //
@@ -288,6 +301,13 @@ func (w *World) deplacerEnnemis() {
 		e := w.ennemis.At(i)
 		profil := &w.profils.Enemies[e.Profile]
 
+		// L'éclair s'éteint dans la passe qui parcourt déjà la horde : lui en
+		// donner une à lui seul ferait un tour de bassin par tick pour un
+		// décompte.
+		if e.Flash > 0 {
+			e.Flash--
+		}
+
 		u, v := w.flux.Cell(e.X, e.Y)
 		attirance := w.flux.Direction(u, v)
 
@@ -320,7 +340,13 @@ func (w *World) deplacerEnnemis() {
 		}
 
 		pas := voulu.Direction(i).Scale(w.vitesse(profil.Speed, e.X, e.Y))
+		avantX, avantY := e.X, e.Y
 		e.X, e.Y = w.glisser(e.X, e.Y, pas)
+
+		// Le pas retenu est celui qui a eu lieu, projection sur la passabilité
+		// comprise : c'est la visée qui le lit, et prédire un déplacement que le
+		// mur a annulé ferait tirer dans le mur.
+		e.Step = Vec{X: e.X - avantX, Y: e.Y - avantY}
 	}
 }
 

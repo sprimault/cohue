@@ -64,6 +64,11 @@ var (
 	teinteJoueur = color.RGBA{R: 236, G: 214, B: 120, A: 255}
 	teinteHorde  = color.RGBA{R: 150, G: 78, B: 74, A: 255}
 	teinteTir    = color.RGBA{R: 226, G: 232, B: 238, A: 255}
+	// **L'éclair d'une créature touchée est la même teinte, éclaircie**, et non
+	// une couleur nouvelle : ce qu'il doit dire est « celle-ci vient d'être
+	// atteinte », pas « ceci est autre chose ». Un blanc franc ferait clignoter
+	// une foule dense en bandes qu'on ne relierait plus à des créatures.
+	teinteImpact = color.RGBA{R: 236, G: 186, B: 178, A: 255}
 	// Une gemme est minuscule et posée sur un sol gris : elle a besoin d'une
 	// teinte saturée que rien d'autre ne porte, sans quoi un tas au sol
 	// disparaît sous la horde au moment où l'on cherche à l'estimer.
@@ -98,6 +103,11 @@ type Screen struct {
 	// demiTuile est l'abscisse du sommet dans l'image d'une face, ce que le
 	// manifeste appellera son ancrage quand les images viendront de lui.
 	demiTuile int
+
+	// carteChoisie est la place que la désignation occupe dans le panneau de
+	// choix. Elle revient à gauche après chaque prise, pour la raison écrite sur
+	// `choisir`.
+	carteChoisie int
 
 	// hud pose le bandeau de la partie et le texte de l'écran de mort. Il peut
 	// être nul : la planche de relecture monte des écrans sans lui, et une partie
@@ -246,7 +256,11 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		switch e.sorte {
 		case sorteEnnemi:
 			c := s.monde.Enemies().At(e.place)
-			s.silhouette(ecran, s.figurine, c.X, c.Y, teinteHorde)
+			teinte := teinteHorde
+			if c.Flash > 0 {
+				teinte = teinteImpact
+			}
+			s.silhouette(ecran, s.figurine, c.X, c.Y, teinte)
 		case sorteTir:
 			p := s.monde.Shots().At(e.place)
 			s.silhouette(ecran, s.eclat, p.X, p.Y, teinteTir)

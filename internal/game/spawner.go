@@ -44,7 +44,16 @@ func (w *World) apparaitre() {
 	phase := w.scenario.phase(w.tick)
 	accorde := phase.budget(w.tick)
 	w.budget = borner(int64(w.budget) + int64(accorde))
-	if plafond := borner(int64(accorde) * int64(w.progression.CarryOver)); w.budget > plafond {
+
+	// **La borne ne descend jamais sous le prix d'une créature.** Elle limite
+	// l'accumulation ; l'empêcher d'atteindre un seul achat ne serait plus une
+	// limite mais un arrêt, et une phase à faible pression cesserait de produire
+	// quoi que ce soit sans qu'aucun refus ne le dise.
+	plafond := borner(int64(accorde) * int64(w.progression.CarryOver))
+	if plafond < phase.Cheapest {
+		plafond = phase.Cheapest
+	}
+	if w.budget > plafond {
 		w.budget = plafond
 	}
 

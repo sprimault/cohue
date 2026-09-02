@@ -48,17 +48,17 @@ func TestPartieLivreeSeMonte(t *testing.T) {
 	// quelques secondes signifierait qu'il n'en trouve aucune, ce qu'un lieu trop
 	// étroit ou un rayon mal réglé produirait en silence.
 	//
-	// Trois secondes, et pas davantage : l'anneau pose les créatures hors de
-	// portée de l'arme, si bien qu'aucune n'est encore morte et que le compte
-	// reste celui des apparitions.
+	// Dix secondes, sans chercher le compte exact : la courbe livrée s'ouvre à
+	// une pression d'un par seconde pour des créatures qui en coûtent trois, et
+	// un relevé serré ici encoderait ce réglage-là plutôt que la propriété.
 	if n := partie.World.Enemies().Len(); n != 0 {
 		t.Errorf("%d créature(s) au premier tick, alors que la horde s'achète", n)
 	}
-	for range 3 * game.TPS {
+	for range 10 * game.TPS {
 		partie.World.Step(game.Vec{})
 	}
 	if n := partie.World.Enemies().Len(); n == 0 {
-		t.Error("aucune créature après trois secondes de jeu sur le lieu livré")
+		t.Error("aucune créature après dix secondes de jeu sur le lieu livré")
 	}
 
 	if partie.Tile != [2]int{64, 32} {
@@ -100,9 +100,11 @@ func TestLaRelanceNeConserveRienDeLaPartie(t *testing.T) {
 	vie := monde.Health()
 	semis := monde.Enemies().Len()
 
-	// Jouer assez pour que tout ait bougé : le tick avance, la horde converge,
-	// et l'arme abat de quoi changer le compte des vivants.
-	for range 3 * game.TPS {
+	// Jouer assez pour que tout ait bougé : le tick avance et le spawner a posé
+	// de quoi changer le compte des vivants. Dix secondes plutôt que trois, la
+	// courbe livrée commençant à une pression d'un par seconde pour des créatures
+	// qui en coûtent trois — un compte serré ici encoderait ce réglage-là.
+	for range 10 * game.TPS {
 		monde.Step(game.Vec{})
 	}
 	if monde.Tick() == 0 || monde.Enemies().Len() == semis {

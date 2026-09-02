@@ -6,18 +6,12 @@
 
 package render
 
-import (
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
-)
+import "github.com/hajimehoshi/ebiten/v2"
 
-// relance est la touche qui rejoue.
-//
-// Espace, et non « une touche quelconque » : le chapitre 2 compte quatre
-// frictions à la relance, et la première est de devoir chercher quoi presser.
-// Une touche large, connue, et la même que celle qu'on presse déjà par réflexe
-// après une mort.
-const relance = ebiten.KeySpace
+// La relance emprunte les touches de validation, et c'est le même geste : le
+// chapitre 2 compte quatre frictions à la relance, et la première est de devoir
+// chercher quoi presser. Deux touches larges et connues plutôt qu'« une touche
+// quelconque », les mêmes qu'ailleurs.
 
 // WantsRestart dit si le joueur demande à rejouer.
 //
@@ -26,10 +20,11 @@ const relance = ebiten.KeySpace
 // le doigt n'est pas levé — et la partie repartirait à chaque image, donc jamais
 // vraiment.
 //
-// Elle ne rend vrai qu'une fois mort : pendant la partie, Espace ne fait rien et
-// n'a donc pas à être neutralisée ailleurs.
+// Elle ne rend vrai qu'une fois mort : pendant la partie, ces touches ne font
+// rien hors du panneau de choix, qui met la mort hors de portée puisque `Update`
+// traite l'une avant l'autre.
 func (s *Screen) WantsRestart() bool {
-	return !s.monde.Alive() && inpututil.IsKeyJustPressed(relance)
+	return !s.monde.Alive() && presse(validation)
 }
 
 // peindreMort couvre l'écran et dit comment repartir.
@@ -49,7 +44,7 @@ func (s *Screen) peindreMort(ecran *ebiten.Image) {
 	voile := s.hud.Color("bandeau_fond")
 	s.hud.Rect(ecran, 0, 0, Width, Height, voile)
 
-	titre, invite := "Mort", "Espace pour relancer"
+	titre, invite := "Mort", "Entrée pour relancer"
 	hauteur := s.hud.Font.Height()
 	y := Height/2 - hauteur
 

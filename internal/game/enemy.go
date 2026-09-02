@@ -20,6 +20,24 @@ type Enemy struct {
 	Profile int
 	// X et Y sont sa position dans le monde, en tuiles.
 	X, Y Fixed
+	// Flash est ce qui reste de l'éclair d'impact, en ticks.
+	//
+	// **Un décompte et non la date du coup.** La date se comparerait au tick
+	// courant, ce qui rendrait la valeur nulle indiscernable d'un coup reçu au
+	// premier tick ; un décompte n'a pas de sentinelle et la horde est de toute
+	// façon parcourue à chaque tick.
+	//
+	// Il vit ici plutôt que dans le rendu parce que c'est un état de la créature,
+	// que la relance efface avec elle. Ce que le rendu en fait — la teinte, sa
+	// vivacité — lui appartient.
+	Flash Tick
+	// Step est le déplacement que le tick précédent lui a appliqué, en tuiles.
+	//
+	// **Le pas appliqué et non l'intention**, parce que c'est lui qui prédit :
+	// une créature qui glisse le long d'un mur ou qu'une voisine repousse
+	// n'ira pas là où le champ de flux l'appelle. Il sert à la visée, qui tire
+	// où la cible sera plutôt que là où elle est.
+	Step Vec
 	// Hits est ce qu'il lui reste à encaisser, dans l'unité où s'exprime la
 	// résistance : des touches de l'arme de base à son premier niveau.
 	//

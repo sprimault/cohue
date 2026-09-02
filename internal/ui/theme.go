@@ -24,7 +24,7 @@ import (
 // orthographiée s'ajouterait au manifeste sans que rien ne la lise, et la
 // couleur qu'on croyait avoir réglée resterait celle d'avant.
 var teintesRequises = []string{
-	"cadre_fond", "cadre_bord", "bandeau_fond",
+	"cadre_fond", "cadre_bord", "cadre_choisi", "bandeau_fond",
 	"jauge_fond", "jauge_vie", "jauge_experience",
 	"texte", "texte_attenue", "texte_valeur", "texte_contour",
 }

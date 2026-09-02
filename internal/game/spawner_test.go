@@ -271,3 +271,36 @@ func degager(w *World) {
 		}
 	}
 }
+
+// TestUneBorneNeTuePasUnePhase garde le cas où la borne de report tombe sous le
+// prix d'une créature.
+//
+// **Il est né du réglage de la courbe et d'aucune relecture.** Une pression d'un
+// par seconde et un report de trois secondes plafonnent le budget au prix exact
+// d'un Badaud, que l'arrondi de la conversion par tick place un millième en
+// dessous : le budget monte, bute sur la borne, et la phase n'achète jamais rien.
+// Rien ne le signalait — pas un refus au chargement, pas une erreur, une salle
+// simplement vide.
+//
+// Ce que le cas garde n'est donc pas la borne mais son plancher : elle limite
+// l'accumulation, elle ne l'arrête pas.
+func TestUneBorneNeTuePasUnePhase(t *testing.T) {
+	w, profils := salleOuverte(t, nil, 16)
+	marcheur := indexDuProfil(t, profils, "marcheur")
+	w.scenario = vagueUnique(1, marcheur)
+	w.scenario.Phases[0].Cheapest = FromInt(profils.Enemies[marcheur].PressureCost)
+
+	// Trois secondes de report pour trois de budget par seconde : le plafond et
+	// le prix se touchent, et c'est là que le cas se joue.
+	if plafond := parTick(1) * Fixed(w.progression.CarryOver); plafond >= FromInt(3) {
+		t.Fatalf("le plafond vaut %v pour un prix de %v : le cas n'est plus sur l'arête",
+			plafond, FromInt(3))
+	}
+
+	for range 5 * TPS {
+		w.Step(Vec{})
+	}
+	if n := w.Enemies().Len(); n == 0 {
+		t.Error("aucune créature en cinq secondes : la borne empêche tout achat")
+	}
+}

@@ -82,9 +82,9 @@ déjà : les gemmes acquises comptent pour le niveau suivant.
 
 ## Le choix
 
-À chaque montée, **le jeu se fige et trois cartes s'affichent**. Vous en prenez
-une avec les flèches gauche, bas et droite — la touche désigne la carte qu'elle
-montre.
+À chaque montée, **le jeu se fige et trois cartes s'affichent**. Les flèches
+gauche et droite déplacent votre choix, qu'un liseré ambre désigne, et Entrée le
+valide. Rien ne se décide tant que vous n'avez pas validé : le jeu attend.
 
 Vous gardez la même arme du début à la fin : ce sont les cartes qui la
 transforment.
@@ -138,5 +138,5 @@ vertes.
 | Touche | |
 |---|---|
 | Flèches, ou Z Q S D | se déplacer |
-| Flèches ← ↓ → | choisir une carte, pendant une montée de niveau |
-| Espace | relancer, après la mort |
+| Flèches ← → | désigner son choix, pendant une montée de niveau |
+| Entrée, ou Espace | valider le choix, et relancer après la mort |

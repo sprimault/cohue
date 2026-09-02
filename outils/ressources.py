@@ -254,9 +254,11 @@ CHAMPS_COMMUNS = {"role", "vitesse_relative", "rayon_tuiles", "groupe",
                   "cycles", "variantes"}
 
 CHAMPS_PAR_ROLE = {
-    "joueur": {"vitesse_tuiles_s", "vie", "plafond_degats_s"},
+    "joueur": {"vitesse_tuiles_s", "vie", "plafond_degats_s",
+               "portee_ramassage_tuiles"},
     "ennemi": {"comportement", "touches", "points", "cout_pression",
-               "poids_separation", "max_simultane", "degats_contact_s"},
+               "poids_separation", "max_simultane", "degats_contact_s",
+               "gemmes"},
     "ambiance": {"comportement"},
 }
 

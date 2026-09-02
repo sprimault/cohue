@@ -28,10 +28,77 @@ facultatif ; sans lui, la version se nomme par son tag.
 **Une section absente arrête la publication.** Une version sans notes ne dit ni
 ce qui change, ni ce qu'un auteur de niveau doit reprendre.
 
+La section en cours s'écrit `## [Non publié]`, sans date ni titre, et chaque lot
+y ajoute ce qu'il change : écrite au fil de l'eau, elle est relue en même temps
+que le code qu'elle décrit, alors qu'une section rédigée le jour du tag résume
+de mémoire un mois de travail. **Elle prend son numéro et sa date au moment du
+tag**, faute de quoi la publication cherche une section qui n'existe pas et
+s'arrête.
+
 Chaque section est **bilingue, français d'abord, séparé par `***`** — les notes
 de version sont ce que lit un auteur de niveau étranger avant de savoir s'il
 doit reprendre son travail. Ce préambule reste en français : il n'est jamais
 publié, et explique les conventions du dépôt à qui y contribue.
+
+## [Non publié]
+
+**On y meurt, et on relance.** La horde qui convergeait sans effet blesse
+désormais au contact : collé sans se dégager, le joueur tombe en cinq secondes.
+L'écran de mort laisse voir ce qui a eu raison de lui, et une touche remonte une
+partie neuve sur le même lieu.
+
+Les créatures abattues laissent des gemmes au sol. **Elles ne donnent encore
+rien** : la montée de niveau et les cartes viennent ensuite. C'est le
+comportement attendu, pas un défaut.
+
+### Ajouté
+
+- **La vie du joueur et les dégâts au contact.** Une créature collée blesse en
+  continu plutôt qu'en un coup, et le total encaissé par seconde est plafonné
+  quel que soit le nombre d'ennemis au contact : l'encerclement reste très
+  dangereux, mais il laisse une fenêtre pour se dégager plutôt que de tuer d'un
+  bloc.
+- **La mort fige la scène, une touche relance.** Le décor et la horde restent à
+  l'écran, assombris, et Espace remonte la partie sans rien redemander — même
+  lieu, aucune sélection à refaire.
+- **Les gemmes.** Une créature laisse, à l'endroit exact où elle meurt, le
+  nombre de gemmes que son profil déclare ; le joueur les ramasse en passant à
+  courte portée.
+
+### À savoir
+
+- **Les gemmes tombées au contact se ramassent aussitôt**, la horde mourant
+  collée au joueur. On en voit peu au sol, et c'est normal tant que rien ne tue
+  à distance.
+
+***
+
+**You can die here, and start over.** The horde that used to converge without
+effect now hurts on contact: caught and unable to break free, the player falls
+in five seconds. The death screen leaves in view whatever got the better of
+them, and one key brings up a fresh run on the same place.
+
+Killed creatures drop gems on the ground. **They still grant nothing**: levelling
+up and the cards come next. That is the expected behaviour, not a defect.
+
+### Added
+
+- **Player health and contact damage.** A creature pressed against the player
+  hurts continuously rather than in a single blow, and the total taken per second
+  is capped whatever the number of enemies in contact: being surrounded stays
+  very dangerous, but it leaves a window to break free instead of killing
+  outright.
+- **Death freezes the scene, one key restarts.** The place and the horde stay on
+  screen, darkened, and Space brings the run back with nothing to re-enter — same
+  place, no selection to redo.
+- **Gems.** A creature drops, exactly where it dies, as many gems as its profile
+  declares; the player picks them up by passing within a short range.
+
+### Good to know
+
+- **Gems dropped in contact are picked up at once**, since the horde dies
+  pressed against the player. Few are seen on the ground, and that is expected
+  as long as nothing kills at a distance.
 
 ## [0.2.1] — 2026-09-01 — Ce que la relecture a corrigé
 

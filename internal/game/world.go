@@ -49,6 +49,7 @@ type World struct {
 	densite *DensityGrid
 	ennemis *Pool[Enemy]
 	tirs    *Pool[Projectile]
+	gemmes  *Pool[Gem]
 	// hasard porte les quatre flux de la partie. Aucun n'est encore lu : le
 	// premier tirage viendra du spawner, à l'étape 4. Ils vivent ici plutôt que
 	// dans le montage parce que c'est le tick qui les consommera, et qu'un
@@ -80,7 +81,7 @@ type World struct {
 // La graine en est un, en revanche, et elle vient du montage : lui seul sait de
 // quelle run il s'agit dans la suite d'une session. Une partie qui tirerait la
 // sienne ne se rejouerait plus.
-func NewWorld(profils *Profiles, arme Weapon, grille *CostGrid, graine uint64, capacite, tirs int) *World {
+func NewWorld(profils *Profiles, arme Weapon, grille *CostGrid, graine uint64, capacite, tirs, gemmes int) *World {
 	return &World{
 		profils: profils,
 		arme:    arme,
@@ -90,6 +91,7 @@ func NewWorld(profils *Profiles, arme Weapon, grille *CostGrid, graine uint64, c
 		densite: NewDensityGrid(grille.Width(), grille.Height()),
 		ennemis: NewPool[Enemy](capacite),
 		tirs:    NewPool[Projectile](tirs),
+		gemmes:  NewPool[Gem](gemmes),
 		hasard:  NewStreams(graine),
 	}
 }
@@ -138,9 +140,15 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 //
 // L'ordre est celui de la conception, et il est écrit une fois : les entrées, le
 // champ de flux si c'est son tick, la densité, les intentions et leur
-// projection, les dégâts de contact, le tir puis le vol des projectiles avec ce
-// qu'ils touchent, et les suppressions en dernier. Ce qui manque encore y
-// prendra sa place — les apparitions, entre les entrées et le champ.
+// projection, les dégâts de contact puis le ramassage, le tir puis le vol des
+// projectiles avec ce qu'ils touchent, et les suppressions en dernier. Ce qui
+// manque encore y prendra sa place — les apparitions, entre les entrées et le
+// champ.
+//
+// Le ramassage est rangé avec les contacts, dont il est un : ce que le joueur
+// touche en se déplaçant. Il vient après les dégâts parce qu'une gemme ramassée
+// dans le tick où l'on meurt ne change rien, alors que l'inverse ferait dépendre
+// la mort de ce qu'on a récolté.
 //
 // **Le contact se constate après le déplacement et non avant**, sinon une
 // créature qui vient de se coller ne blesserait qu'au tick suivant et le joueur
@@ -170,6 +178,7 @@ func (w *World) Step(voulu Vec) {
 	w.compterDensite()
 	w.deplacerEnnemis()
 	w.subir()
+	w.ramasser()
 	w.tirer()
 	w.deplacerTirs()
 	w.retirerLesMorts()

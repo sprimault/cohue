@@ -63,6 +63,20 @@ DIRECTIONS = ["S", "SO", "O", "NO", "N", "NE", "E", "SE"]
 # sur ce qu'elle lui rapporte. Il est unitaire, le spawner le multipliant par la
 # taille du groupe.
 #
+# `portee_ramassage_tuiles` est courte à dessein : c'est ce qui fait du
+# ramassage une décision, puisqu'une gemme laissée derrière se perd. Une portée
+# généreuse la retirerait, et c'est l'aimant qui existe pour rattraper ce qu'on
+# n'a pas eu le temps de reprendre. Elle forme un couple avec la durée de vie
+# d'une gemme, que le lot de l'aimant apportera : les deux punissent le
+# non-ramassage, et se règlent ensemble ou pas du tout.
+#
+# `gemmes` est ce qu'une créature laisse tomber en mourant, et non ce que cela
+# vaut : une gemme rapporte la même chose du début à la fin de la run, et c'est
+# le seuil du niveau suivant qui monte. Un profil qui doit rapporter davantage
+# en laisse donc plusieurs, ce qui donne au joueur de quoi estimer sa récolte
+# avant de déclencher l'aimant. Toutes à une tant que l'équilibrage n'a pas eu
+# lieu : le champ est une structure, sa valeur est un réglage.
+#
 # `max_simultane` borne les vivants d'un profil, pas les apparus. Un coût élevé
 # règle une fréquence moyenne, pas une simultanéité : le Secouriste ne vaut rien
 # seul et double la difficulté au milieu de vingt Badauds, donc sa rareté ne peut
@@ -70,23 +84,27 @@ DIRECTIONS = ["S", "SO", "O", "NO", "N", "NE", "E", "SE"]
 # desserrer.
 JEU = {
     "joueur":    {"role": "joueur", "vitesse_tuiles_s": 5.0, "rayon_tuiles": 0.125,
-                  "vie": 100, "plafond_degats_s": 20},
+                  "vie": 100, "plafond_degats_s": 20,
+                  "portee_ramassage_tuiles": 1.0},
     "marcheur":  {"role": "ennemi", "comportement": "poursuite",
                   "vitesse_relative": 0.62, "rayon_tuiles": 0.125, "touches": 3,
                   "points": 10, "cout_pression": 3, "poids_separation": 1.0,
-                  "max_simultane": 0, "degats_contact_s": 6},
+                  "max_simultane": 0, "degats_contact_s": 6, "gemmes": 1},
     "sprinteur": {"role": "ennemi", "comportement": "charge",
                   "vitesse_relative": 1.35, "rayon_tuiles": 0.109, "touches": 2,
                   "points": 25, "cout_pression": 4, "poids_separation": 1.0,
-                  "max_simultane": 0, "degats_contact_s": 8, "degats_charge": 18},
+                  "max_simultane": 0, "degats_contact_s": 8, "gemmes": 1,
+                  "degats_charge": 18},
     "flanqueur": {"role": "ennemi", "comportement": "flanc",
                   "vitesse_relative": 0.82, "rayon_tuiles": 0.109, "touches": 4,
                   "points": 30, "cout_pression": 5, "poids_separation": 1.0,
-                  "max_simultane": 0, "degats_contact_s": 7, "tangentiel": 0.55},
+                  "max_simultane": 0, "degats_contact_s": 7, "gemmes": 1,
+                  "tangentiel": 0.55},
     "cracheur":  {"role": "ennemi", "comportement": "tir",
                   "vitesse_relative": 0.55, "rayon_tuiles": 0.125, "touches": 5,
                   "points": 40, "cout_pression": 6, "poids_separation": 1.3,
-                  "max_simultane": 0, "degats_contact_s": 4, "portee_tuiles": 6,
+                  "max_simultane": 0, "degats_contact_s": 4, "gemmes": 1,
+                  "portee_tuiles": 6,
                   "degats_tir": 6, "vitesse_projectile_tuiles_s": 7.0},
     # Poids faible : dans le mécanisme du chapitre 4, ce poids dit combien une
     # créature s'écarte de ses voisines, et non combien elle résiste à être
@@ -95,17 +113,18 @@ JEU = {
     "bloqueur":  {"role": "ennemi", "comportement": "poursuite",
                   "vitesse_relative": 0.45, "rayon_tuiles": 0.188, "touches": 12,
                   "points": 60, "cout_pression": 12, "poids_separation": 0.4,
-                  "max_simultane": 0, "degats_contact_s": 10},
+                  "max_simultane": 0, "degats_contact_s": 10, "gemmes": 1},
     "eclateur":  {"role": "ennemi", "comportement": "explosion",
                   "vitesse_relative": 0.70, "rayon_tuiles": 0.141, "touches": 4,
                   "points": 35, "cout_pression": 5, "poids_separation": 1.0,
-                  "max_simultane": 0, "degats_contact_s": 5, "degats_explosion": 35,
+                  "max_simultane": 0, "degats_contact_s": 5, "gemmes": 1,
+                  "degats_explosion": 35,
                   "rayon_explosion_tuiles": 1.5},
     # Un seul à la fois : sa menace est multiplicative, pas additive.
     "soigneur":  {"role": "ennemi", "comportement": "soin",
                   "vitesse_relative": 0.70, "rayon_tuiles": 0.109, "touches": 3,
                   "points": 15, "cout_pression": 6, "poids_separation": 1.0,
-                  "max_simultane": 1, "degats_contact_s": 4},
+                  "max_simultane": 1, "degats_contact_s": 4, "gemmes": 1},
     # Le Passant n'est pas un monstre : il ne blesse pas, ne rapporte rien, ne
     # se cible pas et ne se paie pas dans le budget de pression. Il traverse la
     # scène et occupe l'espace, ce qui suffit à le rendre gênant. Lui laisser

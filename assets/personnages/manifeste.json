@@ -12,6 +12,7 @@
       "rayon_tuiles": 0.125,
       "vie": 100,
       "plafond_degats_s": 20,
+      "portee_ramassage_tuiles": 1.0,
       "origine": "figurine générée",
       "cote": 64,
       "appui": [
@@ -66,6 +67,7 @@
       "poids_separation": 1.0,
       "max_simultane": 0,
       "degats_contact_s": 6,
+      "gemmes": 1,
       "origine": "figurine générée",
       "cote": 64,
       "appui": [
@@ -125,6 +127,7 @@
       "poids_separation": 1.0,
       "max_simultane": 0,
       "degats_contact_s": 8,
+      "gemmes": 1,
       "degats_charge": 18,
       "origine": "figurine générée",
       "cote": 64,
@@ -170,6 +173,7 @@
       "poids_separation": 1.0,
       "max_simultane": 0,
       "degats_contact_s": 7,
+      "gemmes": 1,
       "tangentiel": 0.55,
       "origine": "figurine générée",
       "cote": 64,
@@ -230,6 +234,7 @@
       "poids_separation": 1.3,
       "max_simultane": 0,
       "degats_contact_s": 4,
+      "gemmes": 1,
       "portee_tuiles": 6,
       "degats_tir": 6,
       "vitesse_projectile_tuiles_s": 7.0,
@@ -287,6 +292,7 @@
       "poids_separation": 0.4,
       "max_simultane": 0,
       "degats_contact_s": 10,
+      "gemmes": 1,
       "origine": "figurine générée",
       "cote": 64,
       "appui": [
@@ -346,6 +352,7 @@
       "poids_separation": 1.0,
       "max_simultane": 0,
       "degats_contact_s": 5,
+      "gemmes": 1,
       "degats_explosion": 35,
       "rayon_explosion_tuiles": 1.5,
       "origine": "figurine générée",
@@ -407,6 +414,7 @@
       "poids_separation": 1.0,
       "max_simultane": 1,
       "degats_contact_s": 4,
+      "gemmes": 1,
       "origine": "figurine générée",
       "cote": 64,
       "appui": [

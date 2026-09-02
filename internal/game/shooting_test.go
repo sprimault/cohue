@@ -35,7 +35,7 @@ func champDeTir(t *testing.T) (*World, *Profiles) {
 		g.Set(31, v, Blocked)
 	}
 
-	w := NewWorld(profils, armes.Base, g, graineDeTest, 16, 64)
+	w := NewWorld(profils, armes.Base, g, graineDeTest, 16, 64, 32)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils
 }
@@ -49,7 +49,7 @@ func champSansTir(t *testing.T) (*World, *Profiles) {
 		t.Fatalf("profils livrés : %v", err)
 	}
 	g := NewCostGrid(32, 32)
-	w := NewWorld(profils, Weapon{}, g, graineDeTest, 16, 64)
+	w := NewWorld(profils, Weapon{}, g, graineDeTest, 16, 64, 32)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils
 }
@@ -209,6 +209,11 @@ func TestLeTirTueEtLaCreatureQuitteLeBassin(t *testing.T) {
 // `Step`, ce qui est vrai que la garde existe ou non : il ne garde donc pas
 // celle-ci. Elle ne se voit qu'en observant le milieu du tick, et c'est ce que
 // fait celui-ci.
+//
+// Ce qu'il garde est le **projectile** : qu'il ne soit pas absorbé par ce qui
+// est déjà mort. `TestDeuxProjectilesNeDonnentQuUneVolee` garde l'autre
+// conséquence du même filtre, au sol — le butin qui ne repart pas une seconde
+// fois. Retirer l'un des deux laisse la moitié de la règle sans épreuve.
 func TestUnMortCesseDEtreUneCibleSansQuitterLeBassin(t *testing.T) {
 	w, profils := champSansTir(t)
 	px, py := w.Player()

@@ -162,8 +162,14 @@ func (w *World) toucher(depart Vec, p *Projectile) bool {
 		return false
 	}
 
-	// La transition, et non l'état : c'est ici que se brancheront le butin, les
-	// points et le cadavre, une seule fois chacun.
-	w.ennemis.At(touchee).Hits -= p.Hits
+	// La transition, et non l'état : c'est ici que se branchent le butin et, plus
+	// tard, les points et le cadavre — une seule fois chacun. La boucle
+	// ci-dessus ayant écarté ce qui n'a plus de résistance, une créature ne
+	// franchit ce seuil qu'une fois.
+	e := w.ennemis.At(touchee)
+	e.Hits -= p.Hits
+	if e.Hits <= 0 {
+		w.lacher(e)
+	}
 	return true
 }

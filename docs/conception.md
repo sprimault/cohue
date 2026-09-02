@@ -973,7 +973,9 @@ Côté **décor** : taille, ancrage, élévation, catégorie, thème, et quatre 
 
 Côté **personnages** : le rendu — cycles, cadences, bouclage, directions, point d'appui, gabarit, variantes — **et les valeurs de jeu**, dans le même fichier.
 
-Un **rôle** décide d'abord, et il en a trois : le joueur porte une vie, un plafond de dégâts et la seule vitesse absolue du jeu ; un ennemi porte résistance, points, coût de pression, poids de séparation, plafond de simultanéité et dégâts de contact ; une entité d'ambiance ne porte ni l'un ni l'autre. Un booléen n'en aurait couvert que deux, le troisième cas se lisant dans son absence — le genre de défaut par défaut qu'on ne voit pas.
+Un **rôle** décide d'abord, et il en a trois : le joueur porte une vie, un plafond de dégâts, une portée de ramassage et la seule vitesse absolue du jeu ; un ennemi porte résistance, points, coût de pression, poids de séparation, plafond de simultanéité, dégâts de contact et nombre de gemmes ; une entité d'ambiance ne porte ni l'un ni l'autre.
+
+Le nombre de gemmes est un **nombre et non une valeur**, ce que le chapitre 2 impose : une gemme rapporte la même chose du début à la fin, et c'est le seuil du niveau suivant qui monte. Un profil qui doit rapporter davantage en laisse donc plusieurs, et c'est la quantité au sol qui dit au joueur ce qu'il va gagner. Un booléen n'en aurait couvert que deux, le troisième cas se lisant dans son absence — le genre de défaut par défaut qu'on ne voit pas.
 
 Un **comportement** ajoute ensuite ce qui n'a de sens que pour lui : tangentiel du flanqueur, portée de la Buse, dégâts de charge du Molosse, rayon d'explosion de la Baudruche. Déclarés avec le comportement et non dans une liste de champs facultatifs, ils se contrôlent dans les deux sens — une portée sur un Badaud ne serait jamais lue et laisserait croire qu'il tire.
 

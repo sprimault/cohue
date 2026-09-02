@@ -89,6 +89,12 @@ supprime la branche des deux côtés.
 make fmt && make lint && make test && make race && make vulncheck && make sec
 ```
 
+**La liste est fixe et se passe entière**, jamais réduite à ce qui touche au
+changement qu'on vient d'écrire. Composer sa liste revient à ne vérifier que ce
+qu'on a déjà en tête, et le défaut est ailleurs par construction : s'il avait été
+là où l'on regardait, on l'aurait vu en écrivant. **Celui qui trouve est celui
+qu'on n'avait pas de raison de lancer.**
+
 Deux contrôles s'y ajoutent dès qu'un changement touche `assets/`, `outils/` ou
 la forme d'un fichier :
 

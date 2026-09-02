@@ -34,6 +34,7 @@ index.
 | où convertir entre le monde et l'écran | [La projection isométrique](#la-projection-isométrique-ne-se-recalcule-pas) |
 | ce qu'un test doit garder, et comment | [Tests](#11-tests) |
 | pourquoi un test échoue sur un diff qui ne l'atteint pas | [Un rouge que le diff ne peut pas atteindre](#un-rouge-que-le-diff-ne-peut-pas-atteindre-vient-de-linstrument) |
+| pourquoi une image de relecture juste montre autre chose | [Un artefact capture un instant](#un-artefact-de-relecture-capture-un-instant-autant-quun-état) |
 | si un test vert prouve quelque chose | [Quatre façons d'avoir un test vert](#quatre-façons-davoir-un-test-vert-qui-ne-prouve-rien) |
 | contre quoi éprouver un test qui garde une décision | [L'implémentation abandonnée](#un-test-qui-garde-une-décision-séprouve-contre-limplémentation-abandonnée) |
 | comment défendre un test qu'on croirait faux | [Le test contre-intuitif](#le-test-qui-garde-une-propriété-contre-intuitive) |
@@ -809,6 +810,35 @@ un corps qui décrivent deux choses sont deux descriptions de la même propriét
 et l'une des deux ment. Ce que la section [Deux
 descriptions](#deux-descriptions-de-la-même-chose-finissent-par-diverger) dit des
 données vaut ici d'un test et de ce qu'il promet.
+
+Cette règle porte sur **ce que** l'instrument mesure, et rien sur le moment où il
+le mesure : [Un artefact de relecture capture un instant autant qu'un
+état](#un-artefact-de-relecture-capture-un-instant-autant-quun-état) garde ce
+qu'elle laisse passer.
+
+### Un artefact de relecture capture un instant autant qu'un état
+
+Déplacement de [Un rouge que le diff ne peut pas
+atteindre](#un-rouge-que-le-diff-ne-peut-pas-atteindre-vient-de-linstrument), du
+*quoi* au *quand* : celle-là dit de regarder ce que l'instrument mesure, et ne
+dit rien de l'instant où il le fait.
+
+**Si l'instant n'est pas celui qu'on croit, l'artefact ment sans qu'aucune de ses
+valeurs soit fausse.** C'est ce qui le sépare d'une condition d'affichage mal
+posée, où quelque chose est faux et se corrige. Ici tout est juste — les
+chiffres, les couleurs, la mise en page — et c'est le moment qui ne l'est pas,
+donc rien dans l'image ne peut le dire.
+
+Le cas : la planche de relecture joue ses pas en appelant `World.Step`
+directement, or la simulation continue de tourner après la mort — c'est l'écran
+qui fige, pas la boucle. Le cadavre a donc tiré et ramassé pendant trente
+secondes, et la vue du choix de niveau a montré « Niveau 2 » par-dessus un écran
+de mort. Aucun pixel n'était faux.
+
+La parade est vérifiable plutôt que vigilante : **un artefact s'arrête sur
+l'événement qu'il montre, pas sur un compte de pas.** Un compte est une
+approximation de l'événement, et une approximation qui se trouve juste
+aujourd'hui cesse de l'être au premier réglage.
 
 ### Quatre façons d'avoir un test vert qui ne prouve rien
 

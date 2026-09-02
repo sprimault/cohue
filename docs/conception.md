@@ -967,6 +967,10 @@ Composition : `poser` place un objet **en coordonnées de tuile**, pas en pixels
 
 Chaque lot produit un manifeste JSON, et c'est lui qui fait contrat entre les images et le moteur.
 
+**Un manifeste est généré quand son contenu est dérivé, tenu à la main quand il est décidé.** Un générateur gagne sa place en calculant ce qui n'existe pas dans son entrée — des volumes composés, une enveloppe synthétisée, une fonte cuite en planche. Il n'en a aucune quand il transcrirait les mêmes chiffres depuis un script : les valeurs déménageraient du JSON vers le Python, on éditerait toujours un fichier, et l'on paierait une commande de plus.
+
+Ce n'est donc pas une exception que d'écrire à la main la table d'armes et celle de la progression, c'est le même critère appliqué à des contenus d'une autre nature. Et il dit d'avance ce qui les ferait changer de camp : le jour où l'outil d'équilibrage mesure une cadence de récolte, les seuils de niveau cessent d'être décidés pour devenir un calcul. La table d'armes, elle, ne changera pas — ses valeurs tiennent au ressenti, et un outil mesure ce qu'une cadence produit sans décider ce qui est agréable.
+
 Chaque manifeste porte un **en-tête** : `version_format`, et pour le décor la taille de tuile. Sans lui, aucune migration n'est possible le jour où un champ change de sens.
 
 **Mais il n'y sert pas à ce qu'il sert dans un niveau**, et la nuance mérite d'être écrite avant que quelqu'un l'aligne dans un sens ou dans l'autre. Un niveau circule entre joueurs, donc son numéro dit à un binaire quoi faire d'un fichier qu'il n'a pas produit. Un manifeste, lui, est embarqué par `go:embed` : il voyage avec son lecteur et ne peut pas en être désynchronisé. Ce qu'il accorde n'est pas deux machines mais **deux chaînes d'outils** — des scripts Python qui écrivent, du Go qui lit — et c'est pour cela qu'il en porte un quand même. D'où deux réflexes à ne pas avoir : incrémenter par symétrie avec les niveaux quand un champ disparaît, ou retirer le champ en constatant qu'aucune migration ne l'attend.

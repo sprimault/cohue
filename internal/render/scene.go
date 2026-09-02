@@ -23,6 +23,7 @@ type sorte uint8
 const (
 	sorteEnnemi sorte = iota
 	sorteTir
+	sorteGemme
 	sorteJoueur
 )
 
@@ -63,6 +64,14 @@ type entite struct {
 // rien à disputer. Le jour où les formes du décor auront leur volume, un muret
 // devra entrer dans la même séquence — sans quoi une créature derrière lui se
 // dessinera par-dessus.
+//
+// **Les gemmes en sont, bien qu'elles soient au sol**, et la raison n'est pas
+// statique : posées, elles pourraient être peintes avec le décor, puisqu'un
+// personnage a son appui en bas de son image et ne descend jamais sous ses
+// pieds. C'est l'aimant qui l'interdit — une gemme qui converge vers le joueur
+// se dessine à hauteur de torse et croise la horde, si bien qu'elle a une
+// profondeur à disputer. Les ranger avec le décor aujourd'hui obligerait à les
+// en sortir dès ce moment-là.
 type scene struct {
 	// comptes porte, par seau, le nombre d'entités puis leur position de départ
 	// dans la séquence. Sa taille vient de l'englobant du lieu et jamais d'une
@@ -78,10 +87,10 @@ type scene struct {
 //
 // La profondeur d'un point du lieu va de zéro, au sommet du losange, à la somme
 // de ses deux côtés, à sa pointe basse : il faut donc un seau de plus que cette
-// somme. La capacité des séquences couvre les deux bassins pleins et le joueur,
+// somme. La capacité des séquences couvre les trois bassins pleins et le joueur,
 // c'est-à-dire le plus grand nombre d'entités qu'une image puisse porter.
-func nouvelleScene(carte *game.CostGrid, ennemis, tirs int) *scene {
-	total := ennemis + tirs + 1
+func nouvelleScene(carte *game.CostGrid, ennemis, tirs, gemmes int) *scene {
+	total := ennemis + tirs + gemmes + 1
 	return &scene{
 		comptes: make([]int, carte.Width()+carte.Height()+1),
 		recueil: make([]entite, 0, total),
@@ -111,6 +120,12 @@ func (s *scene) recueillir(monde *game.World) {
 	for i := range tirs.Active() {
 		p := tirs.At(i)
 		s.ajouter(p.X, p.Y, tirs.IDAt(i), sorteTir, i)
+	}
+
+	gemmes := monde.Gems()
+	for i := range gemmes.Active() {
+		g := gemmes.At(i)
+		s.ajouter(g.X, g.Y, gemmes.IDAt(i), sorteGemme, i)
 	}
 
 	// Le joueur ne vit dans aucun bassin : il est seul, donc son identité ne
@@ -221,6 +236,11 @@ func insertion(s []entite) {
 // l'anneau d'apparition de l'étape 4, qui superpose des créatures par
 // construction. Le seau et l'exception du joueur, eux, sont éprouvés : les
 // inverser change la planche.
+//
+// **Les gemmes ne les atteignent pas non plus**, contrairement à ce qu'on
+// pourrait croire d'un tas : deux créatures meurent à des positions distinctes,
+// donc leurs gemmes le sont aussi, et une volée est écartée exprès pour ne pas
+// se superposer. La dette reste donc entière.
 //
 // **Le joueur passe devant ce qui partage sa profondeur**, exception que la
 // conception assume : perdre son personnage sous un empilement est ce qui peut

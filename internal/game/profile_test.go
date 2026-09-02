@@ -120,18 +120,19 @@ func TestManquementsListesEnUneFois(t *testing.T) {
 		"version_format": 1,
 		"profils": {
 			"joueur": {"role": "joueur", "nom": "Survivant", "rayon_tuiles": 0.125,
-			           "vitesse_tuiles_s": 5.0, "vie": 100, "plafond_degats_s": 20},
+			           "vitesse_tuiles_s": 5.0, "vie": 100, "plafond_degats_s": 20,
+			           "portee_ramassage_tuiles": 1.0},
 			"cracheur": {"role": "ennemi", "nom": "Buse", "rayon_tuiles": 0.125,
 			             "comportement": "tir", "vitesse_relative": 0.55,
 			             "touches": 5, "points": 40, "cout_pression": 6,
 			             "poids_separation": 1.3, "max_simultane": 0,
-			             "degats_contact_s": 4, "degats_tir": 6,
+			             "degats_contact_s": 4, "gemmes": 1, "degats_tir": 6,
 			             "vitesse_projectile_tuiles_s": 7.0},
 			"marcheur": {"role": "ennemi", "nom": "Badaud", "rayon_tuiles": 0.125,
 			             "comportement": "poursuite", "vitesse_relative": 0.62,
 			             "touches": 3, "points": 10, "cout_pression": 3,
 			             "poids_separation": 1.0, "max_simultane": 0,
-			             "degats_contact_s": 6, "tangentiel": 0.55}
+			             "degats_contact_s": 6, "gemmes": 1, "tangentiel": 0.55}
 		}
 	}`)}}
 
@@ -160,11 +161,13 @@ func TestZeroEcritNestPasUneAbsence(t *testing.T) {
 		"version_format": 1,
 		"profils": {
 			"joueur": {"role": "joueur", "nom": "Survivant", "rayon_tuiles": 0.125,
-			           "vitesse_tuiles_s": 5.0, "vie": 100, "plafond_degats_s": 20},
+			           "vitesse_tuiles_s": 5.0, "vie": 100, "plafond_degats_s": 20,
+			           "portee_ramassage_tuiles": 1.0},
 			"soigneur": {"role": "ennemi", "nom": "Secouriste", "rayon_tuiles": 0.109,
 			             "comportement": "soin", "vitesse_relative": 0.7,
 			             "touches": 3, "points": 15, "cout_pression": 6,
-			             "poids_separation": 1.0, "degats_contact_s": 4%s}
+			             "poids_separation": 1.0, "degats_contact_s": 4,
+			             "gemmes": 1%s}
 		}
 	}`
 

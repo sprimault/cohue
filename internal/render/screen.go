@@ -63,6 +63,10 @@ var (
 	teinteJoueur = color.RGBA{R: 236, G: 214, B: 120, A: 255}
 	teinteHorde  = color.RGBA{R: 150, G: 78, B: 74, A: 255}
 	teinteTir    = color.RGBA{R: 226, G: 232, B: 238, A: 255}
+	// Une gemme est minuscule et posée sur un sol gris : elle a besoin d'une
+	// teinte saturée que rien d'autre ne porte, sans quoi un tas au sol
+	// disparaît sous la horde au moment où l'on cherche à l'estimer.
+	teinteGemme = color.RGBA{R: 96, G: 214, B: 168, A: 255}
 )
 
 // Screen est le jeu tel qu'Ebitengine le voit.
@@ -73,11 +77,13 @@ type Screen struct {
 
 	scene *scene
 
-	// Les trois formes blanches que le dessin teinte au blit : la face d'une
-	// case, la silhouette d'un personnage, et le point d'un projectile.
+	// Les quatre formes blanches que le dessin teinte au blit : la face d'une
+	// case, la silhouette d'un personnage, le point d'un projectile et celui
+	// d'une gemme.
 	face     *ebiten.Image
 	figurine *ebiten.Image
 	eclat    *ebiten.Image
+	gemme    *ebiten.Image
 	// demiTuile est l'abscisse du sommet dans l'image d'une face, ce que le
 	// manifeste appellera son ancrage quand les images viendront de lui.
 	demiTuile int
@@ -109,13 +115,17 @@ func (s *Screen) WithHUD(h *HUD) *Screen {
 // c'est de lui que la projection la tient.
 func NewScreen(monde *game.World, carte *game.CostGrid, tuile [2]int) *Screen {
 	s := &Screen{
-		monde:     monde,
-		carte:     carte,
-		cam:       nouvelleCamera(tuile, carte),
-		scene:     nouvelleScene(carte, monde.Enemies().Cap(), monde.Shots().Cap()),
-		face:      face(tuile),
-		figurine:  aplat(tuile[0]/4, tuile[0]*3/4),
-		eclat:     aplat(tuile[1]/8, tuile[1]/8),
+		monde: monde,
+		carte: carte,
+		cam:   nouvelleCamera(tuile, carte),
+		scene: nouvelleScene(carte,
+			monde.Enemies().Cap(), monde.Shots().Cap(), monde.Gems().Cap()),
+		face:     face(tuile),
+		figurine: aplat(tuile[0]/4, tuile[0]*3/4),
+		eclat:    aplat(tuile[1]/8, tuile[1]/8),
+		// Deux fois l'éclat : assez pour qu'un tas se compte d'un coup d'œil,
+		// assez peu pour qu'une gemme ne masque pas ce qui la piétine.
+		gemme:     aplat(tuile[1]/4, tuile[1]/4),
 		demiTuile: tuile[0] / 2,
 	}
 	s.cam.suivre(monde.Player())
@@ -203,6 +213,9 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteTir:
 			p := s.monde.Shots().At(e.place)
 			s.silhouette(ecran, s.eclat, p.X, p.Y, teinteTir)
+		case sorteGemme:
+			g := s.monde.Gems().At(e.place)
+			s.silhouette(ecran, s.gemme, g.X, g.Y, teinteGemme)
 		case sorteJoueur:
 			x, y := s.monde.Player()
 			s.silhouette(ecran, s.figurine, x, y, teinteJoueur)

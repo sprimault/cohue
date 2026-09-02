@@ -76,6 +76,13 @@ type Player struct {
 	// d'ennemis au contact. Sans lui, un encerclement tue instantanément et la
 	// mort devient illisible.
 	DamageCap int
+	// PickupRange est la distance à laquelle une gemme se ramasse, en tuiles.
+	//
+	// Courte à dessein : c'est elle qui fait du ramassage une décision, une
+	// gemme laissée derrière étant perdue. Elle forme un couple avec la durée de
+	// vie d'une gemme, qui n'existe pas encore — les deux punissent le
+	// non-ramassage, et la conception les règle ensemble.
+	PickupRange Fixed
 }
 
 // EnemyProfile est ce qu'une sorte d'ennemi partage avec toutes ses instances.
@@ -111,6 +118,13 @@ type EnemyProfile struct {
 	MaxAlive int
 	// ContactDamage est ce qu'il inflige par seconde au contact.
 	ContactDamage int
+	// Gems est le nombre de gemmes que sa mort laisse au sol.
+	//
+	// Un nombre et non une valeur : une gemme rapporte la même chose du début à
+	// la fin de la run, et c'est le seuil du niveau suivant qui monte. Ce qui
+	// distingue une créature qui rapporte est donc la quantité qu'elle laisse,
+	// ce que le joueur lit au sol avant de déclencher son aimant.
+	Gems int
 
 	// Ce qui suit n'a de sens que pour un comportement, et vaut zéro ailleurs —
 	// le manifeste refusant de porter le champ sur un autre.
@@ -235,6 +249,7 @@ type rawProfile struct {
 	TilesPerSec *float64 `json:"vitesse_tuiles_s,omitempty"`
 	Health      *int     `json:"vie,omitempty"`
 	DamageCap   *int     `json:"plafond_degats_s,omitempty"`
+	PickupRange *float64 `json:"portee_ramassage_tuiles,omitempty"`
 
 	RelSpeed     *float64 `json:"vitesse_relative,omitempty"`
 	Hits         *int     `json:"touches,omitempty"`
@@ -243,6 +258,7 @@ type rawProfile struct {
 	Separation   *float64 `json:"poids_separation,omitempty"`
 	MaxAlive     *int     `json:"max_simultane,omitempty"`
 	Contact      *int     `json:"degats_contact_s,omitempty"`
+	Gems         *int     `json:"gemmes,omitempty"`
 
 	ChargeDamage *int     `json:"degats_charge,omitempty"`
 	Tangential   *float64 `json:"tangentiel,omitempty"`
@@ -308,6 +324,7 @@ var champsConditionnels = []struct {
 	{"vitesse_tuiles_s", "un joueur", estRole(rolePlayer), func(p rawProfile) bool { return p.TilesPerSec != nil }},
 	{"vie", "un joueur", estRole(rolePlayer), func(p rawProfile) bool { return p.Health != nil }},
 	{"plafond_degats_s", "un joueur", estRole(rolePlayer), func(p rawProfile) bool { return p.DamageCap != nil }},
+	{"portee_ramassage_tuiles", "un joueur", estRole(rolePlayer), func(p rawProfile) bool { return p.PickupRange != nil }},
 
 	{"vitesse_relative", "un ennemi ou une ambiance", nonJoueur, func(p rawProfile) bool { return p.RelSpeed != nil }},
 	{"touches", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Hits != nil }},
@@ -316,6 +333,7 @@ var champsConditionnels = []struct {
 	{"poids_separation", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Separation != nil }},
 	{"max_simultane", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.MaxAlive != nil }},
 	{"degats_contact_s", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Contact != nil }},
+	{"gemmes", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Gems != nil }},
 
 	{"degats_charge", "« charge »", estComportement(Charge), func(p rawProfile) bool { return p.ChargeDamage != nil }},
 	{"tangentiel", "« flanc »", estComportement(Flank), func(p rawProfile) bool { return p.Tangential != nil }},
@@ -379,11 +397,12 @@ func controler(cle string, p rawProfile, dire func(string, ...any)) {
 // s'interrompt en route. Ce qu'elle produit alors n'est jamais rendu.
 func (p rawProfile) joueur() Player {
 	return Player{
-		Name:      p.Name,
-		Speed:     parTick(ou0(p.TilesPerSec)),
-		Radius:    FromFloat(ou0(p.TileRadius)),
-		Health:    ou0(p.Health),
-		DamageCap: ou0(p.DamageCap),
+		Name:        p.Name,
+		Speed:       parTick(ou0(p.TilesPerSec)),
+		Radius:      FromFloat(ou0(p.TileRadius)),
+		Health:      ou0(p.Health),
+		DamageCap:   ou0(p.DamageCap),
+		PickupRange: FromFloat(ou0(p.PickupRange)),
 	}
 }
 
@@ -408,6 +427,7 @@ func (p rawProfile) ennemi(cle string, base float64) EnemyProfile {
 		SeparationWeight: FromFloat(ou0(p.Separation)),
 		MaxAlive:         ou0(p.MaxAlive),
 		ContactDamage:    ou0(p.Contact),
+		Gems:             ou0(p.Gems),
 		ChargeDamage:     ou0(p.ChargeDamage),
 		Tangential:       FromFloat(ou0(p.Tangential)),
 		Range:            FromFloat(ou0(p.Range)),

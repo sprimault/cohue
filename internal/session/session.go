@@ -44,6 +44,14 @@ const HordeCapacity = 300
 // élastique.
 const ShotCapacity = 256
 
+// GemCapacity plafonne le bassin des gemmes au sol.
+//
+// Deux fois et demie le pic que la conception nomme — deux cents gemmes qui
+// convergent d'un coup, le moment de plaisir maximal du genre. Ce qui bornera
+// vraiment le stock est leur effacement, qui vient avec l'aimant ; d'ici là
+// elles s'accumulent, et ce plafond est le filet qui empêche d'allouer.
+const GemCapacity = 512
+
 // Les deux réglages du semis provisoire.
 const (
 	// pasDuSemis est l'écart entre deux créatures posées, en cases.
@@ -104,7 +112,8 @@ func (s *Session) Restart() {
 // session sur une graine en jouerait une autre, ce qui se serait vu au moment
 // d'écrire un lieu de défi.
 func (s *Session) monter() {
-	s.World = game.NewWorld(s.profils, s.arme, s.Grid, s.Seed, HordeCapacity, ShotCapacity)
+	s.World = game.NewWorld(s.profils, s.arme, s.Grid, s.Seed,
+		HordeCapacity, ShotCapacity, GemCapacity)
 	placer(s.World, s.Grid)
 	peupler(s.World, s.Grid, s.profils)
 }

@@ -44,17 +44,39 @@ type Weapon struct {
 	// ici — il cessera de l'être à la première arme qui frappe plus fort.
 	Hits int
 	// Projectiles est le nombre de projectiles par tir.
+	//
+	// **Ce chemin n'a jamais été parcouru : le manifeste livré en déclare un.**
+	// `tirer` engendre les copies au même point, dans la même direction et au
+	// même pas — elles sont rigoureusement confondues à l'écran, et `toucher`
+	// écartant ce qui n'a plus de résistance, la seconde va chercher derrière la
+	// première. Ce que le mécanisme produit aujourd'hui est donc une salve qui
+	// perfore en profondeur, dessinée comme un seul point.
+	//
+	// Ce n'est aucune des choses que la conception nomme, et trois lectures
+	// restent ouvertes : un étalement dans le temps, qui ferait du nombre une
+	// rafale ; un étalement dans l'espace, qui est l'éventail, un axe distinct ;
+	// ou la superposition telle quelle, assumée comme de la perforation. Trancher
+	// est une décision de conception, et la prendre pour avoir un axe de plus
+	// serait la prendre pour la mauvaise raison — c'est pourquoi l'axe du nombre
+	// n'est pas ouvert au jalon 3.
 	Projectiles int
 	// ProjectileSpeed est la vitesse d'un projectile, en tuiles par tick.
 	ProjectileSpeed Fixed
 }
 
-// Weapons est la table des armes.
+// Weapons est la table des armes, et des passifs qui les transforment.
+//
+// Les passifs voyagent avec elles parce qu'ils n'améliorent rien d'autre : une
+// valeur vit à côté de ce qu'elle alimente. C'est aussi ce qui permet de
+// contrôler qu'un axe de cadence n'épuise pas celle de l'arme de base, ce que
+// deux fichiers auraient rendu invérifiable au chargement.
 type Weapons struct {
 	// Base est l'armement infini du joueur.
 	Base Weapon
 	// All sont toutes les armes, triées par clé de manifeste.
 	All []Weapon
+	// Passives sont les axes d'amélioration et la carte de secours.
+	Passives *Passives
 }
 
 // LoadWeapons lit le manifeste des armes.
@@ -94,6 +116,12 @@ func LoadWeapons(fsys fs.FS, chemin string) (*Weapons, error) {
 		dire("armes : %d de rôle « %s », il en faut exactement une", bases, roleBase)
 	}
 
+	// Après les armes, parce que le contrôle d'un axe de cadence se fait contre
+	// celle de l'arme de base. Sans arme de base, il se ferait contre une valeur
+	// nulle et signalerait un second défaut qui n'est que la conséquence du
+	// premier — l'auteur corrigerait deux lignes pour une faute.
+	table.Passives = brut.Passives.passifs(table.Base, dire)
+
 	if len(manques) > 0 {
 		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
@@ -107,6 +135,8 @@ type rawWeapons struct {
 	Format int `json:"version_format"`
 	// Weapons sont les armes, par clé.
 	Weapons map[string]rawWeapon `json:"armes"`
+	// Passives est la table des améliorations.
+	Passives rawPassives `json:"passifs"`
 }
 
 // rawWeapon porte les champs d'une arme, en pointeurs pour les valeurs dont

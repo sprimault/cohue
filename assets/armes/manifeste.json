@@ -12,5 +12,30 @@
       "projectiles": 1,
       "vitesse_projectile_tuiles_s": 12.0
     }
+  },
+  "passifs": {
+    "$comment": "Ce que la montée de niveau propose : des variantes de l'arme unique, prises palier par palier. La table complète — six axes, synergies, recettes de fusion — appartient à l'étape 6 ; ce qui est ici est le minimum dont le choix ternaire a besoin pour être jugé. || Deux axes seulement, et c'est une limite assumée : le perforant, le ricochet et l'éventail demandent du travail dans le tir, et le nombre de projectiles est laissé de côté parce que le mécanisme existant ne fait pas ce que la conception décrit. || Conséquence à connaître : deux axes plus la soupape font exactement trois cartes, donc l'offre ne varie pas. Le jalon n'exerce pas « la bonne carte est celle qui fait hésiter ». || nom et phrase sont du français dans un manifeste, ce que la règle des libellés n'aime pas ; ils suivront le dictionnaire de traduction quand il existera, comme le nom de fiction de l'arme.",
+    "axes": {
+      "cadence": {
+        "$comment": "Deux ticks retirés par palier, soit trente-trois millisecondes. L'axe entier fait passer la cadence de vingt-quatre ticks à douze : l'arme tire deux fois plus vite au bout du chemin, et pas davantage — en deçà de douze ticks, ce n'est plus la cadence qui limite le joueur mais le nombre de cibles à portée.",
+        "nom": "Cadence",
+        "phrase": "L'arme tire plus souvent.",
+        "paliers": 6,
+        "pas_ms": 33
+      },
+      "portee": {
+        "$comment": "Une demi-tuile par palier, soit trois tuiles sur l'axe entier : la portée passe de six à neuf. Bornée par ce que le joueur voit — tirer sur ce qui est hors champ retirerait au tir sa lisibilité, qui est ce que le jalon mesure.",
+        "nom": "Portée",
+        "phrase": "Les tirs vont plus loin.",
+        "paliers": 6,
+        "pas_tuiles": 0.5
+      }
+    },
+    "soupape": {
+      "$comment": "La carte qui remplit une place quand aucun palier n'est disponible. La conception en fait un cas rare ; ici elle porte la moitié d'une run, faute d'axes, et c'est assumé plutôt que subi. Elle est répétable dans un même tirage, sans quoi l'écran de montée se viderait — le pire défaut possible à cet endroit, puisqu'il tombe sur le moment de récompense. || Trente points sur cent, ce qui achète une seconde et demie de contact tant que le plafond de dégâts du joueur reste à vingt par seconde — il vit dans le manifeste des personnages, et c'est lui qui décide si ce chiffre veut encore dire quelque chose. Précieux quand on est bas, ignorable quand on est haut, ce que la conception exige de lui.",
+      "nom": "Souffle",
+      "phrase": "Le Survivant reprend des forces.",
+      "soin": 30
+    }
   }
 }

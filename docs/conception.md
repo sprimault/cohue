@@ -505,6 +505,10 @@ Sa nature n'est pas indifférente : un soin fait l'affaire, précieux quand on e
 
 Et rien n'interdit le cas extrême, celui où tout est épuisé : la soupape doit alors **remplir les trois places à elle seule**. Elle est donc répétable dans un même tirage, ou il en existe plusieurs de natures différentes — faute de quoi on retombe sur l'écran vide qu'elle était censée éviter, au moment précis où le joueur a le mieux joué.
 
+**Ce que l'étape 3 livre est une table réduite, et c'est une décision plutôt qu'un provisoire mal fini.** Deux axes — cadence et portée —, six paliers chacun, et la soupape répétable. Le perforant, le ricochet et l'éventail demandent du travail dans le tir qui appartient à l'étape 6 ; le nombre de projectiles est écarté parce que le mécanisme écrit ne produit aujourd'hui ni un nombre ni un éventail mais une salve confondue qui perfore, et trancher laquelle des trois lectures est la bonne ne se fait pas sous la pression d'avoir un axe de plus.
+
+Deux conséquences à assumer, puisqu'elles portent sur ce que le jalon peut juger. **La soupape cesse d'y être une soupape** : douze paliers pour une trentaine de montées, elle occupe le tiers final de chaque run et devient un mécanisme. C'est acceptable pour éprouver le choix, ce ne le sera plus à l'étape 6. Et **l'offre ne varie pas** : deux axes plus la soupape font exactement trois cartes, donc aucun tirage n'a lieu. Le jalon exerce l'arbitrage entre deux axes, il n'exerce pas « la bonne carte est celle qui fait hésiter » — c'est une limite du jugement, connue et datée, pas un défaut du lot.
+
 **Le revers à assumer** : le contraste des patterns disparaît, alors que c'est un moteur de rejouabilité du genre. Il se récupère par deux voies qui ne coûtent aucune animation de personnage — les armes lourdes ramassées dans les caisses, qui sont un effet et non une pose, et les effets qui ne partent pas du personnage : zone au sol, orbite, onde de choc, dessinés au sol ou autour du joueur.
 
 ### La visée

@@ -19,6 +19,23 @@ import (
 // manifesteArmes est le manifeste livré, tenu à la main.
 const manifesteArmes = "assets/armes/manifeste.json"
 
+// passifsValides est une section de passifs sans défaut, à coller dans les
+// fixtures dont le sujet est l'arme.
+//
+// **Sans elle, ces tests deviendraient verts pour la mauvaise raison.** Le
+// manifeste porte deux sections, et une fixture qui n'en déclare qu'une rend un
+// `manifest.Invalid` quoi qu'il arrive : un test qui n'assure que le type de
+// l'erreur passerait alors même si le contrôle qu'il garde disparaissait. Le cas
+// ne relève pas de la théorie — il est apparu à l'écriture de cette section, et
+// la mutation l'a confirmé.
+const passifsValides = `"passifs": {
+		"axes": {
+			"cadence": {"nom": "Cadence", "phrase": "Plus souvent.",
+			            "paliers": 6, "pas_ms": 33}
+		},
+		"soupape": {"nom": "Souffle", "phrase": "Des forces.", "soin": 30}
+	}`
+
 // TestManifesteLivreDonneLArmeDeBase charge le manifeste publié sans rien
 // injecter.
 //
@@ -85,6 +102,11 @@ func TestLesValeursDeTirViennentDuTireur(t *testing.T) {
 // Sans arme de base, le joueur n'a rien qui tire : le jeu se lancerait et le tir
 // automatique ne partirait jamais, ce qui ne ressemble pas à un fichier invalide
 // mais à un défaut du moteur.
+//
+// **Ce que ce cas éprouve est le rôle déclaré par l'arme, pas le compte.** La
+// seule arme du fichier porte « lourde », ce que le contrôle par arme refuse
+// déjà : la règle du « exactement une base » ne peut pas se distinguer ici, et
+// la mutation le confirme. C'est `TestDeuxArmesDeBaseRefusees` qui la garde.
 func TestArmeSansRoleDeBase(t *testing.T) {
 	fsys := fstest.MapFS{"a.json": &fstest.MapFile{Data: []byte(`{
 		"version_format": 1,
@@ -92,7 +114,8 @@ func TestArmeSansRoleDeBase(t *testing.T) {
 			"lourde": {"nom": "Fusil", "role": "lourde", "cadence_ms": 400,
 			           "portee_tuiles": 6, "degats_touches": 3, "projectiles": 1,
 			           "vitesse_projectile_tuiles_s": 12.0}
-		}
+		},
+		` + passifsValides + `
 	}`)}}
 
 	_, err := LoadWeapons(fsys, "a.json")
@@ -102,12 +125,41 @@ func TestArmeSansRoleDeBase(t *testing.T) {
 	}
 }
 
+// TestDeuxArmesDeBaseRefusees garde la règle du compte, seule ici à pouvoir
+// parler.
+//
+// Deux armes irréprochables, toutes deux de rôle « base » : aucun contrôle par
+// arme n'a rien à dire, et seule la règle du compte refuse le fichier. C'est le
+// cas qui manquait — le socle est celui que le joueur porte, et deux socles ne
+// désignent rien.
+func TestDeuxArmesDeBaseRefusees(t *testing.T) {
+	fsys := fstest.MapFS{"a.json": &fstest.MapFile{Data: []byte(`{
+		"version_format": 1,
+		"armes": {
+			"reglementaire": {"nom": "Réglementaire", "role": "base", "cadence_ms": 400,
+			                  "portee_tuiles": 6, "degats_touches": 1, "projectiles": 1,
+			                  "vitesse_projectile_tuiles_s": 12.0},
+			"seconde": {"nom": "Seconde", "role": "base", "cadence_ms": 400,
+			            "portee_tuiles": 6, "degats_touches": 1, "projectiles": 1,
+			            "vitesse_projectile_tuiles_s": 12.0}
+		},
+		` + passifsValides + `
+	}`)}}
+
+	_, err := LoadWeapons(fsys, "a.json")
+	var invalide *manifest.Invalid
+	if !errors.As(err, &invalide) {
+		t.Fatalf("deux armes de base acceptées : %v", err)
+	}
+}
+
 // TestChampsDArmeManquantsListesEnUneFois vérifie que l'auteur reçoit la liste
 // et non le premier manquement.
 func TestChampsDArmeManquantsListesEnUneFois(t *testing.T) {
 	fsys := fstest.MapFS{"a.json": &fstest.MapFile{Data: []byte(`{
 		"version_format": 1,
-		"armes": {"reglementaire": {"nom": "Réglementaire", "role": "base"}}
+		"armes": {"reglementaire": {"nom": "Réglementaire", "role": "base"}},
+		` + passifsValides + `
 	}`)}}
 
 	_, err := LoadWeapons(fsys, "a.json")
@@ -133,7 +185,8 @@ func TestCadenceSousLePasDeSimulation(t *testing.T) {
 			"reglementaire": {"nom": "Réglementaire", "role": "base", "cadence_ms": 5,
 			                  "portee_tuiles": 6, "degats_touches": 1, "projectiles": 1,
 			                  "vitesse_projectile_tuiles_s": 12.0}
-		}
+		},
+		` + passifsValides + `
 	}`)}}
 
 	_, err := LoadWeapons(fsys, "a.json")

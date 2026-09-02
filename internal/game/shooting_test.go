@@ -35,7 +35,7 @@ func champDeTir(t *testing.T) (*World, *Profiles) {
 		g.Set(31, v, Blocked)
 	}
 
-	w := NewWorld(profils, armes.Base, g, 16, 64)
+	w := NewWorld(profils, armes.Base, g, graineDeTest, 16, 64)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils
 }
@@ -49,7 +49,7 @@ func champSansTir(t *testing.T) (*World, *Profiles) {
 		t.Fatalf("profils livrés : %v", err)
 	}
 	g := NewCostGrid(32, 32)
-	w := NewWorld(profils, Weapon{}, g, 16, 64)
+	w := NewWorld(profils, Weapon{}, g, graineDeTest, 16, 64)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils
 }

@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Le montage de la partie publiée, sans rien injecter : la chaîne entière depuis
-// l'embed jusqu'au joueur posé.
+// l'embed jusqu'au joueur posé, ce qu'une relance efface, et la graine dont
+// descend la suite des runs.
 
 package session
 
@@ -12,6 +13,12 @@ import (
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/game"
 )
+
+// graineDeTest est celle sur laquelle les parties de ce fichier se montent.
+//
+// Une valeur quelconque, mais nommée : lue dans un appel, elle dit qu'on monte
+// la partie livrée et non qu'on éprouve un cas de graine particulier.
+const graineDeTest uint64 = 20260902
 
 // TestPartieLivreeSeMonte monte le jeu publié par le chemin qu'empruntent les
 // deux binaires, et n'injecte rien.
@@ -29,7 +36,7 @@ import (
 // est un défaut du niveau. Le jour où le lieu livré changera de dessin, c'est ce
 // test qui le dira plutôt qu'une partie où l'on ne peut pas bouger.
 func TestPartieLivreeSeMonte(t *testing.T) {
-	partie, err := Open(cohue.Assets, cohue.StartingLevel)
+	partie, err := Open(cohue.Assets, cohue.StartingLevel, graineDeTest)
 	if err != nil {
 		t.Fatalf("montage de la partie livrée : %v", err)
 	}
@@ -65,8 +72,13 @@ func TestPartieLivreeSeMonte(t *testing.T) {
 // modifier pour entrer, donc le décider. Ce qui traverse aujourd'hui est ce que
 // la partie n'a pas touché — les tables du manifeste et le lieu cuit —, et rien
 // de cela n'est un état de jeu.
+//
+// **La graine échappe à cette énumération parce qu'elle n'est pas conservée mais
+// remplacée**, et c'est `TestLaSuiteDesRunsDescendDeLaGraineDeDepart` qui dit ce
+// qu'elle devient. Sans ce renvoi, ce test-ci se lirait comme si rien du tout ne
+// reliait deux runs, ce qui est faux depuis que la relance en dérive une.
 func TestLaRelanceNeConserveRienDeLaPartie(t *testing.T) {
-	partie, err := Open(cohue.Assets, cohue.StartingLevel)
+	partie, err := Open(cohue.Assets, cohue.StartingLevel, graineDeTest)
 	if err != nil {
 		t.Fatalf("montage de la partie livrée : %v", err)
 	}
@@ -107,5 +119,62 @@ func TestLaRelanceNeConserveRienDeLaPartie(t *testing.T) {
 	// décodage complet.
 	if partie.Grid != grille || partie.Tile != tuile {
 		t.Error("la relance recharge le lieu, qu'aucune partie ne modifie")
+	}
+}
+
+// TestLaSuiteDesRunsDescendDeLaGraineDeDepart garde ce que la relance fait de la
+// graine, et non ce qu'elle en calcule.
+//
+// Deux propriétés, mesurées sur les tirages d'une partie montée et non sur le
+// champ `Seed` : c'est ce qui distingue une graine branchée d'une graine tenue à
+// côté. Une dérivation parfaite que `monter` n'utiliserait pas laisserait toutes
+// les runs identiques, et une lecture du seul champ ne le dirait pas.
+//
+// **La première run tourne sur la graine reçue**, non sur sa dérivée : ouvrir une
+// session sur une graine et en jouer une autre se verrait au premier lieu de
+// défi partagé, c'est-à-dire trop tard.
+//
+// **Les runs d'une session tirent différemment**, sinon mourir ne changerait
+// rien. **Et deux sessions ouvertes sur la même graine tirent pareil**, sinon la
+// suite ne se rejoue pas — c'est cette moitié-là qui rend une mort injuste
+// reproductible.
+//
+// `TestLaGraineDeriveeEstStableEtNouvelle`, dans `internal/game`, garde la
+// dérivation elle-même : ce test-ci ne verrait pas un cycle court, puisqu'il ne
+// déroule que quatre runs.
+func TestLaSuiteDesRunsDescendDeLaGraineDeDepart(t *testing.T) {
+	// Quatre runs, dont le premier tirage de vagues est relevé avant de relancer.
+	// Le flux n'est lu par personne d'autre : ce qu'on relève est bien le premier
+	// tirage de la run et non un état laissé par la précédente.
+	suite := func() []int {
+		partie, err := Open(cohue.Assets, cohue.StartingLevel, graineDeTest)
+		if err != nil {
+			t.Fatalf("montage de la partie livrée : %v", err)
+		}
+		if partie.Seed != graineDeTest {
+			t.Fatalf("la première run tourne sur %d, et non sur la graine reçue %d",
+				partie.Seed, graineDeTest)
+		}
+
+		tirages := make([]int, 4)
+		for i := range tirages {
+			tirages[i] = partie.World.Streams().Waves.IntN(1 << 30)
+			partie.Restart()
+		}
+		return tirages
+	}
+
+	a, b := suite(), suite()
+
+	for i, x := range a {
+		for j, y := range a[:i] {
+			if x == y {
+				t.Errorf("les runs %d et %d tirent la même chose (%d) : la relance ne change pas de graine",
+					j, i, x)
+			}
+		}
+		if b[i] != x {
+			t.Errorf("run %d : %d puis %d sur la même graine de départ", i, x, b[i])
+		}
 	}
 }

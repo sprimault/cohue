@@ -51,8 +51,15 @@ func mondeDEssai(t *testing.T, largeur, hauteur int) (*World, *Profiles) {
 	if err != nil {
 		t.Fatalf("armes livrées : %v", err)
 	}
-	return NewWorld(profils, armes.Base, g, 300, 256), profils
+	return NewWorld(profils, armes.Base, g, graineDeTest, 300, 256), profils
 }
+
+// graineDeTest est celle sur laquelle les champs d'essai se montent.
+//
+// Sa valeur est indifférente et doit le rester : aucun test de ce paquet ne tire
+// au sort, et celui qui le fera devra dire de quelle graine il dépend plutôt que
+// d'hériter de celle-ci.
+const graineDeTest uint64 = 1
 
 // indexDuProfil rend la place d'un profil dans la table, ou arrête le test.
 func indexDuProfil(t *testing.T, profils *Profiles, cle string) int {
@@ -264,7 +271,7 @@ func TestRienNeTraverseUnMur(t *testing.T) {
 
 	// Arme inerte : ce test isole le déplacement, et un joueur qui abat la
 	// créature dont on suit la trajectoire ne mesurerait plus rien.
-	w := NewWorld(profils, Weapon{}, g, 4, 1)
+	w := NewWorld(profils, Weapon{}, g, graineDeTest, 4, 1)
 	w.Place(FromInt(4)+One/2, FromInt(1)+One/2)
 	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), One/2+One, One/2+One); !ok {
 		t.Fatal("créature refusée")
@@ -338,7 +345,7 @@ func TestLeGlissementNeCoupeAucunAngle(t *testing.T) {
 	for _, c := range cas {
 		t.Run(c.nom, func(t *testing.T) {
 			// Arme inerte et bassin d'une place : ce test isole le déplacement.
-			w := NewWorld(profils, Weapon{}, grilleDepuis(c.grille...), 1, 1)
+			w := NewWorld(profils, Weapon{}, grilleDepuis(c.grille...), graineDeTest, 1, 1)
 			w.Place(FromInt(c.depart[0])+One/2, FromInt(c.depart[1])+One/2)
 
 			// Vers le sud-est du monde, c'est-à-dire vers la case en diagonale.
@@ -373,7 +380,7 @@ func TestLeCoutDeLaCaseDiviseLaVitesse(t *testing.T) {
 			g.Set(u, 2, Blocked)
 			g.Set(u, 1, cout)
 		}
-		w := NewWorld(profils, Weapon{}, g, 1, 1)
+		w := NewWorld(profils, Weapon{}, g, graineDeTest, 1, 1)
 		w.Place(FromInt(1)+One/2, FromInt(1)+One/2)
 		depart := FromInt(10) + One/2
 		if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), depart, FromInt(1)+One/2); !ok {

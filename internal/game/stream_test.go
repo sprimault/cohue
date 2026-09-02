@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Les cas des flux : même graine et même suite, indépendance des quatre,
-// empreinte d'une suite connue, et bornes des tirages.
+// empreinte d'une suite connue, dérivation d'une run à la suivante, et bornes
+// des tirages.
 
 package game
 
@@ -95,6 +96,41 @@ func TestEmpreinteDeLaSuite(t *testing.T) {
 			t.Errorf("flux %s : premier tirage %d, attendu %d — la source a changé",
 				c.nom, c.obtenu, c.attendu)
 		}
+	}
+}
+
+// TestLaGraineDeriveeEstStableEtNouvelle éprouve la dérivation d'une run à la
+// suivante.
+//
+// Deux propriétés, et l'une sans l'autre ne vaut rien : la dérivation rend
+// toujours la même chose de la même graine, sinon la suite des runs d'une session
+// cesse d'être rejouable ; et elle ne rend jamais une graine déjà sortie, sinon
+// les runs se répètent au bout de quelques morts et personne ne sait pourquoi.
+//
+// Une chaîne de cent plutôt qu'un appel unique : la répétition qu'on craint n'est
+// pas `NextSeed(g) == g`, qui se verrait tout de suite, mais un cycle court, qui
+// ne se voit qu'en déroulant.
+//
+// Ce test ne dit rien du branchement de la graine dans une partie —
+// `TestLaSuiteDesRunsDescendDeLaGraineDeDepart`, dans `internal/session`, garde
+// cette moitié-là : une dérivation juste que la relance n'utiliserait pas
+// laisserait toutes les runs identiques sans que ce test-ci bronche.
+func TestLaGraineDeriveeEstStableEtNouvelle(t *testing.T) {
+	vues := map[uint64]bool{}
+	graine := graineDeTest
+	for i := range 100 {
+		suivante := NextSeed(graine)
+		if suivante == graine {
+			t.Fatalf("relance %d : la graine ne change pas (%d)", i, graine)
+		}
+		if rejoue := NextSeed(graine); rejoue != suivante {
+			t.Fatalf("relance %d : %d puis %d pour la même graine", i, suivante, rejoue)
+		}
+		if vues[suivante] {
+			t.Fatalf("relance %d : la graine %d est déjà sortie", i, suivante)
+		}
+		vues[suivante] = true
+		graine = suivante
 	}
 }
 

@@ -25,6 +25,19 @@ import (
 // titreFenetre est ce que le gestionnaire de fenêtres affiche.
 const titreFenetre = "Cohue"
 
+// graineDeDepart est celle de la première run d'une session ; les suivantes en
+// descendent.
+//
+// **Fixe à titre provisoire**, et c'est ce qui la sépare de celle de la planche
+// de relecture, fixe par nature : ici elle l'est faute d'écran qui en choisisse
+// une, et le premier à le faire la remplacera. Sans cette note, une graine en
+// dur se lit comme une décision et personne ne la rouvre.
+//
+// Ce qui n'est pas provisoire, c'est qu'elle se reçoive : le montage ne devine
+// pas de quelle run il s'agit. Deux lancements jouent donc aujourd'hui la même
+// suite, ce qui ne se voit pas tant qu'aucun tirage n'entre dans la simulation.
+const graineDeDepart uint64 = 1
+
 // version est renseignée à la liaison par -ldflags, et vaut « dev » hors
 // publication.
 var version = "dev"
@@ -85,7 +98,7 @@ func (b *boucle) monter() {
 // La horde est semée au montage et n'arrive jamais par vagues : le spawner et sa
 // courbe de pression sont le sujet de l'étape 4.
 func run() error {
-	partie, err := session.Open(cohue.Assets, cohue.StartingLevel)
+	partie, err := session.Open(cohue.Assets, cohue.StartingLevel, graineDeDepart)
 	if err != nil {
 		return err
 	}

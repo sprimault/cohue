@@ -10,9 +10,11 @@
       "plancher_ms": 45000
     },
     "gemmes": {
-      "$comment": "objet — la gemme dans assets/objets/manifeste.json. Le moteur ne le lit pas ; le contrôle des ressources exige qu'il désigne un objet existant, faute de quoi un renommage laisserait ce réglage orphelin sans que rien ne le dise. || experience — ce qu'un ramassage porte au compteur. Elle vaut la même chose du début à la fin d'une partie : c'est le seuil du niveau suivant qui monte, et une créature qui doit rapporter davantage laisse plusieurs gemmes plutôt qu'une gemme meilleure. || Ce réglage vivait dans le manifeste d'objets, où rien n'allait le chercher. Il est ici parce qu'une valeur vit à côté de ce qu'elle alimente, et celle-ci alimente les seuils.",
+      "$comment": "objet — la gemme dans assets/objets/manifeste.json. Le moteur ne le lit pas ; le contrôle des ressources exige qu'il désigne un objet existant, faute de quoi un renommage laisserait ce réglage orphelin sans que rien ne le dise. || experience — ce qu'un ramassage porte au compteur. Elle vaut la même chose du début à la fin d'une partie : c'est le seuil du niveau suivant qui monte, et une créature qui doit rapporter davantage laisse plusieurs gemmes plutôt qu'une gemme meilleure. || portee_ramassage_tuiles et duree_vie_ms forment un couple que la conception interdit de régler séparément : chacun punit le non-ramassage, et cumulés sans recours ils font basculer la collecte de la tension au vol. Ils sont donc voisins ici, et la portée a quitté le profil du joueur pour cela — la régler y coûtait une régénération de six cents images. || Six secondes valent trente tuiles à la vitesse du joueur, soit le côté de la salle livrée : une gemme reste atteignable si l'on va droit dessus depuis n'importe où, et se perd dès que la horde impose un détour. C'est la tension que l'effacement existe pour créer, et le chiffre se règle en jouant. || Ces réglages vivaient ailleurs, où rien ne les rapprochait. Ils sont ici parce qu'une valeur vit à côté de ce qu'elle alimente.",
       "objet": "gemme",
-      "experience": 1
+      "experience": 1,
+      "portee_ramassage_tuiles": 1.0,
+      "duree_vie_ms": 6000
     }
   }
 }

@@ -261,8 +261,7 @@ CHAMPS_COMMUNS = {"role", "vitesse_relative", "rayon_tuiles", "groupe",
                   "cycles", "variantes"}
 
 CHAMPS_PAR_ROLE = {
-    "joueur": {"vitesse_tuiles_s", "vie", "plafond_degats_s",
-               "portee_ramassage_tuiles"},
+    "joueur": {"vitesse_tuiles_s", "vie", "plafond_degats_s"},
     "ennemi": {"comportement", "touches", "points", "cout_pression",
                "poids_separation", "max_simultane", "degats_contact_s",
                "gemmes"},
@@ -280,6 +279,28 @@ CHAMPS_PAR_COMPORTEMENT = {
     "tir":         {"portee_tuiles", "degats_tir", "vitesse_projectile_tuiles_s"},
     "explosion":   {"degats_explosion", "rayon_explosion_tuiles"},
     "soin":        set(),
+}
+
+
+# Ce qu'un manifeste ne porte plus, et chez qui c'est parti.
+#
+# Une liste de champs bannis plutôt que la liste blanche qu'on préfère ailleurs :
+# ici on ne se protège pas d'un fichier tiers mais d'une régression connue, et le
+# message doit apprendre où ranger la valeur plutôt que de dire qu'elle est de
+# trop. Les deux fichiers portaient la portée de la Buse, avec deux valeurs
+# différentes, et personne ne l'a vu.
+#
+# Elle sert aux profils autant qu'aux objets. Un champ déménagé ne se distingue
+# pas d'une faute de frappe pour qui lit « champ inconnu », et les deux se
+# corrigent dans des fichiers différents.
+CHAMPS_DEMENAGES = {
+    "degats": "chez le tireur : l'arme pour le joueur, le profil pour une créature",
+    "portee_tuiles": "chez le tireur, qui la porte déjà",
+    "vitesse_px_s": "chez le tireur, en tuiles par seconde et non en pixels",
+    "traverse": "chez l'arme, où ce sera un passif",
+    "experience": "chez la progression, à côté des seuils qu'elle alimente",
+    "portee_ramassage_tuiles": "chez la progression, avec la durée de vie d'une "
+                               "gemme dont elle forme un couple",
 }
 
 
@@ -317,25 +338,17 @@ def profils(sortie):
         for manquant in sorted(attendus - set(info)):
             defauts.append((nom, f"champ « {manquant} » absent"))
         for surnumeraire in sorted(set(info) - attendus):
+            # Un champ qui a déménagé se signale par sa destination, pas par son
+            # inutilité : « inconnu » ferait chercher une faute de frappe là où
+            # il faut chercher un autre fichier. C'est la même table que pour les
+            # objets, et elle sert ici pour la même raison.
+            if surnumeraire in CHAMPS_DEMENAGES:
+                defauts.append((nom, f"champ « {surnumeraire} » : il a déménagé "
+                                     f"{CHAMPS_DEMENAGES[surnumeraire]}"))
+                continue
             quoi = "propre à un autre comportement" if surnumeraire in propres else "inconnu"
             defauts.append((nom, f"champ « {surnumeraire} » {quoi}"))
     return defauts
-
-
-# Ce qu'un objet ne porte plus, et chez qui c'est parti.
-#
-# Une liste de champs bannis plutôt que la liste blanche qu'on préfère ailleurs :
-# ici on ne se protège pas d'un fichier tiers mais d'une régression connue, et le
-# message doit apprendre où ranger la valeur plutôt que de dire qu'elle est de
-# trop. Les deux fichiers portaient la portée de la Buse, avec deux valeurs
-# différentes, et personne ne l'a vu.
-CHAMPS_DEMENAGES = {
-    "degats": "chez le tireur : l'arme pour le joueur, le profil pour une créature",
-    "portee_tuiles": "chez le tireur, qui la porte déjà",
-    "vitesse_px_s": "chez le tireur, en tuiles par seconde et non en pixels",
-    "traverse": "chez l'arme, où ce sera un passif",
-    "experience": "chez la progression, à côté des seuils qu'elle alimente",
-}
 
 
 def objets(sortie):

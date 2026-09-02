@@ -190,3 +190,93 @@ func TestLeRamassageSArreteALaPortee(t *testing.T) {
 		t.Error("la gemme ramassée est celle des pieds du joueur, l'autre a disparu")
 	}
 }
+
+// TestUneGemmeSEffaceApresSaDuree éprouve la contre-force de l'aimant.
+//
+// Sans elle, la valeur d'un déclenchement croît strictement avec l'attente :
+// attendre devient toujours rationnel, et le joueur meurt avec sa charge. Un
+// objet dont la valeur ne fait que monter n'est pas une décision.
+//
+// **La gemme est semée hors de portée**, sinon le ramassage la retirerait avant
+// que son âge compte, et le cas ne dirait rien de l'effacement.
+func TestUneGemmeSEffaceApresSaDuree(t *testing.T) {
+	w, profils := champDeProgression(t, collecte(&Progression{
+		FirstThreshold: 1000, Floor: 100000, GemValue: 1,
+	}))
+	w.progression.GemLife = 7
+
+	px, py := w.Player()
+	e := Enemy{Profile: indexDuProfil(t, profils, "marcheur"), X: px + FromInt(5), Y: py}
+	w.lacher(&e)
+
+	// La passe de ramassage précède l'incrément du tick : elle voit donc les âges
+	// zéro à six tant que le compteur n'a pas atteint sept. Compter les appels
+	// plutôt que lire le tick masquerait ce décalage et rendrait le cas faux au
+	// premier déplacement de la passe dans l'ordre du tick.
+	for w.Tick() < w.progression.GemLife {
+		w.Step(Vec{})
+		if w.Gems().Len() != 1 {
+			t.Fatalf("gemme effacée au tick %d, avant ses sept ticks de vie", w.Tick())
+		}
+	}
+
+	w.Step(Vec{})
+	if w.Gems().Len() != 0 {
+		t.Errorf("%d gemme(s) après sept ticks de vie, attendu aucune", w.Gems().Len())
+	}
+	// L'effacement n'est pas une récolte : le joueur n'a rien reçu.
+	if w.Experience() != 0 {
+		t.Errorf("expérience : %d, attendu 0 pour une gemme éteinte", w.Experience())
+	}
+}
+
+// TestUneGemmeAtteinteAuTickOuElleExpireEstRamassee garde l'ordre des deux causes.
+//
+// Le ramassage est évalué avant l'expiration : une gemme que le joueur a sous
+// les pieds au tick où elle s'éteint lui revient. La lui retirer pour une
+// milliseconde ferait un vol que rien à l'écran n'expliquerait, et c'est le
+// genre de perte qui fait douter du jeu plutôt que de soi.
+//
+// **Seul un cas où les deux causes tombent dans le même tick les sépare**, et
+// une durée de vie nulle est la façon la plus simple de le forcer : la gemme est
+// expirée dès la passe qui la voit, et elle est à portée. Un cas où elle est à
+// portée sans être expirée ne dirait rien de l'ordre — c'est ce que faisait la
+// première version de ce test.
+func TestUneGemmeAtteinteAuTickOuElleExpireEstRamassee(t *testing.T) {
+	w, profils := champDeProgression(t, collecte(&Progression{
+		FirstThreshold: 1000, Floor: 100000, GemValue: 1,
+	}))
+	w.progression.GemLife = 0
+
+	px, py := w.Player()
+	e := Enemy{Profile: indexDuProfil(t, profils, "marcheur"), X: px + One/8, Y: py + One/16}
+	w.lacher(&e)
+	w.Step(Vec{})
+
+	if w.Experience() != 1 {
+		t.Errorf("expérience : %d, attendu 1 : la gemme était à portée au tick "+
+			"où elle expirait", w.Experience())
+	}
+}
+
+// TestLaPorteeDeRamassageVientDeLaProgression garde le déménagement.
+//
+// **Un cas dont la gemme tombe sur le joueur ne garderait rien** : la distance y
+// vaut zéro, donc une portée nulle la ramasse aussi. C'est ce qui rendait les
+// cas de progression verts après que la portée eut quitté le profil sans être
+// relue nulle part. Une gemme à trois quarts de tuile sépare les deux.
+func TestLaPorteeDeRamassageVientDeLaProgression(t *testing.T) {
+	w, profils := champDeProgression(t, collecte(&Progression{
+		FirstThreshold: 1000, Floor: 100000, GemValue: 1,
+	}))
+
+	px, py := w.Player()
+	e := Enemy{Profile: indexDuProfil(t, profils, "marcheur"), X: px + One*3/4, Y: py}
+	w.lacher(&e)
+	w.Step(Vec{})
+
+	if w.Experience() != 1 {
+		t.Fatalf("expérience : %d, attendu 1 : trois quarts de tuile sont dans "+
+			"une portée d'une tuile", w.Experience())
+	}
+}

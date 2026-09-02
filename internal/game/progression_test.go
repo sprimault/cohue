@@ -29,6 +29,23 @@ func progressionLivree(t *testing.T) *Progression {
 	return p
 }
 
+// collecte complète des seuils forgés par ce que la gemme exige.
+//
+// **Sans cela, ces cas passent pour une mauvaise raison.** `semer` pose les
+// gemmes exactement sur le joueur : une portée nulle les ramasse quand même, la
+// distance valant zéro, et une durée de vie nulle ne se voit pas puisque le
+// ramassage est évalué avant l'expiration. Les deux réglages seraient
+// indiscernables de leur absence, et c'est ce que la mutation a montré.
+//
+// Une portée d'une tuile et une vie hors d'atteinte : ces cas comptent des
+// niveaux, pas des distances ni des âges, et ce qui les concerne a ses propres
+// tests.
+func collecte(p *Progression) *Progression {
+	p.PickupRange = One
+	p.GemLife = 100000
+	return p
+}
+
 // champDeProgression monte une salle vide sur les seuils qu'on lui donne.
 //
 // **Les seuils sont forgés ici et non lus du fichier livré.** Le plancher publié
@@ -100,9 +117,9 @@ func TestManifesteLivreDonneLesSeuils(t *testing.T) {
 // `experience: 1` sur la gemme, personne n'allait la chercher, et aucun test
 // n'aurait pu le dire. Une valeur autre que un est ce qui sépare les deux.
 func TestUneGemmeVautCeQueLeManifesteDit(t *testing.T) {
-	w, profils := champDeProgression(t, &Progression{
+	w, profils := champDeProgression(t, collecte(&Progression{
 		FirstThreshold: 6, GemValue: 3, Floor: 1000,
-	})
+	}))
 
 	semer(t, w, profils, 2)
 	w.Step(Vec{})
@@ -151,9 +168,9 @@ func TestLeSeuilMonteAvecLeNiveau(t *testing.T) {
 
 // TestLesGemmesRamasseesMontentLeNiveau éprouve la première source de montée.
 func TestLesGemmesRamasseesMontentLeNiveau(t *testing.T) {
-	w, profils := champDeProgression(t, &Progression{
+	w, profils := champDeProgression(t, collecte(&Progression{
 		FirstThreshold: 3, Increment: 4, GemValue: 1, Floor: 1000,
-	})
+	}))
 
 	semer(t, w, profils, 5)
 	w.Step(Vec{})
@@ -176,9 +193,9 @@ func TestLesGemmesRamasseesMontentLeNiveau(t *testing.T) {
 // rendra le cas ordinaire — une récolte entière ramassée d'un coup —, et une
 // montée par tick étalerait sur sept secondes ce que le joueur vient de gagner.
 func TestUneRecolteAbondanteDonnePlusieursNiveaux(t *testing.T) {
-	w, profils := champDeProgression(t, &Progression{
+	w, profils := champDeProgression(t, collecte(&Progression{
 		FirstThreshold: 3, GemValue: 1, Floor: 1000,
-	})
+	}))
 
 	semer(t, w, profils, 7)
 	w.Step(Vec{})
@@ -204,9 +221,9 @@ func TestUneRecolteAbondanteDonnePlusieursNiveaux(t *testing.T) {
 // déclencherait au même tick que lui, et le test ne dirait plus lequel des deux
 // a donné le niveau.
 func TestLePlancherDonneUnNiveauSansRienRamasser(t *testing.T) {
-	w, _ := champDeProgression(t, &Progression{
+	w, _ := champDeProgression(t, collecte(&Progression{
 		FirstThreshold: 1000, GemValue: 1, Floor: 7,
-	})
+	}))
 
 	for range 6 {
 		w.Step(Vec{})
@@ -228,9 +245,9 @@ func TestLePlancherDonneUnNiveauSansRienRamasser(t *testing.T) {
 // le jeu prétend le récompenser, et le plancher cesserait d'être une seconde
 // source de progression pour devenir une remise à zéro.
 func TestLePlancherNeRemetPasLExperienceAZero(t *testing.T) {
-	w, profils := champDeProgression(t, &Progression{
+	w, profils := champDeProgression(t, collecte(&Progression{
 		FirstThreshold: 5, GemValue: 1, Floor: 7,
-	})
+	}))
 
 	semer(t, w, profils, 2)
 	for range 7 {
@@ -253,9 +270,9 @@ func TestLePlancherNeRemetPasLExperienceAZero(t *testing.T) {
 // niveau forcé quelques secondes après un niveau gagné — deux choix coup sur
 // coup, puis un long silence.
 func TestUneMonteeParGemmesRepousseLePlancher(t *testing.T) {
-	w, profils := champDeProgression(t, &Progression{
+	w, profils := champDeProgression(t, collecte(&Progression{
 		FirstThreshold: 3, GemValue: 1, Floor: 7,
-	})
+	}))
 
 	w.Step(Vec{})
 	w.Step(Vec{})
@@ -314,11 +331,11 @@ func TestChampsDeProgressionManquantsListesEnUneFois(t *testing.T) {
 	if !errors.As(err, &invalide) {
 		t.Fatalf("section de niveaux vide acceptée : %v", err)
 	}
-	// Les trois seuils et les deux champs de la gemme. Une absence compte pour
+	// Les trois seuils et les quatre champs de la gemme. Une absence compte pour
 	// une ligne : les bornes ne se prononcent que sur un champ présent, faute de
 	// quoi le nombre de lignes cesserait d'être le nombre de choses à corriger.
-	if len(invalide.Missing) != 5 {
-		t.Errorf("%d manquement(s), attendu 5 :\n  %v", len(invalide.Missing), invalide.Missing)
+	if len(invalide.Missing) != 7 {
+		t.Errorf("%d manquement(s), attendu 7 :\n  %v", len(invalide.Missing), invalide.Missing)
 	}
 }
 

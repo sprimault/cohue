@@ -40,7 +40,7 @@ func champDeCartes(t *testing.T, seuils *Progression) (*World, *Profiles) {
 // donnée par le temps au milieu d'une boucle ferait dériver le compte sans que
 // le message le dise.
 func monteeSimple() *Progression {
-	return &Progression{FirstThreshold: 1, GemValue: 1, Floor: 100000}
+	return collecte(&Progression{FirstThreshold: 1, GemValue: 1, Floor: 100000})
 }
 
 // TestUneMonteeOuvreTroisPlaces garde la règle du choix ternaire.

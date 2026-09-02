@@ -74,6 +74,11 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   temps et ce qu'une gemme rapporte se règlent dans ce fichier, tenu à la main
   comme la table d'armes.
 
+- **Les gemmes s'effacent.** Une gemme laissée au sol s'éteint progressivement
+  et disparaît au bout de six secondes. L'extinction est continue et non
+  clignotante : l'âge d'une gemme se lit, donc ce qu'un tas vaut encore
+  s'estime. C'est ce qui obligera à revenir là où l'on vient de tuer, là où la
+  horde converge.
 - **Les trois cartes de la montée de niveau.** La horde se fige, trois cartes
   s'affichent en bas de l'écran, et les touches 1, 2 et 3 en prennent une. Deux
   axes améliorent l'arme — cadence et portée, six paliers chacun — et une
@@ -82,6 +87,11 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
 
 ### Modifié
 
+- **La portée de ramassage a quitté le profil du joueur** pour
+  `assets/progression/`, où elle rejoint la durée de vie d'une gemme. Les deux
+  punissent le non-ramassage et ne se règlent pas séparément ; les laisser dans
+  deux fichiers, dont l'un est généré, aurait fait payer une régénération de six
+  cents images pour ajuster l'un des deux termes.
 - **Les lieux vivent désormais dans une campagne**, `assets/campagnes/<nom>/`,
   et c'est elle qu'on compose et qu'on partagera : un dossier de salles dont le
   descripteur `campagne.json` dit par laquelle on commence. Le dossier existe
@@ -140,6 +150,10 @@ pauses the game to offer **three cards**, one of which you take.
 - **`assets/progression/manifeste.json`.** Level thresholds, the time floor and
   what a gem is worth are tuned in this file, hand-held like the weapon table.
 
+- **Gems fade away.** A gem left on the ground dims progressively and vanishes
+  after six seconds. The fade is continuous rather than blinking: a gem's age
+  can be read, so what a pile is still worth can be estimated. This is what will
+  force you back to where you just killed, where the horde converges.
 - **The three level-up cards.** The horde freezes, three cards appear at the
   bottom of the screen, and keys 1, 2 and 3 take one. Two axes improve the
   weapon — fire rate and range, six tiers each — and a third card restores
@@ -148,6 +162,10 @@ pauses the game to offer **three cards**, one of which you take.
 
 ### Changed
 
+- **Pickup range has left the player profile** for `assets/progression/`, where
+  it joins a gem's lifetime. Both punish not collecting and are not tuned
+  separately; leaving them in two files, one of them generated, would have made
+  adjusting either term cost a regeneration of six hundred images.
 - **Places now live inside a campaign**, `assets/campagnes/<name>/`, and the
   campaign is what you compose and will share: a folder of rooms whose
   `campagne.json` descriptor says which one a run starts in. The folder exists to

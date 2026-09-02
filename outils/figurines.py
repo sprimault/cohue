@@ -63,12 +63,12 @@ DIRECTIONS = ["S", "SO", "O", "NO", "N", "NE", "E", "SE"]
 # sur ce qu'elle lui rapporte. Il est unitaire, le spawner le multipliant par la
 # taille du groupe.
 #
-# `portee_ramassage_tuiles` est courte à dessein : c'est ce qui fait du
-# ramassage une décision, puisqu'une gemme laissée derrière se perd. Une portée
-# généreuse la retirerait, et c'est l'aimant qui existe pour rattraper ce qu'on
-# n'a pas eu le temps de reprendre. Elle forme un couple avec la durée de vie
-# d'une gemme, que le lot de l'aimant apportera : les deux punissent le
-# non-ramassage, et se règlent ensemble ou pas du tout.
+# `portee_ramassage_tuiles` n'y figure plus. Elle forme un couple avec la durée
+# de vie d'une gemme — les deux punissent le non-ramassage, et la conception les
+# règle ensemble ou pas du tout —, si bien qu'elle est descendue auprès d'elle
+# dans `assets/progression/`. Le critère est celui qui a déjà déplacé
+# l'expérience d'une gemme : une valeur vit à côté de ce qu'elle alimente, et
+# celui qui touche à l'une doit voir l'autre.
 #
 # `gemmes` est ce qu'une créature laisse tomber en mourant, et non ce que cela
 # vaut : une gemme rapporte la même chose du début à la fin de la run, et c'est
@@ -84,8 +84,7 @@ DIRECTIONS = ["S", "SO", "O", "NO", "N", "NE", "E", "SE"]
 # desserrer.
 JEU = {
     "joueur":    {"role": "joueur", "vitesse_tuiles_s": 5.0, "rayon_tuiles": 0.125,
-                  "vie": 100, "plafond_degats_s": 20,
-                  "portee_ramassage_tuiles": 1.0},
+                  "vie": 100, "plafond_degats_s": 20},
     "marcheur":  {"role": "ennemi", "comportement": "poursuite",
                   "vitesse_relative": 0.62, "rayon_tuiles": 0.125, "touches": 3,
                   "points": 10, "cout_pression": 3, "poids_separation": 1.0,

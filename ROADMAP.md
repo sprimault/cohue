@@ -272,11 +272,16 @@ pause fige, quand on écrit sur le disque, ce qui persiste d'une run à l'autre.
 Cette étape ne porte que le contenu, et elle existe pour qu'il ne soit pas une
 dette sans domicile.
 
-## 16 — Le catalogue de lieux
+## 16 — Le catalogue de campagnes
 
-L'écran de démarrage énumère les lieux et laisse en choisir un. Après l'étape 12
-parce qu'un catalogue sans lieux téléchargeables n'a rien à énumérer : la
-dépendance est réelle, pas seulement chronologique.
+L'écran de démarrage énumère les campagnes et laisse en choisir une. Après
+l'étape 12 parce qu'un catalogue sans campagnes téléchargeables n'a rien à
+énumérer : la dépendance est réelle, pas seulement chronologique.
+
+**Des campagnes et non des lieux**, parce que c'est l'unité que l'auteur compose
+et partage : un dossier de salles avec son graphe, dont le descripteur dit par
+où l'on commence. Énumérer les lieux ferait choisir une salle au milieu d'une
+campagne, ce qui n'a pas de sens.
 
 **Traversé une fois par session, jamais par run.** Le chapitre 2 proscrit la
 sélection de campagne parmi les quatre frictions de la relance, et fixe « même

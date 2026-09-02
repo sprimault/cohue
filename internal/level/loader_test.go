@@ -113,12 +113,12 @@ func TestManquementsListesEnUneFois(t *testing.T) {
 			"version_format": 1, "identifiant": "", "jeu_pieces": "commun",
 			"pieces": [{"id": "salle", "u": 0, "v": 0}]
 		}`)},
-		"x/commun.json": &fstest.MapFile{Data: []byte(`{
+		"x/jeu.json": &fstest.MapFile{Data: []byte(`{
 			"version_format": 1, "identifiant": "commun", "palette": {".": "sol"}
 		}`)},
 		// Trois défauts d'un coup : deux lignes au lieu de trois, une ligne trop
 		// courte, un caractère absent de la palette.
-		"x/salle.json": &fstest.MapFile{Data: []byte(`{
+		"x/pieces/salle.json": &fstest.MapFile{Data: []byte(`{
 			"version_format": 1, "identifiant": "salle", "jeu": "commun",
 			"taille": [4, 3], "grille": ["....", "..#"]
 		}`)},
@@ -150,10 +150,10 @@ func TestDossierRenommeSansIdentifiant(t *testing.T) {
 			"version_format": 1, "identifiant": "x", "jeu_pieces": "commun",
 			"pieces": [{"id": "salle", "u": 0, "v": 0}]
 		}`)},
-		"variante/commun.json": &fstest.MapFile{Data: []byte(`{
+		"variante/jeu.json": &fstest.MapFile{Data: []byte(`{
 			"version_format": 1, "identifiant": "commun", "palette": {".": "sol"}
 		}`)},
-		"variante/salle.json": &fstest.MapFile{Data: []byte(`{
+		"variante/pieces/salle.json": &fstest.MapFile{Data: []byte(`{
 			"version_format": 1, "identifiant": "salle", "jeu": "commun",
 			"taille": [1, 1], "grille": ["."]
 		}`)},
@@ -225,7 +225,7 @@ func TestPieceInconnue(t *testing.T) {
 			"version_format": 1, "identifiant": "x", "jeu_pieces": "commun",
 			"pieces": [{"id": "fantome", "u": 0, "v": 0}]
 		}`)},
-		"x/commun.json": &fstest.MapFile{Data: []byte(`{
+		"x/jeu.json": &fstest.MapFile{Data: []byte(`{
 			"version_format": 1, "identifiant": "commun", "palette": {".": "sol"}
 		}`)},
 	}
@@ -246,10 +246,10 @@ func TestTuileHorsCatalogueBloque(t *testing.T) {
 			"version_format": 1, "identifiant": "x", "jeu_pieces": "commun",
 			"pieces": [{"id": "salle", "u": 0, "v": 0}]
 		}`)},
-		"x/commun.json": &fstest.MapFile{Data: []byte(`{
+		"x/jeu.json": &fstest.MapFile{Data: []byte(`{
 			"version_format": 1, "identifiant": "commun", "palette": {"?": "forme_inventee"}
 		}`)},
-		"x/salle.json": &fstest.MapFile{Data: []byte(`{
+		"x/pieces/salle.json": &fstest.MapFile{Data: []byte(`{
 			"version_format": 1, "identifiant": "salle", "jeu": "commun",
 			"taille": [1, 1], "grille": ["?"]
 		}`)},
@@ -260,5 +260,34 @@ func TestTuileHorsCatalogueBloque(t *testing.T) {
 	}
 	if grille.Passable(0, 0) {
 		t.Error("une forme hors catalogue se dit franchissable")
+	}
+}
+
+// TestJeuDePiecesQuiDementLeLieu garde ce que le nom fixe a cessé de vérifier.
+//
+// **Ce contrôle est né du renommage.** Le jeu de pièces s'appelait autrefois du
+// nom de son identifiant, si bien que le chemin le vérifiait au passage : un
+// fichier mal nommé ne se chargeait pas. Le nom étant désormais fixe, plus rien
+// ne rapprochait les deux, et un `jeu.json` déposé dans le mauvais lieu se
+// serait chargé en silence — avec sa palette, donc en changeant le sens de tous
+// les caractères des pièces.
+func TestJeuDePiecesQuiDementLeLieu(t *testing.T) {
+	fsys := fstest.MapFS{
+		"x/lieu.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "x", "jeu_pieces": "commun",
+			"pieces": [{"id": "salle", "u": 0, "v": 0}]
+		}`)},
+		"x/jeu.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "autre", "palette": {".": "sol"}
+		}`)},
+		"x/pieces/salle.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "salle", "jeu": "commun",
+			"taille": [1, 1], "grille": ["."]
+		}`)},
+	}
+	_, err := NewLoader(fsys, couts).Load("x")
+	var invalide *manifest.Invalid
+	if !errors.As(err, &invalide) {
+		t.Fatalf("jeu de pièces étranger au lieu accepté : %v", err)
 	}
 }

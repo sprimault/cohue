@@ -34,12 +34,22 @@ const (
 	FormatSet   = 1
 )
 
-// LevelFile est le nom que porte le descripteur dans un dossier de lieu.
+// Les noms fixes d'un dossier de lieu, et le sous-dossier des pièces.
 //
-// Fixe, et non dérivé de l'identifiant : c'est ce qui permet de reconnaître un
-// dossier de lieu sans l'ouvrir, et de renommer un lieu en renommant son
-// dossier.
-const LevelFile = "lieu.json"
+// **Ce qui existe une fois par dossier porte un nom fixe ; ce qui existe en
+// plusieurs exemplaires garde son identifiant et se range dans un sous-dossier
+// qui dit sa nature.** Sans cette règle, le jeu de pièces et une pièce sont deux
+// noms libres au même niveau : `quartier.json` posé à côté de `carrefour.json`
+// ne dit pas lequel est une palette et lequel est un plan, et « quartier » se lit
+// même comme un endroit qu'on construirait.
+//
+// L'identité ne se perd pas pour autant, elle vit dans le champ `identifiant` —
+// comme un lieu nommé « place » n'a jamais eu de fichier `place.json`.
+const (
+	LevelFile = "lieu.json"
+	SetFile   = "jeu.json"
+	RoomsDir  = "pieces"
+)
 
 // Loader lit un lieu et ses pièces dans un système de fichiers.
 //
@@ -90,7 +100,7 @@ func (l *Loader) Load(dossier string) (*game.CostGrid, error) {
 		return nil, fmt.Errorf("%s: %w", chemin, ErrEmptyLevel)
 	}
 
-	jeu, err := manifest.Decode[Set](l.fsys, path.Join(dossier, lieu.SetID+".json"))
+	jeu, err := manifest.Decode[Set](l.fsys, path.Join(dossier, SetFile))
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +110,7 @@ func (l *Loader) Load(dossier string) (*game.CostGrid, error) {
 
 	pieces := make([]*Room, 0, len(lieu.Placements))
 	for _, pose := range lieu.Placements {
-		piece, err := manifest.Decode[Room](l.fsys, path.Join(dossier, pose.RoomID+".json"))
+		piece, err := manifest.Decode[Room](l.fsys, path.Join(dossier, RoomsDir, pose.RoomID+".json"))
 		if err != nil {
 			return nil, fmt.Errorf("%w : %s", ErrUnknownRoom, pose.RoomID)
 		}

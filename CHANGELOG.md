@@ -82,6 +82,15 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
 
 ### Modifié
 
+- **Les lieux vivent désormais dans une campagne**, `assets/campagnes/<nom>/`,
+  et c'est elle qu'on compose et qu'on partagera : un dossier de salles dont le
+  descripteur `campagne.json` dit par laquelle on commence. Le dossier existe
+  pour cloisonner les noms, comme celui d'un lieu le fait pour ses pièces — sans
+  lui, deux auteurs appellent tous les deux une salle « parking ».
+- **Les fichiers d'un lieu portent des noms fixes.** Le jeu de pièces s'appelle
+  `jeu.json` et les pièces vivent dans `pieces/`, là où deux noms libres au même
+  niveau ne disaient pas lequel était une palette et lequel un plan. Un lieu
+  existant se reprend en renommant son jeu de pièces et en déplaçant ses pièces.
 - **Ce qu'une gemme rapporte a quitté `assets/objets/manifeste.json`** pour le
   manifeste de progression : une valeur vit à côté de ce qu'elle alimente, et
   celle-ci alimente les seuils. Le manifeste de progression nomme l'objet qu'elle
@@ -139,6 +148,15 @@ pauses the game to offer **three cards**, one of which you take.
 
 ### Changed
 
+- **Places now live inside a campaign**, `assets/campagnes/<name>/`, and the
+  campaign is what you compose and will share: a folder of rooms whose
+  `campagne.json` descriptor says which one a run starts in. The folder exists to
+  scope names, as a place's folder already does for its rooms — without it, two
+  authors both call a room "parking".
+- **A place's files carry fixed names.** The room set is `jeu.json` and rooms
+  live in `pieces/`, where two free names at the same level did not say which was
+  a palette and which a plan. An existing place is brought over by renaming its
+  room set and moving its rooms.
 - **What a gem is worth has left `assets/objets/manifeste.json`** for the
   progression manifest: a value lives next to what it feeds, and this one feeds
   the thresholds. The progression manifest names the object it describes, and the

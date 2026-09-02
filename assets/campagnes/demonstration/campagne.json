@@ -1,0 +1,7 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> — SPDX-License-Identifier: Apache-2.0 — la campagne livrée, qui n'a qu'un lieu tant que les portes n'existent pas. Elle porte le graphe des salles quand l'étape 8 l'apportera ; aujourd'hui elle ne dit que par où l'on commence, parce qu'un champ que personne ne lit ne se déclare pas.",
+  "version_format": 1,
+  "identifiant": "demonstration",
+  "nom": "Démonstration",
+  "lieu_depart": "place"
+}

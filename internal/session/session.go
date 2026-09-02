@@ -119,7 +119,13 @@ func (s *Session) monter() {
 	peupler(s.World, s.Grid, s.profils)
 }
 
-// Open monte une partie sur le lieu donné.
+// Open monte une partie sur la campagne donnée, à son lieu de départ.
+//
+// **Une campagne et non un lieu**, parce que c'est elle que l'auteur compose et
+// partage, et parce que le lieu de départ est une propriété de la campagne : le
+// binaire n'a pas à savoir laquelle de ses salles vient en premier. Quand
+// l'étape 8 apportera les portes, c'est ce même descripteur qui dira où mène
+// chacune, et le montage n'aura pas à changer de forme.
 //
 // L'ordre n'est pas libre : le catalogue de coûts vient du manifeste de décor et
 // le chargeur de lieux en a besoin, si bien qu'un lieu ne peut pas se cuire avant
@@ -139,16 +145,24 @@ func (s *Session) monter() {
 // ni d'une constante qui ferait de deux appelants aux intentions différentes
 // deux copies de la même valeur. La planche de relecture en exige une fixe par
 // nature ; le jeu n'en a une fixe que faute d'écran pour la choisir.
-func Open(fsys fs.FS, lieu string, graine uint64) (*Session, error) {
+func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 	decor, couts, err := level.LoadDecor(fsys, cohue.DecorManifest)
 	if err != nil {
 		return nil, err
 	}
+
+	graphe, err := level.LoadCampaign(fsys, campagne)
+	if err != nil {
+		return nil, err
+	}
+	lieu := graphe.StartPath(campagne)
+
 	grille, err := level.NewLoader(fsys, couts).Load(lieu)
 	if err != nil {
 		return nil, err
 	}
-	slog.Info("lieu chargé", "name", lieu, "width", grille.Width(), "height", grille.Height())
+	slog.Info("lieu chargé", "campaign", graphe.ID, "name", lieu,
+		"width", grille.Width(), "height", grille.Height())
 
 	profils, err := game.LoadProfiles(fsys, cohue.CharacterManifest)
 	if err != nil {

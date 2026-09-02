@@ -44,5 +44,12 @@ const (
 	// survivrait à un remplacement complet de la table d'armes, et il commande
 	// le rythme des choix plutôt que leur contenu.
 	ProgressionManifest = "assets/progression/manifeste.json"
-	StartingLevel       = "assets/lieux/place"
+
+	// StartingCampaign est la campagne sur laquelle le jeu s'ouvre.
+	//
+	// Une campagne et non un lieu : c'est elle que l'auteur compose, partage et
+	// choisira dans le catalogue, et c'est son descripteur qui dit par quelle
+	// salle on commence. En désigner une salle ici aurait fait du binaire le
+	// seul à savoir laquelle est la première.
+	StartingCampaign = "assets/campagnes/demonstration"
 )

@@ -31,8 +31,13 @@ import (
 // Trois cents entités vivantes, ce que la conception donne comme total en
 // comptant ce qui approche hors champ. Au-delà, ce n'est plus une horde mais un
 // mur uni : les profils cessent d'être distinguables, et avec eux la lisibilité
-// de l'échec. Le spawner rencontrera ce plafond, et c'est mieux que de laisser
-// la horde croître jusqu'à ce que l'image s'effondre.
+// de l'échec.
+//
+// **C'est aussi le plafond d'effectif du spawner**, et non un filet posé
+// derrière lui. La conception demande qu'il cesse d'acheter quand l'effectif est
+// atteint ; en écrire le chiffre ailleurs aurait donné deux limites pour une
+// seule chose, dont la plus basse aurait fini par masquer l'autre — un bassin qui
+// refuse est muet, là où le spawner qui s'arrête perd son budget sciemment.
 const HordeCapacity = 300
 
 // ShotCapacity plafonne le bassin des projectiles.
@@ -51,23 +56,6 @@ const ShotCapacity = 256
 // vraiment le stock est leur effacement, qui vient avec l'aimant ; d'ici là
 // elles s'accumulent, et ce plafond est le filet qui empêche d'allouer.
 const GemCapacity = 512
-
-// Les deux réglages du semis provisoire.
-const (
-	// pasDuSemis est l'écart entre deux créatures posées, en cases.
-	pasDuSemis = 3
-	// ecartAuJoueur tient la horde assez loin pour qu'on la voie converger.
-	ecartAuJoueur = 8
-	// porteeDuSemis la tient assez près pour qu'elle arrive.
-	//
-	// **Cette borne était tenue par le lieu, et par personne quand il a grandi.**
-	// Sur trente-deux cases de côté, le semis couvrait la carte entière et le
-	// bord faisait la limite ; sur quatre-vingt-dix-huit, le parcours remplit le
-	// bassin avant d'avoir quitté la bande nord, et la horde naît toute d'un
-	// côté. Une propriété qu'on lit dans un commentaire sans qu'aucune ligne ne
-	// la tienne se perd au premier changement d'échelle.
-	porteeDuSemis = 24
-)
 
 // Session est une partie montée, prête à tourner.
 //
@@ -91,6 +79,7 @@ type Session struct {
 	profils     *game.Profiles
 	armes       *game.Weapons
 	progression *game.Progression
+	scenario    *game.Scenario
 }
 
 // Restart rejoue le même lieu, sans rien redemander.
@@ -114,17 +103,20 @@ func (s *Session) Restart() {
 	s.monter()
 }
 
-// monter bâtit la run de la graine courante : le monde, le joueur, la horde.
+// monter bâtit la run de la graine courante : le monde, puis le joueur.
+//
+// La horde n'y est plus, et c'est la différence que le spawner fait : elle
+// n'existe pas au premier tick, elle s'achète. Une partie commence donc sur une
+// salle vide, ce qui est ce que la conception décrit et non un état transitoire.
 //
 // Séparé de Restart parce que la première run d'une session ne dérive rien —
 // elle se joue sur la graine reçue. Les confondre aurait fait qu'ouvrir une
 // session sur une graine en jouerait une autre, ce qui se serait vu au moment
 // d'écrire un lieu de défi.
 func (s *Session) monter() {
-	s.World = game.NewWorld(s.profils, s.armes, s.progression, s.Grid, s.Seed,
+	s.World = game.NewWorld(s.profils, s.armes, s.progression, s.scenario, s.Grid, s.Seed,
 		HordeCapacity, ShotCapacity, GemCapacity)
 	placer(s.World, s.Grid)
-	peupler(s.World, s.Grid, s.profils)
 }
 
 // Open monte une partie sur la campagne donnée, à son lieu de départ.
@@ -135,9 +127,9 @@ func (s *Session) monter() {
 // l'étape 8 apportera les portes, c'est ce même descripteur qui dira où mène
 // chacune, et le montage n'aura pas à changer de forme.
 //
-// L'ordre n'est pas libre : le catalogue de coûts vient du manifeste de décor et
-// le chargeur de lieux en a besoin, si bien qu'un lieu ne peut pas se cuire avant
-// que le décor soit lu.
+// L'ordre n'est pas libre : un lieu cite des formes de décor et des profils de
+// créatures, et le chargeur refuse celles qui n'existent pas. Les deux
+// catalogues se lisent donc avant lui.
 //
 // Les manifestes sont lus au montage et non à la première vague : un fichier que
 // le binaire refuse doit le dire tout de suite, pas trois minutes après le début
@@ -165,18 +157,18 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 	}
 	lieu := graphe.StartPath(campagne)
 
-	grille, err := level.NewLoader(fsys, couts).Load(lieu)
-	if err != nil {
-		return nil, err
-	}
-	slog.Info("lieu chargé", "campaign", graphe.ID, "name", lieu,
-		"width", grille.Width(), "height", grille.Height())
-
 	profils, err := game.LoadProfiles(fsys, cohue.CharacterManifest)
 	if err != nil {
 		return nil, err
 	}
 	slog.Info("profils chargés", "enemies", len(profils.Enemies))
+
+	grille, scenario, err := level.NewLoader(fsys, couts, profils).Load(lieu)
+	if err != nil {
+		return nil, err
+	}
+	slog.Info("lieu chargé", "campaign", graphe.ID, "name", lieu,
+		"width", grille.Width(), "height", grille.Height(), "phases", len(scenario.Phases))
 
 	armes, err := game.LoadWeapons(fsys, cohue.WeaponManifest)
 	if err != nil {
@@ -196,6 +188,7 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		profils:     profils,
 		armes:       armes,
 		progression: progression,
+		scenario:    scenario,
 	}
 	partie.monter()
 	slog.Info("partie montée", "seed", graine)
@@ -216,68 +209,4 @@ func placer(monde *game.World, grille *game.CostGrid) {
 		game.FromInt(grille.Width()/2)+game.One/2,
 		game.FromInt(grille.Height()/2)+game.One/2,
 	)
-}
-
-// peupler sème la horde de départ, à intervalle régulier et à distance du joueur.
-//
-// **Provisoire, et ce n'est pas une approximation du spawner.** L'étape 4
-// achètera des créatures dans un budget de pression et les fera apparaître hors
-// du champ, sur un anneau autour du joueur. Ce qui est ici n'a qu'un objet : que
-// l'étape 1 se voie. Trois cents poursuivants qui convergent en contournant les
-// obstacles est ce qu'elle a livré, et un rendu qui ne le montrerait pas ne
-// livrerait pas ce que l'étape 2 promet.
-//
-// **Le semis est régulier et non tiré au sort.** La raison n'est pas le confort
-// de comparer deux planches — cela en découle, mais ne le motive pas : `World` ne
-// porte pas de graine, et lui en donner une depuis un montage ferait entrer une
-// décision de simulation par la porte de service. L'aléatoire d'une partie
-// appartient aux flux nommés, que le spawner branchera.
-//
-// L'écart au joueur se mesure en cases et non en tuiles du monde : ce qui est
-// semé l'est sur la grille, et un rayon exact n'apporterait rien à un motif dont
-// le pas vaut trois cases.
-//
-// **Ce qu'il coûte, mesuré :** cent vingt et une créatures posées d'un coup dans
-// la couronne convergent en cinq secondes, et le joueur tombe à la sixième avec
-// une gemme des dix que le premier niveau demande. Aucune position de départ ni
-// direction de fuite n'ouvre une montée de niveau vivant. Ce n'est pas un défaut
-// de la progression mais du semis : la courbe de pression achète les créatures
-// dans un budget qui commence bas, et c'est elle qui rendra le jalon mesurable.
-func peupler(monde *game.World, grille *game.CostGrid, profils *game.Profiles) {
-	px, py := monde.Player()
-	pu, pv := px.Floor(), py.Floor()
-
-	profil := 0
-	for v := 0; v < grille.Height(); v += pasDuSemis {
-		for u := 0; u < grille.Width(); u += pasDuSemis {
-			if d := ecart(u, v, pu, pv); d < ecartAuJoueur || d > porteeDuSemis {
-				continue
-			}
-			if !grille.Passable(u, v) {
-				continue
-			}
-			_, pose := monde.SpawnEnemy(
-				profil%len(profils.Enemies),
-				game.FromInt(u)+game.One/2,
-				game.FromInt(v)+game.One/2,
-			)
-			if !pose {
-				return
-			}
-			profil++
-		}
-	}
-}
-
-// ecart rend la distance entre deux cases, comptée en pas de grille.
-func ecart(u, v, pu, pv int) int {
-	return abs(u-pu) + abs(v-pv)
-}
-
-// abs rend la valeur absolue d'un entier.
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
 }

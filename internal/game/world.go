@@ -59,12 +59,13 @@ type World struct {
 	// sol à la fois. Un bassin quand même : le rendu parcourt les bassins, et une
 	// entité rangée autrement y serait un cas particulier.
 	aimants *Pool[Magnet]
-	// hasard porte les quatre flux de la partie. Aucun n'est encore lu : le
-	// premier tirage viendra du spawner, à l'étape 4. Ils vivent ici plutôt que
-	// dans le montage parce que c'est le tick qui les consommera, et qu'un
-	// hasard tenu à côté de la partie serait un état de simulation hors de la
-	// simulation.
+	// hasard porte les quatre flux de la partie. Ils vivent ici plutôt que dans
+	// le montage parce que c'est le tick qui les consomme, et qu'un hasard tenu à
+	// côté de la partie serait un état de simulation hors de la simulation.
 	hasard *Streams
+	// scenario est la courbe de pression du lieu. Elle vient de son fichier et
+	// non des tables de la partie : c'est le rythme que son auteur compose.
+	scenario *Scenario
 
 	playerX, playerY Fixed
 	// vie est ce qu'il reste au joueur, en points. À zéro, il est mort — la
@@ -106,6 +107,16 @@ type World struct {
 	// dernierAimant est le tick de la dernière apparition, ou de la dernière
 	// tentative abandonnée.
 	dernierAimant Tick
+	// budget est la pression accumulée et non encore dépensée. En virgule fixe :
+	// une phase à huit par seconde accorde moins d'un point par tick, et un
+	// compteur entier ne saurait pas l'exprimer autrement qu'en tronquant à zéro.
+	budget Fixed
+	// vivants compte la horde par profil, refait à chaque tick d'achat. Il sert
+	// au plafond de simultanéité, qui compte les vivants et non les apparus.
+	vivants []int
+	// achetables est la tranche de travail du spawner, réutilisée d'un achat à
+	// l'autre.
+	achetables []int
 }
 
 // NewWorld monte une partie sur une carte et les tables du manifeste.
@@ -122,13 +133,14 @@ type World struct {
 // La graine en est un, en revanche, et elle vient du montage : lui seul sait de
 // quelle run il s'agit dans la suite d'une session. Une partie qui tirerait la
 // sienne ne se rejouerait plus.
-func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, grille *CostGrid,
-	graine uint64, capacite, tirs, gemmes int) *World {
+func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scenario *Scenario,
+	grille *CostGrid, graine uint64, capacite, tirs, gemmes int) *World {
 	return &World{
 		profils:     profils,
 		arme:        armes.Base,
 		passifs:     armes.Passives,
 		progression: progression,
+		scenario:    scenario,
 		vie:         profils.Player.Health,
 		niveau:      1,
 		grille:      grille,
@@ -141,6 +153,8 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, grill
 		hasard:      NewStreams(graine),
 		cartes:      make([]Card, 0, Choices),
 		paliers:     make([]int, len(armes.Passives.Axes)),
+		vivants:     make([]int, len(profils.Enemies)),
+		achetables:  make([]int, 0, len(profils.Enemies)),
 	}
 }
 
@@ -224,6 +238,7 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 // passes, donc une tranche d'intentions à préallouer.
 func (w *World) Step(voulu Vec) {
 	w.deplacerJoueur(voulu)
+	w.apparaitre()
 
 	if w.tick%flowPeriod == 0 {
 		w.flux.Rebuild(w.playerX, w.playerY)

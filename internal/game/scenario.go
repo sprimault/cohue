@@ -1,0 +1,285 @@
+// Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
+// SPDX-License-Identifier: Apache-2.0
+
+// La courbe de pression d'un lieu, telle qu'un auteur l'écrit et telle que le
+// spawner la lit : des phases datées sur une frise, un budget par seconde, et
+// les profils qu'elles autorisent. La compilation résout les noms en index et
+// les instants en ticks, une seule fois.
+
+package game
+
+import (
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/sprimault/cohue/internal/manifest"
+)
+
+// WaveScenario est le scénario tel qu'il s'écrit dans le lieu.
+//
+// **Il est exporté et vit ici, alors que c'est `internal/level` qui décode le
+// fichier.** Le scénario est une table de jeu — des profils, un budget, des
+// instants — et son sens appartient à qui le consomme. Le décrire dans le
+// paquet du chargeur en aurait fait une seconde description, à tenir d'accord
+// avec celle-ci ; `internal/level` importe déjà `internal/game`, si bien que le
+// porter ici ne coûte aucune dépendance nouvelle.
+type WaveScenario struct {
+	manifest.Commentable
+	// Phases sont les paliers de la courbe, par instant croissant.
+	Phases []WavePhase `json:"phases"`
+}
+
+// WavePhase est un palier de la courbe, tel qu'il s'écrit.
+type WavePhase struct {
+	manifest.Commentable
+	// Start est l'instant où la phase prend effet, sur la frise « m:ss ».
+	Start string `json:"debut"`
+	// Pressure est le budget accordé par seconde.
+	Pressure *int `json:"pression"`
+	// Profiles nomme les profils que le spawner peut acheter dans cette phase.
+	Profiles []string `json:"profils"`
+	// Peak est la pointe de la phase, absente le plus souvent.
+	Peak *WavePeak `json:"pic,omitempty"`
+}
+
+// WavePeak est une pointe de pression à l'intérieur d'une phase.
+type WavePeak struct {
+	manifest.Commentable
+	// At est l'instant où la pointe commence, sur la même frise.
+	At string `json:"a"`
+	// Multiplier est ce par quoi le budget est multiplié pendant la pointe.
+	Multiplier *int `json:"multiplicateur"`
+	// Seconds est la durée de la pointe, en secondes.
+	Seconds *int `json:"duree_s"`
+}
+
+// Scenario est la courbe de pression compilée : ce que le spawner dépense, et
+// parmi quels profils.
+//
+// **Un scénario exprime un débit, jamais des compteurs.** Un fichier qui dirait
+// « à 7 min, 120 marcheurs » rendrait injouable ou vide le premier lieu venu
+// d'un auteur tiers, dont on ne connaît ni l'aire ouverte ni la géométrie. Le
+// spawner achète dans un budget, ce qui reste cohérent quelle que soit la salle.
+type Scenario struct {
+	// Phases sont les paliers, par instant croissant. Une tranche vide est un
+	// lieu sans horde, ce que le format admet : une salle de passage ou une
+	// boutique n'a rien à acheter.
+	Phases []Phase
+}
+
+// Phase est un palier compilé de la courbe.
+type Phase struct {
+	// Start est le tick où la phase prend effet.
+	Start Tick
+	// Pressure est le budget accordé à chaque tick.
+	Pressure Fixed
+	// Profiles sont les index des profils achetables, dans `Profiles.Enemies`.
+	Profiles []int
+	// Peak est la pointe de la phase.
+	Peak Peak
+}
+
+// Peak est une pointe compilée.
+//
+// **Elle porte un budget et non un multiplicateur.** Le fichier écrit un
+// multiplicateur, qui se lit bien ; la multiplication se fait une fois au
+// chargement, ce qui évite au tick une opération par image et retire du même
+// coup une valeur d'origine extérieure du chemin de l'arithmétique en virgule
+// fixe. Une phase sans pointe a une fenêtre vide, si bien que ce budget n'est
+// jamais lu et n'est pas un cas particulier à écrire.
+type Peak struct {
+	// At et Until bornent la fenêtre, `Until` exclu.
+	At, Until Tick
+	// Pressure est le budget accordé à chaque tick de la fenêtre.
+	Pressure Fixed
+}
+
+// budget rend ce que la phase accorde au tick donné, pointe comprise.
+func (p *Phase) budget(t Tick) Fixed {
+	if t >= p.Peak.At && t < p.Peak.Until {
+		return p.Peak.Pressure
+	}
+	return p.Pressure
+}
+
+// phase rend le palier en vigueur au tick donné.
+//
+// Le dernier dont l'instant est passé, et non le premier à venir : une phase
+// vaut jusqu'à ce que la suivante la remplace, ce qui donne au dernier palier une
+// durée illimitée sans qu'on ait à lui écrire une fin.
+func (s *Scenario) phase(t Tick) *Phase {
+	courante := &s.Phases[0]
+	for i := range s.Phases {
+		if s.Phases[i].Start > t {
+			break
+		}
+		courante = &s.Phases[i]
+	}
+	return courante
+}
+
+// CompileScenario résout un scénario écrit contre la table des profils.
+//
+// Elle rend tout ce qui l'empêche de valoir, plutôt que le premier écart :
+// l'appelant les joint aux manquements du lieu, et qui met au point un niveau
+// veut la liste.
+//
+// Un scénario absent — aucune phase — est admis et ne produit aucune apparition.
+// Le refuser ferait d'une salle de passage une erreur de fichier.
+func CompileScenario(brut WaveScenario, profils *Profiles) (*Scenario, []string) {
+	var manques []string
+	dire := func(format string, args ...any) {
+		manques = append(manques, fmt.Sprintf(format, args...))
+	}
+
+	scenario := &Scenario{Phases: make([]Phase, 0, len(brut.Phases))}
+	precedent := Tick(-1)
+	for i, p := range brut.Phases {
+		ou := fmt.Sprintf("vagues.phases[%d]", i)
+		var phase Phase
+
+		debut, err := instant(p.Start)
+		if err != nil {
+			dire("%s.debut : %v", ou, err)
+		} else {
+			phase.Start = debut
+			if debut <= precedent {
+				// Sans l'ordre, `phase` rendrait le dernier palier dont
+				// l'instant est passé et non celui qu'on croit lire ; l'auteur
+				// verrait une courbe qui saute en arrière.
+				dire("%s.debut : « %s » ne vient pas après la phase précédente", ou, p.Start)
+			}
+			precedent = debut
+		}
+		if i == 0 && debut != 0 {
+			// La première phase date le début de la partie : sans elle, les
+			// premières secondes n'auraient aucun palier en vigueur.
+			dire("%s.debut : « %s », la première phase commence à 0:00", ou, p.Start)
+		}
+
+		pression := exige(ou, "pression", p.Pressure, dire)
+		phase.Pressure = parTick(float64(pression))
+		if p.Pressure != nil && pression < 1 {
+			dire("%s.pression : %d, une phase sans budget n'achète rien", ou, pression)
+		}
+
+		phase.Profiles = profilsAutorises(ou, p.Profiles, profils, dire)
+		phase.Peak = pointe(ou, p.Peak, pression, dire)
+		scenario.Phases = append(scenario.Phases, phase)
+	}
+	return scenario, manques
+}
+
+// profilsAutorises résout les noms d'une phase en index de la table des profils.
+//
+// Un nom inconnu est refusé plutôt qu'ignoré : une faute de frappe donnerait
+// sinon une phase muette, et l'auteur chercherait longtemps pourquoi sa vague
+// n'arrive pas.
+func profilsAutorises(ou string, noms []string, profils *Profiles,
+	dire func(string, ...any)) []int {
+	if len(noms) == 0 {
+		dire("%s.profils : une phase qui n'autorise aucun profil n'achète rien", ou)
+		return nil
+	}
+
+	index := make([]int, 0, len(noms))
+	for _, nom := range noms {
+		rang := -1
+		for i := range profils.Enemies {
+			if profils.Enemies[i].Key == nom {
+				rang = i
+				break
+			}
+		}
+		if rang < 0 {
+			// Le Passant n'est pas dans cette table : son rôle est `ambiance`,
+			// et ce qui n'est pas hostile n'entre dans aucun compte.
+			dire("%s.profils : « %s » n'est pas un profil d'ennemi", ou, nom)
+			continue
+		}
+		index = append(index, rang)
+	}
+	return index
+}
+
+// pointe compile la pointe d'une phase, absente ou non.
+//
+// Absente, elle rend une fenêtre vide : `Phase.budget` la traverse sans avoir à
+// distinguer les deux cas.
+func pointe(ou string, brute *WavePeak, pression int, dire func(string, ...any)) Peak {
+	if brute == nil {
+		return Peak{}
+	}
+
+	multiplicateur := exige(ou, "pic.multiplicateur", brute.Multiplier, dire)
+	if brute.Multiplier != nil && (multiplicateur < 2 || multiplicateur > 10) {
+		// À un, la pointe ne fait rien et se lit pourtant comme un événement ; à
+		// zéro ou moins, elle serait une accalmie déguisée en pointe. Au-delà de
+		// dix, ce n'est plus une pointe mais une autre phase, et le plafond
+		// d'effectif absorberait tout ce qu'elle achète.
+		dire("%s.pic.multiplicateur : %d, une pointe multiplie entre deux et dix fois",
+			ou, multiplicateur)
+	}
+
+	debut, err := instant(brute.At)
+	if err != nil {
+		dire("%s.pic.a : %v", ou, err)
+	}
+
+	secondes := exige(ou, "pic.duree_s", brute.Seconds, dire)
+	if brute.Seconds != nil && secondes < 1 {
+		dire("%s.pic.duree_s : %d, une pointe dure au moins une seconde", ou, secondes)
+	}
+	duree, err := TicksFromSeconds(secondes)
+	if err != nil {
+		dire("%s.pic.duree_s : %v", ou, err)
+	}
+
+	return Peak{At: debut, Until: debut + duree, Pressure: parTick(float64(pression * multiplicateur))}
+}
+
+// instant convertit un point de la frise d'un scénario en ticks.
+//
+// **La frise est la seule durée d'un manifeste qui ne s'écrit pas en
+// millisecondes**, et la raison tient à qui l'écrit : ce n'est pas une cadence
+// de mécanisme sortie d'un générateur, c'est un déroulé que son auteur relit
+// comme une minuterie. `"2:10"` se place sur une courbe de quinze minutes,
+// `130000` non.
+//
+// **Elle est stricte au point de refuser ce qui se laisserait interpréter** :
+// `0:60` n'est pas une minute, `1:5` n'est pas cinq secondes, et un fichier qui
+// les porte est faux. Les accepter reviendrait à deviner, sur un chiffre qui
+// décide de tout le rythme d'un lieu.
+func instant(frise string) (Tick, error) {
+	minutes, secondes, coupe := strings.Cut(frise, ":")
+	if !coupe {
+		return 0, fmt.Errorf("« %s » : un instant s'ecrit m:ss", frise)
+	}
+	if len(minutes) < 1 || len(minutes) > 2 || !chiffres(minutes) {
+		return 0, fmt.Errorf("« %s » : les minutes s'ecrivent avec un ou deux chiffres", frise)
+	}
+	if len(secondes) != 2 || !chiffres(secondes) {
+		return 0, fmt.Errorf("« %s » : les secondes s'ecrivent avec deux chiffres", frise)
+	}
+
+	m, _ := strconv.Atoi(minutes)
+	s, _ := strconv.Atoi(secondes)
+	if s > 59 {
+		return 0, fmt.Errorf("« %s » : %d secondes, une minute en compte soixante", frise, s)
+	}
+	return TicksFromSeconds(m*60 + s)
+}
+
+// chiffres dit si une chaîne n'est faite que de chiffres décimaux.
+//
+// `strconv.Atoi` accepte un signe, et `+1:00` comme `-1:00` se seraient chargés
+// en donnant une frise qui recule.
+func chiffres(s string) bool {
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return len(s) > 0
+}

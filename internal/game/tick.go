@@ -51,6 +51,23 @@ func TicksFromMs(ms int) (Tick, error) {
 	return Tick(ticks), nil // #nosec G115 -- borné à la ligne précédente
 }
 
+// TicksFromSeconds convertit un nombre entier de secondes en ticks.
+//
+// **Elle existe pour la frise d'un scénario de vagues, la seule chose du projet
+// qui ne s'écrive pas en millisecondes** — un déroulé que son auteur relit comme
+// une minuterie, et non une cadence de mécanisme sortie d'un générateur.
+//
+// Zéro est admis, là où `TicksFromMs` le refuse, et la différence est celle
+// d'une durée à un instant : une frise commence à 0:00, ce qui n'est pas une
+// durée trop courte mais son origine.
+func TicksFromSeconds(secondes int) (Tick, error) {
+	ticks := int64(secondes) * TPS
+	if ticks > math.MaxInt32 {
+		return 0, fmt.Errorf("%d secondes : au-dela de ce qu un compteur de ticks porte", secondes)
+	}
+	return Tick(ticks), nil // #nosec G115 -- borné à la ligne précédente
+}
+
 // msParTick rend la durée d'un pas, arrondie au plus proche, pour les messages.
 func msParTick() int {
 	return (1000 + TPS/2) / TPS

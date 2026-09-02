@@ -93,6 +93,22 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   clignotante : l'âge d'une gemme se lit, donc ce qu'un tas vaut encore
   s'estime. C'est ce qui obligera à revenir là où l'on vient de tuer, là où la
   horde converge.
+- **La courbe de pression.** La horde n'est plus posée au montage : une partie
+  commence sur une salle vide, et les créatures s'achètent dans un budget de
+  pression par seconde. Elles apparaissent hors du champ de vision, à dix-neuf
+  tuiles du joueur, et jamais dans un mur — plutôt aucune créature qu'une
+  créature surgie de nulle part. **La première montée de niveau s'atteint
+  désormais en jouant.**
+- **Un lieu porte son scénario de vagues**, sous `vagues` dans `lieu.json` : des
+  phases datées sur une frise `m:ss`, une pression par seconde, les profils
+  qu'elles autorisent, et une pointe facultative qui multiplie le budget pendant
+  quelques secondes. Une phase vaut jusqu'à ce que la suivante la remplace. Un
+  lieu sans scénario est un lieu sans horde, ce qui est admis : toutes les salles
+  ne sont pas des arènes.
+- **`assets/progression/manifeste.json` gagne une section `pression`** : le rayon
+  d'apparition et la borne du budget reporté. Ce que le lieu décide est le
+  rythme ; ce que la partie décide est d'où sortent les créatures et ce que
+  devient un budget qu'on n'a pas pu dépenser.
 - **Les trois cartes de la montée de niveau.** La horde se fige, trois cartes
   s'affichent en bas de l'écran, et les touches 1, 2 et 3 en prennent une. Deux
   axes améliorent l'arme — cadence et portée, six paliers chacun — et une
@@ -137,12 +153,10 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
 - **Les gemmes tombées au contact se ramassent aussitôt**, la horde mourant
   collée au joueur. On en voit peu au sol, et c'est normal tant que rien ne tue
   à distance.
-- **L'écran de choix ne s'atteint pas en jouant**, et ce n'est pas un défaut de
-  la progression. Le semis provisoire pose cent vingt et une créatures d'un coup
-  autour du joueur : elles convergent en cinq secondes, et il tombe à la sixième
-  avec une gemme des dix que le premier niveau demande. La courbe de pression,
-  qui achète les créatures dans un budget croissant, est ce qui rendra la
-  première montée atteignable.
+- **Les chiffres de la courbe sont provisoires.** Ils tiennent le déroulé debout
+  — la salle se peuple, la pression monte, les profils s'ouvrent un par un — mais
+  ils n'ont pas encore été réglés en jouant. Le plafond d'effectif est atteint
+  vers trois minutes et demie, ce qui est trop tôt pour une partie de quinze.
 
 ***
 
@@ -194,6 +208,20 @@ pauses the game to offer **three cards**, one of which you take.
   after six seconds. The fade is continuous rather than blinking: a gem's age
   can be read, so what a pile is still worth can be estimated. This is what will
   force you back to where you just killed, where the horde converges.
+- **The pressure curve.** The horde is no longer placed at setup: a run starts in
+  an empty room, and creatures are bought from a pressure budget per second. They
+  appear outside the field of view, nineteen tiles from the player, and never
+  inside a wall — better no creature at all than one out of nowhere. **The first
+  level up can now be reached by playing.**
+- **A place carries its wave scenario**, under `vagues` in `lieu.json`: phases
+  dated on an `m:ss` timeline, a pressure per second, the profiles they allow,
+  and an optional peak that multiplies the budget for a few seconds. A phase
+  holds until the next one replaces it. A place without a scenario is a place
+  without a horde, and that is allowed: not every room is an arena.
+- **`assets/progression/manifeste.json` gains a `pression` section**: the spawn
+  radius and the bound on carried-over budget. What the place decides is the
+  rhythm; what the run decides is where creatures come from and what becomes of a
+  budget that could not be spent.
 - **The three level-up cards.** The horde freezes, three cards appear at the
   bottom of the screen, and keys 1, 2 and 3 take one. Two axes improve the
   weapon — fire rate and range, six tiers each — and a third card restores
@@ -238,12 +266,10 @@ pauses the game to offer **three cards**, one of which you take.
 - **Gems dropped in contact are picked up at once**, since the horde dies
   pressed against the player. Few are seen on the ground, and that is expected
   as long as nothing kills at a distance.
-- **The choice screen cannot be reached by playing**, and that is not a defect
-  of progression. The provisional seeding places a hundred and twenty-one
-  creatures at once around the player: they converge in five seconds, and the
-  player falls on the sixth with one of the ten gems the first level asks for.
-  The pressure curve, which buys creatures from a growing budget, is what will
-  make the first level up reachable.
+- **The curve's numbers are provisional.** They hold the shape up — the room
+  fills, pressure rises, profiles open one at a time — but they have not been
+  tuned by playing yet. The population cap is reached around three and a half
+  minutes, which is too early for a fifteen-minute run.
 
 ## [0.2.1] — 2026-09-01 — Ce que la relecture a corrigé
 

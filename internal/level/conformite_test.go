@@ -57,9 +57,22 @@ func TestLieuLivre(t *testing.T) {
 	if err != nil {
 		t.Fatalf("catalogue de coûts : %v", err)
 	}
-	grille, err := NewLoader(cohue.Assets, couts).Load("assets/campagnes/demonstration/place")
+	profils, err := game.LoadProfiles(cohue.Assets, "assets/personnages/manifeste.json")
+	if err != nil {
+		t.Fatalf("profils livrés : %v", err)
+	}
+	grille, scenario, err := NewLoader(cohue.Assets, couts, profils).
+		Load("assets/campagnes/demonstration/place")
 	if err != nil {
 		t.Fatalf("chargement du lieu : %v", err)
+	}
+
+	// **Le scénario du lieu livré est le seul que rien d'autre n'exigerait.** Le
+	// format admet une salle sans horde — une boutique, un passage —, si bien
+	// qu'un `vagues` effacé par mégarde se chargerait sans un mot et rendrait une
+	// partie où rien n'arrive. C'est ici que ça se voit, et nulle part ailleurs.
+	if len(scenario.Phases) == 0 {
+		t.Error("le lieu livré n'a aucune phase : la partie se jouerait sans horde")
 	}
 	if grille.Width() != 98 || grille.Height() != 98 {
 		t.Fatalf("grille %dx%d, attendu 98x98", grille.Width(), grille.Height())

@@ -23,5 +23,45 @@
     { "id": "esplanade", "u": 1, "v": 65 },
     { "id": "carrefour", "u": 33, "v": 65 },
     { "id": "avenue", "u": 65, "v": 65 }
-  ]
+  ],
+  "vagues": {
+    "$comment": "Une pression par seconde, jamais des compteurs : le spawner achète dans ce budget, ce qui reste cohérent quelle que soit l'aire ouverte de la salle. Chaque profil a son coût — un Badaud vaut trois, un Vigile douze — dans assets/personnages/manifeste.json. || Les profils s'ouvrent un par un, pour que chaque créature s'apprenne seule avant d'arriver mêlée. || Les pointes tombent après l'ouverture d'un profil et non avant : c'est le moment où le joueur vient de rencontrer quelque chose de neuf, et où tripler le débit se lit comme un événement plutôt que comme du bruit. || Ces chiffres sont provisoires : ils tiennent la courbe debout et c'est en jouant qu'ils se règlent, contre le critère du chapitre 2 — la bascule de puissance ressentie avant la minute 9.",
+    "phases": [
+      { "debut": "0:00", "pression": 3, "profils": ["marcheur"] },
+      { "debut": "1:00", "pression": 6, "profils": ["marcheur", "sprinteur"] },
+      {
+        "debut": "2:30",
+        "pression": 10,
+        "profils": ["marcheur", "sprinteur", "flanqueur"],
+        "pic": { "a": "3:20", "multiplicateur": 3, "duree_s": 20 }
+      },
+      {
+        "debut": "4:00",
+        "pression": 16,
+        "profils": ["marcheur", "sprinteur", "flanqueur", "eclateur"]
+      },
+      {
+        "debut": "6:00",
+        "pression": 24,
+        "profils": ["marcheur", "sprinteur", "flanqueur", "eclateur", "cracheur"],
+        "pic": { "a": "7:00", "multiplicateur": 3, "duree_s": 25 }
+      },
+      {
+        "debut": "8:00",
+        "pression": 34,
+        "profils": ["marcheur", "sprinteur", "flanqueur", "eclateur", "cracheur", "soigneur"]
+      },
+      {
+        "debut": "10:00",
+        "pression": 48,
+        "profils": ["marcheur", "sprinteur", "flanqueur", "eclateur", "cracheur", "soigneur", "bloqueur"]
+      },
+      {
+        "debut": "12:00",
+        "pression": 64,
+        "profils": ["marcheur", "sprinteur", "flanqueur", "eclateur", "cracheur", "soigneur", "bloqueur"],
+        "pic": { "a": "13:30", "multiplicateur": 3, "duree_s": 25 }
+      }
+    ]
+  }
 }

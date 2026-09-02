@@ -824,11 +824,10 @@ Un dossier de lieu se reconnaît alors sans être ouvert, et renommer un lieu se
   "identifiant": "supermarche_nuit",
   "jeu_pieces": "supermarche@1.2",
   "empreinte_jeu_pieces": "a41f7c92",
-  "grille": [4, 3],
   "pieces": [
-    { "id": "entree_caisses", "u": 0, "v": 0 },
-    { "id": "rayon_long",     "u": 1, "v": 0 },
-    { "id": "carrefour",      "u": 2, "v": 0 }
+    { "id": "entree_caisses", "u":  0, "v": 0 },
+    { "id": "rayon_long",     "u": 24, "v": 0 },
+    { "id": "carrefour",      "u": 56, "v": 0 }
   ],
   "pieces_personnalisees": [],
   "scenario": "standard_4min",
@@ -838,6 +837,10 @@ Un dossier de lieu se reconnaît alors sans être ouvert, et renommer un lieu se
 ```
 
 **Les axes sont `u` et `v`**, ceux que ce document pose plus haut et que le lieu livré emploie ; un lieu écrit avec `x` et `y` est refusé, le décodage n'admettant aucune clé inconnue. Et tout ce que montre cet exemple n'existe pas encore : la rotation reste à trancher, le scénario et l'objectif de sortie sont les étapes 4 et 8. Ce qu'un lieu porte aujourd'hui se lit dans `assets/campagnes/demonstration/place/lieu.json`.
+
+**`u` et `v` sont la case d'origine de la pièce, pas son rang dans une trame.** Le lieu livré pose des blocs de trente-deux cases et une enceinte qui n'en fait qu'une d'épaisseur : des pièces de tailles différentes se composent dans un même lieu, ce qu'un rang ne saurait pas exprimer. Cette version du document portait un champ `grille` et des positions de rang, qui n'ont jamais été lus — c'est la pose de l'enceinte qui a rendu la contradiction visible.
+
+**Un lieu couvre son étendue exactement une fois, et le chargeur refuse les deux écarts.** Une case qu'aucune pièce ne pose garde le coût d'une grille neuve, celui d'un sol ordinaire : le trou se traverse, ne se dessine pas, et n'apparaît qu'au moment où une créature y flotte. Et deux pièces qui se recouvrent se départagent par l'ordre des poses, la dernière écrivant par-dessus la première — un ordre que rien n'annonce et dont aucun auteur d'éditeur n'aura idée. Les refuser rend cet ordre sans effet, ce qui vaut mieux que de l'écrire quelque part.
 
 `pieces_personnalisees` embarque les pièces peintes à la main, quand il y en a — et il reste vide tant que le mode tuiles n'est pas implémenté. C'est le seul cas où le fichier grossit ; même alors, une pièce de 16×16 tuiles compressée pèse quelques centaines d'octets.
 

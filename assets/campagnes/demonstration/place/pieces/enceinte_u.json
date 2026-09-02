@@ -1,0 +1,10 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · tenu à la main, aucun générateur ne l'écrit",
+  "version_format": 1,
+  "identifiant": "enceinte_u",
+  "jeu": "quartier",
+  "taille": [98, 1],
+  "grille": [
+    "##################################################################################################"
+  ]
+}

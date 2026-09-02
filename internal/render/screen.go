@@ -148,6 +148,16 @@ func (s *Screen) Update() error {
 		return nil
 	}
 
+	// **La pause du choix est réelle, et elle se tient ici pour la même raison.**
+	// Choisir sous pression n'est pas un choix mais une loterie, et le chapitre 2
+	// a posé que le choix compte plus que la récompense. Elle vient après la
+	// mort : mourir dans le tick qui ouvre un choix laisse l'écran de fin, et non
+	// trois cartes suspendues au-dessus d'un cadavre.
+	if s.monde.Choosing() {
+		s.choisir()
+		return nil
+	}
+
 	s.monde.Step(voulu())
 	s.cam.suivre(s.monde.Player())
 	return nil
@@ -162,7 +172,9 @@ func (s *Screen) Draw(ecran *ebiten.Image) {
 	s.peindreBandeau(ecran)
 	if !s.monde.Alive() {
 		s.peindreMort(ecran)
+		return
 	}
+	s.peindreCartes(ecran)
 }
 
 // Layout fixe la taille du tampon interne, quelle que soit celle de la fenêtre.

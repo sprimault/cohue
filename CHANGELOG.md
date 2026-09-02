@@ -47,9 +47,8 @@ désormais au contact : collé sans se dégager, le joueur tombe en cinq seconde
 L'écran de mort laisse voir ce qui a eu raison de lui, et une touche remonte une
 partie neuve sur le même lieu.
 
-Les créatures abattues laissent des gemmes, qui font monter de niveau. **Une
-montée ne donne encore aucune amélioration** : les trois cartes viennent
-ensuite. C'est le comportement attendu, pas un défaut.
+Les créatures abattues laissent des gemmes, qui font monter de niveau — et une
+montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
 
 ### Ajouté
 
@@ -75,6 +74,12 @@ ensuite. C'est le comportement attendu, pas un défaut.
   temps et ce qu'une gemme rapporte se règlent dans ce fichier, tenu à la main
   comme la table d'armes.
 
+- **Les trois cartes de la montée de niveau.** La horde se fige, trois cartes
+  s'affichent en bas de l'écran, et les touches 1, 2 et 3 en prennent une. Deux
+  axes améliorent l'arme — cadence et portée, six paliers chacun — et une
+  troisième carte rend de la vie quand rien d'autre n'est disponible. La table
+  se règle dans `assets/armes/manifeste.json`.
+
 ### Modifié
 
 - **Ce qu'une gemme rapporte a quitté `assets/objets/manifeste.json`** pour le
@@ -87,6 +92,12 @@ ensuite. C'est le comportement attendu, pas un défaut.
 - **Les gemmes tombées au contact se ramassent aussitôt**, la horde mourant
   collée au joueur. On en voit peu au sol, et c'est normal tant que rien ne tue
   à distance.
+- **L'écran de choix ne s'atteint pas en jouant**, et ce n'est pas un défaut de
+  la progression. Le semis provisoire pose trois cents créatures d'un coup :
+  elles convergent en cinq secondes, et le joueur tombe vers la sixième avec au
+  plus six gemmes des dix que le premier niveau demande. La courbe de pression,
+  qui achète les créatures dans un budget croissant, est ce qui rendra la
+  première montée atteignable.
 
 ***
 
@@ -95,9 +106,8 @@ effect now hurts on contact: caught and unable to break free, the player falls
 in five seconds. The death screen leaves in view whatever got the better of
 them, and one key brings up a fresh run on the same place.
 
-Killed creatures drop gems, and those gems raise the level. **A level up still
-grants no upgrade**: the three cards come next. That is the expected behaviour,
-not a defect.
+Killed creatures drop gems, and those gems raise the level — and a level up
+pauses the game to offer **three cards**, one of which you take.
 
 ### Added
 
@@ -121,6 +131,12 @@ not a defect.
 - **`assets/progression/manifeste.json`.** Level thresholds, the time floor and
   what a gem is worth are tuned in this file, hand-held like the weapon table.
 
+- **The three level-up cards.** The horde freezes, three cards appear at the
+  bottom of the screen, and keys 1, 2 and 3 take one. Two axes improve the
+  weapon — fire rate and range, six tiers each — and a third card restores
+  health when nothing else is available. The table is tuned in
+  `assets/armes/manifeste.json`.
+
 ### Changed
 
 - **What a gem is worth has left `assets/objets/manifeste.json`** for the
@@ -133,6 +149,12 @@ not a defect.
 - **Gems dropped in contact are picked up at once**, since the horde dies
   pressed against the player. Few are seen on the ground, and that is expected
   as long as nothing kills at a distance.
+- **The choice screen cannot be reached by playing**, and that is not a defect
+  of progression. The provisional seeding places three hundred creatures at
+  once: they converge in five seconds, and the player falls around the sixth
+  with at most six of the ten gems the first level asks for. The pressure curve,
+  which buys creatures from a growing budget, is what will make the first level
+  up reachable.
 
 ## [0.2.1] — 2026-09-01 — Ce que la relecture a corrigé
 

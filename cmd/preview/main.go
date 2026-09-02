@@ -77,6 +77,23 @@ type vue struct {
 	nom   string
 	u, v  int
 	ticks int
+	// videLaHorde retire les créatures avant de jouer les pas.
+	//
+	// **Le seul moyen d'atteindre une montée de niveau aujourd'hui.** Avec le
+	// semis provisoire, le joueur meurt vers six secondes en ayant ramassé au
+	// plus six gemmes sur les dix du premier seuil : aucune position et aucune
+	// direction de fuite n'ouvre un choix vivant. Ce n'est pas un défaut du choix
+	// mais du semis, que la courbe de pression remplacera — et d'ici là, une vue
+	// qui prétendrait obtenir le panneau en jouant montrerait un écran de mort.
+	//
+	// La salle vide reste la salle du jeu, dessinée par son écran : ce que la
+	// planche met de côté est ce qui empêche d'y arriver, pas ce qu'elle donne à
+	// juger.
+	videLaHorde bool
+	// jusquAuChoix arrête les pas dès qu'un choix s'ouvre, plutôt qu'au compte.
+	// Le nombre de ticks devient alors un plafond : il tient la planche
+	// déterministe même si l'équilibrage change ce qu'il faut de temps.
+	jusquAuChoix bool
 	// texte pose les échantillons nus, pour juger la police seule ; hud pose
 	// l'interface, pour juger ce qui l'entoure. Les deux sont séparés parce
 	// qu'un cadre sous un texte change ce qu'on lit de la police.
@@ -107,27 +124,20 @@ var vues = []vue{
 	{nom: "texte", u: 16, v: 16, texte: true},
 	{nom: "interface", u: 16, v: 16, hud: true},
 
+	// **Le choix ne se pose pas non plus, il s'obtient** — comme la mort, et pour
+	// la même raison : une maquette de cartes divergerait du panneau que le jeu
+	// peint dès le premier déplacement de colonne. La horde est retirée parce
+	// qu'elle rend la montée inatteignable, et c'est alors le plancher de temps
+	// qui la donne. Le plafond de ticks est large : c'est le choix qui arrête les
+	// pas, pas le compte, si bien que la vue tient encore quand le plancher change.
+	{nom: "cartes", u: 16, v: 16, ticks: 90 * game.TPS,
+		videLaHorde: true, jusquAuChoix: true},
+
 	// La mort ne se pose pas, elle s'obtient : le joueur reste immobile au
 	// milieu du lieu et la horde finit par l'avoir. Vingt secondes couvrent
 	// largement la convergence puis les cinq secondes que le plafond de dégâts
 	// impose — c'est la seule vue dont la scène est jouée plutôt que montée.
 	{nom: "mort", u: 16, v: 16, ticks: 20 * game.TPS},
-}
-
-// carte est une amélioration proposée, telle qu'une carte l'affiche.
-//
-// Trois lignes de nature différente — un nom, un effet chiffré, une phrase —
-// parce que c'est ce qui décide de la largeur d'une carte et de la lisibilité
-// d'une hiérarchie à cette taille.
-type carte struct {
-	nom, effet, phrase string
-}
-
-// cartes sont les échantillons du choix de niveau, provisoires comme les autres.
-var cartes = []carte{
-	{"Rafale", "+1 projectile", "Trois projectiles au lieu de deux."},
-	{"Cadence", "+15" + string(rune(0x00A0)) + "%", "L'arme tire plus souvent."},
-	{"Portée", "+2 tuiles", "Les tirs vont plus loin."},
 }
 
 // echantillons sont les chaînes que la vue de texte affiche.
@@ -221,7 +231,21 @@ func (p *planche) vue(v vue) error {
 		return err
 	}
 	partie.World.Place(game.FromInt(v.u)+game.One/2, game.FromInt(v.v)+game.One/2)
+	if v.videLaHorde {
+		horde := partie.World.Enemies()
+		for horde.Len() > 0 {
+			horde.RemoveAt(0)
+		}
+	}
+
+	// **La mort arrête les pas dès qu'une vue en dépend.** `World.Step` continue
+	// de tourner après elle — c'est l'écran qui fige, et la planche l'appelle
+	// directement —, si bien qu'un cadavre continue de tirer et de ramasser. La
+	// vue du choix montrait ainsi un niveau gagné trente secondes après la mort.
 	for range v.ticks {
+		if v.jusquAuChoix && (partie.World.Choosing() || !partie.World.Alive()) {
+			break
+		}
 		partie.World.Step(game.Vec{})
 	}
 	render.NewScreen(partie.World, partie.Grid, partie.Tile).WithHUD(p.hud).Draw(p.tampon)
@@ -337,55 +361,11 @@ func (p *planche) poserInterface() {
 	h.Font.Draw(p.tampon, score, render.Width-12-h.Font.Advance(score),
 		12+hauteur+2, h.Color("texte"))
 
-	// Le choix occupe le bas de l'écran jusqu'au bord, et non un cadre flottant
-	// au milieu. Deux raisons, dont la seconde est la vraie : une bande basse
-	// laisse toute la hauteur utile au combat qui continue derrière, et le titre
-	// y est lisible sans bandeau propre — posé à même le décor, il disparaissait
-	// dès que le sol s'éclaircissait.
-	titre := "Niveau 5 " + string(rune(0x2014)) + " choisissez une amélioration"
-	panneau := 2*marge + hauteur + marge + p.hauteurCarte() + marge
-	haut := render.Height - panneau
-	h.Band(p.tampon, haut, panneau)
-	h.Font.Draw(p.tampon, titre, (render.Width-h.Font.Advance(titre))/2, haut+marge,
-		h.Color("texte"))
-
-	p.poserCartes(haut + 2*marge + hauteur)
-}
-
-// hauteurCarte rend la hauteur d'une carte, qui vaut ses trois lignes.
-//
-// Elle est calculée et non réglée : le nombre de lignes d'une carte est ce qui
-// la fixe, et une hauteur déclarée deviendrait fausse à la quatrième ligne sans
-// que rien ne le dise.
-func (p *planche) hauteurCarte() int {
-	h := p.hud
-	return 3*(h.Font.Height()+2) + 2*(h.Margin()+h.Border())
-}
-
-// poserCartes pose les trois choix, chacun large de sa plus longue ligne.
-func (p *planche) poserCartes(y int) {
-	h := p.hud
-	marge, hauteur := h.Margin(), h.Font.Height()
-	interligne := hauteur + 2
-
-	largeur := 0
-	for _, c := range cartes {
-		for _, ligne := range []string{c.nom, c.effet, c.phrase} {
-			largeur = max(largeur, h.Font.Advance(ligne))
-		}
-	}
-	largeur += 2 * (marge + h.Border())
-
-	x := (render.Width - 3*largeur - 2*marge) / 2
-	for _, c := range cartes {
-		h.Frame(p.tampon, x, y, largeur, p.hauteurCarte())
-		texte := x + marge + h.Border()
-		ligne := y + marge + h.Border()
-		h.Font.Draw(p.tampon, c.nom, texte, ligne, h.Color("texte"))
-		h.Font.Draw(p.tampon, c.effet, texte, ligne+interligne, h.Color("texte_valeur"))
-		h.Font.Draw(p.tampon, c.phrase, texte, ligne+2*interligne, h.Color("texte_attenue"))
-		x += largeur + marge
-	}
+	// Le panneau de choix n'est pas remaquetté : la vue `cartes` montre celui que
+	// le jeu peint, sur une partie où le plancher de temps l'a ouvert. Une
+	// maquette qui doublerait la mise en page livrée resterait juste jusqu'au
+	// premier déplacement de colonne, puis montrerait un écran que personne ne
+	// joue — c'est ce qui était arrivé au bandeau.
 }
 
 // main écrit la planche, ou sort en échec.

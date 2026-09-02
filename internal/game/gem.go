@@ -12,6 +12,15 @@ package game
 // gemmes de dix pixels de large réparties tous les quarante-cinq degrés se
 // chevauchent en deçà d'environ treize pixels de rayon, soit un cinquième de
 // tuile. Un quart les tient sans les serrer.
+//
+// **Le critère est le chevauchement, et rien d'autre.** Que la figure ainsi
+// dessinée soit lisible n'a jamais été jugé : aucune donnée livrée ne produit de
+// volée, et un calcul qui écarte des disques ne dit rien d'un anneau bien fait.
+// Qui trouvera la figure mauvaise ne doit donc pas commencer par ce chiffre —
+// il est le seul de ceux qui décident de l'image à porter un nom et une
+// justification, ce qui le rend lisible, pas coupable. Le nombre de gemmes, le
+// rang zéro qui reste au centre et le pas de la table décident autant, en ligne
+// dans `lacher`.
 const rayonVolee = One / 4
 
 // Gem est une gemme au sol.
@@ -40,6 +49,12 @@ func (w *World) Gems() *Pool[Gem] { return w.gemmes }
 // elle ne consomme aucun tirage. Le pas de trois est celui de `Vec.Direction`,
 // pour la même raison : il écarte deux rangs consécutifs de cent trente-cinq
 // degrés au lieu de quarante-cinq.
+//
+// **Ce pas a été choisi pour séparer deux poses voisines, pas pour dessiner un
+// anneau.** Ce sont deux exigences distinctes qui se trouvent partager un seul
+// paramètre, et rien ne le signale tant qu'elles s'accordent. Le jour où elles
+// divergent, on ne pourra pas ajuster l'une sans déplacer l'autre : il faudra
+// alors les séparer, et nommer l'arbitrage plutôt que déplacer le chiffre.
 //
 // **Le rayon croît d'un tour de table au suivant.** La neuvième gemme retombe
 // exactement sur la première, la table n'ayant que huit entrées : sans cela, une

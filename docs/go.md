@@ -23,6 +23,7 @@ index.
 | avec quelles permissions écrire | [Écriture de fichiers](#7-écriture-de-fichiers) |
 | si un chiffre a le droit d'être écrit | [Une affirmation de nombre](#8-une-affirmation-de-nombre-sadosse-à-un-test-ou-perd-son-quantificateur) |
 | comment formuler une justification qui vieillira | [Une condition vaut mieux qu'une conclusion](#une-condition-vaut-mieux-quune-conclusion) |
+| ce qu'un commentaire doit dire pour ne pas se périmer | [Intention ou structure](#un-commentaire-dintention-se-périme-un-commentaire-de-structure-non) |
 | comment citer un test, une section, un fichier | [Un renvoi nomme sa cible](#un-renvoi-nomme-sa-cible) |
 | quoi journaliser, et où ne pas le faire | [Journalisation](#9-journalisation) |
 | ce qui a le droit de tourner en parallèle | [Concurrence](#10-concurrence) |
@@ -341,6 +342,53 @@ signalé ; la seconde nomme d'avance ce qui la fera tomber.
 
 Le test est simple : demander ce qui devrait changer dans le code pour que la
 phrase devienne fausse. Si la réponse n'est pas dans la phrase, elle y manque.
+
+Le même défaut a un second objet, et c'est ce qu'on écrit plutôt que la forme de
+la phrase : un commentaire d'intention se périme exactement comme une conclusion.
+[Un commentaire d'intention se
+périme](#un-commentaire-dintention-se-périme-un-commentaire-de-structure-non) en
+donne le test et le cas.
+
+## Un commentaire d'intention se périme, un commentaire de structure non
+
+Cousin du précédent, sur ce qu'on écrit plutôt que sur la forme de la phrase. Il
+ne dit pas **où** poser un commentaire — cela se décide en écrivant, et une
+densité uniforme est de la cérémonie — mais **ce qu'on y met** pour qu'il tienne.
+
+Le cas vient de l'étalement d'une volée de gemmes. Quatre choses décident de la
+figure qu'elle dessine : le rayon, le nombre de gemmes, le rang zéro qui reste au
+point de la mort pendant que les autres l'entourent, et le pas de trois dans la
+table des orientations. Une seule porte un nom et un commentaire, `rayonVolee` ;
+les trois autres sont en ligne dans `lacher` et passent pour du mécanisme.
+
+**C'est une asymétrie de mise en forme, pas de responsabilité.** Extraire une
+constante déplace l'attention vers elle sans rien dire de ses voisines, et le
+commentaire qui la justifie, en la rendant discutable, la rend accusable. Qui
+trouvera la figure mauvaise commencera par le seul chiffre qu'il peut discuter,
+lequel n'est pas nécessairement celui qui décide.
+
+Ce qui la défend est que le commentaire dise **contre quoi la valeur a été
+choisie**. Le rayon l'a été contre le chevauchement de huit disques, jamais
+contre la lisibilité de la figure : qui vient le modifier pour cette raison-là
+apprend en une phrase qu'il se trompe de coupable.
+
+Deux formulations se séparent alors, qui disent la même chose le jour où on les
+écrit :
+
+- **l'intention** — « le pas de trois a été choisi pour séparer deux poses
+  voisines ». Vraie aujourd'hui, périmée le jour où quelqu'un change d'avis, et
+  rien ne le signale ;
+- **la structure** — « séparer deux poses voisines et dessiner un anneau lisible
+  sont deux exigences distinctes qui partagent ce paramètre ». Vraie tant que le
+  code est celui-là, et fausse **exactement** quand on les sépare, c'est-à-dire au
+  moment où on la relit de toute façon.
+
+Le test est falsifiable et se répond sur un commentaire donné, sans jugement de
+style : **resterait-il vrai une fois l'intention oubliée ?** Si oui, il énonce un
+fait du code et ne peut pas mentir en silence. Si non, il raconte une décision et
+vieillira comme une conclusion — c'est le défaut de [Une condition vaut mieux
+qu'une conclusion](#une-condition-vaut-mieux-quune-conclusion), sur un autre
+objet.
 
 ## Un renvoi nomme sa cible
 

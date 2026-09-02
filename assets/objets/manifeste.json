@@ -358,6 +358,31 @@
         "boucle": true
       }
     },
+    "aimant": {
+      "taille": [
+        18,
+        18
+      ],
+      "ancrage": [
+        9,
+        17
+      ],
+      "emprise": [
+        0.25,
+        0.25
+      ],
+      "elevation": 0,
+      "categorie": "sol",
+      "masquant": false,
+      "famille": "monde",
+      "bloquant": false,
+      "son": "aimant",
+      "scintillement": {
+        "images": 4,
+        "duree_ms": 140,
+        "boucle": true
+      }
+    },
     "eclats_bois": {
       "formes": 3,
       "cote": 8,

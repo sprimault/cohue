@@ -48,6 +48,7 @@ GAINS = {
     "tir_lourd": 0.80,         # rare et voulu spectaculaire
     "caisse_rupture": 0.70,
     "ramassage_arme": 0.85,
+    "aimant": 0.95,            # quelques fois par run, le sommet du plaisir
     "soin": 0.80,
     "telegraphe": 0.90,        # doit percer la horde, c'est un avertissement
     "degat_joueur": 0.95,      # doit couper l'attention
@@ -215,6 +216,26 @@ def gemme(indice=0):
                      attaque=0.005, maintien=0.02, graine=11 + indice)
 
 
+def aimant():
+    """Déclenchement : une glissade d'une octave, longue comme la ruée.
+
+    **C'est la gemme en grand, et la parenté doit s'entendre.** Même onde, même
+    note — mais une octave sous les 660 Hz de la gamme, si bien que la montée
+    finit là où le ramassage ordinaire commence. Le joueur reconnaît alors ce
+    qu'il déclenche.
+
+    **Un seul son, attaché au déclenchement et non à chaque gemme aspirée.** Les
+    huit degrés du ramassage sont faits pour une volée de quelques gemmes, où la
+    hauteur monte puis retombe après un silence ; deux cents gemmes les
+    parcourent vingt-cinq fois, ce qui donne une scie et non une montée.
+
+    Neuf dixièmes de seconde, ce que met la gemme la plus lointaine à rentrer :
+    le son doit finir avec la ruée, pas après.
+    """
+    return _synthese(0.9, 330, 660, onde="triangle",
+                     attaque=0.05, maintien=0.4, chute=0.55, graine=23)
+
+
 def ramassage_arme():
     """Trouvaille : deux notes montantes, plus longues qu'une gemme."""
     return _mixer(
@@ -286,6 +307,7 @@ CATALOGUE = {
     "explosion": explosion,
     "telegraphe": telegraphe,
     "ramassage_arme": ramassage_arme,
+    "aimant": aimant,
     "soin": soin,
     "montee_niveau": montee_niveau,
     "caisse_appui": caisse_appui,

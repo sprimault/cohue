@@ -2,6 +2,13 @@
   "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> — SPDX-License-Identifier: Apache-2.0 — généré par outils/sons.py, ne pas modifier à la main",
   "version_format": 1,
   "sons": {
+    "aimant": {
+      "duree_ms": 900,
+      "taux": 22050,
+      "gain": 0.95,
+      "categorie": "effets",
+      "boucle": false
+    },
     "caisse_appui": {
       "duree_ms": 120,
       "taux": 22050,

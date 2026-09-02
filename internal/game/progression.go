@@ -166,6 +166,9 @@ func LoadProgression(fsys fs.FS, chemin string) (*Progression, error) {
 	}
 
 	a := brut.Progression.Magnet
+	if a.Object == "" {
+		dire("aimant.objet : absent ou vide")
+	}
 	if ms := exige("aimant", "periode_ms", a.PeriodMs, dire); ms > 0 {
 		ticks, err := TicksFromMs(ms)
 		if err != nil {
@@ -228,6 +231,10 @@ type rawSections struct {
 type rawMagnet struct {
 	manifest.Commentable
 
+	// Object nomme l'aimant dans le manifeste d'objets. Ce champ n'est pas lu
+	// ici, pour la raison écrite sur `rawGems.Object` : c'est le contrôle des
+	// ressources qui exige qu'il désigne un objet existant.
+	Object string `json:"objet"`
 	// PeriodMs est l'écart entre deux apparitions.
 	PeriodMs *int `json:"periode_ms"`
 	// MinTiles est la distance au joueur sous laquelle l'apparition est refusée.

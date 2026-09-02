@@ -43,6 +43,13 @@ TEINTES = {
     "or": (222, 186, 74),
     "platre": (206, 202, 194),
     "bois": (168, 126, 78),
+    # Le cuivre, celui d'une bobine, qui va au décor urbain sans disputer sa
+    # teinte à personne : le joueur tient le jaune, la horde le rouge, les gemmes
+    # le vert et les projectiles le blanc. Le rouge du fer à cheval classique se
+    # serait perdu au milieu de cent créatures rouges, c'est-à-dire au moment
+    # précis où l'on cherche l'aimant.
+    "aimant": (198, 126, 78),
+    "aimant_pole": (238, 202, 156),
 }
 
 
@@ -203,6 +210,39 @@ def palette():
 
 def gemme():
     return prim.volume(elevation=3, matiere="peinture", largeur_tuile=10, arete=False)
+
+
+def aimant():
+    """Fer à cheval : deux branches, une culasse, et les pôles en clair.
+
+    **La silhouette porte la lecture, pas la couleur.** Le fer à cheval est la
+    seule forme qu'on identifie comme un aimant sans légende, et c'est ce qu'il
+    faut à un objet qu'on doit reconnaître de l'autre bout de la salle pour
+    décider d'aller le chercher. Une bobine ou un cylindre seraient plus justes
+    dans un décor urbain et ne diraient rien à cette taille.
+
+    Les pôles en clair ne sont pas un ornement : ce sont eux qui distinguent le
+    fer à cheval d'un simple U, donc l'aimant d'une pièce de mobilier.
+
+    Plus grand que la gemme du double, comme à l'écran — il ne s'agit pas
+    d'estimer un tas mais de repérer un objet unique.
+    """
+    img = Image.new("RGBA", (22, 20), TRANSPARENT)
+    _ombre(img, 11, 19, 0.18)
+
+    # **Trapu, et c'est ce qui le distingue d'une table.** Des branches longues
+    # sur une culasse mince lisent comme un meuble ; le fer à cheval est plus
+    # large que haut, et sa culasse pèse autant que ses branches.
+    _poser(img, _bloc(6, 9, "aimant"), 5, 18)
+    _poser(img, _bloc(6, 9, "aimant"), 17, 18)
+    _poser(img, _bloc(18, 5, "aimant"), 11, 13)
+
+    # **L'ouverture entre les branches est ce qui fait le fer à cheval.** Trop
+    # serrée, la culasse la recouvre et l'objet devient un bloc à deux pieds ;
+    # c'est le vide qu'on reconnaît, pas la matière.
+    _poser(img, _bloc(6, 3, "aimant_pole"), 5, 18)
+    _poser(img, _bloc(6, 3, "aimant_pole"), 17, 18)
+    return img
 
 
 def caisse_cassee():
@@ -458,7 +498,7 @@ BLOQUANTS = {"caisse", "palette", "cloison_fragile", "vitrine",
              "grille_ventilation", "rideau_fer"}
 
 # Son joué au ramassage ou à l'usage, quand il y en a un.
-SONS = {"fiole": "soin"}
+SONS = {"fiole": "soin", "aimant": "aimant"}
 
 # Un renvoi vers une famille et non vers un fichier : le catalogue porte
 # `gemme_0` à `gemme_7`, et le moteur avance d'un degré à chaque ramassage
@@ -508,6 +548,7 @@ CATALOGUE = {
     "projectile_ennemi": projectile_ennemi,
     "fiole": fiole,
     "gemme": gemme,
+    "aimant": aimant,
 }
 
 
@@ -564,7 +605,9 @@ def main():
             manifeste[nom]["son"] = SONS[nom]
         if nom in FAMILLES_SONS:
             manifeste[nom]["famille_sons"] = FAMILLES_SONS[nom]
-        if nom in ("fiole", "gemme"):
+        # L'aimant scintille comme les deux autres ramassables : c'est ce qui
+        # dit qu'un objet se prend plutôt qu'il ne décore.
+        if nom in ("fiole", "gemme", "aimant"):
             bande = _scintillement(img)
             bande.save(o.sortie / f"{nom}_scintille.png")
             manifeste[nom]["scintillement"] = {"images": 4, "duree_ms": 140,

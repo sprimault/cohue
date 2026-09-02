@@ -76,6 +76,14 @@ func (w *World) auContact(e *Enemy) bool {
 // Health rend les points de vie restants.
 func (w *World) Health() int { return w.vie }
 
+// MaxHealth rend la vie du profil, celle d'où la partie est partie.
+//
+// Elle sort du monde plutôt que de la table parce qu'une jauge a besoin des deux
+// termes : l'afficheur qui irait chercher le maximum dans les profils tiendrait
+// une seconde référence sur ce que la partie modifie, et une régénération de
+// vie au-delà du maximum ne se verrait que d'un côté.
+func (w *World) MaxHealth() int { return w.profils.Player.Health }
+
 // Alive dit si la partie continue.
 //
 // Elle se lit plutôt qu'elle ne se retient : la vie à zéro est la mort, donc

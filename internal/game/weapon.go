@@ -59,10 +59,11 @@ type Weapons struct {
 
 // LoadWeapons lit le manifeste des armes.
 //
-// Le seul de `assets/` qui ne sorte d'aucun générateur, et c'est délibéré : ce
-// sont les chiffres qu'on rouvrira le plus pendant l'équilibrage, et les loger
-// dans un fichier généré ferait passer chaque réglage de cadence par un script
-// Python, donc par une régénération de six cents images.
+// L'un des deux de `assets/` qui ne sortent d'aucun générateur, avec celui de la
+// progression, et c'est délibéré : ce sont les chiffres qu'on rouvrira le plus
+// pendant l'équilibrage, et les loger dans un fichier généré ferait passer chaque
+// réglage de cadence par un script Python, donc par une régénération de six cents
+// images.
 func LoadWeapons(fsys fs.FS, chemin string) (*Weapons, error) {
 	brut, err := manifest.Decode[rawWeapons](fsys, chemin)
 	if err != nil {

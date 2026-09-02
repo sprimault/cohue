@@ -1,5 +1,5 @@
 {
-  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> — SPDX-License-Identifier: Apache-2.0 — tenu à la main, le seul manifeste de assets/ qui ne sorte d'aucun générateur : régler une cadence ne doit pas coûter une régénération de six cents images",
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> — SPDX-License-Identifier: Apache-2.0 — tenu à la main, comme celui de la progression : régler une cadence ne doit pas coûter une régénération de six cents images",
   "version_format": 1,
   "armes": {
     "reglementaire": {

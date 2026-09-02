@@ -33,7 +33,8 @@ index.
 | où convertir entre le monde et l'écran | [La projection isométrique](#la-projection-isométrique-ne-se-recalcule-pas) |
 | ce qu'un test doit garder, et comment | [Tests](#11-tests) |
 | pourquoi un test échoue sur un diff qui ne l'atteint pas | [Un rouge que le diff ne peut pas atteindre](#un-rouge-que-le-diff-ne-peut-pas-atteindre-vient-de-linstrument) |
-| si un test vert prouve quelque chose | [Trois façons d'avoir un test vert](#trois-façons-davoir-un-test-vert-qui-ne-prouve-rien) |
+| si un test vert prouve quelque chose | [Quatre façons d'avoir un test vert](#quatre-façons-davoir-un-test-vert-qui-ne-prouve-rien) |
+| contre quoi éprouver un test qui garde une décision | [L'implémentation abandonnée](#un-test-qui-garde-une-décision-séprouve-contre-limplémentation-abandonnée) |
 | comment défendre un test qu'on croirait faux | [Le test contre-intuitif](#le-test-qui-garde-une-propriété-contre-intuitive) |
 | pourquoi un contrôle passe sans rien vérifier | [Un contrôle privé de son entrée](#un-contrôle-privé-de-son-entrée-échoue-il-ne-passe-pas) |
 | si une déclaration peut s'écrire avant son appelant | [Ce que rien n'exerce](#dans-un-paquet-sans-tests-ce-que-rien-nexerce-est-invérifiable) |
@@ -761,10 +762,10 @@ et l'une des deux ment. Ce que la section [Deux
 descriptions](#deux-descriptions-de-la-même-chose-finissent-par-diverger) dit des
 données vaut ici d'un test et de ce qu'il promet.
 
-### Trois façons d'avoir un test vert qui ne prouve rien
+### Quatre façons d'avoir un test vert qui ne prouve rien
 
-Rencontrées le même jour, toutes trois trouvées par mutation et aucune par
-relecture :
+Les trois premières rencontrées le même jour, la quatrième au lot des gemmes ;
+toutes trouvées par mutation, aucune par relecture :
 
 - **il mesure une propriété inexistante.** Le contournement d'une flaque, éprouvé
   sur une seule case coûteuse : la traversée et le détour valaient quatre tous
@@ -780,9 +781,50 @@ relecture :
   projectile visant la lointaine traversait la proche et la touchait au passage.
   Le test était bien rédigé, il mesurait la bonne chose, et la géométrie du cas
   rendait les deux comportements indistinguables.
+- **ses valeurs rondes font coïncider deux mécanismes.** Une créature posée à un
+  nombre entier de tuiles du joueur meurt au centre d'une case, et la gemme
+  qu'elle laisse y tombe : « à la position exacte » et « arrondi au centre de la
+  case » désignent alors le même point, et le test qui gardait le premier passait
+  sous le second. Un décalage d'une fraction de tuile les sépare.
 
 Le troisième est le plus retors, parce que rien dans le test n'est faux. Ni la
 relecture ni la couverture ne le disent : seule la mutation.
+
+Le deuxième et le quatrième sont une même famille sur deux axes — une durée en
+phase avec une période, une position en phase avec la grille. La parade y est la
+même : choisir des valeurs qui ne tombent ni sur un multiple de la cadence, ni
+sur une frontière de case. Un scénario aux nombres ronds paraît neutre, et il
+choisit précisément les points où deux mécanismes distincts se confondent.
+
+### Un test qui garde une décision s'éprouve contre l'implémentation abandonnée
+
+La mutation invente un code faux ; l'implémentation qu'on vient d'écarter est le
+code qu'on croyait juste. Des deux, seule la seconde prouve que le test sépare
+les hypothèses **réelles** — celles entre lesquelles quelqu'un a hésité, et entre
+lesquelles quelqu'un hésitera de nouveau.
+
+Le premier cas l'a montré par l'échec. `TestLaSuppressionEstImmediate` portait le
+nom de la décision, passait sur les deux implémentations, et n'a été démasqué
+qu'en revenant en arrière une demi-journée plus tard. Le faire tourner sur
+l'implémentation écartée l'aurait dit le matin même : elle venait d'être écrite,
+il suffisait de la garder dix minutes.
+
+Le second l'a montré par la réussite, et c'est le patron complet. Ce qu'une gemme
+rapporte vivait dans le manifeste d'objets, déclaré à un et lu par personne — la
+boucle comptait les gemmes en les supposant à un. Les deux implémentations
+rendaient le même nombre, si bien qu'aucun cas à une gemme valant un ne pouvait
+les séparer, et c'est ce qui avait laissé la confusion s'installer. Le test qui
+garde la décision donne donc à la gemme une valeur autre que un — deux gemmes à
+trois pour un seuil de six — et on le voit tomber contre le compte : « niveau : 1,
+attendu 2 ».
+
+**L'échec constaté fait partie du geste.** Un test qu'on croit discriminant sans
+l'avoir vu rouge contre l'autre hypothèse n'est pas éprouvé, il est plausible — et
+c'est exactement ce que décrit la section précédente.
+
+Le coût tient à garder l'ancienne version dix minutes. La difficulté est de s'en
+souvenir, parce qu'on écarte une implémentation au moment précis où l'on est
+certain d'avoir raison.
 
 ### Le test qui garde une propriété contre-intuitive
 

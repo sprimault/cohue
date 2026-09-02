@@ -315,8 +315,12 @@ func (p *planche) poserInterface() {
 	h := p.hud
 	marge, hauteur := h.Margin(), h.Font.Height()
 
-	// Les jauges et leur état, en haut à gauche.
-	p.poserJauges(12, 12)
+	// Le bandeau n'est pas remaquetté ici : `Screen.Draw` vient de le poser, avec
+	// les valeurs de la partie montée. Une maquette qui le doublerait
+	// superposerait deux jeux de chiffres — c'est ce qui est arrivé, et l'image
+	// l'a montré tout de suite : les glyphes se chevauchaient au point de rendre
+	// « 62 / 100 » illisible. Les vues qui le jugent sur des valeurs parlantes
+	// sont `melee` et `mort`, qui jouent assez de ticks pour cela.
 
 	// Les emplacements, sous les jauges. Le contenu vaut deux lignes faute
 	// d'icône : elles viendront à l'étape 5, et c'est leur taille réelle qui
@@ -326,11 +330,12 @@ func (p *planche) poserInterface() {
 		x += h.Slot(p.tampon, x, 62, hauteur*2, touche) + marge
 	}
 
-	// Le minuteur et le score, alignés sur le bord droit par mesure.
-	for i, s := range []string{"07:41", "1" + string(rune(0x00A0)) + "340 pts"} {
-		h.Font.Draw(p.tampon, s, render.Width-12-h.Font.Advance(s),
-			12+i*(hauteur+2), h.Color("texte"))
-	}
+	// Le score, sous le minuteur du bandeau. Il n'est pas encore une lecture du
+	// jeu — rien ne le compte —, et la planche le porte pour que sa place soit
+	// jugée avec le reste.
+	score := "1" + string(rune(0x00A0)) + "340 pts"
+	h.Font.Draw(p.tampon, score, render.Width-12-h.Font.Advance(score),
+		12+hauteur+2, h.Color("texte"))
 
 	// Le choix occupe le bas de l'écran jusqu'au bord, et non un cadre flottant
 	// au milieu. Deux raisons, dont la seconde est la vraie : une bande basse
@@ -355,19 +360,6 @@ func (p *planche) poserInterface() {
 func (p *planche) hauteurCarte() int {
 	h := p.hud
 	return 3*(h.Font.Height()+2) + 2*(h.Margin()+h.Border())
-}
-
-// poserJauges pose la vie et l'expérience, avec ce qu'elles valent.
-func (p *planche) poserJauges(x, y int) {
-	h := p.hud
-	const largeur = 148
-
-	h.Gauge(p.tampon, x, y, largeur, 0.62, h.Color("jauge_vie"))
-	h.Font.Draw(p.tampon, "62 / 100", x+largeur+8, y-1, h.Color("texte"))
-
-	y += h.Font.Height()
-	h.Gauge(p.tampon, x, y, largeur, 0.35, h.Color("jauge_experience"))
-	h.Font.Draw(p.tampon, "Niveau 4", x+largeur+8, y-1, h.Color("texte_attenue"))
 }
 
 // poserCartes pose les trois choix, chacun large de sa plus longue ligne.

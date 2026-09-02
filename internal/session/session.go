@@ -80,8 +80,9 @@ type Session struct {
 	// Ce que la relance conserve, parce que rien ne l'a modifié : les tables du
 	// manifeste et le lieu cuit. Les relire coûterait un décodage complet pour
 	// rendre exactement les mêmes valeurs.
-	profils *game.Profiles
-	arme    game.Weapon
+	profils     *game.Profiles
+	arme        game.Weapon
+	progression *game.Progression
 }
 
 // Restart rejoue le même lieu, sans rien redemander.
@@ -112,7 +113,7 @@ func (s *Session) Restart() {
 // session sur une graine en jouerait une autre, ce qui se serait vu au moment
 // d'écrire un lieu de défi.
 func (s *Session) monter() {
-	s.World = game.NewWorld(s.profils, s.arme, s.Grid, s.Seed,
+	s.World = game.NewWorld(s.profils, s.arme, s.progression, s.Grid, s.Seed,
 		HordeCapacity, ShotCapacity, GemCapacity)
 	placer(s.World, s.Grid)
 	peupler(s.World, s.Grid, s.profils)
@@ -161,12 +162,18 @@ func Open(fsys fs.FS, lieu string, graine uint64) (*Session, error) {
 	}
 	slog.Info("armes chargées", "base", armes.Base.Key)
 
+	progression, err := game.LoadProgression(fsys, cohue.ProgressionManifest)
+	if err != nil {
+		return nil, err
+	}
+
 	partie := &Session{
-		Grid:    grille,
-		Tile:    decor.Tile,
-		Seed:    graine,
-		profils: profils,
-		arme:    armes.Base,
+		Grid:        grille,
+		Tile:        decor.Tile,
+		Seed:        graine,
+		profils:     profils,
+		arme:        armes.Base,
+		progression: progression,
 	}
 	partie.monter()
 	slog.Info("partie montée", "seed", graine)

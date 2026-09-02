@@ -22,9 +22,9 @@ const manifesteArmes = "assets/armes/manifeste.json"
 // TestManifesteLivreDonneLArmeDeBase charge le manifeste publié sans rien
 // injecter.
 //
-// C'est le seul manifeste de `assets/` qu'aucun générateur ne produit, donc le
-// seul qu'aucun contrôle Python ne relit : ce test est tout ce qui garde
-// l'accord entre le fichier et le code qui le lit.
+// Aucun générateur ne le produit, donc aucun contrôle Python n'en relit les
+// valeurs : ce test est tout ce qui garde l'accord entre le fichier et le code
+// qui le lit. Le manifeste de progression est dans le même cas.
 func TestManifesteLivreDonneLArmeDeBase(t *testing.T) {
 	armes, err := LoadWeapons(cohue.Assets, manifesteArmes)
 	if err != nil {

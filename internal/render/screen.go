@@ -88,9 +88,10 @@ type Screen struct {
 	// manifeste appellera son ancrage quand les images viendront de lui.
 	demiTuile int
 
-	// hud pose le texte de l'écran de mort. Il peut être nul : la planche de
-	// relecture monte des écrans sans lui, et une partie sans interface se
-	// dessine quand même — ce qu'elle perd est le seul texte du jeu.
+	// hud pose le bandeau de la partie et le texte de l'écran de mort. Il peut
+	// être nul : la planche de relecture monte des écrans sans lui, et une partie
+	// sans interface se dessine quand même — ce qu'elle perd est tout le texte du
+	// jeu.
 	hud *HUD
 
 	// op est réutilisée d'un blit à l'autre, et remise à zéro à chaque fois :
@@ -152,11 +153,13 @@ func (s *Screen) Update() error {
 	return nil
 }
 
-// Draw peint le tampon interne : le sol, puis ce qui s'y tient, en profondeur.
+// Draw peint le tampon interne : le sol, ce qui s'y tient en profondeur, puis
+// l'interface par-dessus.
 func (s *Screen) Draw(ecran *ebiten.Image) {
 	ecran.Fill(fond)
 	s.peindreSol(ecran)
 	s.peindreEntites(ecran)
+	s.peindreBandeau(ecran)
 	if !s.monde.Alive() {
 		s.peindreMort(ecran)
 	}

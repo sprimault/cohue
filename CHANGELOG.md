@@ -109,6 +109,9 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   d'apparition et la borne du budget reporté. Ce que le lieu décide est le
   rythme ; ce que la partie décide est d'où sortent les créatures et ce que
   devient un budget qu'on n'a pas pu dépenser.
+- **Une créature touchée s'éclaircit un instant.** Elle encaisse plusieurs
+  touches, et rien ne distinguait jusqu'ici un tir qui rate d'un tir qui entame :
+  on déduisait ses ratés au lieu de les lire.
 - **Les trois cartes de la montée de niveau.** La horde se fige, trois cartes
   s'affichent en bas de l'écran, et les touches 1, 2 et 3 en prennent une. Deux
   axes améliorent l'arme — cadence et portée, six paliers chacun — et une
@@ -147,16 +150,44 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   trame : des pièces de tailles différentes se composent dans un même lieu, ce
   que l'enceinte du lieu livré fait. La conception montrait un champ `grille` et
   des positions de rang, que rien n'a jamais lus.
+- **On désigne son choix, puis on le valide.** Les flèches gauche et droite
+  déplacent un liseré ambre, Entrée — ou Espace — prend la carte désignée. La
+  flèche prenait auparavant la carte de sa place : comme elle sert aussi à
+  courir, le panneau se refermait en quelques images sur un choix que personne
+  n'avait lu. Les deux mêmes touches relancent après la mort.
+- **Le tir vise où la cible sera.** Le projectile met une demi-seconde à
+  parcourir sa portée, pendant laquelle un Badaud avance de douze fois son rayon :
+  tout ce qui traversait était manqué, et seul ce qui venait droit sur le joueur
+  était touché de façon fiable. Les ratés demeurent — une créature qu'on repousse
+  ou qui longe un mur change de cap en vol —, mais ils viennent de la situation
+  et non d'un retard de visée.
+- **La courbe de pression du lieu livré est réglée.** Elle s'ouvre à deux points
+  par seconde et monte d'environ un tiers par palier, ce qui suit à peu près la
+  façon dont l'arme grossit. Les pointes doublent le débit au lieu de le tripler.
+
+### Corrigé
+
+- **Une phase de faible pression n'achetait rien.** La borne du budget reporté
+  pouvait tomber sous le prix de la créature la moins chère de la phase : le
+  budget montait, butait sur la borne, et rien n'apparaissait jamais — sans refus
+  au chargement ni message, une salle simplement vide. La borne limite désormais
+  l'accumulation sans jamais l'empêcher d'atteindre un achat.
+- **Un tir pouvait traverser un obstacle.** Sa passabilité n'était mesurée qu'au
+  point d'arrivée : un pas qui rasait l'angle où quatre cases se rencontrent
+  entrait dans l'une et en ressortait sans y être vu.
+- **Le bandeau se lisait mal.** Il n'avait pas de fond et se posait à même le
+  décor, où le texte disparaissait sur un sol clair ; le niveau était de surcroît
+  écrit dans la teinte atténuée, celle des phrases d'explication.
 
 ### À savoir
 
 - **Les gemmes tombées au contact se ramassent aussitôt**, la horde mourant
   collée au joueur. On en voit peu au sol, et c'est normal tant que rien ne tue
   à distance.
-- **Les chiffres de la courbe sont provisoires.** Ils tiennent le déroulé debout
-  — la salle se peuple, la pression monte, les profils s'ouvrent un par un — mais
-  ils n'ont pas encore été réglés en jouant. Le plafond d'effectif est atteint
-  vers trois minutes et demie, ce qui est trop tôt pour une partie de quinze.
+- **Les chiffres de la courbe ne sont pas encore jugés.** Ils sont calés contre
+  une sonde qui tourne en cercle et prend toujours la première carte — c'est-à-
+  dire un joueur médiocre —, ce qui suffit à donner à la courbe une forme
+  plausible et pas à trancher si elle est bonne. Seule une séance de jeu le dira.
 
 ***
 
@@ -222,6 +253,9 @@ pauses the game to offer **three cards**, one of which you take.
   radius and the bound on carried-over budget. What the place decides is the
   rhythm; what the run decides is where creatures come from and what becomes of a
   budget that could not be spent.
+- **A creature that is hit brightens for a moment.** It takes several hits, and
+  until now nothing told a shot that missed from one that landed: misses were
+  inferred rather than read.
 - **The three level-up cards.** The horde freezes, three cards appear at the
   bottom of the screen, and keys 1, 2 and 3 take one. Two axes improve the
   weapon — fire rate and range, six tiers each — and a third card restores
@@ -260,16 +294,43 @@ pauses the game to offer **three cards**, one of which you take.
   different sizes compose within one place, which is what the shipped place's
   perimeter does. The design document showed a `grille` field and rank positions
   that nothing ever read.
+- **You point at your choice, then confirm it.** Left and right arrows move an
+  amber outline, Enter — or Space — takes the card it points at. An arrow used to
+  take the card in its own place: since arrows also run, the panel closed within a
+  few frames on a choice nobody had read. The same two keys restart after death.
+- **Shots aim where the target will be.** A projectile takes half a second to
+  cover its range, during which a Badaud moves twelve times its own radius:
+  anything crossing was missed, and only what came straight at the player was
+  reliably hit. Misses remain — a creature pushed aside or sliding along a wall
+  changes course mid-flight — but they now come from the situation rather than
+  from the aim lagging behind.
+- **The shipped place's pressure curve is tuned.** It opens at two points per
+  second and rises by about a third per phase, roughly following how the weapon
+  grows. Peaks double the rate instead of tripling it.
+
+### Fixed
+
+- **A low-pressure phase bought nothing.** The bound on carried-over budget could
+  fall below the price of the phase's cheapest creature: the budget rose, hit the
+  bound, and nothing ever appeared — no rejection at load, no message, just an
+  empty room. The bound now limits accumulation without ever keeping it from
+  reaching a single purchase.
+- **A shot could pass through an obstacle.** Its passability was only measured at
+  the arrival point: a step grazing the corner where four cells meet entered one
+  of them and left again without ever being seen inside it.
+- **The panel was hard to read.** It had no ground of its own and sat straight on
+  the scenery, where text vanished over light floor; the level was written in the
+  dimmed tint besides, the one used for explanatory lines.
 
 ### Good to know
 
 - **Gems dropped in contact are picked up at once**, since the horde dies
   pressed against the player. Few are seen on the ground, and that is expected
   as long as nothing kills at a distance.
-- **The curve's numbers are provisional.** They hold the shape up — the room
-  fills, pressure rises, profiles open one at a time — but they have not been
-  tuned by playing yet. The population cap is reached around three and a half
-  minutes, which is too early for a fifteen-minute run.
+- **The curve's numbers have not been judged yet.** They are calibrated against a
+  probe that circles and always takes the first card — a mediocre player, that is
+  — which is enough to give the curve a plausible shape and not enough to settle
+  whether it is a good one. Only a play session will say.
 
 ## [0.2.1] — 2026-09-01 — Ce que la relecture a corrigé
 

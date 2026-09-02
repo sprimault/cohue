@@ -158,10 +158,25 @@ type vue struct {
 	// convergence, et jouer les trente secondes qu'une apparition demande y
 	// ajouterait une horde qui a tué le joueur entre-temps.
 	declencheLAimant bool
-	// jusquAuChoix arrête les pas dès qu'un choix s'ouvre, plutôt qu'au compte.
-	// Le nombre de ticks devient alors un plafond : il tient la planche
-	// déterministe même si l'équilibrage change ce qu'il faut de temps.
+	// Les trois arrêts par événement. Le nombre de ticks devient alors un
+	// plafond : il tient la planche déterministe même si l'équilibrage change ce
+	// qu'il faut de temps pour y arriver.
+	//
+	// **Une vue qui s'arrête à un compte relit l'équilibrage du jour où on l'a
+	// écrit.** Les trois vues jouées ont toutes fini par mentir de cette façon :
+	// quatre secondes suffisaient à une horde semée d'un bloc et ne suffisent plus
+	// à une pression qui monte, vingt secondes tuaient un joueur immobile que la
+	// courbe réglée laisse vivre trois minutes et demie. Ce qu'elles attendent est
+	// un état, alors elles l'attendent.
+	//
+	// jusquAuChoix s'arrête au premier panneau de montée de niveau.
 	jusquAuChoix bool
+	// jusquAuxDegats s'arrête quand la horde a coûté un quart de la vie. La
+	// première touche serait trop tôt : ce que la mêlée juge est le personnage
+	// entouré, pas le premier contact.
+	jusquAuxDegats bool
+	// jusquALaMort s'arrête au dernier point de vie.
+	jusquALaMort bool
 	// texte pose les échantillons nus, pour juger la police seule ; hud pose
 	// l'interface, pour juger ce qui l'entoure. Les deux sont séparés parce
 	// qu'un cadre sous un texte change ce qu'on lit de la police.
@@ -181,18 +196,17 @@ type vue struct {
 // personnage reste devant ce qui l'entoure. Une horde qui approche encore ne le
 // dirait pas — elle est derrière lui ou devant lui, jamais autour.
 //
-// **Quinze secondes depuis que la horde s'achète.** Elle était semée d'un bloc et
-// quatre secondes suffisaient à ce que les plus proches rejoignent ; la pression
-// commence à trois par seconde, si bien qu'à quatre secondes la salle est vide.
-// Quinze est le plus qu'on puisse jouer : le joueur immobile tombe à la
-// vingtième, et c'est la vue de la mort qui montre la suite.
+// **Elle s'arrête quand la horde a coûté un quart de la vie**, et non à un
+// compte de secondes. Ce n'est pas un raffinement : la courbe s'ouvre à une
+// pression d'un par seconde, si bien que le moment où le joueur est entouré
+// dépend d'un réglage qui bougera encore. Ce que la vue attend est un état.
 var vues = []vue{
 	{nom: "centre"},
 	{nom: "nord", ou: nord},
 	{nom: "ouest", ou: ouest},
 	{nom: "est", ou: est},
 	{nom: "sud", ou: sud},
-	{nom: "melee", ticks: 15 * game.TPS},
+	{nom: "melee", ticks: 300 * game.TPS, jusquAuxDegats: true},
 	{nom: "texte", texte: true},
 	{nom: "interface", hud: true},
 
@@ -218,17 +232,16 @@ var vues = []vue{
 	// vérifié. Cette vue est le premier endroit où ça se voit : la horde reste,
 	// les gemmes sont semées au loin, et l'aimant est déclenché.
 	//
-	// Quinze secondes de convergence d'abord, comme la mêlée et pour la même
-	// raison : des gemmes qui traverseraient une salle vide ne diraient rien.
-	{nom: "ruee", ticks: 15 * game.TPS,
+	// Elle attend la même arrivée que la mêlée, et pour la même raison : des
+	// gemmes qui traverseraient une salle vide ne diraient rien.
+	{nom: "ruee", ticks: 300 * game.TPS, jusquAuxDegats: true,
 		semeDesGemmes: true, declencheLAimant: true},
 
-	// La mort ne se pose pas, elle s'obtient : le joueur reste immobile au
-	// milieu du lieu et la horde finit par l'avoir. Vingt secondes est ce qu'il
-	// faut à la pression de départ pour en poser assez — c'est la seule vue dont
-	// la scène est jouée plutôt que montée, et la seule dont le compte de ticks
-	// devra suivre l'équilibrage.
-	{nom: "mort", ticks: 20 * game.TPS},
+	// La mort ne se pose pas, elle s'obtient : le joueur reste immobile au milieu
+	// du lieu et la horde finit par l'avoir. Dix minutes de plafond, parce que la
+	// courbe réglée laisse un joueur immobile vivre trois minutes et demie et que
+	// ce chiffre bougera encore — la vue attend l'événement, pas son heure.
+	{nom: "mort", ticks: 600 * game.TPS, jusquALaMort: true},
 }
 
 // echantillons sont les chaînes que la vue de texte affiche.
@@ -328,8 +341,19 @@ func (p *planche) vue(v vue) error {
 	// directement —, si bien qu'un cadavre continue de tirer et de ramasser. La
 	// vue du choix montrait ainsi un niveau gagné trente secondes après la mort.
 	for range v.ticks {
-		if v.jusquAuChoix && (partie.World.Choosing() || !partie.World.Alive()) {
+		if v.arrive(partie.World) {
 			break
+		}
+
+		// **Le jeu n'avance pas pendant qu'un choix est ouvert, et la planche non
+		// plus.** Elle appelle `Step` directement, là où l'écran l'arrête : sans
+		// cette prise, une vue qui joue plus d'une minute finit avec un panneau de
+		// cartes ouvert par-dessus la scène qu'elle vient montrer, et une horde
+		// qui a continué de converger pendant une pause qui n'en était pas une.
+		// C'est arrivé dès que la courbe a rendu la montée de niveau atteignable.
+		if partie.World.Choosing() {
+			partie.World.Choose(0)
+			continue
 		}
 		if v.videLaHorde {
 			degagerLaHorde(partie.World)
@@ -551,4 +575,24 @@ func degagerLaHorde(monde *game.World) {
 	for horde.Len() > 0 {
 		horde.RemoveAt(0)
 	}
+}
+
+// arrive dit si la scène que la vue attend est là.
+//
+// **La mort arrête toutes les vues jouées, quel que soit ce qu'elles attendent
+// par ailleurs.** `World.Step` continue de tourner après elle — c'est l'écran qui
+// fige, et la planche l'appelle directement —, si bien qu'un cadavre continue de
+// tirer, de ramasser et de monter de niveau. La vue du choix montrait ainsi un
+// niveau gagné trente secondes après la mort.
+func (v vue) arrive(monde *game.World) bool {
+	if !monde.Alive() {
+		return true
+	}
+	switch {
+	case v.jusquAuChoix:
+		return monde.Choosing()
+	case v.jusquAuxDegats:
+		return monde.Health() <= monde.MaxHealth()*3/4
+	}
+	return false
 }

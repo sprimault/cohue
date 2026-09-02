@@ -78,6 +78,15 @@ type Phase struct {
 	Profiles []int
 	// Peak est la pointe de la phase.
 	Peak Peak
+	// Cheapest est le prix du profil le moins cher de la phase.
+	//
+	// **Il ne sert qu'à empêcher la borne de report de tuer la phase.** Une
+	// pression d'un par seconde et un report de trois secondes plafonnent le
+	// budget à trois, c'est-à-dire au prix exact d'un Badaud — et l'arrondi de la
+	// conversion par tick le place un millième en dessous. La phase n'achète alors
+	// jamais rien, sans qu'aucun refus ne le dise : le budget monte, bute sur la
+	// borne, et redescend jamais. Le cas est arrivé en réglant la courbe.
+	Cheapest Fixed
 }
 
 // Peak est une pointe compilée.
@@ -165,6 +174,12 @@ func CompileScenario(brut WaveScenario, profils *Profiles) (*Scenario, []string)
 		}
 
 		phase.Profiles = profilsAutorises(ou, p.Profiles, profils, dire)
+		for _, rang := range phase.Profiles {
+			if prix := FromInt(profils.Enemies[rang].PressureCost); phase.Cheapest == 0 ||
+				prix < phase.Cheapest {
+				phase.Cheapest = prix
+			}
+		}
 		phase.Peak = pointe(ou, p.Peak, pression, dire)
 		scenario.Phases = append(scenario.Phases, phase)
 	}

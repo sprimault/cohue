@@ -73,14 +73,23 @@ type Readings struct {
 // taille il ferme les contre-formes — un zéro devient un carré plein, « 62 / 100 »
 // se lit « 620/1000 ». La relecture le montre en une image.
 //
-// Ce que le contour aurait couvert reste donc ouvert : un libellé clair sur un
-// sol clair. Le rendu ne peint aujourd'hui que trois gris et un bleu, si bien
-// que le cas ne peut pas être jugé avant les sprites — c'est la même échéance
-// que celle déjà notée sur la vue du texte. Les jauges, elles, portent leur
-// propre fond et ne dépendent pas de ce qu'elles couvrent.
+// **Ce que le contour aurait couvert, le fond du bandeau le couvre.** La
+// question était restée ouverte — un libellé clair sur un sol clair —, et on
+// l'avait renvoyée aux sprites faute de pouvoir la juger sur une planche où le
+// décor n'a que trois gris. Une partie jouée a tranché en une minute : le texte
+// se perdait. Le bandeau a donc son fond, ce que le manifeste prévoyait depuis le
+// début sans que personne ne le lise ici.
 func (h *HUD) Panel(dst *ebiten.Image, r Readings) {
 	x, y := margeEcran, margeEcran
 	ecart := 2 * h.Margin()
+
+	// **Le bandeau a son propre fond, comme le panneau des cartes.** Sans lui, la
+	// vie et le niveau se posaient à même le décor : le texte disparaissait sur
+	// le sol clair, et une jauge à moitié vide se confondait avec la case sous
+	// elle. `bandeau_fond` était déclaré au manifeste et lu nulle part ici, ce que
+	// personne n'avait vu tant qu'on jugeait la mise en page sur une planche
+	// plutôt qu'en jouant.
+	h.Band(dst, 0, hauteurBandeau(h))
 
 	h.Gauge(dst, x, y, largeurJauge, part(r.Health, r.MaxHealth), h.Color("jauge_vie"))
 	h.libelle(dst, fmt.Sprintf("%d / %d", r.Health, r.MaxHealth),
@@ -89,8 +98,13 @@ func (h *HUD) Panel(dst *ebiten.Image, r Readings) {
 	y += h.Font.Height()
 	h.Gauge(dst, x, y, largeurJauge, part(r.Experience, r.Threshold),
 		h.Color("jauge_experience"))
+
+	// **Le niveau en pleine teinte, comme la vie.** Il était atténué, ce qui
+	// range un texte au second plan : c'est ce qu'on fait d'une phrase
+	// d'explication sur une carte, pas d'une des trois lectures que le bandeau
+	// existe pour donner.
 	h.libelle(dst, fmt.Sprintf("Niveau %d", r.Level),
-		x+largeurJauge+ecart, y, h.Color("texte_attenue"))
+		x+largeurJauge+ecart, y, h.Color("texte"))
 
 	// Le minuteur s'aligne sur le bord droit par mesure, et non à distance fixe :
 	// il s'allonge d'un caractère au passage de la dixième minute.
@@ -178,4 +192,15 @@ func (s *Screen) peindreBandeau(ecran *ebiten.Image) {
 		Elapsed:    s.monde.Tick(),
 		Charged:    s.monde.Charged(),
 	})
+}
+
+// hauteurBandeau rend ce que le bandeau occupe, mesuré plutôt qu'écrit.
+//
+// Il descend jusqu'au libellé de touche posé sous l'emplacement, plus une marge :
+// une hauteur en dur se serait démentie au premier changement de police ou de
+// hauteur de jauge, et c'est exactement ce que ce fichier s'interdit.
+func hauteurBandeau(h *HUD) int {
+	haut := margeEcran + 2*h.Font.Height() + h.Margin()
+	cote := contenuEmplacement + 2*(h.Margin()+h.Border())
+	return haut + cote + h.Font.Height() + h.Margin()
 }

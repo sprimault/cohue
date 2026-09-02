@@ -195,6 +195,15 @@ lourdes à charges, déclenchement conditionnel et lisible.
 unique. Ce que cette étape apporte est la table où il puise — c'est ici qu'on
 reviendrait chercher les cartes sans les y trouver.
 
+**Les chiffres de dégâts arrivent ici, et nulle part avant.** La conception
+décrit leur rendu — contour d'un pixel, teinte distincte pour les critiques —
+sans qu'aucune étape ne les ait jamais portés, ce qui en faisait une décision
+sans domicile. Ils n'ont d'objet que le jour où les dégâts varient : sur une arme
+de base qui inflige une touche, une colonne de « 1 » n'apprend rien qu'un éclair
+d'impact ne dise mieux, et se lit moins bien dans une foule de trois cents. C'est
+donc l'éclair que l'étape 3 a livré, le jour où une partie jouée a montré qu'on
+ne voyait pas ses coups porter.
+
 ## 7 — Ressources et caisses
 
 Caisse cassée en la traversant, avec délai de contact et ralentissement.

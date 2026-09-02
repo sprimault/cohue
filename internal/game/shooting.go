@@ -24,8 +24,7 @@ func (w *World) tirer() {
 		return
 	}
 
-	e := w.ennemis.At(cible)
-	vers := (Vec{e.X - w.playerX, e.Y - w.playerY}).Direction(0)
+	vers := w.interception(w.ennemis.At(cible)).Direction(0)
 	for range w.arme.Projectiles {
 		if _, ok := w.tirs.Spawn(Projectile{
 			X:         w.playerX,
@@ -86,7 +85,7 @@ func (w *World) deplacerTirs() {
 		p.Y += p.Step.Y
 		p.Remaining -= p.Step.Len()
 
-		if w.toucher(depart, p) || p.Remaining <= 0 || !w.passable(p.X, p.Y) {
+		if w.toucher(depart, p) || p.Remaining <= 0 || w.traverse(depart, p.X, p.Y) {
 			w.tirs.RemoveAt(i)
 			// L'entité remontée dans la place libérée attend le tick suivant :
 			// la réexaminer maintenant la ferait avancer deux fois, et le
@@ -168,8 +167,71 @@ func (w *World) toucher(depart Vec, p *Projectile) bool {
 	// franchit ce seuil qu'une fois.
 	e := w.ennemis.At(touchee)
 	e.Hits -= p.Hits
+	e.Flash = eclairImpact
 	if e.Hits <= 0 {
 		w.lacher(e)
 	}
 	return true
+}
+
+// traverse dit si le pas d'un projectile entre dans une case qui l'arrête.
+//
+// **Le point d'arrivée ne suffit pas.** Un pas de deux dixièmes de tuile qui
+// coupe l'angle où quatre cases se rencontrent entre dans l'une d'elles et en
+// ressort sans qu'aucun de ses deux bouts n'y tombe : le tir traversait le muret,
+// rarement et sans raison visible. Il faut raser l'angle, ce qui explique qu'on
+// ne l'ait vu qu'une fois en jouant.
+//
+// C'est la leçon que `toucher` avait déjà tirée pour les cibles — la mesure porte
+// sur le segment parcouru et non sur son extrémité —, et qui n'avait pas été
+// portée jusqu'aux murs. Les deux cases obliques suffisent à la couvrir : un pas
+// plus court qu'une demi-case ne peut en croiser d'autres.
+func (w *World) traverse(depart Vec, x, y Fixed) bool {
+	if !w.passable(x, y) {
+		return true
+	}
+
+	du, dv := depart.X.Floor(), depart.Y.Floor()
+	au, av := x.Floor(), y.Floor()
+	if du == au || dv == av {
+		return false
+	}
+	return !w.grille.Passable(au, dv) || !w.grille.Passable(du, av)
+}
+
+// interception rend le vecteur qui va du joueur à l'endroit où la cible sera
+// quand le projectile y arrivera.
+//
+// **Viser où la cible est se voit en jouant.** Le projectile vole à douze tuiles
+// par seconde sur une portée de six : une demi-seconde au plus loin, pendant
+// laquelle un Badaud parcourt une tuile et demie pour un rayon de un huitième. Une
+// créature qui traverse était donc manquée de douze fois son rayon, et seules
+// celles qui venaient droit sur le joueur étaient touchées de façon fiable — ce
+// que le champ de flux rend fréquent, d'où un tir qui rate « parfois » plutôt
+// que toujours.
+//
+// **Un tir manqué n'est pas un signal d'adresse ici**, la visée étant
+// automatique : c'est du bruit, et le joueur n'a aucun moyen de le corriger.
+//
+// **Deux passes plutôt qu'une équation.** Le point d'interception exact est la
+// racine d'un trinôme, dont le discriminant demanderait une seconde racine carrée
+// et une branche pour le cas où la cible est plus rapide que le tir. L'itération
+// converge en deux tours parce que le projectile va quatre fois plus vite que ce
+// qu'il poursuit : la première passe estime le vol sur la distance actuelle, la
+// seconde sur la distance corrigée, et ce qui reste est en deçà du rayon d'une
+// créature.
+func (w *World) interception(e *Enemy) Vec {
+	vers := Vec{e.X - w.playerX, e.Y - w.playerY}
+	if w.arme.ProjectileSpeed <= 0 {
+		return vers
+	}
+
+	for range 2 {
+		ticks := vers.Len().Div(w.arme.ProjectileSpeed)
+		vers = Vec{
+			X: e.X + e.Step.X.Mul(ticks) - w.playerX,
+			Y: e.Y + e.Step.Y.Mul(ticks) - w.playerY,
+		}
+	}
+	return vers
 }

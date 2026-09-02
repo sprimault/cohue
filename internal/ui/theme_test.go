@@ -37,6 +37,7 @@ const reglagesValides = `{
       "teintes": {
         "cadre_fond": [26, 28, 34, 235],
         "cadre_bord": [92, 96, 106, 255],
+        "cadre_choisi": [236, 196, 96, 255],
         "bandeau_fond": [16, 17, 21, 200],
         "jauge_fond": [40, 42, 48, 255],
         "jauge_vie": [176, 62, 58, 255],

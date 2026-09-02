@@ -21,8 +21,8 @@
 // octets identiques, sans quoi comparer une planche d'avant et d'après un
 // changement ne dirait rien. Rien n'y est tiré au sort : la horde vient du semis
 // régulier du montage, et les vues qui jouent des pas les jouent avec une
-// direction nulle. Le jour où un tirage entrera dans la simulation, sa graine
-// devra être fixée pour que cette propriété tienne.
+// direction nulle. La graine, elle, est fixée d'avance, pour que la propriété
+// tienne encore quand un tirage entrera dans la simulation.
 //
 // Elle exige un écran et ne tourne donc pas en intégration continue. Ce n'est
 // pas un contrôle mais une planche : ce qui se vérifie mécaniquement vit du côté
@@ -62,6 +62,14 @@ const sortie = ".tmp/apercus"
 // courant. Ce que la fenêtre du jeu fera de son côté est un réglage d'affichage
 // que l'étape 15 tranchera ; ici, on montre le tampon multiplié.
 const echelle = 2
+
+// graine est celle sur laquelle chaque vue monte sa partie.
+//
+// Fixée ici plutôt que reçue : la planche se compare d'une exécution à l'autre,
+// et une graine qui varierait rendrait cette comparaison muette le jour où un
+// tirage entre dans la simulation. C'est une exigence de la planche et non un
+// réglage partagé avec le jeu, qui a la sienne pour une autre raison.
+const graine uint64 = 1
 
 // vue est une scène à écrire : où poser le joueur, combien de pas jouer avant de
 // dessiner, ce qu'on pose par-dessus, et le nom du fichier qui en sort.
@@ -208,7 +216,7 @@ func (p *planche) Layout(_, _ int) (int, int) { return render.Width, render.Heig
 // rien de ce qui se passe ne dépend de ce qu'on presse. L'écran vient en dernier,
 // puisque c'est son montage qui cadre.
 func (p *planche) vue(v vue) error {
-	partie, err := session.Open(cohue.Assets, cohue.StartingLevel)
+	partie, err := session.Open(cohue.Assets, cohue.StartingLevel, graine)
 	if err != nil {
 		return err
 	}

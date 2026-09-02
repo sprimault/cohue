@@ -1,9 +1,10 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// La partie en cours — bassins, champ de flux, densité, profils, arme — et
-// l'ordre d'un tick. Rien n'y est alloué après le montage : la réutilisation des
-// tableaux d'un tick à l'autre est ce qui tient le budget d'allocation.
+// La partie en cours — bassins, champ de flux, densité, profils, arme, flux
+// aléatoires — et l'ordre d'un tick. Rien n'y est alloué après le montage : la
+// réutilisation des tableaux d'un tick à l'autre est ce qui tient le budget
+// d'allocation.
 
 package game
 
@@ -48,6 +49,12 @@ type World struct {
 	densite *DensityGrid
 	ennemis *Pool[Enemy]
 	tirs    *Pool[Projectile]
+	// hasard porte les quatre flux de la partie. Aucun n'est encore lu : le
+	// premier tirage viendra du spawner, à l'étape 4. Ils vivent ici plutôt que
+	// dans le montage parce que c'est le tick qui les consommera, et qu'un
+	// hasard tenu à côté de la partie serait un état de simulation hors de la
+	// simulation.
+	hasard *Streams
 
 	playerX, playerY Fixed
 	// vie est ce qu'il reste au joueur, en points. À zéro, il est mort — la
@@ -69,7 +76,11 @@ type World struct {
 // projectiles — et ne changent plus après le montage. Les plafonds eux-mêmes et
 // ce qui les justifie vivent dans `internal/session`, qui monte les parties : ce
 // sont des valeurs de jeu, pas un paramètre que chaque appelant choisirait.
-func NewWorld(profils *Profiles, arme Weapon, grille *CostGrid, capacite, tirs int) *World {
+//
+// La graine en est un, en revanche, et elle vient du montage : lui seul sait de
+// quelle run il s'agit dans la suite d'une session. Une partie qui tirerait la
+// sienne ne se rejouerait plus.
+func NewWorld(profils *Profiles, arme Weapon, grille *CostGrid, graine uint64, capacite, tirs int) *World {
 	return &World{
 		profils: profils,
 		arme:    arme,
@@ -79,6 +90,7 @@ func NewWorld(profils *Profiles, arme Weapon, grille *CostGrid, capacite, tirs i
 		densite: NewDensityGrid(grille.Width(), grille.Height()),
 		ennemis: NewPool[Enemy](capacite),
 		tirs:    NewPool[Projectile](tirs),
+		hasard:  NewStreams(graine),
 	}
 }
 
@@ -87,6 +99,14 @@ func (w *World) Enemies() *Pool[Enemy] { return w.ennemis }
 
 // Shots rend le bassin des projectiles en vol.
 func (w *World) Shots() *Pool[Projectile] { return w.tirs }
+
+// Streams rend les flux aléatoires de la partie.
+//
+// Ils sortent du monde parce que la relance se juge sur eux : deux runs d'une
+// même session doivent tirer autrement, et deux sessions ouvertes sur la même
+// graine doivent tirer pareil. Sans cet accès, ces deux propriétés
+// n'existeraient que dans un commentaire.
+func (w *World) Streams() *Streams { return w.hasard }
 
 // Player rend la position du joueur.
 func (w *World) Player() (Fixed, Fixed) { return w.playerX, w.playerY }

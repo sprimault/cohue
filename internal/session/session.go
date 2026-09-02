@@ -63,6 +63,12 @@ type Session struct {
 	Grid  *game.CostGrid
 	Tile  [2]int
 
+	// Seed est la graine de la run en cours, et le seul état de jeu qui traverse
+	// une relance — sous une forme changée, puisque chaque run dérive la
+	// suivante. L'écran de mort la montrera : sans elle affichée, un joueur qui
+	// veut rejouer sa run n'a rien à noter.
+	Seed uint64
+
 	// Ce que la relance conserve, parce que rien ne l'a modifié : les tables du
 	// manifeste et le lieu cuit. Les relire coûterait un décodage complet pour
 	// rendre exactement les mêmes valeurs.
@@ -73,21 +79,32 @@ type Session struct {
 // Restart rejoue le même lieu, sans rien redemander.
 //
 // **La règle de ce remontage n'est pas qu'il ait lieu, mais ce qu'il conserve et
-// ce qu'il remet à zéro.** Aujourd'hui il ne conserve rien de la partie
-// précédente : ni vie, ni horde, ni tick, ni compteur. Ce qui survit est ce que
-// la partie n'a pas touché — les tables et la carte —, et cette liste est vide
-// de tout état de jeu par construction plutôt que par vigilance.
+// ce qu'il remet à zéro.** Il ne conserve rien de la partie précédente : ni vie,
+// ni horde, ni tick, ni compteur. Ce qui survit est ce que la partie n'a pas
+// touché — les tables et la carte —, et cette liste est vide de tout état de jeu
+// par construction plutôt que par vigilance.
 //
 // C'est pour cela que le remontage vit ici et non dans le rendu : ce qu'il
 // conserve se mesure, et un remontage piloté par l'écran serait juste et
 // invérifiable.
 //
-// La graine ne s'y trouve pas parce que rien ne tire encore au sort — le semis
-// est régulier. Elle entrera avec le spawner, et la règle est déjà fixée :
-// nouvelle graine à chaque relance, dérivée de la précédente de façon
-// déterministe, pour que la suite des runs d'une session soit rejouable.
+// **La graine fait exception, et c'est la seule** : elle ne traverse pas, elle
+// engendre. La run suivante en reçoit une neuve, dérivée de celle qui s'achève,
+// de sorte que deux morts ne rejouent pas la même chose et que toute la suite
+// des runs d'une session descende de sa graine de départ.
 func (s *Session) Restart() {
-	s.World = game.NewWorld(s.profils, s.arme, s.Grid, HordeCapacity, ShotCapacity)
+	s.Seed = game.NextSeed(s.Seed)
+	s.monter()
+}
+
+// monter bâtit la run de la graine courante : le monde, le joueur, la horde.
+//
+// Séparé de Restart parce que la première run d'une session ne dérive rien —
+// elle se joue sur la graine reçue. Les confondre aurait fait qu'ouvrir une
+// session sur une graine en jouerait une autre, ce qui se serait vu au moment
+// d'écrire un lieu de défi.
+func (s *Session) monter() {
+	s.World = game.NewWorld(s.profils, s.arme, s.Grid, s.Seed, HordeCapacity, ShotCapacity)
 	placer(s.World, s.Grid)
 	peupler(s.World, s.Grid, s.profils)
 }
@@ -106,7 +123,13 @@ func (s *Session) Restart() {
 // la partie, pas des réglages de l'appelant. Les laisser choisir aurait fait
 // qu'une planche montre une horde plus petite que le jeu, donc qu'elle relise
 // autre chose que ce qui se joue.
-func Open(fsys fs.FS, lieu string) (*Session, error) {
+//
+// La graine, elle, est un paramètre, et elle n'a pas de valeur par défaut : le
+// montage ne la tire ni de l'horloge, que l'invariant du déterminisme proscrit,
+// ni d'une constante qui ferait de deux appelants aux intentions différentes
+// deux copies de la même valeur. La planche de relecture en exige une fixe par
+// nature ; le jeu n'en a une fixe que faute d'écran pour la choisir.
+func Open(fsys fs.FS, lieu string, graine uint64) (*Session, error) {
 	decor, couts, err := level.LoadDecor(fsys, cohue.DecorManifest)
 	if err != nil {
 		return nil, err
@@ -129,8 +152,15 @@ func Open(fsys fs.FS, lieu string) (*Session, error) {
 	}
 	slog.Info("armes chargées", "base", armes.Base.Key)
 
-	partie := &Session{Grid: grille, Tile: decor.Tile, profils: profils, arme: armes.Base}
-	partie.Restart()
+	partie := &Session{
+		Grid:    grille,
+		Tile:    decor.Tile,
+		Seed:    graine,
+		profils: profils,
+		arme:    armes.Base,
+	}
+	partie.monter()
+	slog.Info("partie montée", "seed", graine)
 	return partie, nil
 }
 

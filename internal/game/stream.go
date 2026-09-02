@@ -49,11 +49,16 @@ type Streams struct {
 // graines publiées — un numéro attribué ne se réattribue jamais, et un flux
 // nouveau prend le suivant. C'est la même règle que les numéros d'étape de la
 // feuille de route, pour la même raison.
+//
+// La dernière ne nomme pas un flux de partie mais la dérivation d'une graine à
+// la suivante : elle occupe le même espace de numéros parce que c'est la même
+// contrainte — une suite réattribuée changerait ce que rejoue une graine publiée.
 const (
 	suiteWaves     uint64 = 1
 	suitePositions uint64 = 2
 	suiteLoot      uint64 = 3
 	suiteCosmetic  uint64 = 4
+	suiteRelance   uint64 = 5
 )
 
 // NewStreams dérive les quatre flux de la graine d'une partie.
@@ -75,6 +80,22 @@ func NewStreams(graine uint64) *Streams {
 		Loot:      nouveau(suiteLoot),
 		Cosmetic:  nouveau(suiteCosmetic),
 	}
+}
+
+// NextSeed rend la graine de la run suivante, dérivée de celle qui s'achève.
+//
+// Deux exigences se tiennent, et la dérivation est ce qui les concilie : une
+// relance ne rejoue pas la run précédente, sinon mourir deux fois montrerait deux
+// fois la même chose ; et la suite des runs d'une session reste rejouable, parce
+// que tout y descend de la graine de départ. Tirer la suivante de l'horloge
+// donnerait la première sans la seconde, et l'invariant du déterminisme la
+// proscrit de toute façon.
+//
+// Elle prend sa propre suite PCG. Puiser dans un flux de partie ferait dépendre
+// la graine suivante de ce que celle-ci a tiré, donc du trajet du joueur : deux
+// morts au même endroit rapprocheraient les runs qui les suivent.
+func NextSeed(graine uint64) uint64 {
+	return rand.NewPCG(graine, suiteRelance).Uint64()
 }
 
 // IntN rend un entier de [0, n).

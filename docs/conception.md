@@ -784,13 +784,39 @@ Ce qu'on y perd est le commentaire, et `$comment` le rend : il est **autorisé p
 }
 ```
 
+### Une campagne
+
+**Une campagne est un dossier de lieux, et c'est l'unité que l'on compose, partage et choisit.** Le graphe de salles du chapitre 2 vit là : par où l'on commence, où mènent les portes, comment les branches se rejoignent.
+
+```
+assets/campagnes/monjeu/
+    campagne.json          identifiant, lieu de départ, portes et branches
+    supermarche_nuit/
+        lieu.json
+        jeu.json
+        pieces/
+            carrefour.json
+    parking/
+        …
+```
+
+**Le dossier existe pour cloisonner l'espace de noms**, exactement comme celui d'un lieu le fait pour ses pièces. À plat, deux auteurs nommeront tous les deux une salle `parking`, et celui qui reçoit les deux en perd une. C'est ce qui écarte l'autre forme possible — des lieux à plat et un fichier de graphe qui les cite par identifiant : plus économe, mais elle remet le vocabulaire global que le dossier existe pour supprimer.
+
+Le jeu de pièces reste dans le lieu et ne remonte pas à la campagne, bien que quatre salles d'un même thème le recopient. C'est ce qui garde un lieu autonome et extractible seul, et c'est le prix déjà accepté un cran plus bas pour les pièces.
+
+Deux conséquences à assumer. **L'unité de partage est la campagne**, pas le lieu — une campagne d'un seul lieu tient toujours dans un message, et cela donne une seule chose à partager au lieu de deux régimes. Et **le catalogue énumère des campagnes** : c'est le nom que l'auteur donne à ce qu'il a fait.
+
 ### Un lieu
 
 Un lieu n'est pas une carte, c'est une **liste de pièces posées**. Quelques centaines d'octets.
 
 **Un lieu est un dossier**, qui porte son `lieu.json`, son jeu de pièces et ses pièces. Trois raisons, dont la première suffirait : à plat, l'espace de noms des pièces est global, et deux auteurs qui nomment chacun la leur `carrefour` s'écrasent. Un lieu qu'on télécharge se suffit alors à lui-même — sinon il ne se télécharge pas, il s'installe. Et `empreinte_jeu_pieces` ne veut dire quelque chose que si deux exemplaires du même jeu peuvent différer, ce qui suppose précisément que chacun emporte le sien.
 
-Le descripteur porte un nom fixe plutôt que celui du lieu : un dossier de lieu se reconnaît alors sans être ouvert, et renommer un lieu se fait en renommant son dossier. Le nom du dossier et le champ `identifiant` décrivant dès lors la même chose, **le chargeur exige qu'ils s'accordent** — sans quoi celui qui duplique un lieu pour en faire une variante renomme le dossier, oublie l'identifiant, et charge une copie qui se croit l'original.
+**Ce qui existe une fois par dossier porte un nom fixe ; ce qui existe en plusieurs exemplaires garde son identifiant et se range dans un sous-dossier qui dit sa nature.** Un lieu porte donc `lieu.json` et `jeu.json`, et ses pièces vivent dans `pieces/`. Sans cette règle, le jeu de pièces et une pièce sont deux noms libres au même niveau — `quartier.json` posé à côté de `carrefour.json` ne dit pas lequel est une palette et lequel est un plan, et « quartier » se lit même comme un endroit qu'on construirait.
+
+L'identité ne se perd pas pour autant : elle vit dans le champ `identifiant`, comme un lieu nommé « place » n'a jamais eu de fichier `place.json`. Elle cesse en revanche d'être vérifiée par le chemin, ce qui oblige à la contrôler explicitement — un `jeu.json` déposé dans le mauvais lieu se chargerait sinon en silence avec sa palette, donc en changeant le sens de tous les caractères des pièces.
+
+Un dossier de lieu se reconnaît alors sans être ouvert, et renommer un lieu se fait en renommant son dossier. Le nom du dossier et le champ `identifiant` décrivant dès lors la même chose, **le chargeur exige qu'ils s'accordent** — sans quoi celui qui duplique un lieu pour en faire une variante renomme le dossier, oublie l'identifiant, et charge une copie qui se croit l'original.
 
 ```json
 {
@@ -811,7 +837,7 @@ Le descripteur porte un nom fixe plutôt que celui du lieu : un dossier de lieu 
 }
 ```
 
-**Les axes sont `u` et `v`**, ceux que ce document pose plus haut et que le lieu livré emploie ; un lieu écrit avec `x` et `y` est refusé, le décodage n'admettant aucune clé inconnue. Et tout ce que montre cet exemple n'existe pas encore : la rotation reste à trancher, le scénario et l'objectif de sortie sont les étapes 4 et 8. Ce qu'un lieu porte aujourd'hui se lit dans `assets/lieux/place/lieu.json`.
+**Les axes sont `u` et `v`**, ceux que ce document pose plus haut et que le lieu livré emploie ; un lieu écrit avec `x` et `y` est refusé, le décodage n'admettant aucune clé inconnue. Et tout ce que montre cet exemple n'existe pas encore : la rotation reste à trancher, le scénario et l'objectif de sortie sont les étapes 4 et 8. Ce qu'un lieu porte aujourd'hui se lit dans `assets/campagnes/demonstration/place/lieu.json`.
 
 `pieces_personnalisees` embarque les pièces peintes à la main, quand il y en a — et il reste vide tant que le mode tuiles n'est pas implémenté. C'est le seul cas où le fichier grossit ; même alors, une pièce de 16×16 tuiles compressée pèse quelques centaines d'octets.
 
@@ -860,7 +886,7 @@ Les contrôles de graphe utilisent le BFS déjà écrit pour le flow field. C'es
 
 ## 13. Distribution
 
-Étape 1, la plus robuste : un dossier `lieux/` scanné au démarrage, une archive par lieu avec une extension propre au jeu, l'identifiant faisant office de clé. Glisser-déposer et ça marche. C'est déjà tout ce dont une communauté a besoin pour échanger sur un salon Discord.
+Étape 1, la plus robuste : un dossier `campagnes/` scanné au démarrage, une archive par campagne avec une extension propre au jeu, l'identifiant faisant office de clé. Glisser-déposer et ça marche. C'est déjà tout ce dont une communauté a besoin pour échanger sur un salon Discord.
 
 Mieux : un lieu qui ne référence que des pièces officielles tient dans quelques centaines d'octets. Encodé en base64, il se colle dans un message ou tient dans un QR code. Pas de serveur, pas de somme de contrôle, pas d'atelier — on copie une chaîne.
 

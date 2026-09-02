@@ -226,7 +226,7 @@ func (p *planche) Layout(_, _ int) (int, int) { return render.Width, render.Heig
 // rien de ce qui se passe ne dépend de ce qu'on presse. L'écran vient en dernier,
 // puisque c'est son montage qui cadre.
 func (p *planche) vue(v vue) error {
-	partie, err := session.Open(cohue.Assets, cohue.StartingLevel, graine)
+	partie, err := session.Open(cohue.Assets, cohue.StartingCampaign, graine)
 	if err != nil {
 		return err
 	}

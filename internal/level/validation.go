@@ -30,6 +30,15 @@ func valider(nom string, lieu *Level, jeu *Set, pieces []*Room) []string {
 	}
 	if lieu.SetID == "" {
 		dire("jeu_pieces : le lieu ne dit pas de quel jeu il tire ses pièces")
+	} else if jeu.ID != lieu.SetID {
+		// **Ce contrôle est né du nom fixe.** Le jeu de pièces s'appelait
+		// autrefois du nom de son identifiant, si bien que le chemin le
+		// vérifiait : un fichier mal nommé ne se chargeait pas. Le nom étant
+		// désormais fixe, plus rien ne rapprochait les deux, et un jeu déposé
+		// dans le mauvais lieu se serait chargé en silence avec la mauvaise
+		// palette — donc en changeant le sens de tous les caractères.
+		dire("jeu_pieces : le lieu emploie « %s », le jeu du dossier se nomme « %s »",
+			lieu.SetID, jeu.ID)
 	}
 	if len(jeu.Palette) == 0 {
 		dire("%s.palette : le jeu de pièces n'associe aucun caractère à une tuile", jeu.ID)

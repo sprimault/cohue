@@ -98,7 +98,7 @@ func (b *boucle) monter() {
 // La horde est semée au montage et n'arrive jamais par vagues : le spawner et sa
 // courbe de pression sont le sujet de l'étape 4.
 func run() error {
-	partie, err := session.Open(cohue.Assets, cohue.StartingLevel, graineDeDepart)
+	partie, err := session.Open(cohue.Assets, cohue.StartingCampaign, graineDeDepart)
 	if err != nil {
 		return err
 	}

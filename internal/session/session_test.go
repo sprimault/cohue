@@ -36,7 +36,7 @@ const graineDeTest uint64 = 20260902
 // est un défaut du niveau. Le jour où le lieu livré changera de dessin, c'est ce
 // test qui le dira plutôt qu'une partie où l'on ne peut pas bouger.
 func TestPartieLivreeSeMonte(t *testing.T) {
-	partie, err := Open(cohue.Assets, cohue.StartingLevel, graineDeTest)
+	partie, err := Open(cohue.Assets, cohue.StartingCampaign, graineDeTest)
 	if err != nil {
 		t.Fatalf("montage de la partie livrée : %v", err)
 	}
@@ -78,7 +78,7 @@ func TestPartieLivreeSeMonte(t *testing.T) {
 // qu'elle devient. Sans ce renvoi, ce test-ci se lirait comme si rien du tout ne
 // reliait deux runs, ce qui est faux depuis que la relance en dérive une.
 func TestLaRelanceNeConserveRienDeLaPartie(t *testing.T) {
-	partie, err := Open(cohue.Assets, cohue.StartingLevel, graineDeTest)
+	partie, err := Open(cohue.Assets, cohue.StartingCampaign, graineDeTest)
 	if err != nil {
 		t.Fatalf("montage de la partie livrée : %v", err)
 	}
@@ -147,7 +147,7 @@ func TestLaSuiteDesRunsDescendDeLaGraineDeDepart(t *testing.T) {
 	// Le flux n'est lu par personne d'autre : ce qu'on relève est bien le premier
 	// tirage de la run et non un état laissé par la précédente.
 	suite := func() []int {
-		partie, err := Open(cohue.Assets, cohue.StartingLevel, graineDeTest)
+		partie, err := Open(cohue.Assets, cohue.StartingCampaign, graineDeTest)
 		if err != nil {
 			t.Fatalf("montage de la partie livrée : %v", err)
 		}

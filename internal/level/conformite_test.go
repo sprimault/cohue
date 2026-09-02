@@ -57,7 +57,7 @@ func TestLieuLivre(t *testing.T) {
 	if err != nil {
 		t.Fatalf("catalogue de coûts : %v", err)
 	}
-	grille, err := NewLoader(cohue.Assets, couts).Load("assets/lieux/place")
+	grille, err := NewLoader(cohue.Assets, couts).Load("assets/campagnes/demonstration/place")
 	if err != nil {
 		t.Fatalf("chargement du lieu : %v", err)
 	}

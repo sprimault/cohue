@@ -66,7 +66,11 @@ func (w *World) lacher(e *Enemy) {
 	}
 }
 
-// ramasser retire les gemmes que le joueur atteint.
+// ramasser retire les gemmes que le joueur atteint, et rend leur nombre.
+//
+// Le compte est rendu plutôt que porté à l'expérience ici : ce que vaut une
+// gemme est une question de progression, et une passe de ramassage qui la
+// trancherait aurait donné un second domicile au rythme des choix.
 //
 // La distance se mesure dans le plan du sol et non à l'écran : un rayon exprimé
 // en pixels décrirait une ellipse dans le monde, et une gemme se ramasserait de
@@ -75,14 +79,17 @@ func (w *World) lacher(e *Enemy) {
 // La place libérée est réexaminée, comme dans le retrait des morts et pour la
 // même raison : cette passe ne fait que filtrer, sans rien avancer, et la sauter
 // laisserait au sol une gemme que le joueur a déjà traversée.
-func (w *World) ramasser() {
+func (w *World) ramasser() int {
 	portee := int64(w.profils.Player.PickupRange)
+	recoltees := 0
 	for i := 0; i < w.gemmes.Len(); {
 		g := w.gemmes.At(i)
 		if (Vec{X: g.X - w.playerX, Y: g.Y - w.playerY}).carres() <= portee*portee {
 			w.gemmes.RemoveAt(i)
+			recoltees++
 			continue
 		}
 		i++
 	}
+	return recoltees
 }

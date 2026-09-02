@@ -37,5 +37,12 @@ const (
 	CharacterManifest = "assets/personnages/manifeste.json"
 	WeaponManifest    = "assets/armes/manifeste.json"
 	InterfaceManifest = "assets/interface/manifeste.json"
-	StartingLevel     = "assets/lieux/place"
+
+	// ProgressionManifest porte le rythme des choix : les seuils de niveau et le
+	// plancher de temps. Il ne vit pas auprès des armes parce qu'un seuil
+	// n'appartient pas à l'arme équipée — il vaut quelle que soit la build, il
+	// survivrait à un remplacement complet de la table d'armes, et il commande
+	// le rythme des choix plutôt que leur contenu.
+	ProgressionManifest = "assets/progression/manifeste.json"
+	StartingLevel       = "assets/lieux/place"
 )

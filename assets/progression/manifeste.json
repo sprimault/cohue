@@ -1,0 +1,18 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> — SPDX-License-Identifier: Apache-2.0 — le rythme des montées de niveau, tenu à la main comme assets/armes/manifeste.json : ce qui se règle en rejouant ne doit pas passer par un générateur",
+  "version_format": 1,
+  "progression": {
+    "$comment": "Des sections nommées plutôt que des champs à plat, parce que la courbe de pression du spawner viendra s'y ranger : elle appartient à la partie au même titre que les seuils, et deux réglages sans rapport dans un même espace de noms finiraient par se disputer un nom.",
+    "niveaux": {
+      "$comment": "seuil_premier — les gemmes qui mènent du niveau 1 au niveau 2. Dix, soit douze secondes de tir réglementaire : une salve toutes les 400 ms, trois touches pour abattre un Badaud. || seuil_increment — ce que chaque niveau ajoute au seuil du suivant. C'est le seuil qui monte et jamais la valeur d'une gemme, qui rapporte la même chose du début à la fin. Deux tient l'écart entre deux choix dans la fenêtre de quinze à vingt secondes sur les premiers niveaux, puis l'allonge, ce que la conception demande. || plancher_ms — le temps au bout duquel un niveau est donné sans rien ramasser. Quarante-cinq secondes est une règle dure du chapitre 2 : jamais plus longtemps sans un choix à faire. Converti en ticks au chargement, et jamais relu en millisecondes. || Les deux seuils sont provisoires tant que le spawner n'existe pas : c'est la cadence de récolte réelle qui les jugera.",
+      "seuil_premier": 10,
+      "seuil_increment": 2,
+      "plancher_ms": 45000
+    },
+    "gemmes": {
+      "$comment": "objet — la gemme dans assets/objets/manifeste.json. Le moteur ne le lit pas ; le contrôle des ressources exige qu'il désigne un objet existant, faute de quoi un renommage laisserait ce réglage orphelin sans que rien ne le dise. || experience — ce qu'un ramassage porte au compteur. Elle vaut la même chose du début à la fin d'une partie : c'est le seuil du niveau suivant qui monte, et une créature qui doit rapporter davantage laisse plusieurs gemmes plutôt qu'une gemme meilleure. || Ce réglage vivait dans le manifeste d'objets, où rien n'allait le chercher. Il est ici parce qu'une valeur vit à côté de ce qu'elle alimente, et celle-ci alimente les seuils.",
+      "objet": "gemme",
+      "experience": 1
+    }
+  }
+}

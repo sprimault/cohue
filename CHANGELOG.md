@@ -47,9 +47,9 @@ désormais au contact : collé sans se dégager, le joueur tombe en cinq seconde
 L'écran de mort laisse voir ce qui a eu raison de lui, et une touche remonte une
 partie neuve sur le même lieu.
 
-Les créatures abattues laissent des gemmes au sol. **Elles ne donnent encore
-rien** : la montée de niveau et les cartes viennent ensuite. C'est le
-comportement attendu, pas un défaut.
+Les créatures abattues laissent des gemmes, qui font monter de niveau. **Une
+montée ne donne encore aucune amélioration** : les trois cartes viennent
+ensuite. C'est le comportement attendu, pas un défaut.
 
 ### Ajouté
 
@@ -64,6 +64,23 @@ comportement attendu, pas un défaut.
 - **Les gemmes.** Une créature laisse, à l'endroit exact où elle meurt, le
   nombre de gemmes que son profil déclare ; le joueur les ramasse en passant à
   courte portée.
+- **L'expérience et la montée de niveau.** Les gemmes ramassées font monter d'un
+  niveau, à un seuil qui croît d'un niveau au suivant : c'est le seuil qui monte,
+  une gemme vaut la même chose du début à la fin de la partie. Un niveau est de
+  plus donné toutes les quarante-cinq secondes sans rien ramasser, et il ne
+  retire rien de ce qui est déjà acquis.
+- **Le bandeau de la partie.** La vie, l'expérience et le temps écoulé
+  s'affichent en haut de l'écran, du premier tick à la mort.
+- **`assets/progression/manifeste.json`.** Les seuils de niveau, le plancher de
+  temps et ce qu'une gemme rapporte se règlent dans ce fichier, tenu à la main
+  comme la table d'armes.
+
+### Modifié
+
+- **Ce qu'une gemme rapporte a quitté `assets/objets/manifeste.json`** pour le
+  manifeste de progression : une valeur vit à côté de ce qu'elle alimente, et
+  celle-ci alimente les seuils. Le manifeste de progression nomme l'objet qu'elle
+  décrit, et le contrôle des ressources exige qu'il existe.
 
 ### À savoir
 
@@ -78,8 +95,9 @@ effect now hurts on contact: caught and unable to break free, the player falls
 in five seconds. The death screen leaves in view whatever got the better of
 them, and one key brings up a fresh run on the same place.
 
-Killed creatures drop gems on the ground. **They still grant nothing**: levelling
-up and the cards come next. That is the expected behaviour, not a defect.
+Killed creatures drop gems, and those gems raise the level. **A level up still
+grants no upgrade**: the three cards come next. That is the expected behaviour,
+not a defect.
 
 ### Added
 
@@ -93,6 +111,22 @@ up and the cards come next. That is the expected behaviour, not a defect.
   place, no selection to redo.
 - **Gems.** A creature drops, exactly where it dies, as many gems as its profile
   declares; the player picks them up by passing within a short range.
+- **Experience and levelling up.** Gems picked up raise the level, at a threshold
+  that grows from one level to the next: it is the threshold that rises, a gem is
+  worth the same from the start of a run to its end. A level is further granted
+  every forty-five seconds without picking anything up, and it takes nothing away
+  from what is already banked.
+- **The run panel.** Health, experience and elapsed time are shown at the top of
+  the screen, from the first tick to death.
+- **`assets/progression/manifeste.json`.** Level thresholds, the time floor and
+  what a gem is worth are tuned in this file, hand-held like the weapon table.
+
+### Changed
+
+- **What a gem is worth has left `assets/objets/manifeste.json`** for the
+  progression manifest: a value lives next to what it feeds, and this one feeds
+  the thresholds. The progression manifest names the object it describes, and the
+  resource check requires that object to exist.
 
 ### Good to know
 

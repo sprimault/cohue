@@ -42,14 +42,15 @@ const rabattement = One * 3 / 2
 // leur réutilisation d'un tick à l'autre est ce qui tient le budget
 // d'allocation. Rien n'y est alloué après la construction.
 type World struct {
-	profils *Profiles
-	arme    Weapon
-	grille  *CostGrid
-	flux    *FlowField
-	densite *DensityGrid
-	ennemis *Pool[Enemy]
-	tirs    *Pool[Projectile]
-	gemmes  *Pool[Gem]
+	profils     *Profiles
+	arme        Weapon
+	progression *Progression
+	grille      *CostGrid
+	flux        *FlowField
+	densite     *DensityGrid
+	ennemis     *Pool[Enemy]
+	tirs        *Pool[Projectile]
+	gemmes      *Pool[Gem]
 	// hasard porte les quatre flux de la partie. Aucun n'est encore lu : le
 	// premier tirage viendra du spawner, à l'étape 4. Ils vivent ici plutôt que
 	// dans le montage parce que c'est le tick qui les consommera, et qu'un
@@ -69,6 +70,16 @@ type World struct {
 	// zéro et y demeure : sans cible, l'arme ne tire pas et ne consomme rien.
 	cooldown Tick
 	tick     Tick
+
+	// niveau est celui du joueur, le premier valant un.
+	niveau int
+	// experience est ce qui a été ramassé vers le niveau suivant, en gemmes.
+	// Ce que le seuil dépasse est reporté et non perdu.
+	experience int
+	// depuisChoix compte les ticks écoulés depuis la dernière montée, quelle
+	// qu'en soit la source. C'est lui que le plancher de temps surveille, et son
+	// nom dit qu'il ne mesure pas l'âge de la run.
+	depuisChoix Tick
 }
 
 // NewWorld monte une partie sur une carte et une table de profils.
@@ -81,18 +92,21 @@ type World struct {
 // La graine en est un, en revanche, et elle vient du montage : lui seul sait de
 // quelle run il s'agit dans la suite d'une session. Une partie qui tirerait la
 // sienne ne se rejouerait plus.
-func NewWorld(profils *Profiles, arme Weapon, grille *CostGrid, graine uint64, capacite, tirs, gemmes int) *World {
+func NewWorld(profils *Profiles, arme Weapon, progression *Progression, grille *CostGrid,
+	graine uint64, capacite, tirs, gemmes int) *World {
 	return &World{
-		profils: profils,
-		arme:    arme,
-		vie:     profils.Player.Health,
-		grille:  grille,
-		flux:    NewFlowField(grille),
-		densite: NewDensityGrid(grille.Width(), grille.Height()),
-		ennemis: NewPool[Enemy](capacite),
-		tirs:    NewPool[Projectile](tirs),
-		gemmes:  NewPool[Gem](gemmes),
-		hasard:  NewStreams(graine),
+		profils:     profils,
+		arme:        arme,
+		progression: progression,
+		vie:         profils.Player.Health,
+		niveau:      1,
+		grille:      grille,
+		flux:        NewFlowField(grille),
+		densite:     NewDensityGrid(grille.Width(), grille.Height()),
+		ennemis:     NewPool[Enemy](capacite),
+		tirs:        NewPool[Projectile](tirs),
+		gemmes:      NewPool[Gem](gemmes),
+		hasard:      NewStreams(graine),
 	}
 }
 
@@ -140,10 +154,10 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 //
 // L'ordre est celui de la conception, et il est écrit une fois : les entrées, le
 // champ de flux si c'est son tick, la densité, les intentions et leur
-// projection, les dégâts de contact puis le ramassage, le tir puis le vol des
-// projectiles avec ce qu'ils touchent, et les suppressions en dernier. Ce qui
-// manque encore y prendra sa place — les apparitions, entre les entrées et le
-// champ.
+// projection, les dégâts de contact puis le ramassage et ce qu'il fait monter,
+// le tir puis le vol des projectiles avec ce qu'ils touchent, et les
+// suppressions en dernier. Ce qui manque encore y prendra sa place — les
+// apparitions, entre les entrées et le champ.
 //
 // Le ramassage est rangé avec les contacts, dont il est un : ce que le joueur
 // touche en se déplaçant. Il vient après les dégâts parce qu'une gemme ramassée
@@ -178,7 +192,7 @@ func (w *World) Step(voulu Vec) {
 	w.compterDensite()
 	w.deplacerEnnemis()
 	w.subir()
-	w.ramasser()
+	w.progresser(w.ramasser())
 	w.tirer()
 	w.deplacerTirs()
 	w.retirerLesMorts()

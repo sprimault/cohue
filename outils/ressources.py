@@ -79,7 +79,8 @@ def _pentes(masque):
 
 # Sous quelle clé chaque manifeste range ses entrées. Liste close : un manifeste
 # nouveau s'y déclare, et c'est le geste qui le fait entrer dans les contrôles.
-CLES_D_ENTREES = ("formes", "objets", "profils", "sons", "armes", "interface")
+CLES_D_ENTREES = ("formes", "objets", "profils", "sons", "armes", "interface",
+                  "progression")
 
 
 def _entrees(chemin):
@@ -95,11 +96,17 @@ def _entrees(chemin):
     donc on l'a vu ; un manifeste d'une autre forme aurait rendu quelque chose de
     plausible, et les contrôles auraient vérifié des clés d'en-tête en croyant
     lire des assets.
+
+    Le `$comment` du bloc d'entrées est retiré. La convention l'autorise sur
+    toute structure du format, et le décodeur Go l'accepte partout ; ici il
+    serait rendu comme une entrée dont la valeur est une chaîne, et chaque
+    contrôle qui parcourt les entrées casserait sur le premier `info.get`.
     """
     contenu = json.loads(chemin.read_text(encoding="utf-8"))
     for cle in CLES_D_ENTREES:
         if cle in contenu:
-            return contenu[cle]
+            return {nom: info for nom, info in contenu[cle].items()
+                    if nom != "$comment"}
     raise SystemExit(f"{chemin} : aucune clé d'entrées connue, "
                      f"attendu {' ou '.join(CLES_D_ENTREES)}")
 
@@ -327,6 +334,7 @@ CHAMPS_DEMENAGES = {
     "portee_tuiles": "chez le tireur, qui la porte déjà",
     "vitesse_px_s": "chez le tireur, en tuiles par seconde et non en pixels",
     "traverse": "chez l'arme, où ce sera un passif",
+    "experience": "chez la progression, à côté des seuils qu'elle alimente",
 }
 
 
@@ -348,6 +356,37 @@ def objets(sortie):
         for champ in sorted(set(info) & set(CHAMPS_DEMENAGES)):
             defauts.append((nom, f"champ « {champ} » : il a déménagé "
                                  f"{CHAMPS_DEMENAGES[champ]}"))
+    return defauts
+
+
+def renvois_d_objets(sortie):
+    """Exige que tout renvoi `objet` désigne un objet du catalogue.
+
+    Une valeur de jeu sortie du manifeste d'objets y laisse un lien par nom entre
+    deux fichiers, et un renommage le casse en silence : le moteur lit toujours
+    son chiffre, l'objet ne s'appelle plus pareil, et personne ne l'apprend. Ce
+    contrôle est ce qui rend le lien visible — c'est le prix du déménagement, et
+    il se paie une fois.
+
+    Le champ n'est lu que par ici. C'est voulu et c'est dit dans les deux
+    manifestes : le moteur n'a pas besoin du nom, il a besoin du chiffre, et un
+    champ que personne ne lit du tout est exactement ce qui avait laissé
+    `experience` dormir sur la gemme sans que sa valeur serve.
+    """
+    catalogue = sortie / "objets" / "manifeste.json"
+    if not catalogue.exists():
+        return []
+    connus = set(_entrees(catalogue))
+
+    defauts = []
+    for chemin in sorted(sortie.rglob("manifeste.json")):
+        if chemin == catalogue:
+            continue
+        for nom, info in _entrees(chemin).items():
+            vise = info.get("objet")
+            if vise and vise not in connus:
+                defauts.append((f"{chemin.parent.name}/{nom}",
+                                f"objet « {vise} » introuvable au catalogue"))
     return defauts
 
 
@@ -624,6 +663,7 @@ def main():
     defauts += manifestes(options.sortie)
     defauts += profils(options.sortie)
     defauts += objets(options.sortie)
+    defauts += renvois_d_objets(options.sortie)
     defauts += formes(options.sortie)
     defauts += police(options.sortie)
     defauts += controler_sons(options.sortie)

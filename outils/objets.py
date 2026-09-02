@@ -478,8 +478,13 @@ FAMILLES_SONS = {"gemme": "gemme"}
 # rouvrira le plus, et que les régler ne doit pas coûter une régénération de six
 # cents images. La règle est au chapitre 4 de la conception ; `ressources.py`
 # refuse ces champs pour qu'on ne les y remette pas par symétrie.
+# L'expérience d'une gemme n'y figure plus non plus, et pour la même raison
+# poussée d'un cran : une valeur vit à côté de ce qu'elle alimente. Celle-ci
+# alimente les seuils de niveau, donc elle est descendue dans
+# `assets/progression/manifeste.json`, où le seuil se règle. Le test n'est pas
+# que le fichier soit généré mais qui l'édite et pourquoi — changer le dessin
+# d'une gemme ne change rien à ce qu'elle rapporte, et l'inverse est vrai aussi.
 VALEURS = {
-    "gemme": {"experience": 1},
     "fiole": {"soin": 30, "emplacements": 2},
 }
 

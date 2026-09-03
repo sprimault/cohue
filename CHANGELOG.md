@@ -80,10 +80,11 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   pour qu'on reconnaisse la même chose en grand. Rien ne joue encore de son.
 - **L'aimant.** Un objet apparaît toutes les trente secondes, toujours à
   bonne distance : on le ramasse et on le garde, il ne se déclenche pas au
-  contact. La touche 1 dépense la charge, et **toutes les gemmes au sol
-  convergent d'un coup** — elles cessent alors de s'effacer, l'aimant étant le
-  recours contre l'effacement et non sa victime. Un seul en main, un seul au sol :
-  un aimant qu'on voit sans pouvoir le prendre est une raison de dépenser le sien.
+  contact. La touche 1, celle du pavé numérique comme celle de la rangée du
+  haut, dépense la charge, et **toutes les gemmes au sol convergent d'un
+  coup** — elles cessent alors de s'effacer, l'aimant étant le recours contre
+  l'effacement et non sa victime. Un seul en main, un seul au sol : un aimant
+  qu'on voit sans pouvoir le prendre est une raison de dépenser le sien.
 - **Le choix des cartes passe aux flèches**, gauche, bas et droite : la touche
   désigne la carte qu'elle montre. Les chiffres reviennent aux emplacements, qui
   les gardent toute la partie — une carte mal choisie se rattrape au niveau
@@ -226,11 +227,12 @@ pauses the game to offer **three cards**, one of which you take.
   where the ordinary pickup scale begins, so it is recognisably the same thing
   writ large. Nothing plays sound yet.
 - **The magnet.** An object appears every thirty seconds, always at a
-  distance: you pick it up and keep it, it does not trigger on contact. Key 1
-  spends the charge and **every gem on the ground converges at once** — those
-  gems then stop fading, the magnet being the recourse against erasure rather
-  than its victim. One in hand, one on the ground: a magnet you can see but
-  cannot take is a reason to spend the one you hold.
+  distance: you pick it up and keep it, it does not trigger on contact. Key 1,
+  on the numeric keypad as well as on the top row, spends the charge and
+  **every gem on the ground converges at once** — those gems then stop fading,
+  the magnet being the recourse against erasure rather than its victim. One in
+  hand, one on the ground: a magnet you can see but cannot take is a reason to
+  spend the one you hold.
 - **Cards are now chosen with the arrow keys**, left, down and right: the key
   points at the card it takes. Numbers go back to the slots, which keep them for
   the whole run — a badly chosen card is made up for at the next level, a magnet

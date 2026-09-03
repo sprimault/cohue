@@ -138,5 +138,6 @@ vertes.
 | Touche | |
 |---|---|
 | Flèches, ou Z Q S D | se déplacer |
+| 1, pavé numérique compris | dépenser l'aimant |
 | Flèches ← → | désigner son choix, pendant une montée de niveau |
-| Entrée, ou Espace | valider le choix, et relancer après la mort |
+| Entrée, pavé numérique compris, ou Espace | valider le choix, et relancer après la mort |

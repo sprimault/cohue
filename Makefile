@@ -157,15 +157,23 @@ clean:
 	rm -rf $(SORTIE) dist
 
 # Les versions sont épinglées ici et nulle part ailleurs : le workflow appelle
-# make tools plutôt que de réécrire ses go install, faute de quoi les deux
-# définitions divergent sans que rien ne le signale. Avec @latest des deux côtés,
-# le poste prend du retard dès qu'une version sort : le contrôle passe en local
-# et échoue en intégration continue, sur du code que personne n'a touché.
+# make tools plutôt que de réécrire ses go install, et l'action qui lance le lint
+# lit GOLANGCI_VERSION par print-%, faute de quoi les deux définitions divergent
+# sans que rien ne le signale. Avec @latest des deux côtés, le poste prend du
+# retard dès qu'une version sort : le contrôle passe en local et échoue en
+# intégration continue, sur du code que personne n'a touché.
 #
 # Ce sont les règles de ces deux outils qui bougent, et c'est ce qui les rend
 # épinglables. govulncheck est le cas contraire, plus bas.
 GOLANGCI_VERSION ?= v2.13.1
 GOSEC_VERSION    ?= v2.29.0
+
+# print-<VARIABLE> écrit la valeur d'une variable et rien d'autre, pour que
+# l'intégration continue lise l'épinglage plutôt que de le recopier. Sans elle,
+# ci.yml porterait une seconde version de golangci-lint, que seule la vigilance
+# tiendrait d'accord avec celle-ci.
+print-%:
+	@echo $($*)
 
 tools:
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION)

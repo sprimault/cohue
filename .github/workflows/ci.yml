@@ -121,13 +121,17 @@ jobs:
       - name: Détecteur de course
         run: make race
 
-      # Version épinglée, la même que GOLANGCI_VERSION dans le Makefile. Avec
-      # « latest », le poste de développement prend du retard dès qu'une version
-      # sort, et le lint échoue ici sur du code que personne n'a touché.
+      # La version se lit dans le Makefile plutôt que de s'écrire ici : recopiée,
+      # elle finirait par diverger de celle qu'installe make tools, et le lint
+      # passerait en local pour échouer ici sur du code que personne n'a touché.
+      - name: Version de golangci-lint
+        id: golangci
+        run: echo "version=$(make -s print-GOLANGCI_VERSION)" >> "$GITHUB_OUTPUT"
+
       - name: Lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.13.1
+          version: ${{ steps.golangci.outputs.version }}
 
   securite:
     name: Sécurité

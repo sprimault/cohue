@@ -44,9 +44,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
-- **L'écran rougit au contact.** Un voile bref couvre la scène tant qu'une
-  créature vous coûte de la vie, et s'efface dès que vous vous dégagez. La jauge
-  disait ce qui était déjà perdu ; le voile dit que ça continue.
+- **Les bords de l'écran rougissent quand la vie est basse.** Sous trente points
+  — ce que rend une fiole —, une vignette cerne l'écran et y reste jusqu'au
+  soin. C'est la seule alerte visible sans quitter son personnage des yeux, là où
+  la jauge de vie demande de regarder en haut à gauche.
 
 ### Corrigé
 
@@ -59,9 +60,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
-- **The screen reddens on contact.** A brief veil covers the scene for as long
-  as a creature is costing you health, and clears as soon as you break free. The
-  gauge said what was already lost; the veil says it is still happening.
+- **The screen edges redden when health runs low.** Below thirty points — what a
+  flask restores — a vignette rings the screen and stays until you heal. It is
+  the only warning you can see without taking your eyes off your character,
+  where the health gauge asks you to look top left.
 
 ### Fixed
 

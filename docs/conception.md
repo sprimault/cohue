@@ -340,7 +340,16 @@ Un dégât par seconde tant que le contact dure, pas un coup unique suivi d'invu
 
 Mais **le total encaissé par seconde est plafonné**, quel que soit le nombre d'ennemis collés. Sans ce plafond, trente Badauds tuent instantanément, et la mort devient illisible : le joueur n'a rien vu venir et ne peut rien en apprendre. Avec lui, être encerclé est très dangereux mais laisse une fenêtre pour se dégager, ce qui est exactement le moment de jeu recherché.
 
-Corollaire sur le retour : à cette cadence, un son de dégât par tick serait insupportable. Le son se déclenche à l'entrée en contact et se réarme après un silence, l'écran porte le reste — teinte rouge brève, et la jauge qui descend visiblement.
+Corollaire sur le retour : à cette cadence, un son de dégât par tick serait insupportable. Le son se déclenche à l'entrée en contact et se réarme après un silence ; l'écran, lui, porte la jauge qui descend visiblement.
+
+**L'écran ne rougit pas au contact, il rougit quand la vie est basse.** Ce document a d'abord demandé une teinte rouge brève à chaque fois qu'une créature touche, et c'est ce qui a été écrit puis retiré. Deux raisons, dont la seconde est la vraie :
+
+- **le contact est intermittent**, et un retour qui le suit bat à chaque créature qui frôle. Ce défaut-là se corrige en allongeant la rémanence ;
+- **le contact est déjà à l'image.** Une créature qui touche est collée au personnage, au centre du regard : le signal redisait ce que la scène montrait. La vie basse est au contraire la seule information critique qui vive hors du regard, en haut à gauche, là où l'on ne va pas en kitant.
+
+Ce que l'écran signale est donc un **état** et non un événement : sous un seuil exprimé en points de vie, une vignette rouge cerne le bord. Elle ne peut pas battre, la vie ne remontant que par une fiole, et elle ne coûte rien à la lisibilité — c'est le second enseignement, obtenu en essayant : **un aplat plein écran teinte le sol vers la couleur de la horde**, si bien que les créatures s'en détachent moins au moment précis où il faut voir pour s'échapper. Un bord laisse le centre intact et s'adresse à la vision périphérique, qui est ce à quoi un signal permanent doit parler.
+
+Le seuil vaut ce que rend une fiole. En dessous, en boire une ne gaspille rien : l'alerte annonce alors la décision qu'elle doit déclencher, au lieu d'être un chiffre choisi pour lui-même.
 
 ### La vie du joueur
 

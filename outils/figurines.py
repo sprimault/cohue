@@ -83,8 +83,12 @@ DIRECTIONS = ["S", "SO", "O", "NO", "N", "NE", "E", "SE"]
 # pas se régler par son prix. Un scénario peut resserrer ce plafond, jamais le
 # desserrer.
 JEU = {
+    # seuil_alerte_vie : la vie sous laquelle l'écran signale le danger. Trente,
+    # parce que c'est ce qu'une fiole rend : en dessous, en boire une ne gaspille
+    # rien, et le signal annonce donc la décision qu'il doit déclencher plutôt
+    # qu'un chiffre choisi pour lui-même.
     "joueur":    {"role": "joueur", "vitesse_tuiles_s": 5.0, "rayon_tuiles": 0.125,
-                  "vie": 100, "plafond_degats_s": 20},
+                  "vie": 100, "plafond_degats_s": 20, "seuil_alerte_vie": 30},
     "marcheur":  {"role": "ennemi", "comportement": "poursuite",
                   "vitesse_relative": 0.62, "rayon_tuiles": 0.125, "touches": 3,
                   "points": 10, "cout_pression": 3, "poids_separation": 1.0,

@@ -38,9 +38,11 @@ dégâts subis par seconde sont **plafonnés à vingt**, quel que soit leur nomb
 Autrement dit, être encerclé est très dangereux mais laisse une fenêtre pour se
 dégager — environ cinq secondes depuis la pleine vie. Traversez, ne restez pas.
 
-**L'écran rougit tant qu'on vous touche**, et s'éclaircit dès que vous vous
-dégagez. C'est le signal à surveiller du coin de l'œil : il dure aussi longtemps
-que le contact, là où la jauge, elle, ne dit que ce qui est déjà perdu.
+**Sous trente points de vie, les bords de l'écran rougissent** et le restent
+jusqu'à ce que vous vous soigniez. C'est le seul signal que vous verrez sans
+quitter votre personnage des yeux — la jauge est en haut à gauche, et on ne la
+regarde pas en fuyant. Trente points, c'est aussi ce que rend une fiole : quand
+la vignette s'allume, en boire une ne gaspille rien.
 
 ## Les gemmes
 

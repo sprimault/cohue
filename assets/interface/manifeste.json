@@ -199,11 +199,11 @@
           58,
           255
         ],
-        "voile_degat": [
-          44,
-          16,
-          15,
-          64
+        "vignette_danger": [
+          28,
+          10,
+          9,
+          40
         ],
         "jauge_experience": [
           86,

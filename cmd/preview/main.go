@@ -176,6 +176,13 @@ type vue struct {
 	// première touche serait trop tôt : ce que la mêlée juge est le personnage
 	// entouré, pas le premier contact.
 	jusquAuxDegats bool
+	// jusquAuDanger s'arrête au franchissement du seuil d'alerte.
+	//
+	// Ni la mêlée ni la mort ne montrent la vignette : la première s'arrête à
+	// trois quarts de vie, bien au-dessus du seuil, et la seconde au dernier
+	// point, quand l'alerte s'est déjà tue au profit de l'écran de mort. Un
+	// signal qu'aucune vue ne produit ne se relit pas.
+	jusquAuDanger bool
 	// jusquALaMort s'arrête au dernier point de vie.
 	jusquALaMort bool
 	// texte pose les échantillons nus, pour juger la police seule ; hud pose
@@ -208,6 +215,11 @@ var vues = []vue{
 	{nom: "est", ou: est},
 	{nom: "sud", ou: sud},
 	{nom: "melee", ticks: 300 * game.TPS, jusquAuxDegats: true},
+
+	// La vignette de danger, qui ne se juge que sur ce qu'elle laisse voir : la
+	// horde doit rester lisible au centre, sans quoi le signal coûte la fuite
+	// qu'il réclame. C'est ce qu'un aplat plein écran avait fait perdre.
+	{nom: "danger", ticks: 600 * game.TPS, jusquAuDanger: true},
 	{nom: "texte", texte: true},
 	{nom: "interface", hud: true},
 
@@ -589,6 +601,8 @@ func (v vue) arrive(monde *game.World) bool {
 		return monde.Choosing()
 	case v.jusquAuxDegats:
 		return monde.Health() <= monde.MaxHealth()*3/4
+	case v.jusquAuDanger:
+		return monde.InDanger()
 	}
 	return false
 }

@@ -109,9 +109,10 @@ Trois exigences la contraignent :
 - **un manifeste**, comme tout ce que le moteur lit. Taille de cellule, avance,
   hauteur de ligne et table des glyphes s'y déclarent ; sans lui les métriques
   deviennent des constantes du rendu, et changer de fonte redevient un changement
-  de code — c'est-à-dire exactement ce qu'un manifeste existe pour éviter. Aucun
-  générateur ne l'écrivant, il se tient à la main, comme
-  `assets/armes/manifeste.json`.
+  de code — c'est-à-dire exactement ce qu'un manifeste existe pour éviter.
+  `outils/interface.py` l'écrit en cuisant la planche, parce que ces mesures sont
+  dérivées du dessin et non décidées : le fichier porte « ne pas modifier à la
+  main », et une retouche serait écrasée à la prochaine régénération.
 
 Entre deux fontes qui les respectent, le départage se fait sur le É. Beaucoup
 réservent la ligne d'accent aux minuscules : le é est correct, et la capitale
@@ -154,7 +155,7 @@ proportions d'un profil, ajouter un gabarit ou une variante de teinte se fait
 dans ce fichier, puis :
 
 ```
-make ressources        # les cinq générateurs, puis le contrôle
+make ressources        # tous les générateurs, puis le contrôle
 make ressources-verif  # régénère à côté et exige l'identique
 ```
 

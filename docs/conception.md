@@ -1236,7 +1236,7 @@ for i := range p.enemies[:p.active] {
 
 Deux pièges. L'échange à la suppression **casse l'ordre**, donc le tri en profondeur travaille sur une slice d'indices réutilisée avec `indices = indices[:0]`, jamais sur le bassin lui-même. Et le passage en tableaux séparés par champ n'est à envisager que si le profileur le réclame : pénible à écrire, sans gain mesurable à ce volume.
 
-Le même modèle sert pour les projectiles, les gemmes, les caisses, les particules et les cadavres.
+Le même modèle sert pour toutes les autres sortes d'entités.
 
 ### Les écrans hors de l'action
 

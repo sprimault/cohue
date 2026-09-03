@@ -21,6 +21,12 @@ touchez.
 C'est pour cela que le déplacement est tout le jeu. Reculer, contourner, choisir
 quel côté de la salle traverser — chaque pas est une décision de combat.
 
+**Le sol n'est pas uniforme.** Certaines cases — une flaque, un sol fissuré —
+coûtent double à traverser : vous y avancez deux fois moins vite. Ce n'est pas
+un défaut de réactivité, c'est un terrain, et il ralentit la horde autant que
+vous : coincé, on peut mener ses poursuivants dans une flaque pour prendre de
+l'avance.
+
 ## La vie
 
 Vous avez **cent points de vie**, affichés en haut à gauche.
@@ -137,6 +143,9 @@ le niveau atteint. En haut à droite, le **temps écoulé**.
 
 Le personnage est jaune, la horde rouge, les projectiles clairs, les gemmes
 vertes.
+
+Le sol se lit à sa teinte : gris pour une case libre, **bleuté pour une case
+qui ralentit**, sombre pour un mur qu'on ne traverse pas.
 
 ## Les touches
 

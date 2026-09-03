@@ -25,41 +25,29 @@
     { "id": "avenue", "u": 65, "v": 65 }
   ],
   "vagues": {
-    "$comment": "Une pression par seconde, jamais des compteurs : le spawner achète dans ce budget, ce qui reste cohérent quelle que soit l'aire ouverte de la salle. Chaque profil a son coût — un Badaud vaut trois, un Vigile douze — dans assets/personnages/manifeste.json. || Les profils s'ouvrent un par un, pour que chaque créature s'apprenne seule avant d'arriver mêlée. || Les pointes tombent après l'ouverture d'un profil et non avant : c'est le moment où le joueur vient de rencontrer quelque chose de neuf, et où tripler le débit se lit comme un événement plutôt que comme du bruit. || Le début est bas parce que la conception le demande : les trois premières minutes doivent être rapides à repasser, une mort au troisième lieu renvoyant au premier. Un par seconde pour des Badauds à trois fait une créature toutes les trois secondes, et la première salle doit se sentir vide. || La courbe monte ensuite d'environ un tiers par palier, ce qui suit à peu près la façon dont l'arme grossit : six paliers de cadence la font tirer deux fois plus vite, et la portée élargit ce qu'elle atteint. Au-delà de la dixième minute elle passe devant, et c'est voulu — une run se termine par une mort. || Ces chiffres ne sont pas jugés : ils sont calés contre une sonde qui tourne en cercle et prend toujours la première carte, c'est-à-dire un joueur médiocre. Le jugement est une séance de jeu, contre le critère du chapitre 2 — la bascule de puissance ressentie avant la minute 9.",
+    "$comment": "Une pression par seconde, jamais des compteurs : le spawner achète dans ce budget, ce qui reste cohérent quelle que soit l'aire ouverte de la salle. Chaque profil a son coût — un Badaud vaut trois, un Vigile douze — dans assets/personnages/manifeste.json. || Un seul profil, et c'est ce que l'étape 3 annonce : une arme, un profil d'ennemi, une courbe de pression. Sept créatures qu'aucune teinte ne distingue mettent dans la mesure une variable invisible — qui trouve la cinquième minute plus dure ne sait pas si c'est la courbe ou l'arrivée de quelque chose qu'il n'a pas vu arriver —, et le jalon demande de pouvoir nommer ce qui a produit une bascule. La variété n'est pas ce que le critère chiffré mesure, donc elle se neutralise ; la courbe l'est, donc elle ne bouge pas d'un chiffre. Les six autres profils reviennent à l'étape 4, avec ce qui les rendra lisibles. || Les instants et les pointes restent où ils sont. Leur placement tenait à l'ouverture d'un profil — tripler le débit juste après une rencontre neuve se lit comme un événement plutôt que comme du bruit —, et cette raison revient avec eux ; les déplacer maintenant ferait bouger la courbe, c'est-à-dire précisément ce qu'on mesure. || Le début est bas parce que la conception le demande : les trois premières minutes doivent être rapides à repasser, une mort au troisième lieu renvoyant au premier. Un par seconde pour des Badauds à trois fait une créature toutes les trois secondes, et la première salle doit se sentir vide. || La courbe monte ensuite d'environ un tiers par palier, ce qui suit à peu près la façon dont l'arme grossit : six paliers de cadence la font tirer deux fois plus vite, et la portée élargit ce qu'elle atteint. Au-delà de la dixième minute elle passe devant, et c'est voulu — une run se termine par une mort. || Ces chiffres ne sont pas jugés : ils sont calés contre une sonde qui tourne en cercle et prend toujours la première carte, c'est-à-dire un joueur médiocre. Le jugement est une séance de jeu, contre le critère du chapitre 2 — la bascule de puissance ressentie avant la minute 9.",
     "phases": [
       { "debut": "0:00", "pression": 2, "profils": ["marcheur"] },
-      { "debut": "1:00", "pression": 3, "profils": ["marcheur", "sprinteur"] },
+      { "debut": "1:00", "pression": 3, "profils": ["marcheur"] },
       {
         "debut": "2:30",
         "pression": 4,
-        "profils": ["marcheur", "sprinteur", "flanqueur"],
+        "profils": ["marcheur"],
         "pic": { "a": "3:20", "multiplicateur": 2, "duree_s": 20 }
       },
-      {
-        "debut": "4:00",
-        "pression": 5,
-        "profils": ["marcheur", "sprinteur", "flanqueur", "eclateur"]
-      },
+      { "debut": "4:00", "pression": 5, "profils": ["marcheur"] },
       {
         "debut": "6:00",
         "pression": 7,
-        "profils": ["marcheur", "sprinteur", "flanqueur", "eclateur", "cracheur"],
+        "profils": ["marcheur"],
         "pic": { "a": "7:00", "multiplicateur": 2, "duree_s": 25 }
       },
-      {
-        "debut": "8:00",
-        "pression": 9,
-        "profils": ["marcheur", "sprinteur", "flanqueur", "eclateur", "cracheur", "soigneur"]
-      },
-      {
-        "debut": "10:00",
-        "pression": 12,
-        "profils": ["marcheur", "sprinteur", "flanqueur", "eclateur", "cracheur", "soigneur", "bloqueur"]
-      },
+      { "debut": "8:00", "pression": 9, "profils": ["marcheur"] },
+      { "debut": "10:00", "pression": 12, "profils": ["marcheur"] },
       {
         "debut": "12:00",
         "pression": 16,
-        "profils": ["marcheur", "sprinteur", "flanqueur", "eclateur", "cracheur", "soigneur", "bloqueur"],
+        "profils": ["marcheur"],
         "pic": { "a": "13:30", "multiplicateur": 2, "duree_s": 25 }
       }
     ]

@@ -35,8 +35,9 @@ const titreFenetre = "Cohue"
 // dur se lit comme une décision et personne ne la rouvre.
 //
 // Ce qui n'est pas provisoire, c'est qu'elle se reçoive : le montage ne devine
-// pas de quelle run il s'agit. Deux lancements jouent donc aujourd'hui la même
-// suite, ce qui ne se voit pas tant qu'aucun tirage n'entre dans la simulation.
+// pas de quelle run il s'agit. Deux lancements jouent donc la même suite, et cela
+// se voit désormais — mêmes vagues achetées aux mêmes instants, mêmes places
+// d'aimant.
 const graineDeDepart uint64 = 1
 
 // version est renseignée à la liaison par -ldflags, et vaut « dev » hors

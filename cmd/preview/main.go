@@ -66,9 +66,10 @@ const echelle = 2
 // graine est celle sur laquelle chaque vue monte sa partie.
 //
 // Fixée ici plutôt que reçue : la planche se compare d'une exécution à l'autre,
-// et une graine qui varierait rendrait cette comparaison muette le jour où un
-// tirage entre dans la simulation. C'est une exigence de la planche et non un
-// réglage partagé avec le jeu, qui a la sienne pour une autre raison.
+// et la simulation tire à chaque tick — les vagues du spawner, la place d'un
+// aimant —, si bien qu'une graine qui varierait rendrait la comparaison muette.
+// C'est une exigence de la planche et non un réglage partagé avec le jeu, qui a
+// la sienne pour une autre raison.
 const graine uint64 = 1
 
 // repere est un endroit du lieu, résolu sur sa grille plutôt qu'écrit en cases.
@@ -246,12 +247,12 @@ var vues = []vue{
 
 // echantillons sont les chaînes que la vue de texte affiche.
 //
-// **Ce sont des échantillons de mesure, pas les libellés du jeu.** Ni les cartes
-// ni l'écran de mort n'existent encore ; ces chaînes sont ici parce qu'il faut
-// du texte réel pour juger une police — des mots français avec leurs accents,
-// des chiffres, un pourcentage, une durée. Le jour où l'étape 3 écrira les vrais
-// libellés, ils viendront de là et cette table disparaîtra : deux listes de
-// libellés divergeraient, et c'est celle-ci qu'on oublierait.
+// **Ce sont des échantillons de mesure, et ils le restent.** Cette note
+// promettait qu'ils disparaîtraient le jour où le jeu aurait ses vrais libellés ;
+// il les a, et « Espace pour relancer » diverge déjà de ce que l'écran de mort
+// affiche. Ce n'est pas une dette : ce que la vue juge est une police, donc il
+// lui faut un texte qui couvre ce qu'elle doit rendre — accents, tiret cadratin,
+// pourcentage, espace insécable —, et non ce que le jeu se trouve écrire.
 //
 // Les espaces insécables y sont écrites par leur code : posées en littéral,
 // elles se confondent avec des espaces ordinaires dans le source. Elles sont ce
@@ -425,11 +426,6 @@ func (p *planche) vue(v vue) error {
 	return nil
 }
 
-// Les teintes de la vue de texte, provisoires comme ses chaînes.
-//
-// Elles vivent ici et non dans le rendu pour la même raison que les
-// échantillons : le jeu n'a pas encore d'interface, donc pas de teintes à en
-// tirer. Quand il en aura, c'est de lui qu'elles viendront.
 // poser écrit les échantillons sur la scène déjà dessinée.
 //
 // Trois situations, et ce sont elles qui font la vue : une colonne de texte nu
@@ -465,7 +461,7 @@ func (p *planche) poser() {
 	}
 }
 
-// poserInterface compose l'écran de jeu tel que l'étape 3 le demandera.
+// poserInterface compose l'écran de jeu à partir des primitives.
 //
 // **Chaque élément se dimensionne sur son contenu**, jamais sur une constante :
 // la carte prend la largeur de sa plus longue ligne, la case le côté de ce

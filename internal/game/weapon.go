@@ -185,6 +185,11 @@ func (a rawWeapon) arme(cle string, dire func(string, ...any)) Weapon {
 			dire("%s.cadence_ms : %v", cle, err)
 		}
 		w.Cooldown = ticks
+	} else if a.CadenceMs != nil {
+		// Zéro échappait à la conversion, donc au refus qu'elle porte : l'arme
+		// tirait à chaque image, ce qui ne ressemble pas à un fichier invalide
+		// mais à un moteur cassé.
+		dire("%s.cadence_ms : %d, une arme qui tire à chaque image n'a plus de cadence", cle, ms)
 	}
 	return w
 }

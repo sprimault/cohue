@@ -151,6 +151,13 @@ func LoadProgression(fsys fs.FS, chemin string) (*Progression, error) {
 			dire("niveaux.plancher_ms : %v", err)
 		}
 		table.Floor = ticks
+	} else if n.FloorMs != nil {
+		// Un plancher nul n'est pas l'absence de plancher mais son contraire :
+		// le compteur l'atteint à chaque tick, donc le joueur monte d'un niveau
+		// et voit trois cartes soixante fois par seconde. Le champ absent est
+		// déjà signalé par `exige`, et le dire deux fois ferait corriger deux
+		// lignes pour une faute.
+		dire("niveaux.plancher_ms : %d, un niveau à chaque tick n'est plus un choix", ms)
 	}
 
 	g := brut.Progression.Gems

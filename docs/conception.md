@@ -1278,6 +1278,10 @@ Deux jalons, et ils ne répondent pas à la même question.
 
 **Le jalon éliminatoire, à l'étape 3** — la boucle mort → relance, une arme, un profil, une courbe de pression. Il tranche : le déplacement et le tir sont-ils agréables ? Si la réponse est non, rien de ce qui suit ne les rendra bons et on ne continue pas. C'est le seul jalon qui peut tuer le projet, et il arrive tôt pour cette raison. Son critère, écrit au chapitre 2 : si la bascule de puissance n'est pas ressentie avant la minute 9, la courbe est trop lente.
 
+**Franchi le 3 septembre 2026** : bascule à 6:13, attribuée au dernier palier de cadence — l'axe était épuisé à l'instant où elle a été relevée. Le trajet est passé du contournement à la traversée, le déplacement s'est lu sans blocage incompris, et la visée automatique n'a pas été subie.
+
+La même partie n'a pas tué en seize minutes, ce qui ne dit rien de la courbe : elle s'est jouée contre un seul profil, comme cette étape l'annonce, et le plus faible des sept. L'équilibrage de fin de run se juge avec la horde complète, à l'étape 4.
+
 **Le jalon décisif, à l'étape 8** — l'enchaînement de salles, le score, le choix de la porte. Il tranche : a-t-on envie de relancer ? Un oui à l'étape 3 ne le prouvait pas ; seul un enchaînement complet le dit. Celui-là ne peut que valider.
 
 Cinq étapes séparent les deux, ce qui est long sans retour. D'où la sonde de l'étape 4 : une porte et une caisse, assez pour sentir la tension « rester ou partir » bien avant que tout soit écrit.

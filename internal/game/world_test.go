@@ -259,6 +259,13 @@ func TestLaHordeRejointVraimentLeJoueur(t *testing.T) {
 // `TestBassinNalloueRien` ne le remplace pas davantage : un tick ordinaire ne
 // supprime pas assez d'entités pour éprouver l'échange du bassin, que celui-là
 // exerce en propre.
+//
+// **Et ce cas-ci ne garde que le tick ordinaire.** Il joue mille dix-huit ticks
+// sur les seuils livrés, dont le plancher en vaut deux mille sept cents : aucune
+// montée de niveau n'y tombe, donc rien de ce que l'ouverture d'un choix coûte
+// n'entre dans la mesure. C'est `TestLeTickQuiOuvreUnChoixNalloueRien` qui garde
+// cette moitié, et il faut un monde réglé pour elle — une allocation qui n'a lieu
+// qu'un tick sur trente disparaît dans l'arrondi d'`AllocsPerRun`.
 func TestLaBoucleNalloueRien(t *testing.T) {
 	w, profils := mondeDEssai(t, 64, 64)
 	w.Place(FromInt(32)+One/2, FromInt(32)+One/2)

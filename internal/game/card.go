@@ -6,8 +6,6 @@
 
 package game
 
-import "fmt"
-
 // Choices est le nombre de cartes offertes à chaque montée.
 //
 // **Trois, et ce n'est pas un réglage.** Le chapitre 2 en fait une règle du
@@ -131,10 +129,13 @@ func (w *World) offrir() {
 // pas, et « moins trente-trois millisecondes » ne dit rien à qui joue. Le rang
 // sur la borne, lui, dit ce que le joueur ne peut pas déduire autrement : ce
 // qu'il reste sur cet axe, alors que l'épuiser est un moment de jeu.
+// La ligne est lue dans la table plutôt que composée ici : un tick qui ouvre un
+// choix est un tick comme un autre, et le budget d'allocation ne connaît pas
+// d'exception pour les ticks rares.
 func carte(axe *Passive, index, palier int) Card {
 	return Card{
 		Name:   axe.Name,
-		Effect: fmt.Sprintf("Palier %d sur %d", palier, axe.Tiers),
+		Effect: axe.Effects[palier-1],
 		Phrase: axe.Phrase,
 		axe:    index,
 	}
@@ -144,7 +145,7 @@ func carte(axe *Passive, index, palier int) Card {
 func soupape(r Relief) Card {
 	return Card{
 		Name:   r.Name,
-		Effect: fmt.Sprintf("+%d vie", r.Heal),
+		Effect: r.Effect,
 		Phrase: r.Phrase,
 		axe:    -1,
 	}

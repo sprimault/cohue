@@ -73,6 +73,37 @@ func champDeProgression(t *testing.T, seuils *Progression) (*World, *Profiles) {
 	return w, profils
 }
 
+// TestLeTickQuiOuvreUnChoixNalloueRien garde l'invariant là où l'autre ne va pas.
+//
+// **`TestLaBoucleNalloueRien` ne peut pas voir ce tick-ci**, et pour deux
+// raisons qui se cumulent. Son monde monte sur les seuils livrés, dont le
+// plancher vaut deux mille sept cents ticks, et il en joue mille dix-huit : la
+// montée par le temps n'y arrive jamais, donc `offrir` n'y est jamais appelé.
+//
+// **Et l'allonger n'aurait pas suffi**, ce qui est le point à retenir :
+// `AllocsPerRun` arrondit sa moyenne à l'entier. Un plancher franchi trente
+// fois en mille ticks donne trois allocations par ouverture, soit un dixième
+// par tick, soit zéro après arrondi. Un test d'allocation ne voit qu'un coût
+// que **chacune** de ses exécutions paie.
+//
+// D'où la forme : un plancher d'un tick, et la carte prise avant le pas. Chaque
+// exécution mesurée ouvre alors exactement un choix. Le réglage est extrême et
+// c'est ce qui isole le tick — ce que le test garde n'est pas le plancher mais
+// ce que son franchissement coûte.
+func TestLeTickQuiOuvreUnChoixNalloueRien(t *testing.T) {
+	w, _ := champDeProgression(t, collecte(&Progression{
+		FirstThreshold: 100000, GemValue: 1, Floor: 1,
+	}))
+
+	moyenne := testing.AllocsPerRun(1000, func() {
+		w.Choose(0)
+		w.Step(Vec{})
+	})
+	if moyenne != 0 {
+		t.Errorf("%v allocation(s) par tick ouvrant un choix, attendu aucune", moyenne)
+	}
+}
+
 // semer pose des gemmes sous le joueur, par le chemin qui les produit.
 //
 // Par `lacher` et non par le bassin : c'est la mort d'une créature qui pose une

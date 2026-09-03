@@ -58,6 +58,14 @@ type Passive struct {
 	// elle, empiler un seul axe du début à la fin serait la stratégie unique.
 	Tiers int
 
+	// Effects porte la ligne d'effet de chaque palier, du premier au dernier.
+	//
+	// **Composée au chargement parce que la composer au tirage allouait.** Une
+	// montée de niveau tombe dans un tick comme un autre, et l'invariant du
+	// budget ne connaît pas d'exception pour les ticks rares. `Tiers` étant
+	// borné et validé, la tranche est courte et se remplit une fois.
+	Effects []string
+
 	// CooldownStep est ce qu'un palier retire à la cadence, en ticks.
 	CooldownStep Tick
 	// RangeStep est ce qu'un palier ajoute à la portée, en tuiles.
@@ -82,6 +90,8 @@ type Relief struct {
 	Phrase string
 	// Heal est ce qu'elle rend au joueur, en points de vie.
 	Heal int
+	// Effect est sa ligne d'effet, composée au chargement comme celles des axes.
+	Effect string
 }
 
 // Passives est la table des améliorations.
@@ -181,6 +191,9 @@ func (a rawAxis) axe(cle Axis, base Weapon, dire func(string, ...any)) Passive {
 	if a.Tiers != nil && axe.Tiers < 1 {
 		dire("%s.paliers : %d, un axe qu'on ne peut pas prendre n'est pas un axe", nom, axe.Tiers)
 	}
+	for palier := 1; palier <= axe.Tiers; palier++ {
+		axe.Effects = append(axe.Effects, fmt.Sprintf("Palier %d sur %d", palier, axe.Tiers))
+	}
 
 	// Chaque axe porte son pas et refuse celui de l'autre. Le contrôle est
 	// symétrique sans qu'il ait fallu l'écrire deux fois : un `pas_tuiles` resté
@@ -267,5 +280,6 @@ func (r rawRelief) soupape(dire func(string, ...any)) Relief {
 		dire("passifs.soupape.soin : %d, une carte qui ne fait rien laisse le "+
 			"joueur devant un choix vide", secours.Heal)
 	}
+	secours.Effect = fmt.Sprintf("+%d vie", secours.Heal)
 	return secours
 }

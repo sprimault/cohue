@@ -46,15 +46,15 @@ func (w *World) Charge() { w.charge = true }
 // poserAimant fait apparaître un aimant quand son heure vient.
 //
 // **Un seul à la fois au sol, une seule charge gardée.** La conception parle
-// d'une charge au singulier, et la règle produit une tension qui n'a rien coûté :
-// un aimant qu'on voit sans pouvoir le prendre, parce qu'on en tient déjà un, est
-// une raison de dépenser celui qu'on garde.
+// d'une charge au singulier, et rien n'apparaît tant que celle qu'on tient n'est
+// pas dépensée : le joueur ne voit donc jamais au sol un aimant qu'il ne peut pas
+// prendre.
 //
 // **Ce qui tient la première moitié de cette règle est la capacité du bassin**,
 // qui vaut un : `Spawn` refuse quand il est plein, et l'unicité ne dépend donc
 // d'aucune vigilance. Le retour anticipé ci-dessous n'est pas cette garantie mais
 // une économie de tirages — sans lui, chaque période consommerait huit positions
-// du flux pour une apparition que le bassin refusera de toute façon.
+// du flux pour une apparition que le bassin ou la charge refusera de toute façon.
 //
 // La période se compte depuis la dernière apparition et non depuis le début de la
 // partie : un aimant qui reste au sol ne fait pas s'accumuler les suivants, et le
@@ -81,10 +81,10 @@ func (w *World) poserAimant() {
 
 // placeAimant tire une case passable assez loin du joueur.
 //
-// **Le premier tirage aléatoire de la partie**, et il consomme le flux des
-// positions — celui qui placera aussi les apparitions de créatures, puisque les
-// deux relèvent du lieu. Le nombre de tirages est borné et connu d'avance, ce
-// qui laisse le flux dans un état prévisible que la salle soit dégagée ou non.
+// Elle consomme le flux des positions, celui où le spawner puise aussi, puisque
+// les deux placent quelque chose dans le lieu. Le nombre de tirages est borné et
+// connu d'avance, ce qui laisse le flux dans un état prévisible que la salle soit
+// dégagée ou non.
 func (w *World) placeAimant() (Fixed, Fixed, bool) {
 	mini := int64(w.progression.MagnetMinRange)
 	for range tentativesAimant {

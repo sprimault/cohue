@@ -24,7 +24,9 @@ const flowPeriod Tick = 6
 // une tuile. Sans ce facteur, deux voisines suffiraient à retourner une créature
 // contre le joueur. Le poids de séparation du profil multiplie ce vecteur et
 // reste un rapport — c'est ici qu'est l'échelle, et c'est un des chiffres qu'on
-// cherchera au jalon 3, avec la vitesse relative et le plafond de dégâts.
+// cherchera en équilibrant, avec la vitesse relative et le plafond de dégâts. Le
+// jalon de l'étape 3 ne les a pas tranchés : il jugeait une sensation, contre un
+// seul profil.
 const separationScale = One / 8
 
 // eclairImpact est la durée de l'éclair qu'une créature touchée porte, en ticks.

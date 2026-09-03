@@ -52,9 +52,9 @@ const ShotCapacity = 256
 // GemCapacity plafonne le bassin des gemmes au sol.
 //
 // Deux fois et demie le pic que la conception nomme — deux cents gemmes qui
-// convergent d'un coup, le moment de plaisir maximal du genre. Ce qui bornera
-// vraiment le stock est leur effacement, qui vient avec l'aimant ; d'ici là
-// elles s'accumulent, et ce plafond est le filet qui empêche d'allouer.
+// convergent d'un coup, le moment de plaisir maximal du genre. Ce qui borne
+// vraiment le stock est leur effacement ; ce plafond est le filet qui empêche
+// d'allouer quand elles tombent plus vite qu'elles ne s'éteignent.
 const GemCapacity = 512
 
 // Session est une partie montée, prête à tourner.

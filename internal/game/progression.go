@@ -58,7 +58,7 @@ type Progression struct {
 	// refusée, en tuiles.
 	//
 	// **La contrainte est d'être loin, pas d'être hors champ** — l'inverse de
-	// l'anneau qui posera les créatures. Une créature qui surgit devant est une
+	// l'anneau qui pose les créatures. Une créature qui surgit devant est une
 	// injustice ; un objet qu'on voit au loin est une invitation, et le trajet
 	// pour l'atteindre est ce qui en fait une décision.
 	MagnetMinRange Fixed

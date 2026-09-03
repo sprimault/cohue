@@ -1166,9 +1166,20 @@ Il n'y a pas de bon ordre, il y a un ordre écrit une fois. Dans un tick :
 5. les intentions de déplacement ;
 6. la projection sur la passabilité ;
 7. les contacts et les dégâts ;
-8. les suppressions.
+8. l'aimant : son apparition, sa ruée, sa prise ;
+9. le ramassage, et ce qu'il fait monter ;
+10. le tir, puis le vol des projectiles et ce qu'ils touchent ;
+11. les suppressions.
 
 Les apparitions avant la densité, et c'est ce qui commande leur place : le champ de flux ne dépend que du joueur et des obstacles, une créature apparue après son calcul n'y perd rien. La densité, elle, dépend des ennemis — deux créatures apparues au même endroit se superposeraient exactement le temps d'une image, et personne ne retrouverait jamais l'origine de ce scintillement.
+
+**Le contact se constate après le déplacement et non avant**, sinon une créature qui vient de se coller ne blesserait qu'au tick suivant, et le joueur verrait la horde le traverser sans effet pendant une image.
+
+**La ruée de l'aimant avance avant le ramassage.** Sans quoi une gemme arrivée sur le joueur attendrait le tick suivant pour être prise, et la convergence de deux cents gemmes — le moment de plaisir maximal du chapitre 2 — se terminerait par un temps mort d'une image, exactement là où l'on veut un coup.
+
+**Le ramassage est rangé avec les contacts, dont il est un** : ce que le joueur touche en se déplaçant. Il vient après les dégâts parce qu'une gemme ramassée dans le tick où l'on meurt ne change rien, alors que l'inverse ferait dépendre la mort de ce qu'on a récolté.
+
+**Les étapes 5 et 6 peuvent tenir en une seule passe, à une condition qui vaut mieux que la conclusion** : aucune intention ne lit l'état d'une autre entité. Elles sont énumérées séparément parce que ce sont deux décisions, et l'équivalence tient tant qu'une intention ne lit que le champ et la densité, tous deux figés avant la passe. Le jour où un ennemi devra éviter celui qui le précède, elle tombe, et il faut les deux passes — donc une tranche d'intentions à préallouer.
 
 La suppression par échange remonte la dernière entité active à l'index libéré. Cet index **n'est pas réexaminé par la passe de mise à jour en cours** : l'entité remontée y attend le tick suivant. Sans cette règle, elle serait mise à jour deux fois ou zéro selon le sens du parcours, et le déterminisme dépendrait d'un détail d'écriture.
 

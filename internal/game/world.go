@@ -213,42 +213,24 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 
 // Step avance la simulation d'un tick, le joueur suivant la direction voulue.
 //
-// L'ordre est celui de la conception, et il est écrit une fois : les entrées, le
-// champ de flux si c'est son tick, la densité, les intentions et leur
-// projection, les dégâts de contact, l'aimant et sa ruée, puis le ramassage et
-// ce qu'il fait monter, le tir puis le vol des projectiles avec ce qu'ils
-// touchent, et les suppressions en dernier. Ce qui manque encore y prendra sa
-// place — les apparitions de créatures, entre les entrées et le champ.
-//
-// **La ruée avance avant le ramassage**, sans quoi une gemme arrivée sur le
-// joueur attendrait le tick suivant pour être prise : la convergence se
-// terminerait par un temps mort d'une image, exactement là où la conception veut
-// un coup.
-//
-// Le ramassage est rangé avec les contacts, dont il est un : ce que le joueur
-// touche en se déplaçant. Il vient après les dégâts parce qu'une gemme ramassée
-// dans le tick où l'on meurt ne change rien, alors que l'inverse ferait dépendre
-// la mort de ce qu'on a récolté.
-//
-// **Le contact se constate après le déplacement et non avant**, sinon une
-// créature qui vient de se coller ne blesserait qu'au tick suivant et le joueur
-// verrait la horde le traverser sans effet pendant une image.
+// L'ordre est celui du chapitre 15 de la conception, qui l'énumère et porte les
+// arbitrages : les entrées, les apparitions, le champ de flux si c'est son tick,
+// la densité, les intentions et leur projection, les dégâts de contact, l'aimant
+// et sa ruée, puis le ramassage et ce qu'il fait monter, le tir puis le vol des
+// projectiles avec ce qu'ils touchent, et les suppressions en dernier. La place
+// des apparitions se justifie dans `apparaitre`, qui la tient.
 //
 // **La simulation continue de tourner après la mort**, et `subir` cesse
 // seulement d'appliquer des dégâts. Figer le monde ici serait une décision
 // d'écran — ce que la mort suspend, ce qu'elle laisse courir — et elle
 // appartient à qui l'affichera, pas à la boucle.
 //
-// Les intentions et la projection tiennent en une seule passe alors que la
-// conception les énumère séparément, et c'est équivalent — **à une condition qui
-// vaut mieux que la conclusion** : aucune intention ne lit l'état d'une autre
-// entité. Aujourd'hui elle ne lit que le champ et la densité, tous deux figés
-// avant la passe, si bien que rien de ce qu'une créature déplacée modifie n'est
-// lu par les suivantes.
-//
-// Le jour où une intention devra tenir compte d'une autre créature — un ennemi
-// qui évite celui qui le précède —, l'équivalence tombe et il faudra les deux
-// passes, donc une tranche d'intentions à préallouer.
+// Les intentions et la projection tiennent ici en une seule passe alors que la
+// conception les énumère séparément, ce qu'elle autorise sous la condition
+// qu'elle pose : aucune intention ne lit l'état d'une autre entité.
+// `deplacerEnnemis` ne lit que le champ et la densité, tous deux figés avant la
+// passe, si bien que rien de ce qu'une créature déplacée modifie n'est lu par les
+// suivantes.
 func (w *World) Step(voulu Vec) {
 	w.deplacerJoueur(voulu)
 	w.apparaitre()

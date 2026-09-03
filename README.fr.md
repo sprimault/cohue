@@ -19,23 +19,20 @@ moins d'une seconde, même configuration.
 
 ## État
 
-**Le jeu s'ouvre et se traverse, il ne se joue pas encore.** Les étapes 1 et 2
-sont livrées : la fenêtre montre un lieu, on s'y déplace au clavier, et la horde
-converge en contournant les obstacles.
+**On y meurt, et on relance.** Un lieu, une arme, une horde qui monte : la
+fenêtre s'ouvre, on s'y déplace au clavier, les créatures convergent en
+contournant les obstacles et tuent qui reste immobile. Les gemmes qu'elles
+laissent font monter de niveau, et chaque montée offre trois cartes. Le décor est
+fait de rectangles colorés — les images existent, mais rien ne les charge encore.
 
-Ce qui manque pour que ce soit un jeu : la mort et la relance, les portes à
-ouvrir, les caisses à casser, les armes à ramasser, les montées de niveau, et
-l'enchaînement des lieux. Le décor est fait de rectangles colorés — les images
-existent, mais rien ne les charge encore.
+Le projet suit une feuille de route en seize étapes, publiée à chacune. **Ce qui
+est fait et ce qui reste ne se lisent pas ici** : les deux listes vivraient à
+côté des documents qui les portent, et elles s'en écarteraient.
 
-Ce qui est acquis : la simulation à trois cents créatures sans allocation par
-tick, le rendu isométrique avec sa projection, sa caméra et son tri en
-profondeur, le décor généré avec son manifeste, et les personnages générés eux
-aussi — un gabarit par famille, huit orientations, et les valeurs de jeu dans le
-même manifeste que le rendu.
-
+- [`ROADMAP.md`](ROADMAP.md) — les étapes, celles qui sont franchies et ce qui
+  est hors périmètre v1
+- [`CHANGELOG.md`](CHANGELOG.md) — ce que chaque version a apporté, daté
 - [`docs/conception.md`](docs/conception.md) — la conception complète
-- [`ROADMAP.md`](ROADMAP.md) — les étapes et ce qui est hors périmètre v1
 
 ## Les ressources
 

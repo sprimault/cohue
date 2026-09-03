@@ -16,9 +16,8 @@ tierce : ils suivent la licence du dépôt.
 sous licence CC0 1.0 — <https://creativecommons.org/licenses/zero/1.0/>. Le
 texte de la licence est conservé dans `assets/polices/LICENSE.txt`.
 
-Le fichier `.ttf` est la source, jamais ce que le jeu lit : le sixième
-générateur en rastérise une planche de glyphes que le moteur charge par son
-manifeste. Seule la graisse normale est retenue — le gras n'a pas d'usage tant
+Le fichier `.ttf` est la source, jamais ce que le jeu lit : `outils/interface.py`
+en rastérise une planche de glyphes que le moteur charge par son manifeste. Seule la graisse normale est retenue — le gras n'a pas d'usage tant
 que le coup critique n'existe pas.
 
 ## Bruitages

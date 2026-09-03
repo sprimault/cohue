@@ -1,7 +1,7 @@
 # Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 # SPDX-License-Identifier: Apache-2.0
 
-"""Écriture des manifestes, commune aux quatre générateurs.
+"""Écriture des manifestes, commune aux générateurs.
 
 **Ce module ne s'exécute pas** : comme `primitives_iso.py`, il est importé — par
 `decor_iso.py`, `figurines.py`, `objets.py` et `sons.py`, les quatre qui

@@ -985,7 +985,7 @@ toute question de licence sur ce qui entre dans le jeu.
 
 Tous déterministes — relancés, ils produisent des fichiers identiques, donc versionnables.
 
-Cinq modules, découpés par nature, plus `ressources.py` qui les enchaîne et
+Des modules découpés par nature, plus `ressources.py` qui les enchaîne et
 contrôle ce qu'ils ont produit. **`primitives_iso.py`** est le noyau : tout part d'une fonction `volume(tx, ty, elevation, matiere)` qui calcule la face supérieure **en coordonnées de tuile**, ce qui garantit l'escalier régulier du 2:1 quelle que soit l'emprise, y compris fractionnaire — `ty=0.15` donne une cloison mince, une barrière ou un écran de cinéma. Il ne connaît aucune forme du jeu.
 
 **`decor_iso.py`** génère les lieux : une soixantaine de formes réparties en commun, supermarché, parking, quartier, cinéma, station.

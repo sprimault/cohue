@@ -284,7 +284,7 @@ Il traverse la scène en va-et-vient — il avance tout droit et repart quand il
 - **Le Vigile** : lent, encaissant, il bouche les goulots. Dans un couloir de supermarché, il transforme une route de fuite en piège.
 - **La Baudruche** : explose en mourant. Sa silhouette disproportionnée dit « ne t'approche pas » avant même que le télégraphe ne s'allume. Elle punit le nettoyage à l'aveugle en mêlée.
 
-Six profils suffisent pour tout le jeu. Ce sont des données, pas du code : une structure `EnemyProfile` avec nom, vitesse, résistance en touches, points, **coût de pression**, poids de séparation, tangentiel, portée, taille de groupe, comportement spécial. Le reste est du mixage de vagues.
+Sept profils suffisent pour tout le jeu — les six décrits ci-dessus et le Secouriste. Ce sont des données, pas du code : une structure `EnemyProfile` avec nom, vitesse, résistance en touches, points, **coût de pression**, poids de séparation, tangentiel, portée, taille de groupe, comportement spécial. Le reste est du mixage de vagues.
 
 Le **coût de pression** est ce que le spawner dépense pour acheter la créature ; les **points** sont ce que le joueur gagne en la tuant. Deux monnaies sans rapport, que le mot « points » a d'abord désignées toutes les deux à cinquante lignes d'écart. Le mot reste au joueur, qui le voit à l'écran.
 
@@ -603,7 +603,11 @@ Le rendu, lui, ne lit pas cette catégorie : il a l'élévation et le drapeau qu
 
 Le rendu iso a besoin d'un tri par `Y` écran : un tri par compartiments, pas un `sort.Slice` général à chaque frame.
 
-**À égalité, la clé doit être totale et stable.** Deux entités sur la même case sont départagées par leur `X` écran, puis par leur identifiant — index et génération. Sans ce dernier critère, l'ordre dépend du parcours du bassin, qui change à chaque suppression par échange : deux sprites superposés se relaieraient au premier plan d'une image à l'autre, et le scintillement se voit immédiatement.
+**À égalité, la clé doit être totale et stable.** Le tri range par seau de profondeur ; deux entités d'un même seau sont départagées par leur profondeur exacte, puis par leur abscisse écran, puis par leur sorte, et enfin par leur identifiant. Sans ces derniers critères, l'ordre dépend du parcours du bassin, qui change à chaque suppression par échange : deux sprites superposés se relaieraient au premier plan d'une image à l'autre, et le scintillement se voit immédiatement.
+
+**La sorte est un critère et non une décoration** : chaque bassin numérote ses entités pour lui seul, si bien qu'un ennemi et un projectile peuvent porter le même identifiant sans avoir rien de commun.
+
+**La génération n'entre pas dans la clé**, et le bassin refuse même de la rendre ici : il donne l'identifiant seul, jamais une référence complète, parce qu'une référence sortie pour un tri finirait conservée quelque part et l'invariant tomberait par la porte qu'on aurait ouverte. L'identifiant suffit à ce qu'on lui demande — ne jamais bouger, là où la place change parce qu'une *autre* entité est morte.
 
 **Le joueur passe devant tout ce qui partage sa profondeur.** C'est une exception assumée à la règle de tri : perdre son personnage sous un empilement d'ennemis est la pire chose qui puisse arriver à la lisibilité, et cela survient précisément au moment où l'on est encerclé, c'est-à-dire quand il faut voir clair.
 
@@ -810,6 +814,21 @@ Le jeu de pièces reste dans le lieu et ne remonte pas à la campagne, bien que 
 
 Deux conséquences à assumer. **L'unité de partage est la campagne**, pas le lieu — une campagne d'un seul lieu tient toujours dans un message, et cela donne une seule chose à partager au lieu de deux régimes. Et **le catalogue énumère des campagnes** : c'est le nom que l'auteur donne à ce qu'il a fait.
 
+Ce que le descripteur porte aujourd'hui, c'est l'identifiant, le nom lisible et le lieu de départ :
+
+```json
+{
+  "version_format": 1,
+  "identifiant": "demonstration",
+  "nom": "Démonstration",
+  "lieu_depart": "place"
+}
+```
+
+**Le graphe arrive à l'étape 8, avec les portes.** Il prendra la forme d'une liste de nœuds portant chacun ses sorties, ce qui donne une campagne linéaire quand chaque nœud n'en a qu'une et un choix de branche quand il en a deux. L'écrire maintenant ferait un champ que personne ne lit, et la validation qui l'accompagne — tout nœud atteignable depuis l'entrée, au moins un chemin complet, pas de nœud orphelin — n'aurait rien à valider.
+
+**Le nom du dossier et le champ `identifiant` s'accordent**, comme pour un lieu et pour la même raison : celui qui duplique une campagne pour en faire une variante renomme le dossier, oublie l'identifiant, et charge une copie qui se croit l'original.
+
 ### Un lieu
 
 Un lieu n'est pas une carte, c'est une **liste de pièces posées**. Quelques centaines d'octets.
@@ -851,23 +870,6 @@ Un dossier de lieu se reconnaît alors sans être ouvert, et renommer un lieu se
 `empreinte_jeu_pieces` est une somme de contrôle du jeu de pièces, pas seulement son numéro de version. Sans elle, une pièce retouchée sans changement de numéro produit des niveaux qui **se chargent en silence avec une géométrie différente** de celle qu'a construite leur auteur. Quelques octets de plus, et le message devient explicite au lieu d'être trompeur.
 
 Un niveau qui ne référence que des pièces officielles ne contient donc que des identifiants et des positions : le destinataire possède déjà les tuiles, les objets et les images. Mesuré sur un supermarché de douze pièces, ça fait 1189 octets lisibles, 902 compacts, **548 caractères une fois compressé et encodé en base64** — copiable dans un message.
-
-### Une campagne
-
-```json
-{
-  "version_format": 1,
-  "nom": "Descente",
-  "auteur": "stephane",
-  "entree": "supermarche_nuit",
-  "noeuds": [
-    { "id": "supermarche_nuit", "sorties": ["quartier_est", "quartier_ouest"] },
-    { "id": "quartier_est",     "sorties": ["parking_niveau3"] },
-    { "id": "quartier_ouest",   "sorties": ["parking_niveau3"] },
-    { "id": "parking_niveau3",  "sorties": [] }
-  ]
-}
-```
 
 ### La cuisson au chargement
 
@@ -1213,7 +1215,7 @@ type Pool[T any] struct {
 
 Ce que la struct ne porte pas est aussi décidé. Pas de vitesse stockée : une créature lit le champ de flux sous ses pieds à chaque pas. Pas de génération : elle appartient au bassin, pour que rien n'incite à la lire hors du `Handle` — voir plus bas. Les champs d'animation, `Cycle` et `Frame`, viendront avec les sprites.
 
-Le bassin est **générique**, et c'est ce qui met le mécanisme en facteur plutôt que de le recopier pour les ennemis, les projectiles, les gemmes, les caisses, les particules et les cadavres. Six copies seraient six endroits où tenir la règle, et une copie qui la manquerait ne ferait échouer aucun test : elle ferait qu'une référence périmée désigne une entité vivante.
+Le bassin est **générique**, et c'est ce qui met le mécanisme en facteur plutôt que de le recopier pour chaque sorte d'entité. Autant de copies seraient autant d'endroits où tenir la règle, et une copie qui la manquerait ne ferait échouer aucun test : elle ferait qu'une référence périmée désigne une entité vivante.
 
 Un `[]Enemy` de structures pleines plutôt qu'un `[]*Enemy`. À ce volume, l'argument du cache est secondaire — 300 structures tiennent en L2 et le temps d'image est dominé par les appels de dessin. Le vrai motif est **la pression sur le ramasse-miettes** : 300 objets alloués à chaque vague produisent les micro-saccades qui se voient.
 

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Le bassin d'entités de capacité fixe, et le Handle qui survit à ses échanges.
-// Le mécanisme est le même pour les six bassins qu'annoncent les invariants,
-// d'où le paramètre de type : six copies seraient six endroits où tenir une
-// règle qu'aucun test ne verrait manquer.
+// Le mécanisme est le même pour tous les bassins qu'annoncent les invariants,
+// d'où le paramètre de type : une copie par sorte ferait autant d'endroits où
+// tenir une règle qu'aucun test ne verrait manquer.
 
 package game
 

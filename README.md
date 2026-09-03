@@ -18,22 +18,20 @@ same configuration.
 
 ## Status
 
-**The game opens and can be walked, it cannot be played yet.** Steps 1 and 2 are
-delivered: the window shows a level, you move through it with the keyboard, and
-the horde closes in around obstacles.
+**You die here, and start over.** One place, one weapon, a horde that rises: the
+window opens, you move with the keyboard, creatures close in around obstacles and
+kill whoever stands still. The gems they drop raise your level, and every level
+up offers three cards. The scenery is coloured rectangles — the images exist, but
+nothing loads them yet.
 
-What is missing for this to be a game: dying and restarting, doors to open,
-crates to break, weapons to pick up, level-ups, and the chain of levels. The
-scenery is coloured rectangles — the images exist, but nothing loads them yet.
+The project follows a sixteen-step roadmap, published at each one. **What is done
+and what remains are not listed here**: both lists would live beside the
+documents that carry them, and would drift from them.
 
-What is settled: the simulation running three hundred creatures with no
-allocation per tick, the isometric rendering with its projection, camera and
-depth sort, the scenery generated with its manifest, and the characters
-generated as well — one body type per family, eight orientations, and the
-gameplay values in the same manifest as the rendering.
-
+- [`ROADMAP.md`](ROADMAP.md) — the steps, which are passed, and what is out of
+  scope for v1
+- [`CHANGELOG.md`](CHANGELOG.md) — what each version brought, dated
 - [`docs/conception.md`](docs/conception.md) — the full design (French)
-- [`ROADMAP.md`](ROADMAP.md) — the steps, and what is out of scope for v1
 
 ## Assets
 

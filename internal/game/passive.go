@@ -135,10 +135,17 @@ type rawPassives struct {
 type rawAxis struct {
 	manifest.Commentable
 
+	// Name et Phrase sont ce que la carte montre : son titre, et la ligne qui dit
+	// ce qu'elle fait.
 	Name   string `json:"nom"`
 	Phrase string `json:"phrase"`
-	Tiers  *int   `json:"paliers"`
+	// Tiers est le nombre de fois qu'on peut prendre l'axe. Épuisé, il sort du
+	// tirage, et c'est ce qui fait de sa borne un moment de jeu.
+	Tiers *int `json:"paliers"`
 
+	// Les deux pas, dont chaque axe porte le sien et refuse celui de l'autre.
+	// CadenceMs se retranche de l'écart entre deux salves, Tiles s'ajoute à la
+	// portée ; d'où l'unité qui les sépare, des millisecondes contre des tuiles.
 	CadenceMs *int     `json:"pas_ms,omitempty"`
 	Tiles     *float64 `json:"pas_tuiles,omitempty"`
 }
@@ -147,9 +154,13 @@ type rawAxis struct {
 type rawRelief struct {
 	manifest.Commentable
 
+	// Name et Phrase sont ce que la carte montre, comme pour un axe.
 	Name   string `json:"nom"`
 	Phrase string `json:"phrase"`
-	Heal   *int   `json:"soin"`
+	// Heal est la vie qu'elle rend, en points. C'est ce qui la rend
+	// situationnelle — précieuse quand on est bas, ignorable quand on est
+	// haut —, là où un gain d'expérience se rembourserait et serait toujours bon.
+	Heal *int `json:"soin"`
 }
 
 // passifs convertit la section, en signalant ce qui lui manque.

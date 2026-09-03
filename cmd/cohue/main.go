@@ -6,8 +6,8 @@
 // Cohue est un action-roguelite urbain en vue isométrique, sous pression de
 // horde.
 //
-// Le jeu se réduit pour l'instant à un lieu qu'on traverse sous la pression
-// d'une horde semée au montage : la feuille de route en donne les étapes.
+// Le jeu se réduit pour l'instant à un lieu qu'on traverse sous une horde qui
+// s'achète dans un budget de pression : la feuille de route en donne les étapes.
 package main
 
 import (
@@ -20,6 +20,7 @@ import (
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/render"
 	"github.com/sprimault/cohue/internal/session"
+	"github.com/sprimault/cohue/internal/ui"
 )
 
 // titreFenetre est ce que le gestionnaire de fenêtres affiche.
@@ -94,9 +95,6 @@ func (b *boucle) monter() {
 }
 
 // run monte le jeu et le fait tourner jusqu'à ce que le joueur quitte.
-//
-// La horde est semée au montage et n'arrive jamais par vagues : le spawner et sa
-// courbe de pression sont le sujet de l'étape 4.
 func run() error {
 	partie, err := session.Open(cohue.Assets, cohue.StartingCampaign, graineDeDepart)
 	if err != nil {
@@ -110,7 +108,13 @@ func run() error {
 	jeu := &boucle{partie: partie, hud: hud}
 	jeu.monter()
 
+	icones, err := ui.LoadIcons(cohue.Assets, cohue.InterfaceManifest)
+	if err != nil {
+		return err
+	}
+
 	ebiten.SetWindowTitle(titreFenetre)
+	ebiten.SetWindowIcon(icones)
 	ebiten.SetWindowSize(render.Width, render.Height)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	return ebiten.RunGame(jeu)

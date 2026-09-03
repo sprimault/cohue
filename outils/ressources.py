@@ -531,6 +531,40 @@ def police(sortie):
     return defauts
 
 
+def icones(sortie):
+    """Vérifie que les icônes déclarées existent et sont carrées.
+
+    Le manifeste ne dit que des noms de fichiers : la taille de chacun se lit
+    dans son image, et c'est ce qui évite une seconde description du dessin. En
+    échange, rien d'autre que ce contrôle ne rattrape une taille retirée de la
+    liste du générateur sans que le fichier disparaisse — le manifeste
+    n'annoncerait plus une image qui reste au dépôt, et le jeu s'ouvrirait avec
+    une icône de moins sans un mot.
+
+    Carrées parce qu'un gestionnaire de fenêtres qui reçoit un rectangle
+    l'étire : l'icône ne serait pas refusée, elle serait déformée.
+    """
+    chemin = sortie / "interface" / "manifeste.json"
+    if not chemin.exists():
+        return []
+
+    entree = _entrees(chemin).get("icone")
+    if entree is None:
+        return [("interface/manifeste.json", "aucune icone declaree")]
+
+    defauts = []
+    for fichier in entree["fichiers"]:
+        image = chemin.parent / fichier
+        if not image.exists():
+            defauts.append((f"interface/{fichier}", "icone annoncee mais absente"))
+            continue
+        with Image.open(image) as ouverte:
+            if ouverte.width != ouverte.height:
+                defauts.append((f"interface/{fichier}",
+                                f"{ouverte.width}x{ouverte.height}, une icone est carree"))
+    return defauts
+
+
 def renvois_de_sons(sortie):
     """Vérifie que chaque son nommé par un objet existe réellement.
 
@@ -679,6 +713,7 @@ def main():
     defauts += renvois_d_objets(options.sortie)
     defauts += formes(options.sortie)
     defauts += police(options.sortie)
+    defauts += icones(options.sortie)
     defauts += controler_sons(options.sortie)
     defauts += renvois_de_sons(options.sortie)
     sons = len(list(options.sortie.rglob("*.wav")))

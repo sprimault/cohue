@@ -89,6 +89,10 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   désigne la carte qu'elle montre. Les chiffres reviennent aux emplacements, qui
   les gardent toute la partie — une carte mal choisie se rattrape au niveau
   suivant, un aimant déclenché à vide est perdu.
+- **La fenêtre a son icône**, dessinée par `outils/interface.py` en trois tailles
+  parmi lesquelles le système choisit : une figure claire cernée de six autres,
+  ce que le jeu raconte en seize pixels. Sa palette est la sienne et ne suit pas
+  celle du rendu, dont les aplats sont provisoires.
 - **Un repère se pose en jouant.** Espace horodate l'instant dans le journal de
   la partie, avec le niveau atteint et les paliers pris sur chaque axe. Le
   bandeau le confirme deux secondes sous le minuteur : marquer ce qu'on vient de
@@ -247,6 +251,10 @@ pauses the game to offer **three cards**, one of which you take.
   points at the card it takes. Numbers go back to the slots, which keep them for
   the whole run — a badly chosen card is made up for at the next level, a magnet
   fired with nothing held is lost.
+- **The window has an icon**, drawn by `outils/interface.py` at three sizes for
+  the system to choose from: a bright figure ringed by six others, which is what
+  the game is about in sixteen pixels. Its palette is its own and does not follow
+  the renderer's, whose flat colours are temporary.
 - **A mark can be dropped while playing.** Space timestamps the moment in the
   run's log, along with the level reached and the tiers taken on each axis. The
   banner confirms it for two seconds under the timer: marking what you have just

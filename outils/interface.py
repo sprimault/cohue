@@ -1,7 +1,7 @@
 # Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 # SPDX-License-Identifier: Apache-2.0
 
-"""Rastérise la police en planche de glyphes, avec son manifeste.
+"""Rastérise la police en planche de glyphes et dessine l'icône de fenêtre.
 
     python outils/interface.py                     -> dans ./assets/interface
     python outils/interface.py --sortie /tmp/a     -> ailleurs
@@ -105,6 +105,76 @@ REGLAGES = {
 }
 
 
+# L'icône de fenêtre se dessine sur une grille de cases, jamais en pixels.
+#
+# Chaque case devient un carré de côté entier, si bien que les trois tailles
+# portent le même dessin sans qu'aucune soit l'agrandissement d'une autre : une
+# mise à l'échelle interpolerait, et le pixel entier tombe avec elle.
+GRILLE_ICONE = 16
+
+# Les tailles parmi lesquelles le gestionnaire de fenêtres choisit selon
+# l'endroit où il l'affiche. Toutes multiples de la grille, faute de quoi une
+# case ne tomberait pas sur un compte entier de pixels.
+TAILLES_ICONE = (16, 32, 48)
+
+# **La palette de l'icône est la sienne, et ne descend pas du rendu.**
+#
+# Les aplats de `internal/render` sont provisoires et disparaîtront avec les
+# sprites ; les recopier ici ferait deux descriptions d'une même couleur, dont
+# l'une survivrait à l'autre sans que rien ne les confronte. Une icône est une
+# composition autonome — ce qu'elle emprunte au jeu est son sujet, pas ses
+# teintes.
+#
+# Le liseré n'est pas décoratif : sans lui, un carré presque noir se fond dans
+# une barre des tâches sombre, et l'icône disparaît sur la moitié des postes.
+PALETTE_ICONE = {
+    "fond": (20, 22, 30, 255),
+    "bord": (58, 62, 74, 255),
+    "joueur": (240, 208, 110, 255),
+    "horde": (168, 70, 66, 255),
+}
+
+# Les assaillants, par le coin de leur bloc de deux cases sur deux.
+#
+# Six et non quatre : posés aux seuls coins, ils se lisent comme un cadre. Ce
+# qu'il faut donner à voir est un encerclement, donc une répartition sans
+# échappée.
+HORDE_ICONE = ((2, 2), (12, 2), (2, 12), (12, 12), (7, 1), (7, 13))
+
+# Le joueur, ligne par ligne : ordonnée, abscisse de départ, largeur.
+#
+# Un losange à pente d'une case, et non la projection 2:1 du jeu : à seize
+# pixels, celle-ci rendrait une barre de trois de haut qu'on ne lit plus comme
+# une figure. L'icône dit le sujet, elle ne reproduit pas la caméra.
+JOUEUR_ICONE = ((5, 7, 2), (6, 6, 4), (7, 5, 6), (8, 4, 8),
+                (9, 5, 6), (10, 6, 4), (11, 7, 2))
+
+
+def icone(taille):
+    """Rend l'icône de fenêtre à une taille, en carrés de côté entier."""
+    cote = taille // GRILLE_ICONE
+    image = Image.new("RGBA", (taille, taille), PALETTE_ICONE["fond"])
+    dessin = ImageDraw.Draw(image)
+
+    def bloc(x, y, largeur, hauteur, teinte):
+        dessin.rectangle((x * cote, y * cote,
+                          (x + largeur) * cote - 1, (y + hauteur) * cote - 1),
+                         fill=teinte)
+
+    dernier = GRILLE_ICONE - 1
+    for i in range(GRILLE_ICONE):
+        bloc(i, 0, 1, 1, PALETTE_ICONE["bord"])
+        bloc(i, dernier, 1, 1, PALETTE_ICONE["bord"])
+        bloc(0, i, 1, 1, PALETTE_ICONE["bord"])
+        bloc(dernier, i, 1, 1, PALETTE_ICONE["bord"])
+
+    for x, y in HORDE_ICONE:
+        bloc(x, y, 2, 2, PALETTE_ICONE["horde"])
+    for y, x, largeur in JOUEUR_ICONE:
+        bloc(x, y, largeur, 1, PALETTE_ICONE["joueur"])
+    return image
+
+
 def absents(police):
     """Rend les glyphes que la fonte ne dessine pas.
 
@@ -164,6 +234,10 @@ def main():
     image, cellule, ligne_de_base, avances = planche(police)
     image.save(o.sortie / "police.png")
 
+    icones = [f"icone_{taille}.png" for taille in TAILLES_ICONE]
+    for taille, fichier in zip(TAILLES_ICONE, icones):
+        icone(taille).save(o.sortie / fichier)
+
     ecrire_manifeste(o.sortie / "manifeste.json", "interface.py", {
         "version_format": 1,
         "interface": {
@@ -176,11 +250,17 @@ def main():
                 "glyphes": GLYPHES,
                 "avances": avances,
             },
+            # Les fichiers seuls : la taille de chacun se lit dans son image, et
+            # la déclarer ici en ferait une seconde description que rien ne
+            # confronterait au dessin.
+            "icone": {"fichiers": icones},
             "reglages": REGLAGES,
         },
     })
     print(f"police    {len(GLYPHES)} glyphes, cellule {cellule[0]}x{cellule[1]},"
           f" ligne de base {ligne_de_base}")
+    print(f"icone     {len(icones)} tailles, "
+          + "x".join(str(t) for t in TAILLES_ICONE))
 
 
 if __name__ == "__main__":

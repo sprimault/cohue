@@ -34,6 +34,7 @@ index.
 | où convertir entre le monde et l'écran | [La projection isométrique](#la-projection-isométrique-ne-se-recalcule-pas) |
 | ce qu'un test doit garder, et comment | [Tests](#11-tests) |
 | pourquoi un test échoue sur un diff qui ne l'atteint pas | [Un rouge que le diff ne peut pas atteindre](#un-rouge-que-le-diff-ne-peut-pas-atteindre-vient-de-linstrument) |
+| pourquoi un test passe alors qu'il exécute le code fautif | [Un instrument qui moyenne](#un-instrument-qui-moyenne-ne-voit-quun-coût-que-chaque-exécution-paie) |
 | pourquoi une image de relecture juste montre autre chose | [Un artefact capture un instant](#un-artefact-de-relecture-capture-un-instant-autant-quun-état) |
 | si un test vert prouve quelque chose | [Quatre façons d'avoir un test vert](#quatre-façons-davoir-un-test-vert-qui-ne-prouve-rien) |
 | contre quoi éprouver un test qui garde une décision | [L'implémentation abandonnée](#un-test-qui-garde-une-décision-séprouve-contre-limplémentation-abandonnée) |
@@ -814,7 +815,9 @@ données vaut ici d'un test et de ce qu'il promet.
 Cette règle porte sur **ce que** l'instrument mesure, et rien sur le moment où il
 le mesure : [Un artefact de relecture capture un instant autant qu'un
 état](#un-artefact-de-relecture-capture-un-instant-autant-quun-état) garde ce
-qu'elle laisse passer.
+qu'elle laisse passer. Elle ne dit rien non plus de ce que l'instrument est
+*capable* de mesurer, qui est la troisième face — [Un instrument qui
+moyenne](#un-instrument-qui-moyenne-ne-voit-quun-coût-que-chaque-exécution-paie).
 
 ### Un artefact de relecture capture un instant autant qu'un état
 
@@ -839,6 +842,43 @@ La parade est vérifiable plutôt que vigilante : **un artefact s'arrête sur
 l'événement qu'il montre, pas sur un compte de pas.** Un compte est une
 approximation de l'événement, et une approximation qui se trouve juste
 aujourd'hui cesse de l'être au premier réglage.
+
+Le *quand* réglé, reste ce que l'instrument peut rendre : [Un instrument qui
+moyenne](#un-instrument-qui-moyenne-ne-voit-quun-coût-que-chaque-exécution-paie)
+garde le cas où l'instant et la mesure sont tous deux justes, et où le résultat
+ne dit rien quand même.
+
+### Un instrument qui moyenne ne voit qu'un coût que chaque exécution paie
+
+Troisième face du même sujet, après ce que l'instrument mesure et le moment où il
+le mesure : **ce qu'il est capable de mesurer.** Celle-ci se vérifie avant
+d'écrire, en lisant la documentation de l'outil, là où les deux autres se
+découvrent en éprouvant.
+
+`testing.AllocsPerRun` rend une moyenne arrondie à l'entier. Un coût payé par une
+exécution sur trente rend donc zéro, et le test passe en ayant bel et bien
+exécuté le code fautif. Ce n'est pas un scénario mal choisi — le scénario visait
+juste — c'est l'instrument qui ne peut pas rendre autre chose.
+
+Le cas : trois allocations à l'ouverture d'un choix de montée de niveau. Le garde
+en place ne les atteignait pas, son plancher étant hors de portée de sa fenêtre ;
+**et le second scénario, écrit exprès pour les atteindre, est resté vert lui
+aussi** — trente ouvertures en mille ticks font un dixième d'allocation par tick,
+soit zéro. Il a fallu que chaque exécution mesurée ouvre un choix, ce qu'un
+plancher d'un tick obtient.
+
+**Le danger n'est pas le premier test, c'est le second.** Un garde aveugle qui
+vise le mauvais endroit se soupçonne ; un garde aveugle qui vise le bon endroit a
+l'air d'avoir été corrigé, et plus personne ne le rouvre. C'est le renversement
+de [Deux descriptions](#deux-descriptions-de-la-même-chose-finissent-par-diverger)
+dans son cas aggravé : l'objet censé signaler le défaut devient ce qui le
+couvre.
+
+Elle ne condamne aucun outil, et c'est ce qui la borne : elle vaut pour **tout
+événement rare mesuré par une moyenne**, et le remède n'est jamais de changer
+d'instrument mais de faire entrer l'événement dans chaque exécution. Un réglage
+extrême y est légitime — ce qu'on garde n'est pas le réglage, c'est ce que
+l'événement coûte.
 
 ### Quatre façons d'avoir un test vert qui ne prouve rien
 

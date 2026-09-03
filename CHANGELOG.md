@@ -40,7 +40,7 @@ de version sont ce que lit un auteur de niveau étranger avant de savoir s'il
 doit reprendre son travail. Ce préambule reste en français : il n'est jamais
 publié, et explique les conventions du dépôt à qui y contribue.
 
-## [Non publié]
+## [0.3.0] — 2026-09-03 — La boucle mort → relance
 
 **On y meurt, et on relance.** La horde qui convergeait sans effet blesse
 désormais au contact : collé sans se dégager, le joueur tombe en cinq secondes.
@@ -199,10 +199,14 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
 - **Les gemmes tombées au contact se ramassent aussitôt**, la horde mourant
   collée au joueur. On en voit peu au sol, et c'est normal tant que rien ne tue
   à distance.
-- **Les chiffres de la courbe ne sont pas encore jugés.** Ils sont calés contre
-  une sonde qui tourne en cercle et prend toujours la première carte — c'est-à-
-  dire un joueur médiocre —, ce qui suffit à donner à la courbe une forme
-  plausible et pas à trancher si elle est bonne. Seule une séance de jeu le dira.
+- **Le lieu livré ne convoque qu'une créature**, le Badaud. Les six autres
+  profils existent et attendent ce qui les rendra reconnaissables à l'écran :
+  une horde de sept sortes qu'aucune couleur ne distingue rend la difficulté
+  illisible.
+- **La courbe de pression n'est pas jugée.** Une séance de jeu a tranché ce
+  qu'elle devait trancher — le déplacement et le tir —, pas l'équilibrage de fin
+  de run : jouée contre une seule sorte de créature, elle ne dit rien de ce que
+  vaudra la horde complète. Une partie peut donc ne pas se terminer.
 
 ***
 
@@ -357,10 +361,13 @@ pauses the game to offer **three cards**, one of which you take.
 - **Gems dropped in contact are picked up at once**, since the horde dies
   pressed against the player. Few are seen on the ground, and that is expected
   as long as nothing kills at a distance.
-- **The curve's numbers have not been judged yet.** They are calibrated against a
-  probe that circles and always takes the first card — a mediocre player, that is
-  — which is enough to give the curve a plausible shape and not enough to settle
-  whether it is a good one. Only a play session will say.
+- **The shipped place summons a single creature**, the Badaud. The other six
+  profiles exist and are waiting for what will make them recognisable on screen:
+  a horde of seven kinds that no colour tells apart makes difficulty unreadable.
+- **The pressure curve has not been judged.** A play session settled what it was
+  meant to settle — movement and shooting —, not late-run balance: played against
+  a single kind of creature, it says nothing about what the full horde will be
+  worth. A run may therefore fail to end.
 
 ## [0.2.1] — 2026-09-01 — Ce que la relecture a corrigé
 

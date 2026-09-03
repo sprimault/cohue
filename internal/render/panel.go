@@ -187,8 +187,9 @@ func minuteur(ecoule game.Tick) string {
 //
 // Après les entités et avant le voile de mort : par-dessus le monde, parce
 // qu'une créature qui passerait devant la jauge de vie la rendrait illisible au
-// pire moment ; sous le voile, parce que le niveau atteint et le temps tenu font
-// partie de ce que le joueur relit en mourant.
+// pire moment ; sous le voile que `peindreMort` pose, parce que le niveau atteint
+// et le temps tenu font partie de ce que le joueur relit en mourant — c'est pour
+// cela que cet écran-là n'a que deux lignes.
 func (s *Screen) peindreBandeau(ecran *ebiten.Image) {
 	if s.hud == nil {
 		return

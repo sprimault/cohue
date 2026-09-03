@@ -248,10 +248,10 @@ func insertion(s []entite) {
 // produit aujourd'hui : un seau fait une tuile, soit seize pixels d'ordonnée,
 // alors que deux entités d'un même seau sont le plus souvent très écartées en
 // abscisse — celles qui se chevauchent à l'écran appartiennent à des seaux
-// différents, et c'est le premier critère qui les range. Ce qui les atteindra est
-// l'anneau d'apparition de l'étape 4, qui superpose des créatures par
-// construction. Le seau et l'exception du joueur, eux, sont éprouvés : les
-// inverser change la planche.
+// différents, et c'est le premier critère qui les range. Ce qui les atteindrait
+// est deux entités posées exactement au même point du monde : l'anneau
+// d'apparition peut le produire, et rien ne dit qu'il l'ait déjà fait. Le seau
+// et l'exception du joueur, eux, sont éprouvés : les inverser change la planche.
 //
 // **Les gemmes ne les atteignent pas non plus**, contrairement à ce qu'on
 // pourrait croire d'un tas : deux créatures meurent à des positions distinctes,

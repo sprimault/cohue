@@ -33,9 +33,10 @@ func (s *Screen) WantsRestart() bool {
 // raconter sa mort : l'écran qui la masquerait retirerait ce qu'il y a à
 // comprendre — où était la horde, par où il aurait pu passer.
 //
-// Deux lignes et rien d'autre. Ce qui l'a tué, ce qu'il allait obtenir et à
-// combien il en était sont une extension, et supposent un score et des niveaux
-// qui n'existent pas encore.
+// Deux lignes et rien d'autre, parce que le reste est déjà là : `peindreBandeau`
+// pose le bandeau sous le voile, et le niveau atteint comme le temps tenu se
+// lisent au travers. Ce qui manque est le score, qui suppose l'enchaînement de
+// salles — c'est lui qui donne un total, et le bonus de temps qui s'y oppose.
 func (s *Screen) peindreMort(ecran *ebiten.Image) {
 	if s.hud == nil {
 		return

@@ -156,56 +156,81 @@ func TestLaHordeFinitParBlesser(t *testing.T) {
 	}
 }
 
-// TestLeVoileDureAutantQueLeContact garde ce que le voile suit.
+// TestLAlerteSuitLaVieEtNonLeContact garde ce que l'alerte signale.
 //
-// **Allumé tant que la horde coûte de la vie**, quelle que soit la durée du
-// contact : c'est la première moitié, et elle tomberait sur un voile qui
-// s'éteindrait sous une horde toujours collée, c'est-à-dire précisément quand le
-// joueur est en train de mourir.
+// **Elle ne s'allume pas sous les coups**, et c'est ce que la première moitié
+// sépare : une horde collée qui entame la vie sans la faire descendre sous le
+// seuil ne l'allume pas. C'est ce qui distingue cette version de celle qu'on
+// avait d'abord écrite, où le voile suivait le contact et battait à chaque
+// créature qui frôle.
 //
-// **Éteint après le contact, et pas au premier tick.** La seconde moitié tient
-// les deux bouts : encore allumé au tick qui suit le dernier contact, parti une
-// fois la durée écoulée. Sans le premier, une créature qui entre et sort de
-// portée ferait battre l'écran entier.
+// **Elle s'allume au franchissement du seuil et y reste**, quel que soit le
+// nombre de ticks : c'est un état lu, pas un compteur qui s'épuise. La seconde
+// moitié le tient en laissant tourner le contact bien après.
 //
-// **Ce qu'il ne garde pas, et ne peut pas garder** : la façon dont le voile est
-// entretenu pendant le contact. `World.Hurt` rendant un booléen, le reposer à
-// chaque tick ou le rallumer quand il retombe à zéro produisent le même allumé —
-// éprouvé contre l'autre implémentation, ce cas passe sur les deux. La godoc de
-// `eclairContact` dit ce qui les séparerait.
-//
-// La durée se lit dans `eclairContact` plutôt que de s'écrire ici : ce que le
-// test garde est que le voile suit le contact, jamais le chiffre qui le règle.
-func TestLeVoileDureAutantQueLeContact(t *testing.T) {
+// Le seuil se lit dans le profil livré plutôt que de s'écrire ici, et la
+// première assertion le confronte à la vie de départ : sans elle, un manifeste
+// où les deux seraient égaux rendrait le cas vide, l'alerte étant allumée dès le
+// premier tick.
+func TestLAlerteSuitLaVieEtNonLeContact(t *testing.T) {
 	w, profils := champSansTir(t)
-	if w.Hurt() {
-		t.Fatal("le voile est allumé avant tout contact")
+	seuil := profils.Player.LowHealth
+	if seuil <= 0 || seuil >= profils.Player.Health {
+		t.Fatalf("seuil d'alerte à %d pour %d de vie : le cas ne teste rien",
+			seuil, profils.Player.Health)
+	}
+	if w.InDanger() {
+		t.Fatal("l'alerte est allumée à pleine vie")
 	}
 
 	coller(t, w, indexDuProfil(t, profils, "marcheur"), 1)
 
-	// Plus long que la durée du voile : c'est ce qui distingue « allumé pendant
-	// le contact » de « allumé un instant au début ».
-	for range 2*eclairContact + 1 {
+	// Assez pour entamer la vie, pas pour atteindre le seuil : c'est là que
+	// l'alerte doit rester éteinte alors que le joueur encaisse.
+	for w.Health() > seuil+1 && w.Health() > 0 {
+		if w.InDanger() {
+			t.Fatalf("alerte allumée à %d points, seuil %d", w.Health(), seuil)
+		}
 		w.subir()
 	}
-	if !w.Hurt() {
-		t.Error("le voile s'est éteint sous une horde toujours collée")
-	}
 
-	for w.ennemis.Len() > 0 {
-		w.ennemis.RemoveAt(0)
-	}
-
-	w.subir()
-	if !w.Hurt() {
-		t.Error("le voile s'éteint au premier tick sans contact, il clignoterait")
-	}
-	for range eclairContact {
+	for w.Health() > seuil {
 		w.subir()
 	}
-	if w.Hurt() {
-		t.Errorf("le voile dure plus de %d ticks après la fin du contact", eclairContact)
+	if !w.InDanger() {
+		t.Fatalf("alerte éteinte à %d points, seuil %d", w.Health(), seuil)
+	}
+
+	// Elle ne s'épuise pas : la vie ne remonte pas toute seule, donc rien ne doit
+	// la rendre au calme tant que le joueur vit.
+	for range 3 * TPS {
+		w.subir()
+		if w.Alive() && !w.InDanger() {
+			t.Fatalf("alerte retombée à %d points, seuil %d", w.Health(), seuil)
+		}
+	}
+}
+
+// TestLAlerteSEteintALaMort garde ce que l'écran de mort reprend.
+//
+// Mort, le joueur n'est plus en danger : c'est fait. Sans ce cas, une alerte
+// laissée allumée sous le voile de mort durerait jusqu'à la relance, et le seul
+// endroit qui l'aurait dit est un écran qu'aucun test ne peut regarder.
+func TestLAlerteSEteintALaMort(t *testing.T) {
+	w, profils := champSansTir(t)
+	coller(t, w, indexDuProfil(t, profils, "marcheur"), 10)
+
+	for range 60 * TPS {
+		w.subir()
+		if !w.Alive() {
+			break
+		}
+	}
+	if w.Alive() {
+		t.Fatal("le joueur survit : le cas n'atteint pas la mort")
+	}
+	if w.InDanger() {
+		t.Error("l'alerte reste allumée après la mort")
 	}
 }
 

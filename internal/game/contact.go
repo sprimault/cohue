@@ -19,12 +19,6 @@ package game
 // C'est la règle du chapitre 5 de la conception, et la seule de ce fichier qui
 // ne soit pas mécanique.
 func (w *World) subir() {
-	// Le voile s'éteint d'abord, et se rallume plus bas si le contact coûte
-	// encore. L'ordre inverse le ferait retomber d'un tick à chaque fois qu'il
-	// vient d'être posé, donc ne jamais atteindre sa durée.
-	if w.eclairSubi > 0 {
-		w.eclairSubi--
-	}
 	if !w.Alive() {
 		return
 	}
@@ -43,7 +37,6 @@ func (w *World) subir() {
 	if somme == 0 {
 		return
 	}
-	w.eclairSubi = eclairContact
 
 	// **L'accumulateur compte en points-ticks, et c'est ce qui évite une
 	// troisième échelle.** Vingt points par seconde à soixante ticks font un
@@ -97,9 +90,22 @@ func (w *World) MaxHealth() int { return w.profils.Player.Health }
 // aucun état parallèle ne peut en diverger.
 func (w *World) Alive() bool { return w.vie > 0 }
 
-// Hurt dit si le joueur encaisse, ou vient tout juste d'encaisser.
+// InDanger dit si la vie est descendue sous le seuil d'alerte du profil.
 //
-// Ce que le rendu en fait lui appartient, comme pour l'éclair d'une créature
-// touchée : la simulation dit qu'il y a contact, elle ne dit pas qu'on peint un
-// voile rouge.
-func (w *World) Hurt() bool { return w.eclairSubi > 0 }
+// **Un état lu, jamais un événement retenu.** C'est ce qui distingue ce signal
+// de celui qu'on avait d'abord écrit — un voile posé au contact —, et ce qui le
+// rend incapable de battre : la vie ne remonte que par une fiole, si bien que le
+// seuil se franchit rarement et dans un sens. Un retour attaché au contact
+// clignotait à chaque créature qui frôle, sur toute la surface de l'écran.
+//
+// **Et il porte ce que la scène ne montre pas.** Qu'une créature touche se voit
+// — elle est collée au personnage, au centre du regard ; qu'il ne reste que
+// quelques points de vie ne se lit qu'en haut à gauche, là où l'on ne regarde
+// pas en kitant. Un signal redit rarement ce qui est déjà à l'image.
+//
+// Mort, le joueur n'est plus en danger : c'est fait. L'écran de mort prend le
+// relais, et laisser l'alerte allumée sous lui la ferait durer jusqu'à la
+// relance.
+func (w *World) InDanger() bool {
+	return w.Alive() && w.vie <= w.profils.Player.LowHealth
+}

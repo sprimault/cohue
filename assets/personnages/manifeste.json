@@ -12,6 +12,7 @@
       "rayon_tuiles": 0.125,
       "vie": 100,
       "plafond_degats_s": 20,
+      "seuil_alerte_vie": 30,
       "origine": "figurine générée",
       "cote": 64,
       "appui": [

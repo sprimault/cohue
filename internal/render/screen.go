@@ -45,6 +45,19 @@ const (
 	Height = 540
 )
 
+// La vignette de danger : jusqu'où elle mord sur l'écran, et en combien de
+// paliers d'opacité.
+//
+// Quarante-huit pixels font une tuile et demie de haut, assez pour se voir en
+// périphérie sans entrer dans la zone où l'on suit son personnage. Ces deux
+// nombres sont des pixels du tampon et n'appartiennent donc qu'au rendu — le
+// manifeste porte la teinte, qui est un choix d'apparence, pas cette géométrie
+// qui découle de la taille du tampon.
+const (
+	epaisseurVignette = 48
+	paliersVignette   = 6
+)
+
 // Les teintes du rendu provisoire, qui tiendront jusqu'à ce que l'atlas entre.
 //
 // Elles ne cherchent pas à ressembler à un lieu : ce sont trois états de la
@@ -220,7 +233,7 @@ func (s *Screen) Draw(ecran *ebiten.Image) {
 	ecran.Fill(fond)
 	s.peindreSol(ecran)
 	s.peindreEntites(ecran)
-	s.peindreDegat(ecran)
+	s.peindreDanger(ecran)
 	s.peindreBandeau(ecran)
 	if !s.monde.Alive() {
 		s.peindreMort(ecran)
@@ -241,21 +254,38 @@ func (s *Screen) Layout(largeurFenetre, hauteurFenetre int) (int, int) {
 	return Width, Height
 }
 
-// peindreDegat pose le voile rouge tant que la horde coûte de la vie.
+// peindreDanger cerne l'écran de rouge quand la vie passe sous son seuil.
+//
+// **Une vignette de bord et non un aplat plein**, et c'est ce que l'aplat a
+// coûté : teinté en entier, le sol se rapprochait de la teinte de la horde, si
+// bien que les créatures s'en détachaient moins au moment précis où il faut voir
+// pour s'échapper. La vignette laisse le centre intact et se lit malgré tout, la
+// vision périphérique étant ce à quoi un bord s'adresse.
 //
 // **Après les entités et sous le bandeau.** Par-dessus le monde, parce que c'est
-// lui qu'on regarde en encaissant et que le voile doit s'y voir ; sous le
-// bandeau, parce que teinter la jauge de vie en rouge la rendrait illisible au
-// moment précis où elle décide de tout.
+// lui qu'on regarde ; sous le bandeau, parce que teinter la jauge de vie en
+// rouge la rendrait illisible au moment où elle décide de tout.
 //
-// Un aplat plein écran et non un liseré de bord : ce que le chapitre 5 de la
-// conception demande est de sentir la pression, pas de la localiser — le contact
-// vient de partout, et un bord accrocherait l'œil hors du personnage.
-func (s *Screen) peindreDegat(ecran *ebiten.Image) {
-	if s.hud == nil || !s.monde.Hurt() {
+// Le dégradé vient de l'empilement et non d'une image : chaque bande couvre la
+// précédente en s'éloignant moins du bord, si bien que l'opacité croît par
+// paliers vers l'arête sans qu'aucune teinte de plus soit déclarée.
+//
+// **Six paliers et non trois**, ce qui n'est pas un réglage esthétique : à trois,
+// la marche fait seize pixels et la vignette se lit comme un cadre d'interface,
+// c'est-à-dire comme un élément posé sur le jeu plutôt que comme un état du
+// joueur. Huit pixels la ramènent à ce qu'elle doit être, une teinte qui monte.
+func (s *Screen) peindreDanger(ecran *ebiten.Image) {
+	if s.hud == nil || !s.monde.InDanger() {
 		return
 	}
-	s.hud.Rect(ecran, 0, 0, Width, Height, s.hud.Color("voile_degat"))
+	teinte := s.hud.Color("vignette_danger")
+	for palier := range paliersVignette {
+		e := epaisseurVignette * (paliersVignette - palier) / paliersVignette
+		s.hud.Rect(ecran, 0, 0, Width, e, teinte)
+		s.hud.Rect(ecran, 0, Height-e, Width, e, teinte)
+		s.hud.Rect(ecran, 0, e, e, Height-2*e, teinte)
+		s.hud.Rect(ecran, Width-e, e, e, Height-2*e, teinte)
+	}
 }
 
 // peindreSol pose la face de chaque case visible, teintée par son coût.

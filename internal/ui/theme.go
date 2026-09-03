@@ -25,7 +25,7 @@ import (
 // couleur qu'on croyait avoir réglée resterait celle d'avant.
 var teintesRequises = []string{
 	"cadre_fond", "cadre_bord", "cadre_choisi", "bandeau_fond",
-	"jauge_fond", "jauge_vie", "jauge_experience", "voile_degat",
+	"jauge_fond", "jauge_vie", "jauge_experience", "vignette_danger",
 	"texte", "texte_attenue", "texte_valeur", "texte_contour",
 }
 

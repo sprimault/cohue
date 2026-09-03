@@ -42,23 +42,6 @@ const separationScale = One / 8
 // appartient.
 const eclairImpact Tick = 4
 
-// eclairContact est ce que dure le voile de dégât après le dernier tick de
-// contact, en ticks.
-//
-// **Ce chiffre ne règle que la sortie**, le voile restant allumé tant que le
-// contact coûte de la vie : l'écran porte la durée de la pression, là où la
-// conception range à part le son, qui en marque l'entrée. Six ticks parce qu'une
-// créature qui entre et sort de portée ferait sinon battre l'écran entier, ce
-// qui est le pire signal possible sur une surface pleine.
-//
-// **Il ne se voit qu'à la sortie, et c'est ce qui borne ce qu'un test peut en
-// garder.** `World.Hurt` rend un booléen : sous un contact tenu, un voile reposé
-// à chaque tick et un voile rallumé dès qu'il retombe à zéro sont le même
-// allumé, et aucun scénario ne les sépare. La forme retenue est la plus directe,
-// pas la seule correcte — le jour où le rendu lira une intensité plutôt qu'un
-// oui-non, elles cesseront d'être équivalentes et il faudra choisir.
-const eclairContact Tick = 6
-
 // rabattement est la distance sous laquelle une créature vise le joueur plutôt
 // que la cellule suivante du champ de flux, en tuiles.
 //
@@ -107,15 +90,6 @@ type World struct {
 	// Il porte ce qui n'a pas encore fait un point entier ; sa raison d'être est
 	// dans `subir`.
 	degatsSubis int
-	// eclairSubi est ce qui reste du voile de dégât, en ticks.
-	//
-	// Purement cosmétique, et c'est ce qui le tient hors de l'empreinte d'état :
-	// il ne décide de rien et ne consomme aucun tirage. Il vit quand même ici
-	// parce que c'est la simulation qui sait quand le contact coûte — le rendu
-	// n'a pas la somme des dégâts du tick, seulement la vie après coup, et la
-	// déduire d'une vie qui baisse manquerait les ticks où l'accumulateur n'a pas
-	// encore fait un point entier.
-	eclairSubi Tick
 	// cooldown est ce qui reste à attendre avant le prochain tir. Il descend à
 	// zéro et y demeure : sans cible, l'arme ne tire pas et ne consomme rien.
 	cooldown Tick

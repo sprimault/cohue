@@ -76,6 +76,12 @@ type Player struct {
 	// d'ennemis au contact. Sans lui, un encerclement tue instantanément et la
 	// mort devient illisible.
 	DamageCap int
+	// LowHealth est la vie sous laquelle l'écran signale le danger, en points.
+	//
+	// Il vit avec la vie et non dans le manifeste d'interface, bien que rien
+	// dans la simulation ne le lise : il s'y compare, et l'en séparer le
+	// laisserait derrière le jour où la vie change de valeur.
+	LowHealth int
 }
 
 // EnemyProfile est ce qu'une sorte d'ennemi partage avec toutes ses instances.
@@ -242,6 +248,7 @@ type rawProfile struct {
 	TilesPerSec *float64 `json:"vitesse_tuiles_s,omitempty"`
 	Health      *int     `json:"vie,omitempty"`
 	DamageCap   *int     `json:"plafond_degats_s,omitempty"`
+	LowHealth   *int     `json:"seuil_alerte_vie,omitempty"`
 
 	RelSpeed     *float64 `json:"vitesse_relative,omitempty"`
 	Hits         *int     `json:"touches,omitempty"`
@@ -316,6 +323,7 @@ var champsConditionnels = []struct {
 	{"vitesse_tuiles_s", "un joueur", estRole(rolePlayer), func(p rawProfile) bool { return p.TilesPerSec != nil }},
 	{"vie", "un joueur", estRole(rolePlayer), func(p rawProfile) bool { return p.Health != nil }},
 	{"plafond_degats_s", "un joueur", estRole(rolePlayer), func(p rawProfile) bool { return p.DamageCap != nil }},
+	{"seuil_alerte_vie", "un joueur", estRole(rolePlayer), func(p rawProfile) bool { return p.LowHealth != nil }},
 
 	{"vitesse_relative", "un ennemi ou une ambiance", nonJoueur, func(p rawProfile) bool { return p.RelSpeed != nil }},
 	{"touches", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Hits != nil }},
@@ -393,6 +401,7 @@ func (p rawProfile) joueur() Player {
 		Radius:    FromFloat(ou0(p.TileRadius)),
 		Health:    ou0(p.Health),
 		DamageCap: ou0(p.DamageCap),
+		LowHealth: ou0(p.LowHealth),
 	}
 }
 

@@ -63,27 +63,28 @@ func LoadTheme(fsys fs.FS, chemin string) (*Theme, error) {
 
 	r := brut.Interface.Settings
 	if r.Border <= 0 {
-		dire("réglages : bord de %d px", r.Border)
+		dire("reglages.bord_px : %d, un cadre sans bord n'en est pas un", r.Border)
 	}
 	if r.Margin < 0 {
-		dire("réglages : marge de %d px", r.Margin)
+		dire("reglages.marge_px : %d, une marge ne se retranche pas", r.Margin)
 	}
 	if r.GaugeHeight <= 0 {
-		dire("réglages : jauge haute de %d px", r.GaugeHeight)
+		dire("reglages.hauteur_jauge_px : %d, une jauge sans épaisseur ne se voit pas",
+			r.GaugeHeight)
 	}
 
 	teintes := make(map[string]color.RGBA, len(r.Colors))
 	for _, nom := range teintesRequises {
 		brute, presente := r.Colors[nom]
 		if !presente {
-			dire("réglages : teinte « %s » absente", nom)
+			dire("reglages.teintes.%s : absente", nom)
 			continue
 		}
 		teintes[nom] = color.RGBA{R: brute[0], G: brute[1], B: brute[2], A: brute[3]}
 	}
 	for _, nom := range slices.Sorted(maps.Keys(r.Colors)) {
 		if !slices.Contains(teintesRequises, nom) {
-			dire("réglages : teinte « %s » inconnue, que rien ne lira", nom)
+			dire("reglages.teintes.%s : inconnue, que rien ne lira", nom)
 		}
 	}
 

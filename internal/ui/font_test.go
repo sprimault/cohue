@@ -43,6 +43,12 @@ const manifesteValide = `{
 // c'est ce qui permet d'affirmer que le refus vient de ce qu'on a changé. Un
 // manifeste faux sur deux points serait refusé pour le premier, et le second ne
 // serait jamais atteint.
+//
+// **Ce que l'attendu porte est le chemin de la clé fautive, et c'est délibéré.**
+// Ces messages ont d'abord nommé le groupe sans la feuille — « planche non
+// nommée » pour `police.fichier`, un mot qui n'existe nulle part dans le
+// manifeste : l'auteur savait qu'une chose manquait et pas laquelle. Un attendu
+// qui ne porterait que l'explication laisserait ce défaut revenir.
 func TestLeManifesteDInterfaceRefuseCeQuiEstIncoherent(t *testing.T) {
 	cas := []struct {
 		nom     string
@@ -53,17 +59,17 @@ func TestLeManifesteDInterfaceRefuseCeQuiEstIncoherent(t *testing.T) {
 		{"format inconnu", `"version_format": 1`, `"version_format": 2`,
 			"version de format"},
 		{"planche non nommée", `"fichier": "police.png"`, `"fichier": ""`,
-			"planche non nommée"},
+			"police.fichier : absent ou vide"},
 		{"cellule nulle", `"cellule": [11, 9]`, `"cellule": [0, 9]`,
-			"cellule de 0x9"},
+			"police.cellule : 0x9"},
 		{"table vide", `"glyphes": "AB"`, `"glyphes": ""`,
-			"table des glyphes vide"},
+			"police.glyphes : table vide"},
 		{"une avance de trop", `"avances": [7, 7]`, `"avances": [7, 7, 7]`,
-			"3 avances pour 2 glyphes"},
+			"police.avances : 3 pour 2 glyphes"},
 		{"ligne de base hors cellule", `"ligne_de_base": 8`, `"ligne_de_base": 9`,
-			"ligne de base 9"},
+			"police.ligne_de_base : 9"},
 		{"glyphe en double", `"glyphes": "AB"`, `"glyphes": "AA"`,
-			"U+0041 est déclaré deux fois"},
+			"police.glyphes : U+0041"},
 	}
 
 	for _, c := range cas {

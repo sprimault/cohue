@@ -40,6 +40,24 @@ de version sont ce que lit un auteur de niveau étranger avant de savoir s'il
 doit reprendre son travail. Ce préambule reste en français : il n'est jamais
 publié, et explique les conventions du dépôt à qui y contribue.
 
+## [Non publié]
+
+### Corrigé
+
+- **Un manquement du manifeste d'interface nomme la clé fautive.** Les refus
+  désignaient leur groupe et non la clé — « planche non nommée », un mot que le
+  fichier ne porte nulle part —, si bien qu'on savait qu'une chose manquait sans
+  savoir laquelle corriger.
+
+***
+
+### Fixed
+
+- **A shortcoming in the interface manifest now names the offending key.**
+  Rejections pointed at their group rather than the key — "unnamed sheet", a
+  word the file carries nowhere — so you knew something was missing without
+  knowing what to fix.
+
 ## [0.3.1] — 2026-09-03 — La boucle mort → relance
 
 **On y meurt, et on relance.** La horde qui convergeait sans effet blesse

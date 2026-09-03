@@ -162,8 +162,14 @@ Les comportements comme données, pas comme code : marcheur, sprinteur,
 flanqueur, cracheur, bloqueur, éclateur, soigneur. Un `EnemyProfile` par ligne
 de table.
 
-Le spawner achète des ennemis dans un budget de pression par seconde plutôt que
-de poser des compteurs fixes : c'est ce qui gardera les niveaux tiers jouables.
+**Le spawner à budget est parti à l'étape 3**, où la courbe de pression le
+réclamait. Il achète dans un budget par seconde plutôt que de poser des
+compteurs fixes — c'est ce qui garde les niveaux tiers jouables —, parmi les
+profils que la phase autorise, sous un plafond d'effectif et les plafonds de
+simultanéité. Ce qui reste ici est **l'achat par meute** : le Molosse
+n'apparaît jamais seul, et trois qui chargent en décalé sont ce qui oblige à
+cesser de reculer en ligne droite. La taille de groupe est un champ du profil,
+pas une exception du spawner.
 
 **Le contact ordinaire est parti à l'étape 3**, où la mort le réclamait. Ce qui
 reste ici est ce qui en dévie — notamment la charge du Molosse, le tir de la Buse

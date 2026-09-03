@@ -25,7 +25,7 @@ import (
 // couleur qu'on croyait avoir réglée resterait celle d'avant.
 var teintesRequises = []string{
 	"cadre_fond", "cadre_bord", "cadre_choisi", "bandeau_fond",
-	"jauge_fond", "jauge_vie", "jauge_experience",
+	"jauge_fond", "jauge_vie", "jauge_experience", "voile_degat",
 	"texte", "texte_attenue", "texte_valeur", "texte_contour",
 }
 
@@ -79,6 +79,17 @@ func LoadTheme(fsys fs.FS, chemin string) (*Theme, error) {
 		if !presente {
 			dire("reglages.teintes.%s : absente", nom)
 			continue
+		}
+		// **Une teinte s'écrit prémultipliée par son alpha**, ce qu'impose le type
+		// de la bibliothèque standard et ce qu'Ebitengine attend du rendu. Une
+		// composante au-dessus de l'alpha ne décrit aucune couleur : elle donne un
+		// aplat bien plus dense que l'opacité annoncée, et rien ne le dit — un
+		// voile écrit à plat est passé ainsi, et seule une planche l'a montré.
+		for i, canal := range []string{"rouge", "vert", "bleu"} {
+			if brute[i] > brute[3] {
+				dire("reglages.teintes.%s : %s à %d au-dessus de l'alpha %d, "+
+					"une teinte s'écrit prémultipliée", nom, canal, brute[i], brute[3])
+			}
 		}
 		teintes[nom] = color.RGBA{R: brute[0], G: brute[1], B: brute[2], A: brute[3]}
 	}

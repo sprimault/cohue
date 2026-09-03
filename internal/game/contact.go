@@ -19,6 +19,12 @@ package game
 // C'est la règle du chapitre 5 de la conception, et la seule de ce fichier qui
 // ne soit pas mécanique.
 func (w *World) subir() {
+	// Le voile s'éteint d'abord, et se rallume plus bas si le contact coûte
+	// encore. L'ordre inverse le ferait retomber d'un tick à chaque fois qu'il
+	// vient d'être posé, donc ne jamais atteindre sa durée.
+	if w.eclairSubi > 0 {
+		w.eclairSubi--
+	}
 	if !w.Alive() {
 		return
 	}
@@ -37,6 +43,7 @@ func (w *World) subir() {
 	if somme == 0 {
 		return
 	}
+	w.eclairSubi = eclairContact
 
 	// **L'accumulateur compte en points-ticks, et c'est ce qui évite une
 	// troisième échelle.** Vingt points par seconde à soixante ticks font un
@@ -89,3 +96,10 @@ func (w *World) MaxHealth() int { return w.profils.Player.Health }
 // Elle se lit plutôt qu'elle ne se retient : la vie à zéro est la mort, donc
 // aucun état parallèle ne peut en diverger.
 func (w *World) Alive() bool { return w.vie > 0 }
+
+// Hurt dit si le joueur encaisse, ou vient tout juste d'encaisser.
+//
+// Ce que le rendu en fait lui appartient, comme pour l'éclair d'une créature
+// touchée : la simulation dit qu'il y a contact, elle ne dit pas qu'on peint un
+// voile rouge.
+func (w *World) Hurt() bool { return w.eclairSubi > 0 }

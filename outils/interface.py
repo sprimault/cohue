@@ -96,6 +96,20 @@ REGLAGES = {
         "bandeau_fond": [16, 17, 21, 200],
         "jauge_fond": [40, 42, 48, 255],
         "jauge_vie": [176, 62, 58, 255],
+        # Le voile que le contact pose sur l'écran, dans le rouge de la jauge de
+        # vie : c'est la même chose qu'il annonce, et une seconde teinte
+        # obligerait à relier les deux de tête. Son alpha est le plus faible du
+        # catalogue — il couvre toute la surface, là où une jauge occupe cent
+        # cinquante pixels, et la conception veut voir la horde pendant qu'on
+        # encaisse.
+        #
+        # **Une teinte translucide s'écrit prémultipliée par son alpha**, comme
+        # les deux fonds ci-dessus : le rendu la passe telle quelle à Ebitengine,
+        # qui l'attend sous cette forme. Écrit à plat, ce rouge donnait un aplat
+        # trois fois trop dense — 176 par-dessus un décor à 86, alors qu'un quart
+        # d'opacité en demande 44. Aucun contrôle ne l'aurait dit : seule la
+        # planche de mêlée le montre.
+        "voile_degat": [44, 16, 15, 64],
         "jauge_experience": [86, 132, 186, 255],
         "texte": [232, 234, 238, 255],
         "texte_attenue": [150, 154, 162, 255],

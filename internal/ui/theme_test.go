@@ -41,6 +41,7 @@ const reglagesValides = `{
         "bandeau_fond": [16, 17, 21, 200],
         "jauge_fond": [40, 42, 48, 255],
         "jauge_vie": [176, 62, 58, 255],
+        "voile_degat": [44, 16, 15, 64],
         "jauge_experience": [86, 132, 186, 255],
         "texte": [232, 234, 238, 255],
         "texte_attenue": [150, 154, 162, 255],
@@ -72,6 +73,12 @@ func TestLesReglagesRefusentCeQuiEstIncoherent(t *testing.T) {
 		{"teinte inconnue", `"texte_contour": [0, 0, 0, 255]`,
 			`"texte_contour": [0, 0, 0, 255], "texte_gras": [1, 2, 3, 4]`,
 			"reglages.teintes.texte_gras : inconnue"},
+		// Le voile de dégât est la seule teinte dont l'alpha soit assez bas pour
+		// qu'une écriture à plat se voie : au-dessus de 255, aucune composante ne
+		// peut dépasser l'alpha d'une teinte opaque, et le cas ne se poserait pas.
+		{"teinte non prémultipliée", `"voile_degat": [44, 16, 15, 64]`,
+			`"voile_degat": [176, 62, 58, 64]`,
+			"reglages.teintes.voile_degat : rouge à 176 au-dessus de l'alpha 64"},
 	}
 
 	for _, c := range cas {

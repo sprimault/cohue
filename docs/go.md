@@ -632,8 +632,11 @@ l'empreinte se calcule sur les index, jamais sur un parcours de `map`.
 
 **Elle énumère ce qu'elle inclut, jamais ce qu'elle écarte.** Les champs
 cosmétiques en sont exclus — la teinte d'un vêtement ne décide de rien, et un
-second test l'exige en jouant deux fois la même graine avec des teintes forcées
-différentes. Une liste de champs à ignorer se périmerait au premier champ
+second test l'exigera en jouant deux fois la même graine avec des teintes forcées
+différentes. **Celui-là attend son premier champ cosmétique** : aucune entité n'en
+porte et rien ne consomme le flux `Cosmetic`, si bien qu'il passerait aujourd'hui
+sans rien séparer — en donnant l'illusion que la séparation des flux est
+vérifiée, ce qui est pire que son absence. Une liste de champs à ignorer se périmerait au premier champ
 ajouté, et le test échouerait pour une raison sans rapport avec ce qu'il garde ;
 une liste de ce qui compte laisse un champ nouveau dehors par défaut, ce qui
 affaiblit le test au lieu de le casser. Des deux erreurs possibles, c'est celle

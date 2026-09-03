@@ -228,7 +228,9 @@ if err != nil {
 ```
 
 - Message en français, minuscules, sans ponctuation finale ni accent — la
-  convention Go pour la casse, et le `grep` reste simple pour les accents.
+  convention Go pour la casse, et le `grep` reste simple pour les accents. Cette
+  dernière a une frontière : [Où la règle du sans-accent
+  s'arrête](#où-la-règle-du-sans-accent-sarrête).
 - Sentinelles exportées quand l'appelant doit distinguer les cas :
   `ErrUnknownRoom`, `ErrDisconnectedLevel`.
 - Pas de `panic` hors de `main`, pas de `log.Fatal` dans `internal/`.
@@ -295,6 +297,29 @@ C'est dans cette validation, et nulle part ailleurs, que « listés en une fois 
 devient vrai. C'est donc là qu'il faut résister au `return` sur le premier
 manquement : elle accumule et rend tout, y compris quand le premier défaut rend
 les suivants prévisibles.
+
+### Où la règle du sans-accent s'arrête
+
+Elle vaut pour le message d'une `error` construite sur place, et elle y sert le
+`grep` : ce qu'on cherche dans un rapport de défaut est le texte qu'un programme
+a remonté, et un accent y coûte une seconde variante de motif.
+
+**Les manquements accumulés d'une validation ne sont pas de cette nature.** Ils
+s'adressent à l'auteur d'un fichier, se lisent en une fois au lieu de se
+chercher, et ce que cette section exige d'eux — le chemin de la clé, ce qui est
+attendu, la liste des valeurs connues — est déjà de la prose. Ils s'écrivent donc
+en français ordinaire, accents compris.
+
+Ce qui reste greppable des deux côtés est **le chemin de clé**, qui vient du
+fichier et n'a donc jamais d'accent : `reglages.teintes.texte_valeur` se cherche
+tel quel, quelle que soit la phrase qui le suit. C'est ce qui rend la frontière
+tenable — le `grep` n'est pas abandonné là où la règle s'arrête, il est déplacé
+sur ce qui identifie vraiment le défaut.
+
+La frontière est là où elle est parce que **les deux textes n'ont pas le même
+lecteur**. La borner autrement — sur la longueur du message, sur le paquet qui
+l'écrit — donnerait une règle que personne ne saurait appliquer devant un
+message qu'il est en train d'écrire.
 
 ## 7. Écriture de fichiers
 

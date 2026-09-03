@@ -40,26 +40,7 @@ de version sont ce que lit un auteur de niveau étranger avant de savoir s'il
 doit reprendre son travail. Ce préambule reste en français : il n'est jamais
 publié, et explique les conventions du dépôt à qui y contribue.
 
-## [Non publié]
-
-### Corrigé
-
-- **Une durée nulle est refusée au chargement.** Un `plancher_ms` à zéro donnait
-  un niveau et trois cartes à chaque tick, une `cadence_ms` à zéro une arme qui
-  tire à chaque image : les deux se chargeaient sans un mot, dans les deux seuls
-  manifestes tenus à la main. Le refus nomme la clé et dit ce que la valeur
-  produirait.
-
-***
-
-### Fixed
-
-- **A zero duration is rejected at load time.** A `plancher_ms` of zero granted a
-  level and three cards every tick, a `cadence_ms` of zero a weapon firing every
-  frame: both loaded without a word, in the only two hand-written manifests. The
-  rejection names the key and says what the value would produce.
-
-## [0.3.0] — 2026-09-03 — La boucle mort → relance
+## [0.3.1] — 2026-09-03 — La boucle mort → relance
 
 **On y meurt, et on relance.** La horde qui convergeait sans effet blesse
 désormais au contact : collé sans se dégager, le joueur tombe en cinq secondes.
@@ -196,6 +177,11 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
 
 ### Corrigé
 
+- **Une durée nulle est refusée au chargement.** Un `plancher_ms` à zéro donnait
+  un niveau et trois cartes à chaque tick, une `cadence_ms` à zéro une arme qui
+  tire à chaque image : les deux se chargeaient sans un mot, dans les deux seuls
+  manifestes tenus à la main. Le refus nomme la clé et dit ce que la valeur
+  produirait.
 - **Une phase de faible pression n'achetait rien.** La borne du budget reporté
   pouvait tomber sous le prix de la créature la moins chère de la phase : le
   budget montait, butait sur la borne, et rien n'apparaissait jamais — sans refus
@@ -210,6 +196,8 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
 
 ### À savoir
 
+- **La version 0.3.0 a été construite le 3 septembre 2026 et n'a jamais été
+  publiée.** Son tag reste dans le dépôt ; aucune archive n'en est sortie.
 - **Le lieu livré ne convoque qu'une créature**, le Badaud. Les six autres
   profils existent et attendent ce qui les rendra reconnaissables à l'écran :
   une horde de sept sortes qu'aucune couleur ne distingue rend la difficulté
@@ -349,6 +337,10 @@ pauses the game to offer **three cards**, one of which you take.
 
 ### Fixed
 
+- **A zero duration is rejected at load time.** A `plancher_ms` of zero granted a
+  level and three cards every tick, a `cadence_ms` of zero a weapon firing every
+  frame: both loaded without a word, in the only two hand-written manifests. The
+  rejection names the key and says what the value would produce.
 - **A low-pressure phase bought nothing.** The bound on carried-over budget could
   fall below the price of the phase's cheapest creature: the budget rose, hit the
   bound, and nothing ever appeared — no rejection at load, no message, just an
@@ -363,6 +355,8 @@ pauses the game to offer **three cards**, one of which you take.
 
 ### Good to know
 
+- **Version 0.3.0 was built on 3 September 2026 and never published.** Its tag
+  remains in the repository; no archive was ever released from it.
 - **The shipped place summons a single creature**, the Badaud. The other six
   profiles exist and are waiting for what will make them recognisable on screen:
   a horde of seven kinds that no colour tells apart makes difficulty unreadable.

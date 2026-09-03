@@ -30,6 +30,9 @@ const manifesteValide = `{
       "taille_native": 8,
       "glyphes": "AB",
       "avances": [7, 7]
+    },
+    "icone": {
+      "fichiers": ["icone_16.png"]
     }
   }
 }`

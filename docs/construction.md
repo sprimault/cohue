@@ -78,8 +78,13 @@ manuelle d'un PNG.
 
 ## La police et l'interface
 
-`outils/interface.py` ne produit qu'une image, la planche de glyphes. **Les
-jauges, cadres et cases n'en sont pas** : ce sont des rectangles unis dont la
+`outils/interface.py` produit deux dessins : la planche de glyphes et l'icône de
+fenêtre, en trois tailles parmi lesquelles le système choisit. L'icône se dessine
+sur une grille de cases plutôt qu'en pixels, si bien que les trois tailles
+portent le même dessin sans qu'aucune soit l'agrandissement d'une autre ; sa
+palette est la sienne et ne descend pas du rendu, dont les aplats sont
+provisoires. **Les jauges, cadres et cases n'en sont pas** : ce sont des
+rectangles unis dont la
 taille dépend de leur contenu — une jauge suit la vie, une carte son texte, une
 case son icône. Une image fixe devrait être étirée, ce qui casserait le pixel
 entier, et le découpage en neuf morceaux n'a d'intérêt que si le cadre porte un

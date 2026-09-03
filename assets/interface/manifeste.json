@@ -151,6 +151,13 @@
         4
       ]
     },
+    "icone": {
+      "fichiers": [
+        "icone_16.png",
+        "icone_32.png",
+        "icone_48.png"
+      ]
+    },
     "reglages": {
       "bord_px": 1,
       "marge_px": 4,

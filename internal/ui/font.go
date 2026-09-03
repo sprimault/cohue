@@ -163,6 +163,7 @@ type rawInterface struct {
 type rawEntries struct {
 	manifest.Commentable
 	Font     rawFont     `json:"police"`
+	Icon     rawIcon     `json:"icone"`
 	Settings rawSettings `json:"reglages"`
 }
 

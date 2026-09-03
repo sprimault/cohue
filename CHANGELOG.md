@@ -42,6 +42,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+## [0.3.2] — 2026-09-03 — L'alerte de vie basse
+
+Une version de correction. Ce qui se voit en jouant tient en une chose : sous
+trente points de vie, les bords de l'écran rougissent et le restent jusqu'au
+soin.
+
 ### Ajouté
 
 - **Les bords de l'écran rougissent quand la vie est basse.** Sous trente points
@@ -57,6 +63,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
   savoir laquelle corriger.
 
 ***
+
+A maintenance release. Only one thing shows while playing: below thirty points
+of health, the screen edges redden and stay that way until you heal.
 
 ### Added
 

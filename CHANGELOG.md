@@ -170,6 +170,11 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
 - **La courbe de pression du lieu livré est réglée.** Elle s'ouvre à deux points
   par seconde et monte d'environ un tiers par palier, ce qui suit à peu près la
   façon dont l'arme grossit. Les pointes doublent le débit au lieu de le tripler.
+- **Le lieu livré ne convoque plus qu'une créature**, le Badaud. Sept sortes
+  qu'aucune teinte ne distingue rendaient la difficulté illisible : on ne pouvait
+  pas savoir si une minute plus dure venait de la courbe ou d'une créature
+  arrivée sans se signaler. Les six autres reviennent avec ce qui les rendra
+  reconnaissables ; la courbe, elle, ne bouge pas d'un chiffre.
 
 ### Corrigé
 
@@ -319,6 +324,11 @@ pauses the game to offer **three cards**, one of which you take.
 - **The shipped place's pressure curve is tuned.** It opens at two points per
   second and rises by about a third per phase, roughly following how the weapon
   grows. Peaks double the rate instead of tripling it.
+- **The shipped place now summons a single creature**, the Badaud. Seven kinds
+  that no colour told apart made difficulty unreadable: there was no way to know
+  whether a harder minute came from the curve or from a creature that had arrived
+  unannounced. The other six return along with what will make them
+  recognisable; the curve itself does not move by a single figure.
 
 ### Fixed
 

@@ -125,6 +125,11 @@ proche.
 La résistance se compte en **touches de votre arme de base**, pas en points : une
 arme qui grossit toute la partie rendrait un chiffre absolu illisible.
 
+Aujourd'hui, le lieu de démonstration ne convoque que le **Badaud**. Les six
+autres existent et attendent ce qui les rendra reconnaissables à l'écran : une
+horde de sept sortes qu'aucune couleur ne distingue rend la difficulté illisible,
+et on ne saurait pas dire ce qui a rendu une minute plus dure.
+
 ## L'écran
 
 En haut à gauche, la jauge de **vie** en rouge, celle d'**expérience** en bleu, et

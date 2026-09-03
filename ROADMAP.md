@@ -51,6 +51,11 @@ et qu'elle soit jouable ou non. L'étape N porte la version 0.N.0 — le
 `CHANGELOG` dit déjà que le mineur marque une étape et non une rupture d'API ;
 ce qui est ajouté ici est l'engagement à taguer, pas seulement à numéroter.
 
+**La première version publiée d'une étape n'est pas nécessairement son `.0`.** Ce
+qui marque l'étape est le mineur, et la clause du zéro range tout le reste en
+correctif : une version construite puis corrigée avant d'être publiée sort en
+`.1` sans que l'engagement cède.
+
 Deux conséquences pour les premières. Les notes d'une version qui ne se joue pas
 doivent dire ce qu'elle **ne fait pas** : quelqu'un télécharge une archive dont
 le binaire rend « à implémenter : étape N », et sans cette phrase il croit à un

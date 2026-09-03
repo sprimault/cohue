@@ -148,13 +148,22 @@ type rawWeapons struct {
 type rawWeapon struct {
 	manifest.Commentable
 
-	Name        string   `json:"nom"`
-	Role        string   `json:"role"`
-	CadenceMs   *int     `json:"cadence_ms"`
-	TileRange   *float64 `json:"portee_tuiles"`
-	Hits        *int     `json:"degats_touches"`
-	Projectiles *int     `json:"projectiles"`
-	Speed       *float64 `json:"vitesse_projectile_tuiles_s"`
+	// Name est le nom lisible de l'arme.
+	Name string `json:"nom"`
+	// Role dit ce qu'elle est dans la partie. Seul l'armement de base existe, et
+	// c'est le champ qui refusera une arme lourde tombée dans cette table.
+	Role string `json:"role"`
+	// CadenceMs est l'écart entre deux salves, converti en ticks au chargement.
+	CadenceMs *int `json:"cadence_ms"`
+	// TileRange est la distance au-delà de laquelle une cible n'est plus visée.
+	TileRange *float64 `json:"portee_tuiles"`
+	// Hits est ce qu'une touche retire à une créature, dans l'unité où le
+	// manifeste des personnages compte leur résistance.
+	Hits *int `json:"degats_touches"`
+	// Projectiles est le nombre de projectiles d'une salve.
+	Projectiles *int `json:"projectiles"`
+	// Speed est la vitesse d'un projectile, en tuiles par seconde.
+	Speed *float64 `json:"vitesse_projectile_tuiles_s"`
 }
 
 // arme convertit une arme brute, en signalant ce qui lui manque.

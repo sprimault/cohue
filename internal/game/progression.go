@@ -328,9 +328,16 @@ type rawGems struct {
 type rawLevels struct {
 	manifest.Commentable
 
-	First     *int `json:"seuil_premier"`
+	// First est le nombre de gemmes qui mène du premier niveau au second.
+	First *int `json:"seuil_premier"`
+	// Increment est ce que chaque niveau ajoute au seuil du suivant. Zéro y est
+	// un seuil constant, c'est-à-dire un réglage.
 	Increment *int `json:"seuil_increment"`
-	FloorMs   *int `json:"plancher_ms"`
+	// FloorMs est le temps au bout duquel un niveau est donné sans rien
+	// ramasser, converti en ticks au chargement. Zéro n'y est pas l'absence de
+	// plancher mais son contraire — un niveau à chaque tick —, et le chargeur le
+	// refuse.
+	FloorMs *int `json:"plancher_ms"`
 }
 
 // Level rend le niveau atteint. La partie commence au premier.

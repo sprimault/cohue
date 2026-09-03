@@ -40,6 +40,25 @@ de version sont ce que lit un auteur de niveau étranger avant de savoir s'il
 doit reprendre son travail. Ce préambule reste en français : il n'est jamais
 publié, et explique les conventions du dépôt à qui y contribue.
 
+## [Non publié]
+
+### Corrigé
+
+- **Une durée nulle est refusée au chargement.** Un `plancher_ms` à zéro donnait
+  un niveau et trois cartes à chaque tick, une `cadence_ms` à zéro une arme qui
+  tire à chaque image : les deux se chargeaient sans un mot, dans les deux seuls
+  manifestes tenus à la main. Le refus nomme la clé et dit ce que la valeur
+  produirait.
+
+***
+
+### Fixed
+
+- **A zero duration is rejected at load time.** A `plancher_ms` of zero granted a
+  level and three cards every tick, a `cadence_ms` of zero a weapon firing every
+  frame: both loaded without a word, in the only two hand-written manifests. The
+  rejection names the key and says what the value would produce.
+
 ## [0.3.0] — 2026-09-03 — La boucle mort → relance
 
 **On y meurt, et on relance.** La horde qui convergeait sans effet blesse

@@ -9,6 +9,7 @@ package game
 
 import (
 	"errors"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -122,6 +123,35 @@ func TestArmeSansRoleDeBase(t *testing.T) {
 	var invalide *manifest.Invalid
 	if !errors.As(err, &invalide) {
 		t.Fatalf("manifeste sans arme de base accepté : %v", err)
+	}
+}
+
+// TestUneCadenceNulleRefusee garde ce que la godoc de la conversion promet.
+//
+// **Le commentaire qui la précède dit que la conversion commune refuse une durée
+// sous le pas de simulation.** Elle le fait — quand on l'appelle : la conversion
+// n'était tentée que pour une durée strictement positive, si bien qu'un zéro
+// écrit dans le fichier passait sans un mot et donnait une arme qui tire à chaque
+// image. C'est la même forme que `plancher_ms`, dans l'autre manifeste tenu à la
+// main, et le même correctif.
+func TestUneCadenceNulleRefusee(t *testing.T) {
+	fsys := fstest.MapFS{"a.json": &fstest.MapFile{Data: []byte(`{
+		"version_format": 1,
+		"armes": {
+			"reglementaire": {"nom": "Réglementaire", "role": "base", "cadence_ms": 0,
+			                  "portee_tuiles": 6, "degats_touches": 1, "projectiles": 1,
+			                  "vitesse_projectile_tuiles_s": 12.0}
+		},
+		` + passifsValides + `
+	}`)}}
+
+	_, err := LoadWeapons(fsys, "a.json")
+	var invalide *manifest.Invalid
+	if !errors.As(err, &invalide) {
+		t.Fatalf("cadence nulle acceptée : %v", err)
+	}
+	if !strings.Contains(err.Error(), "cadence_ms") {
+		t.Errorf("le refus ne nomme pas la clé fautive : %v", err)
 	}
 }
 

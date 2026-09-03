@@ -9,6 +9,7 @@ package game
 
 import (
 	"errors"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -184,6 +185,39 @@ func TestUneGemmeSansValeurRefusee(t *testing.T) {
 	var invalide *manifest.Invalid
 	if !errors.As(err, &invalide) {
 		t.Fatalf("gemme sans valeur acceptée : %v", err)
+	}
+}
+
+// TestUnPlancherNulRefuse garde la frontière entre l'absence et le zéro.
+//
+// **Un plancher à zéro n'est pas « pas de plancher », c'est son contraire** :
+// `progresser` compare le compteur au plancher à chaque tick, donc un zéro donne
+// un niveau et un choix soixante fois par seconde. Le champ absent est déjà
+// signalé par `exige` ; c'est le champ écrit à zéro qui passait, parce que la
+// conversion n'était appelée que pour une durée strictement positive.
+//
+// Ses deux voisins de fichier, `duree_vie_ms` et `periode_ms`, ont ce refus
+// depuis toujours et disent chacun sa conséquence. Celui-ci l'avait perdu.
+func TestUnPlancherNulRefuse(t *testing.T) {
+	fsys := fstest.MapFS{"p.json": &fstest.MapFile{Data: []byte(`{
+		"version_format": 1,
+		"progression": {
+			"niveaux": {"seuil_premier": 10, "seuil_increment": 2, "plancher_ms": 0},
+			"gemmes": {"objet": "gemme", "experience": 1, "portee_ramassage_tuiles": 1.0,
+			           "duree_vie_ms": 6000},
+			"aimant": {"objet": "aimant", "periode_ms": 30000, "distance_min_tuiles": 6.0,
+			           "vitesse_gemme_tuiles_s": 12.0},
+			"pression": {"rayon_apparition_tuiles": 19.0, "report_ms": 3000}
+		}
+	}`)}}
+
+	_, err := LoadProgression(fsys, "p.json")
+	var invalide *manifest.Invalid
+	if !errors.As(err, &invalide) {
+		t.Fatalf("plancher nul accepté : %v", err)
+	}
+	if !strings.Contains(err.Error(), "plancher_ms") {
+		t.Errorf("le refus ne nomme pas la clé fautive : %v", err)
 	}
 }
 

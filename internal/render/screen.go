@@ -27,7 +27,6 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"github.com/sprimault/cohue/internal/game"
 )
@@ -158,6 +157,15 @@ func NewScreen(monde *game.World, carte *game.CostGrid, tuile [2]int) *Screen {
 	return s
 }
 
+// emplacement1 est la touche qui dépense la charge du premier emplacement, celui
+// de l'aimant.
+//
+// Les deux places du chiffre, comme les deux places d'Entrée : le pavé numérique
+// tombe sous la main droite quand la gauche tient le déplacement, et un joueur
+// qui appuie sur le 1 qu'il a sous les doigts n'a aucun moyen de savoir que le
+// jeu écoutait l'autre.
+var emplacement1 = []ebiten.Key{ebiten.Key1, ebiten.KeyNumpad1}
+
 // Update avance la simulation d'un pas, puis recadre.
 //
 // Un pas par appel et rien qui lise l'horloge : Ebitengine appelle cette méthode
@@ -183,7 +191,7 @@ func (s *Screen) Update() error {
 		return nil
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.Key1) {
+	if presse(emplacement1) {
 		// Sur l'enfoncement, comme la relance et le choix d'une carte : au
 		// maintien, la charge partirait à l'image où le doigt se pose et le
 		// joueur ne saurait jamais s'il l'a dépensée exprès.

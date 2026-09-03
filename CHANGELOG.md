@@ -42,6 +42,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Ajouté
+
+- **L'écran rougit au contact.** Un voile bref couvre la scène tant qu'une
+  créature vous coûte de la vie, et s'efface dès que vous vous dégagez. La jauge
+  disait ce qui était déjà perdu ; le voile dit que ça continue.
+
 ### Corrigé
 
 - **Un manquement du manifeste d'interface nomme la clé fautive.** Les refus
@@ -50,6 +56,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
   savoir laquelle corriger.
 
 ***
+
+### Added
+
+- **The screen reddens on contact.** A brief veil covers the scene for as long
+  as a creature is costing you health, and clears as soon as you break free. The
+  gauge said what was already lost; the veil says it is still happening.
 
 ### Fixed
 

@@ -220,6 +220,7 @@ func (s *Screen) Draw(ecran *ebiten.Image) {
 	ecran.Fill(fond)
 	s.peindreSol(ecran)
 	s.peindreEntites(ecran)
+	s.peindreDegat(ecran)
 	s.peindreBandeau(ecran)
 	if !s.monde.Alive() {
 		s.peindreMort(ecran)
@@ -238,6 +239,23 @@ func (s *Screen) Draw(ecran *ebiten.Image) {
 // il se lit par `LayoutF`, et aucun des deux ne le connaît.
 func (s *Screen) Layout(largeurFenetre, hauteurFenetre int) (int, int) {
 	return Width, Height
+}
+
+// peindreDegat pose le voile rouge tant que la horde coûte de la vie.
+//
+// **Après les entités et sous le bandeau.** Par-dessus le monde, parce que c'est
+// lui qu'on regarde en encaissant et que le voile doit s'y voir ; sous le
+// bandeau, parce que teinter la jauge de vie en rouge la rendrait illisible au
+// moment précis où elle décide de tout.
+//
+// Un aplat plein écran et non un liseré de bord : ce que le chapitre 5 de la
+// conception demande est de sentir la pression, pas de la localiser — le contact
+// vient de partout, et un bord accrocherait l'œil hors du personnage.
+func (s *Screen) peindreDegat(ecran *ebiten.Image) {
+	if s.hud == nil || !s.monde.Hurt() {
+		return
+	}
+	s.hud.Rect(ecran, 0, 0, Width, Height, s.hud.Color("voile_degat"))
 }
 
 // peindreSol pose la face de chaque case visible, teintée par son coût.

@@ -156,6 +156,59 @@ func TestLaHordeFinitParBlesser(t *testing.T) {
 	}
 }
 
+// TestLeVoileDureAutantQueLeContact garde ce que le voile suit.
+//
+// **Allumé tant que la horde coûte de la vie**, quelle que soit la durée du
+// contact : c'est la première moitié, et elle tomberait sur un voile qui
+// s'éteindrait sous une horde toujours collée, c'est-à-dire précisément quand le
+// joueur est en train de mourir.
+//
+// **Éteint après le contact, et pas au premier tick.** La seconde moitié tient
+// les deux bouts : encore allumé au tick qui suit le dernier contact, parti une
+// fois la durée écoulée. Sans le premier, une créature qui entre et sort de
+// portée ferait battre l'écran entier.
+//
+// **Ce qu'il ne garde pas, et ne peut pas garder** : la façon dont le voile est
+// entretenu pendant le contact. `World.Hurt` rendant un booléen, le reposer à
+// chaque tick ou le rallumer quand il retombe à zéro produisent le même allumé —
+// éprouvé contre l'autre implémentation, ce cas passe sur les deux. La godoc de
+// `eclairContact` dit ce qui les séparerait.
+//
+// La durée se lit dans `eclairContact` plutôt que de s'écrire ici : ce que le
+// test garde est que le voile suit le contact, jamais le chiffre qui le règle.
+func TestLeVoileDureAutantQueLeContact(t *testing.T) {
+	w, profils := champSansTir(t)
+	if w.Hurt() {
+		t.Fatal("le voile est allumé avant tout contact")
+	}
+
+	coller(t, w, indexDuProfil(t, profils, "marcheur"), 1)
+
+	// Plus long que la durée du voile : c'est ce qui distingue « allumé pendant
+	// le contact » de « allumé un instant au début ».
+	for range 2*eclairContact + 1 {
+		w.subir()
+	}
+	if !w.Hurt() {
+		t.Error("le voile s'est éteint sous une horde toujours collée")
+	}
+
+	for w.ennemis.Len() > 0 {
+		w.ennemis.RemoveAt(0)
+	}
+
+	w.subir()
+	if !w.Hurt() {
+		t.Error("le voile s'éteint au premier tick sans contact, il clignoterait")
+	}
+	for range eclairContact {
+		w.subir()
+	}
+	if w.Hurt() {
+		t.Errorf("le voile dure plus de %d ticks après la fin du contact", eclairContact)
+	}
+}
+
 // TestLeContactNalloueRien est le jumeau, sur le contact, de
 // `TestLaBoucleNalloueRien`.
 //

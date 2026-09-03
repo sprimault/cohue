@@ -38,6 +38,10 @@ dégâts subis par seconde sont **plafonnés à vingt**, quel que soit leur nomb
 Autrement dit, être encerclé est très dangereux mais laisse une fenêtre pour se
 dégager — environ cinq secondes depuis la pleine vie. Traversez, ne restez pas.
 
+**L'écran rougit tant qu'on vous touche**, et s'éclaircit dès que vous vous
+dégagez. C'est le signal à surveiller du coin de l'œil : il dure aussi longtemps
+que le contact, là où la jauge, elle, ne dit que ce qui est déjà perdu.
+
 ## Les gemmes
 
 Une créature abattue laisse une **gemme** au sol, à l'endroit exact où elle

@@ -80,10 +80,11 @@ func (v Vec) Perp() Vec { return Vec{-v.Y, v.X} }
 // Len rend la norme du vecteur.
 //
 // La somme des carrés est exacte, calculée en `int64` : elle ne devient un
-// flottant qu'au moment de la racine, dont l'IEEE-754 exige l'arrondi correct.
-// C'est la seule opération flottante que la simulation admet, et le résultat est
-// arrondi au plus proche plutôt que tronqué — une troncature raccourcit
-// toujours, et les diagonales deviendraient plus lentes que les axes.
+// flottant qu'au moment de la racine, dont l'IEEE-754 exige l'arrondi correct —
+// c'est la condition à laquelle un flottant entre ici, et `Direction` s'y tient
+// aussi. Le résultat est arrondi au plus proche plutôt que tronqué : une
+// troncature raccourcit toujours, et les diagonales deviendraient plus lentes
+// que les axes.
 func (v Vec) Len() Fixed {
 	return borner(int64(math.Round(math.Sqrt(float64(v.carres())))))
 }

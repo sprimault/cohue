@@ -77,8 +77,8 @@ func (w *World) Gems() *Pool[Gem] { return w.gemmes }
 //
 // Le bassin plein arrête la volée plutôt que d'allouer. Une gemme perdue est une
 // perte invisible pour le joueur, et c'est pourquoi le plafond est large — ce
-// qui borne vraiment le stock est l'effacement des gemmes, qui viendra avec
-// l'aimant.
+// qui borne vraiment le stock est l'effacement, qui retire une gemme au bout de
+// sa durée de vie.
 func (w *World) lacher(e *Enemy) {
 	for rang := range w.profils.Enemies[e.Profile].Gems {
 		x, y := e.X, e.Y

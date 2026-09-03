@@ -83,9 +83,11 @@ func armesInertes(t *testing.T) *Weapons {
 
 // graineDeTest est celle sur laquelle les champs d'essai se montent.
 //
-// Sa valeur est indifférente et doit le rester : aucun test de ce paquet ne tire
-// au sort, et celui qui le fera devra dire de quelle graine il dépend plutôt que
-// d'hériter de celle-ci.
+// Sa valeur est indifférente à tout test qui ne tire pas au sort, et c'est le
+// cas de la plupart. Un test dont le résultat dépend d'un tirage — le spawner,
+// l'aimant — doit dire de quelle graine il dépend plutôt que d'hériter
+// silencieusement de celle-ci : le jour où on la change, il faut savoir qui
+// regarder.
 const graineDeTest uint64 = 1
 
 // indexDuProfil rend la place d'un profil dans la table, ou arrête le test.

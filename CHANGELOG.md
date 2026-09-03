@@ -83,12 +83,8 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   contact. La touche 1, celle du pavé numérique comme celle de la rangée du
   haut, dépense la charge, et **toutes les gemmes au sol convergent d'un
   coup** — elles cessent alors de s'effacer, l'aimant étant le recours contre
-  l'effacement et non sa victime. Un seul en main, un seul au sol : un aimant
-  qu'on voit sans pouvoir le prendre est une raison de dépenser le sien.
-- **Le choix des cartes passe aux flèches**, gauche, bas et droite : la touche
-  désigne la carte qu'elle montre. Les chiffres reviennent aux emplacements, qui
-  les gardent toute la partie — une carte mal choisie se rattrape au niveau
-  suivant, un aimant déclenché à vide est perdu.
+  l'effacement et non sa victime. On n'en tient qu'un, et aucun nouveau
+  n'apparaît tant que la charge n'est pas dépensée.
 - **La fenêtre a son icône**, dessinée par `outils/interface.py` en trois tailles
   parmi lesquelles le système choisit : une figure claire cernée de six autres,
   ce que le jeu raconte en seize pixels. Sa palette est la sienne et ne suit pas
@@ -122,11 +118,15 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
 - **Une créature touchée s'éclaircit un instant.** Elle encaisse plusieurs
   touches, et rien ne distinguait jusqu'ici un tir qui rate d'un tir qui entame :
   on déduisait ses ratés au lieu de les lire.
-- **Les trois cartes de la montée de niveau.** La horde se fige, trois cartes
-  s'affichent en bas de l'écran, et les touches 1, 2 et 3 en prennent une. Deux
-  axes améliorent l'arme — cadence et portée, six paliers chacun — et une
-  troisième carte rend de la vie quand rien d'autre n'est disponible. La table
-  se règle dans `assets/armes/manifeste.json`.
+- **Les trois cartes de la montée de niveau.** La horde se fige et trois cartes
+  s'affichent en bas de l'écran : les flèches gauche et droite déplacent un
+  liseré ambre, Entrée ou Espace prend la carte désignée. Deux axes améliorent
+  l'arme — cadence et portée, six paliers chacun — et une troisième carte rend
+  de la vie quand rien d'autre n'est disponible. La table se règle dans
+  `assets/armes/manifeste.json`.
+- **Les chiffres appartiennent aux emplacements**, qui les gardent toute la
+  partie : une carte mal choisie se rattrape au niveau suivant, un aimant
+  déclenché à vide est perdu.
 
 ### Modifié
 
@@ -160,11 +160,6 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   trame : des pièces de tailles différentes se composent dans un même lieu, ce
   que l'enceinte du lieu livré fait. La conception montrait un champ `grille` et
   des positions de rang, que rien n'a jamais lus.
-- **On désigne son choix, puis on le valide.** Les flèches gauche et droite
-  déplacent un liseré ambre, Entrée — ou Espace — prend la carte désignée. La
-  flèche prenait auparavant la carte de sa place : comme elle sert aussi à
-  courir, le panneau se refermait en quelques images sur un choix que personne
-  n'avait lu. Les deux mêmes touches relancent après la mort.
 - **Le tir vise où la cible sera.** Le projectile met une demi-seconde à
   parcourir sa portée, pendant laquelle un Badaud avance de douze fois son rayon :
   tout ce qui traversait était manqué, et seul ce qui venait droit sur le joueur
@@ -196,9 +191,6 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
 
 ### À savoir
 
-- **Les gemmes tombées au contact se ramassent aussitôt**, la horde mourant
-  collée au joueur. On en voit peu au sol, et c'est normal tant que rien ne tue
-  à distance.
 - **Le lieu livré ne convoque qu'une créature**, le Badaud. Les six autres
   profils existent et attendent ce qui les rendra reconnaissables à l'écran :
   une horde de sept sortes qu'aucune couleur ne distingue rend la difficulté
@@ -248,13 +240,8 @@ pauses the game to offer **three cards**, one of which you take.
   distance: you pick it up and keep it, it does not trigger on contact. Key 1,
   on the numeric keypad as well as on the top row, spends the charge and
   **every gem on the ground converges at once** — those gems then stop fading,
-  the magnet being the recourse against erasure rather than its victim. One in
-  hand, one on the ground: a magnet you can see but cannot take is a reason to
-  spend the one you hold.
-- **Cards are now chosen with the arrow keys**, left, down and right: the key
-  points at the card it takes. Numbers go back to the slots, which keep them for
-  the whole run — a badly chosen card is made up for at the next level, a magnet
-  fired with nothing held is lost.
+  the magnet being the recourse against erasure rather than its victim. You hold
+  only one, and no new one appears until the charge is spent.
 - **The window has an icon**, drawn by `outils/interface.py` at three sizes for
   the system to choose from: a bright figure ringed by six others, which is what
   the game is about in sixteen pixels. Its palette is its own and does not follow
@@ -285,11 +272,14 @@ pauses the game to offer **three cards**, one of which you take.
 - **A creature that is hit brightens for a moment.** It takes several hits, and
   until now nothing told a shot that missed from one that landed: misses were
   inferred rather than read.
-- **The three level-up cards.** The horde freezes, three cards appear at the
-  bottom of the screen, and keys 1, 2 and 3 take one. Two axes improve the
-  weapon — fire rate and range, six tiers each — and a third card restores
-  health when nothing else is available. The table is tuned in
-  `assets/armes/manifeste.json`.
+- **The three level-up cards.** The horde freezes and three cards appear at the
+  bottom of the screen: the left and right arrows move an amber outline, Enter
+  or Space takes the card it points at. Two axes improve the weapon — fire rate
+  and range, six tiers each — and a third card restores health when nothing else
+  is available. The table is tuned in `assets/armes/manifeste.json`.
+- **Numbers belong to the slots**, which keep them for the whole run: a badly
+  chosen card is made up for at the next level, a magnet fired with nothing held
+  is lost.
 
 ### Changed
 
@@ -323,10 +313,6 @@ pauses the game to offer **three cards**, one of which you take.
   different sizes compose within one place, which is what the shipped place's
   perimeter does. The design document showed a `grille` field and rank positions
   that nothing ever read.
-- **You point at your choice, then confirm it.** Left and right arrows move an
-  amber outline, Enter — or Space — takes the card it points at. An arrow used to
-  take the card in its own place: since arrows also run, the panel closed within a
-  few frames on a choice nobody had read. The same two keys restart after death.
 - **Shots aim where the target will be.** A projectile takes half a second to
   cover its range, during which a Badaud moves twelve times its own radius:
   anything crossing was missed, and only what came straight at the player was
@@ -358,9 +344,6 @@ pauses the game to offer **three cards**, one of which you take.
 
 ### Good to know
 
-- **Gems dropped in contact are picked up at once**, since the horde dies
-  pressed against the player. Few are seen on the ground, and that is expected
-  as long as nothing kills at a distance.
 - **The shipped place summons a single creature**, the Badaud. The other six
   profiles exist and are waiting for what will make them recognisable on screen:
   a horde of seven kinds that no colour tells apart makes difficulty unreadable.

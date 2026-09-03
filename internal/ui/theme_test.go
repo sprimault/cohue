@@ -64,14 +64,14 @@ func TestLesReglagesRefusentCeQuiEstIncoherent(t *testing.T) {
 		apres   string
 		attendu string
 	}{
-		{"bord nul", `"bord_px": 1`, `"bord_px": 0`, "bord de 0 px"},
+		{"bord nul", `"bord_px": 1`, `"bord_px": 0`, "reglages.bord_px : 0"},
 		{"jauge sans épaisseur", `"hauteur_jauge_px": 6`, `"hauteur_jauge_px": 0`,
-			"jauge haute de 0 px"},
+			"reglages.hauteur_jauge_px : 0"},
 		{"teinte absente", `"texte_valeur": [236, 196, 96, 255],`, ``,
-			"« texte_valeur » absente"},
+			"reglages.teintes.texte_valeur : absente"},
 		{"teinte inconnue", `"texte_contour": [0, 0, 0, 255]`,
 			`"texte_contour": [0, 0, 0, 255], "texte_gras": [1, 2, 3, 4]`,
-			"« texte_gras » inconnue"},
+			"reglages.teintes.texte_gras : inconnue"},
 	}
 
 	for _, c := range cas {

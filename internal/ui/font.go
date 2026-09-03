@@ -72,21 +72,22 @@ func LoadFont(fsys fs.FS, chemin string) (*Font, error) {
 	glyphes := []rune(p.Glyphs)
 
 	if p.Sheet == "" {
-		dire("police : planche non nommée")
+		dire("police.fichier : absent ou vide")
 	}
 	if p.Cell[0] <= 0 || p.Cell[1] <= 0 {
-		dire("police : cellule de %dx%d", p.Cell[0], p.Cell[1])
+		dire("police.cellule : %dx%d, il faut deux dimensions positives",
+			p.Cell[0], p.Cell[1])
 	}
 	if len(glyphes) == 0 {
-		dire("police : table des glyphes vide")
+		dire("police.glyphes : table vide")
 	}
 	if len(p.Advances) != len(glyphes) {
-		dire("police : %d avances pour %d glyphes", len(p.Advances), len(glyphes))
+		dire("police.avances : %d pour %d glyphes", len(p.Advances), len(glyphes))
 	}
 	// La ligne de base hors de la cellule poserait tout le texte au-dessus ou
 	// au-dessous de là où il doit être, ce qui ne se verrait qu'à l'écran.
 	if p.Baseline <= 0 || p.Baseline >= p.Cell[1] {
-		dire("police : ligne de base %d hors d'une cellule haute de %d",
+		dire("police.ligne_de_base : %d hors d'une cellule haute de %d",
 			p.Baseline, p.Cell[1])
 	}
 
@@ -96,7 +97,7 @@ func LoadFont(fsys fs.FS, chemin string) (*Font, error) {
 		// l'emploie dessine le premier, et la planche porte une colonne que rien
 		// ne lit.
 		if _, vu := place[r]; vu {
-			dire("police : le glyphe U+%04X est déclaré deux fois", r)
+			dire("police.glyphes : U+%04X déclaré deux fois", r)
 			continue
 		}
 		place[r] = i

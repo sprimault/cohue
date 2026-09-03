@@ -157,10 +157,11 @@ shipped room moves. Without it, a level would load silently with geometry
 different from the one its author built.
 
 The repository follows SemVer with the zero clause, defined in
-[`CHANGELOG.md`](CHANGELOG.md): **in `0.x`, nothing is guaranteed.** The minor marks a [`ROADMAP.md`](ROADMAP.md) step, not an API
-break; everything else accumulates in the patch. Direct consequence: **the number
-warns of nothing**, and it is the release notes that must say what a level author
-needs to revisit.
+[`CHANGELOG.md`](CHANGELOG.md): **in `0.x`, nothing is guaranteed.**
+The minor marks a [`ROADMAP.md`](ROADMAP.md) step, not an API break;
+everything else accumulates in the patch. Direct consequence: **the number
+warns of nothing**, and it is the release notes that must say what a level
+author needs to revisit.
 
 ## Language
 

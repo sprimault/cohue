@@ -450,8 +450,8 @@ de mise à jour : un log par image traverse le disque soixante fois par seconde.
 ## Le bassin d'entités
 
 Les entités de jeu vivent dans des bassins préalloués, jamais dans des slices
-qui croissent. Le motif est le même pour les ennemis, les projectiles, les
-gemmes, les caisses, les particules et les cadavres :
+qui croissent. Le motif est le même pour toutes les sortes d'entités, des
+ennemis aux cadavres :
 
 ```go
 type Pool struct {

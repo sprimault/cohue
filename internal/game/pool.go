@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Le bassin d'entités de capacité fixe, et le Handle qui survit à ses échanges.
-// Le mécanisme est le même pour les six bassins qu'annoncent les invariants,
-// d'où le paramètre de type : six copies seraient six endroits où tenir une
-// règle qu'aucun test ne verrait manquer.
+// Le mécanisme est le même pour tous les bassins qu'annoncent les invariants,
+// d'où le paramètre de type : une copie par sorte ferait autant d'endroits où
+// tenir une règle qu'aucun test ne verrait manquer.
 
 package game
 
@@ -27,13 +27,13 @@ type Handle struct {
 
 // Pool est un bassin d'entités de capacité fixe.
 //
-// Le motif est le même pour les ennemis, les projectiles, les gemmes, les
-// caisses, les particules et les cadavres, et il est générique pour cette
-// raison : ce n'est pas une abstraction bâtie sur un cas, c'est la mise en
-// facteur d'un mécanisme que l'invariant 1 fixe et qui ne peut pas différer
-// d'un bassin à l'autre. Six copies seraient six endroits où tenir la règle, et
-// une copie qui la manquerait ne ferait échouer aucun test : elle ferait qu'une
-// référence périmée désigne une entité vivante.
+// Le motif est le même pour toutes les sortes d'entités, des ennemis aux
+// cadavres, et il est générique pour cette raison : ce n'est pas une abstraction
+// bâtie sur un cas, c'est la mise en facteur d'un mécanisme que l'invariant 1
+// fixe et qui ne peut pas différer d'un bassin à l'autre. Une copie par sorte
+// ferait autant d'endroits où tenir la règle, et une copie qui la manquerait ne
+// ferait échouer aucun test : elle ferait qu'une référence périmée désigne une
+// entité vivante.
 //
 // `T` n'a rien à savoir du bassin — ni méthode, ni contrainte, ni champ de
 // génération. Une entité qui porterait la sienne devrait l'exposer, et

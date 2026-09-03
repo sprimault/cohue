@@ -108,6 +108,13 @@ type Screen struct {
 	// `choisir`.
 	carteChoisie int
 
+	// finRepere est le tick jusqu'auquel l'accusé d'un repère reste affiché.
+	//
+	// Zéro dit qu'il n'y en a pas, et rien de valide ne le produit : une pose au
+	// premier tick le fixe déjà deux secondes plus loin. C'est ce qui permet de
+	// ne pas tenir un second champ pour distinguer l'absence du début de partie.
+	finRepere game.Tick
+
 	// hud pose le bandeau de la partie et le texte de l'écran de mort. Il peut
 	// être nul : la planche de relecture monte des écrans sans lui, et une partie
 	// sans interface se dessine quand même — ce qu'elle perd est tout le texte du
@@ -196,6 +203,10 @@ func (s *Screen) Update() error {
 		// maintien, la charge partirait à l'image où le doigt se pose et le
 		// joueur ne saurait jamais s'il l'a dépensée exprès.
 		s.monde.Attract()
+	}
+
+	if presse(repere) {
+		s.poserRepere()
 	}
 
 	s.monde.Step(voulu())

@@ -96,6 +96,21 @@ type Passives struct {
 	Relief Relief
 }
 
+// Axes rend la table des axes, dans l'ordre où les cartes les offrent.
+//
+// En lecture : c'est la table du manifeste, que le monde ne recopie pas. Elle
+// est indexée comme `TiersTaken`, et les deux se lisent ensemble — celle-ci
+// porte les noms et les bornes, l'autre ce qui est acquis.
+func (w *World) Axes() []Passive { return w.passifs.Axes }
+
+// TiersTaken rend les paliers pris sur chaque axe, indexé comme `Axes`.
+//
+// **C'est l'état de la partie que le joueur ne peut pas restituer de mémoire.**
+// Ce qu'il a choisi décide de ce que son arme est devenue, et l'écart entre deux
+// parties se lit là avant de se lire ailleurs ; les deux tranches séparées plutôt
+// qu'une structure composée évitent une allocation à chaque lecture.
+func (w *World) TiersTaken() []int { return w.paliers }
+
 // rawPassives est la section telle qu'elle s'écrit.
 type rawPassives struct {
 	manifest.Commentable

@@ -64,6 +64,8 @@ type Readings struct {
 	Elapsed game.Tick
 	// Charged dit si le joueur tient un aimant.
 	Charged bool
+	// Mark est l'accusé d'un repère, vide quand il n'y a rien à confirmer.
+	Mark string
 }
 
 // Panel pose les trois lectures : la vie, l'expérience et le temps écoulé.
@@ -111,6 +113,14 @@ func (h *HUD) Panel(dst *ebiten.Image, r Readings) {
 	temps := minuteur(r.Elapsed)
 	h.libelle(dst, temps, Width-margeEcran-h.Font.Advance(temps), margeEcran,
 		h.Color("texte"))
+
+	// L'accusé se pose sous le minuteur, dans la teinte atténuée : il confirme
+	// une pose, il n'est pas une des lectures que le bandeau existe pour donner,
+	// et l'œil qui vérifie l'heure d'un repère est déjà dans ce coin-là.
+	if r.Mark != "" {
+		h.libelle(dst, r.Mark, Width-margeEcran-h.Font.Advance(r.Mark),
+			margeEcran+h.Font.Height(), h.Color("texte_attenue"))
+	}
 
 	h.emplacement(dst, margeEcran, y+h.Font.Height()+h.Margin(), r.Charged)
 }
@@ -191,6 +201,7 @@ func (s *Screen) peindreBandeau(ecran *ebiten.Image) {
 		Threshold:  s.monde.Threshold(),
 		Elapsed:    s.monde.Tick(),
 		Charged:    s.monde.Charged(),
+		Mark:       s.marque(),
 	})
 }
 

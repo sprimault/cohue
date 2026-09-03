@@ -89,6 +89,11 @@ montée met le jeu en pause pour offrir **trois cartes**, dont on prend une.
   désigne la carte qu'elle montre. Les chiffres reviennent aux emplacements, qui
   les gardent toute la partie — une carte mal choisie se rattrape au niveau
   suivant, un aimant déclenché à vide est perdu.
+- **Un repère se pose en jouant.** Espace horodate l'instant dans le journal de
+  la partie, avec le niveau atteint et les paliers pris sur chaque axe. Le
+  bandeau le confirme deux secondes sous le minuteur : marquer ce qu'on vient de
+  ressentir ne demande pas de quitter la horde des yeux, et ce qui l'a produit
+  est écrit plutôt que retenu.
 - **Les gemmes s'effacent.** Une gemme laissée au sol s'éteint progressivement
   et disparaît au bout de six secondes. L'extinction est continue et non
   clignotante : l'âge d'une gemme se lit, donc ce qu'un tas vaut encore
@@ -237,6 +242,11 @@ pauses the game to offer **three cards**, one of which you take.
   points at the card it takes. Numbers go back to the slots, which keep them for
   the whole run — a badly chosen card is made up for at the next level, a magnet
   fired with nothing held is lost.
+- **A mark can be dropped while playing.** Space timestamps the moment in the
+  run's log, along with the level reached and the tiers taken on each axis. The
+  banner confirms it for two seconds under the timer: marking what you have just
+  felt does not mean looking away from the horde, and what produced it is
+  written down rather than remembered.
 - **Gems fade away.** A gem left on the ground dims progressively and vanishes
   after six seconds. The fade is continuous rather than blinking: a gem's age
   can be read, so what a pile is still worth can be estimated. This is what will

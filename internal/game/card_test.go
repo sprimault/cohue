@@ -106,6 +106,36 @@ func TestChoisirAppliqueLePalier(t *testing.T) {
 	}
 }
 
+// TestLesPaliersSIndexentCommeLesAxes garde ce qu'un repère lit en jouant.
+//
+// `Axes` et `TiersTaken` sont deux tranches séparées, donc rien dans le type ne
+// les tient ensemble : un croisement d'indices nommerait la cadence en montrant
+// le compte de la portée, et le repère attribuerait une bascule au mauvais axe
+// sans que rien d'autre ne le dise.
+//
+// Le cas prend le second axe et non le premier : sur le premier, deux indices
+// croisés donneraient le même résultat.
+func TestLesPaliersSIndexentCommeLesAxes(t *testing.T) {
+	w, profils := champDeCartes(t, monteeSimple())
+	semer(t, w, profils, 1)
+	w.Step(Vec{})
+
+	pris := w.Pending()[1].Name
+	w.Choose(1)
+
+	axes := w.Axes()
+	for i := range axes {
+		attendu := 0
+		if axes[i].Name == pris {
+			attendu = 1
+		}
+		if w.TiersTaken()[i] != attendu {
+			t.Errorf("axe %q : %d palier(s) pris, attendu %d",
+				axes[i].Name, w.TiersTaken()[i], attendu)
+		}
+	}
+}
+
 // TestUnAxeEpuiseSortDuMenu éprouve la borne, et ce que la soupape fait alors.
 //
 // Épuiser un axe oblige à basculer sur celui qu'on n'avait pas choisi : c'est ce

@@ -27,6 +27,12 @@
       "$comment": "rayon_apparition_tuiles — la distance au joueur à laquelle une créature apparaît. Dix-neuf tuiles : le point du monde le plus éloigné qu'un tampon de 960×540 laisse voir est à 15,9 tuiles, et la conception veut trois tuiles au-delà du bord de l'écran. Ce chiffre est donc dérivé du tampon fixe, et il est à revoir si ce tampon change — sans quoi on verrait les créatures se matérialiser. Il vit ici et non dans le lieu parce qu'il ne s'agit pas du rythme d'un auteur : un rayon tiré de la fenêtre donnerait à deux joueurs des apparitions différentes sur la même graine, et le déterminisme tomberait. || report_ms — la borne du budget non dépensé. Une apparition abandonnée, faute de position libre sur l'anneau, reporte son budget au tick suivant : sans report, un couloir étroit serait un abri où la pression tombe à zéro. Mais sans borne, vingt secondes passées dans un cul-de-sac se libèrent d'un coup à la sortie, ce qui est le mur d'ennemis que la règle « jamais dans le champ de vision » cherche à interdire. Trois secondes : se terrer coûte du temps, pas une punition différée qu'on ne relie plus à sa cause. || Le plafond d'effectif n'est pas ici : c'est la capacité du bassin des ennemis, et deux chiffres pour une même limite finiraient par se contredire en silence.",
       "rayon_apparition_tuiles": 19.0,
       "report_ms": 3000
+    },
+    "caisses": {
+      "$comment": "objet — la caisse dans assets/objets/manifeste.json, pour la raison écrite sur la gemme : le moteur ne le lit pas, le contrôle des ressources exige qu'il désigne un objet existant. || gemmes — ce qu'une caisse laisse en se cassant. Cinq valent la moitié du premier seuil de niveau : une caisse est un détour qui rapporte, jamais un niveau à elle seule — sinon casser deviendrait la façon de jouer et la horde un décor qu'on contourne. || Ce nombre vit ici et non dans le lieu, comme la valeur d'une gemme : un auteur qui pourrait le fixer réglerait la difficulté de sa salle par son butin, et une caisse cesserait de signifier la même chose d'un lieu à l'autre. Il dit où sont ses caisses, pas ce qu'elles donnent. || portee_contact_tuiles — la distance à laquelle le joueur la casse. Un peu moins d'une tuile : on la casse en arrivant dessus, sans avoir à viser. Elle ne bloque pas encore le champ de flux et ne ralentit pas, ce que l'étape 7 lui donnera avec le délai de contact.",
+      "objet": "caisse",
+      "gemmes": 5,
+      "portee_contact_tuiles": 0.9
     }
   }
 }

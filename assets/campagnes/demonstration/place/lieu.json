@@ -96,6 +96,19 @@
     { "profil": "civil", "position": [36, 62] },
     { "profil": "civil", "position": [62, 36] }
   ],
+  "caisses": [
+    {
+      "$comment": "Des caisses posées, pas semées : chacune porte sa case, comme une pièce et comme un figurant. Ce qu'elles laissent n'est pas écrit ici — c'est un réglage de partie, dans assets/progression, pour qu'une caisse signifie la même chose d'un lieu à l'autre. || Elles sont loin du carrefour où le joueur commence, et réparties vers les quatre coins : casser doit être un détour qui coûte du temps pendant que la pression monte, et non un ramassage sur le chemin. C'est cette tension que la sonde existe pour faire sentir, avec la porte.",
+      "position": [35, 35]
+    },
+    { "position": [63, 35] },
+    { "position": [35, 63] },
+    { "position": [63, 63] },
+    { "position": [30, 49] },
+    { "position": [68, 49] },
+    { "position": [49, 30] },
+    { "position": [49, 68] }
+  ],
   "sortie": {
     "$comment": "La porte se pose dans l'enceinte, à mi-hauteur du bord est : elle est donc infranchissable, ce que le chargement exige — une sortie posée sur du sol libre se traverserait avant d'être gagnée. || Le compte est celui d'une horde qu'on a affrontée sans l'avoir épuisée : assez pour que partir se mérite, assez peu pour que le choix se pose pendant que la courbe monte encore. Le joueur qui l'atteint choisit alors quand partir, ce que ce lieu existe pour faire sentir.",
     "position": [97, 49],

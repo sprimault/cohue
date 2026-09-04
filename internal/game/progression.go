@@ -90,6 +90,11 @@ type Progression struct {
 	// temps passé à se terrer se libère d'un coup à la sortie — le mur d'ennemis
 	// que la règle « jamais dans le champ de vision » existe pour interdire.
 	CarryOver Tick
+	// CrateGems est le nombre de gemmes qu'une caisse laisse en se cassant.
+	CrateGems int
+	// CrateRange est la distance à laquelle le joueur casse une caisse, en
+	// tuiles.
+	CrateRange Fixed
 }
 
 // Threshold rend ce que coûte le passage d'un niveau au suivant, en gemmes.
@@ -242,6 +247,24 @@ func LoadProgression(fsys fs.FS, chemin string) (*Progression, error) {
 		table.CarryOver = ticks
 	}
 
+	c := brut.Progression.Crates
+	if c.Object == "" {
+		dire("caisses.objet : absent ou vide")
+	}
+	table.CrateGems = exige("caisses", "gemmes", c.Gems, dire)
+	if c.Gems != nil && table.CrateGems < 1 {
+		// Une caisse vide est un objet qu'on casse pour rien : elle coûte le
+		// détour qui l'a atteinte, et le joueur cesse d'en chercher après deux.
+		dire("caisses.gemmes : %d, une caisse qui ne laisse rien ne vaut pas le "+
+			"detour qu'elle coute", table.CrateGems)
+	}
+
+	table.CrateRange = FromFloat(exige("caisses", "portee_contact_tuiles", c.TileRange, dire))
+	if c.TileRange != nil && table.CrateRange < 1 {
+		dire("caisses.portee_contact_tuiles : %v, une portée que la virgule fixe "+
+			"arrondit a zero ne casse rien", *c.TileRange)
+	}
+
 	if len(manques) > 0 {
 		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
@@ -274,6 +297,28 @@ type rawSections struct {
 	// que le lieu lui dit. Le partage est net : un auteur écrit le rythme de ses
 	// vagues, il ne décide pas d'où sortent les créatures.
 	Pressure rawPressure `json:"pression"`
+	// Crates porte ce qu'une caisse laisse et à quelle distance elle se casse.
+	//
+	// **Le contenu est un réglage de jeu et non de lieu**, pour la raison qui
+	// vaut déjà pour la valeur d'une gemme : ce que rapporte une chose doit
+	// signifier la même partout, sans quoi un auteur règle sa difficulté en
+	// gonflant ses caisses. Le lieu dit où elles sont, il ne dit pas ce qu'elles
+	// donnent.
+	Crates rawCrates `json:"caisses"`
+}
+
+// rawCrates déclare ce qu'une caisse laisse et comment elle se casse.
+type rawCrates struct {
+	manifest.Commentable
+
+	// Object nomme la caisse dans le manifeste d'objets. Ce champ n'est pas lu
+	// ici, pour la raison écrite sur `rawGems.Object` : c'est le contrôle des
+	// ressources qui exige qu'il désigne un objet existant.
+	Object string `json:"objet"`
+	// Gems est le nombre de gemmes qu'elle laisse.
+	Gems *int `json:"gemmes"`
+	// TileRange est la distance à laquelle le joueur la casse, en tuiles.
+	TileRange *float64 `json:"portee_contact_tuiles"`
 }
 
 // rawPressure déclare ce que le spawner tient de la partie.

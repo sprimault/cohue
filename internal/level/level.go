@@ -57,6 +57,16 @@ type Level struct {
 	// raison qui vaut déjà pour les vagues : c'est une table de jeu, et son sens
 	// appartient au paquet qui l'exécute.
 	Ambient game.AmbientSpec `json:"ambiance,omitempty"`
+	// Crates sont les caisses posées, absentes le plus souvent.
+	//
+	// Elles portent leur case comme les figurants, et pour la même raison : un
+	// semis tiré au sort abandonnerait en silence ce qui tombe dans un mur. Ce
+	// qu'elles laissent, en revanche, ne s'écrit pas ici — c'est un réglage de
+	// jeu, et un auteur qui pourrait le fixer réglerait sa difficulté par son
+	// butin.
+	//
+	// Champ facultatif, donc `version_format` ne bouge pas.
+	Crates game.CrateSpec `json:"caisses,omitempty"`
 	// Exit est la porte de sortie, absente d'un lieu qui n'en a pas.
 	//
 	// **Elle vit à côté des vagues plutôt que dedans**, comme le peuplement : une

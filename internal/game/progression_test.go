@@ -401,12 +401,12 @@ func TestChampsDeProgressionManquantsListesEnUneFois(t *testing.T) {
 	if !errors.As(err, &invalide) {
 		t.Fatalf("section de niveaux vide acceptée : %v", err)
 	}
-	// Les trois seuils, les quatre champs de la gemme, les quatre de l'aimant et
-	// les deux de la pression. Une absence compte pour une ligne : les bornes ne
-	// se prononcent que sur un champ présent, faute de quoi le nombre de lignes
-	// cesserait d'être le nombre de choses à corriger.
-	if len(invalide.Missing) != 13 {
-		t.Errorf("%d manquement(s), attendu 13 :\n  %v", len(invalide.Missing), invalide.Missing)
+	// Les trois seuils, les quatre champs de la gemme, les quatre de l'aimant,
+	// les deux de la pression et les trois de la caisse. Une absence compte pour
+	// une ligne : les bornes ne se prononcent que sur un champ présent, faute de
+	// quoi le nombre de lignes cesserait d'être le nombre de choses à corriger.
+	if len(invalide.Missing) != 16 {
+		t.Errorf("%d manquement(s), attendu 16 :\n  %v", len(invalide.Missing), invalide.Missing)
 	}
 }
 

@@ -467,6 +467,10 @@ Ce que cela établit est la cohérence entre un score et un journal, ce qui suff
 
 Le joueur casse une caisse **en la traversant**. Aucune touche, aucun conflit avec l'auto-visée, et ça le garde en mouvement.
 
+**Ce qui en est écrit aujourd'hui est une sonde, et le reste de ce chapitre attend son étape.** Une caisse est posée par le lieu, se casse au contact du joueur et laisse des gemmes ; elle n'a ni délai de contact, ni ralentissement, ni coût dans le champ de flux, et son contenu n'est pas visible avant la casse. Ce qui est déjà tenu est la seule règle qui coûterait cher à rétablir plus tard : **elle n'est pas une cible.** Rangée parmi les ennemis, elle détournerait la visée automatique — qui prend la plus proche sans que le joueur choisisse — et emporterait avec elle la mécanique du Secouriste ; c'est la même règle que pour le figurant, et pour la même raison.
+
+**Ce qu'une caisse laisse est un réglage de partie, pas de lieu.** Un auteur écrit où sont ses caisses, il n'écrit pas ce qu'elles donnent : sans cela il règle la difficulté de sa salle par son butin, et une caisse cesse de signifier la même chose d'un lieu à l'autre. C'est la règle qui vaut déjà pour la valeur d'une gemme.
+
 Trois règles rendent la mécanique juste :
 
 **Un temps de contact.** Pas de destruction au frôlement : la caisse cède après environ un tiers de seconde d'appui, avec une déformation visible pendant le délai. On ne casse pas en passant, on casse en décidant d'y aller.

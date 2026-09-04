@@ -70,6 +70,15 @@ C'est le cœur de la tension du jeu : **ramasser oblige à revenir là où vous 
 de tuer, c'est-à-dire là où la horde converge.** Le trajet de collecte va contre
 le trajet de fuite.
 
+## Les caisses
+
+Une salle en pose quelques-unes, à l'écart de là où vous commencez. **Marchez
+dessus pour la casser** : elle laisse une poignée de gemmes, et rien ne vous
+demande de viser — votre arme, elle, ne les prend jamais pour cible.
+
+Elles ne réapparaissent pas. Aller les chercher est un détour pendant que la
+pression monte, et c'est tout leur intérêt.
+
 ## L'aimant
 
 Un **aimant** apparaît régulièrement dans la salle, toujours à bonne distance de
@@ -183,7 +192,8 @@ vertes.
 
 Le sol se lit à sa teinte : gris pour une case libre, **bleuté pour une case
 qui ralentit**, sombre pour un mur qu'on ne traverse pas. La **porte** est la
-case cyan : éteinte tant qu'elle est fermée, vive une fois gagnée.
+case cyan : éteinte tant qu'elle est fermée, vive une fois gagnée. Les
+**caisses** sont les formes brunes posées au sol, plus larges que hautes.
 
 ## Les touches
 

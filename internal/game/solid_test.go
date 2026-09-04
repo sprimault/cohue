@@ -72,19 +72,19 @@ func TestUnProfilSansCorpsNArretePas(t *testing.T) {
 	w, _ := areneSolide(t)
 	marcheur := indexDuProfil(t, w.profils, "marcheur")
 	if w.profils.Enemies[marcheur].Solid {
-		t.Fatal("le Badaud bloque, ce cas suppose le contraire")
+		t.Fatal("le Quidam bloque, ce cas suppose le contraire")
 	}
 	if _, ok := w.SpawnEnemy(marcheur, w.playerX+One, w.playerY); !ok {
 		t.Fatal("bassin plein")
 	}
-	badaud := w.Enemies().At(0)
+	quidam := w.Enemies().At(0)
 
 	for range TPS {
 		w.Step(Vec{X: One})
 	}
-	if w.playerX <= badaud.X {
-		t.Errorf("le joueur est resté en deçà du Badaud (%v contre %v) : un corps "+
-			"qui ne bloque pas l'a pourtant arrêté", w.playerX, badaud.X)
+	if w.playerX <= quidam.X {
+		t.Errorf("le joueur est resté en deçà du Quidam (%v contre %v) : un corps "+
+			"qui ne bloque pas l'a pourtant arrêté", w.playerX, quidam.X)
 	}
 }
 

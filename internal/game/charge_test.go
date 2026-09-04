@@ -266,7 +266,7 @@ func TestLaRecuperationSuitUneChargeAboutie(t *testing.T) {
 // TestUnProfilSansPorteeNePasseJamaisParLeCycle garde ce qui permet à la charge
 // de vivre dans la boucle commune sans y peser.
 //
-// Le Badaud partage la passe de tous les autres : si son cycle s'ouvrait, il
+// Le Quidam partage la passe de tous les autres : si son cycle s'ouvrait, il
 // s'immobiliserait un tiers du temps sans que rien dans son profil ne le
 // demande. C'est la portée nulle qui ferme le mécanisme, et non un test sur le
 // comportement.
@@ -274,7 +274,7 @@ func TestUnProfilSansPorteeNePasseJamaisParLeCycle(t *testing.T) {
 	w, _, _ := arene(t)
 	marcheur := indexDuProfil(t, w.profils, "marcheur")
 	if w.profils.Enemies[marcheur].ChargeRange != 0 {
-		t.Fatal("le Badaud porte une portée de charge, ce cas suppose le contraire")
+		t.Fatal("le Quidam porte une portée de charge, ce cas suppose le contraire")
 	}
 	if _, ok := w.SpawnEnemy(marcheur, w.playerX+FromInt(3), w.playerY); !ok {
 		t.Fatal("bassin plein")

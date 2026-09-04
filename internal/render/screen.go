@@ -205,15 +205,15 @@ var (
 	//
 	// **Rangées par clé de manifeste et non par index**, et le premier jet a
 	// montré pourquoi : la table des profils est triée alphabétiquement, si bien
-	// qu'un tableau indexé par position donnait le rouge du Badaud au Vigile et
-	// l'olive du Vigile au Badaud. Rien ne pouvait le dire — les deux indices
+	// qu'un tableau indexé par position donnait le rouge du Quidam au Vigile et
+	// l'olive du Vigile au Quidam. Rien ne pouvait le dire — les deux indices
 	// sont valides, une couleur fausse ne casse aucun test, et il a fallu
 	// demander « quelle couleur, le Vigile ? » pour que ça se voie.
 	//
 	// Une clé absente de cette table prend le rouge de la masse : un profil de
 	// plus doit se peindre, pas faire tomber le rendu.
 	teintesHorde = map[string]color.RGBA{
-		"marcheur":  {R: 150, G: 78, B: 74, A: 255},  // le Badaud garde le rouge de la masse
+		"marcheur":  {R: 150, G: 78, B: 74, A: 255},  // le Quidam garde le rouge de la masse
 		"flanqueur": {R: 122, G: 82, B: 150, A: 255}, // l'Arpenteur, violet sourd
 		"sprinteur": {R: 168, G: 96, B: 52, A: 255},  // le Molosse, orange terreux
 		"bloqueur":  {R: 84, G: 96, B: 140, A: 255},  // le Vigile, bleu d'uniforme

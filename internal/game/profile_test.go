@@ -61,13 +61,13 @@ func TestManifesteLivreDonneLesProfils(t *testing.T) {
 	marcheur := profil(t, table, "marcheur")
 	// 0,62 fois la vitesse du joueur, arrondi une seule fois.
 	if marcheur.Speed != 3386 {
-		t.Errorf("vitesse du Badaud : %d, attendu 3386", marcheur.Speed)
+		t.Errorf("vitesse du Quidam : %d, attendu 3386", marcheur.Speed)
 	}
 	if marcheur.Behaviour != Chase {
-		t.Errorf("comportement du Badaud : « %s », attendu « %s »", marcheur.Behaviour, Chase)
+		t.Errorf("comportement du Quidam : « %s », attendu « %s »", marcheur.Behaviour, Chase)
 	}
-	if marcheur.Name != "Badaud" {
-		t.Errorf("nom du marcheur : « %s », attendu « Badaud »", marcheur.Name)
+	if marcheur.Name != "Quidam" {
+		t.Errorf("nom du marcheur : « %s », attendu « Quidam »", marcheur.Name)
 	}
 
 	// Les champs qu'un seul comportement porte arrivent bien jusqu'à la table,
@@ -76,7 +76,7 @@ func TestManifesteLivreDonneLesProfils(t *testing.T) {
 		t.Errorf("portée de la Buse : %d, attendu %d", r, FromInt(6))
 	}
 	if d := marcheur.ChargeDamage; d != 0 {
-		t.Errorf("le Badaud porte %d de dégâts de charge, il ne charge pas", d)
+		t.Errorf("le Quidam porte %d de dégâts de charge, il ne charge pas", d)
 	}
 }
 
@@ -130,7 +130,7 @@ func TestManquementsListesEnUneFois(t *testing.T) {
 			             "corps_bloquant": false,
 			             "degats_contact_s": 4, "gemmes": 1, "degats_tir": 6,
 			             "vitesse_projectile_tuiles_s": 7.0, "cadence_tir_ms": 1600},
-			"marcheur": {"role": "ennemi", "nom": "Badaud", "rayon_tuiles": 0.125,
+			"marcheur": {"role": "ennemi", "nom": "Quidam", "rayon_tuiles": 0.125,
 			             "comportement": "poursuite", "vitesse_relative": 0.62,
 			             "touches": 3, "points": 10, "cout_pression": 3,
 			             "poids_separation": 1.0, "max_simultane": 0, "groupe": 1,

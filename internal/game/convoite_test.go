@@ -18,14 +18,14 @@ import "testing"
 // sur huit minutes du lieu livré —, et les six autres étaient écrits sans jamais
 // arriver.
 //
-// Le cas met un Badaud à trois et un Vigile à douze dans la même phase : sans
+// Le cas met un Quidam à trois et un Vigile à douze dans la même phase : sans
 // épargne, le Vigile ne sort jamais, quelle que soit la durée.
 func TestUnProfilCherFinitParSortir(t *testing.T) {
 	w, profils := salleOuverte(t, nil, 64)
 	marcheur := indexDuProfil(t, profils, "marcheur")
 	bloqueur := indexDuProfil(t, profils, "bloqueur")
 	if profils.Enemies[bloqueur].PressureCost <= profils.Enemies[marcheur].PressureCost {
-		t.Fatal("le Vigile ne coûte pas plus qu'un Badaud : le cas ne sépare rien")
+		t.Fatal("le Vigile ne coûte pas plus qu'un Quidam : le cas ne sépare rien")
 	}
 	w.scenario = vagueUnique(6, marcheur, bloqueur)
 
@@ -36,7 +36,7 @@ func TestUnProfilCherFinitParSortir(t *testing.T) {
 		}
 	}
 	t.Errorf("aucun Vigile en soixante secondes : le profil le moins cher a "+
-		"épuisé le budget avant que le sien soit atteint (%d Badauds posés)",
+		"épuisé le budget avant que le sien soit atteint (%d Quidams posés)",
 		w.vivants[marcheur])
 }
 
@@ -44,7 +44,7 @@ func TestUnProfilCherFinitParSortir(t *testing.T) {
 // la même part de budget.
 //
 // **C'est ce qui fait une horde de masse avec des exceptions.** Un tirage
-// uniforme sortirait autant de Vigiles que de Badauds en nombre, donc quatre fois
+// uniforme sortirait autant de Vigiles que de Quidams en nombre, donc quatre fois
 // plus de budget dépensé par les gros : une horde chère et clairsemée. Pondéré
 // par l'inverse du prix, le nombre suit l'inverse du prix.
 //
@@ -60,18 +60,18 @@ func TestLeTirageProduitDeLaMasse(t *testing.T) {
 	for range 120 * TPS {
 		w.Step(Vec{})
 	}
-	badauds, vigiles := w.vivants[marcheur], w.vivants[bloqueur]
+	quidams, vigiles := w.vivants[marcheur], w.vivants[bloqueur]
 	if vigiles == 0 {
-		t.Fatalf("aucun Vigile sur %d Badauds", badauds)
+		t.Fatalf("aucun Vigile sur %d Quidams", quidams)
 	}
 
 	// Quatre pour un, aux mêmes prix : douze contre trois.
-	rapport := float64(badauds) / float64(vigiles)
+	rapport := float64(quidams) / float64(vigiles)
 	if rapport < 2 || rapport > 8 {
-		t.Errorf("%d Badauds pour %d Vigiles, soit %.1f pour un : attendu autour "+
-			"de quatre, qui est le rapport de leurs prix", badauds, vigiles, rapport)
+		t.Errorf("%d Quidams pour %d Vigiles, soit %.1f pour un : attendu autour "+
+			"de quatre, qui est le rapport de leurs prix", quidams, vigiles, rapport)
 	}
-	t.Logf("%d Badauds pour %d Vigiles (%.1f pour un)", badauds, vigiles, rapport)
+	t.Logf("%d Quidams pour %d Vigiles (%.1f pour un)", quidams, vigiles, rapport)
 }
 
 // TestLeConvoiteSAbandonneQuandIlSeFerme garde ce qui empêche un plafond de

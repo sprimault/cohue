@@ -79,10 +79,10 @@ func TestLaFriseSeLitStrictement(t *testing.T) {
 // tout, et son auteur aurait cherché longtemps pourquoi sa vague n'arrive pas.
 func TestUnProfilQuiNExistePasEstRefuse(t *testing.T) {
 	_, manques := CompileScenario(WaveScenario{Phases: []WavePhase{
-		phaseEcrite("0:00", 8, "marcheur", "badaud"),
+		phaseEcrite("0:00", 8, "marcheur", "quidam"),
 	}}, profilsLivres(t), reportDeTest)
 
-	if !contient(manques, "badaud") {
+	if !contient(manques, "quidam") {
 		t.Errorf("le profil inconnu passe : %v", manques)
 	}
 }
@@ -192,7 +192,7 @@ func TestUneSalleSansHordeResteUnLieu(t *testing.T) {
 // ce cas par hasard, et c'est celui qui décide si le refus se fait au bon
 // endroit.
 //
-// **Le Badaud accompagne le Molosse dans les deux cas, et ce n'est pas un
+// **Le Quidam accompagne le Molosse dans les deux cas, et ce n'est pas un
 // décor** : `Cheapest` relève le plafond au prix du moins cher, si bien qu'un
 // Molosse seul serait sauvé par son propre prix. C'est la présence d'un profil
 // bon marché qui laisse le cher inatteignable, et c'est ce qui rend le défaut

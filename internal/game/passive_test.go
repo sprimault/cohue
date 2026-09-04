@@ -93,7 +93,7 @@ func TestLAxeEntierNeVidePasLaCadence(t *testing.T) {
 //
 // Un `pas_tuiles` resté sur la cadence après un copier-coller ne serait jamais
 // lu et laisserait croire à un réglage : c'est le champ de trop, aussi grave que
-// le champ absent, et le même défaut que la portée oubliée sur un Badaud.
+// le champ absent, et le même défaut que la portée oubliée sur un Quidam.
 func TestUnPasEtrangerALAxeEstRefuse(t *testing.T) {
 	_, err := tableDEssai(t, `"passifs": {
 		"axes": {

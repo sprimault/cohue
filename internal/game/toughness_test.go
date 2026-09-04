@@ -27,10 +27,10 @@ func TestLaResistanceSArrondit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("profils livrés : %v", err)
 	}
-	badaud := &profils.Enemies[indexDuProfil(t, profils, "marcheur")]
-	if badaud.Hits != 3 {
-		t.Fatalf("le Badaud encaisse %d touches, ces chiffres en attendent trois",
-			badaud.Hits)
+	quidam := &profils.Enemies[indexDuProfil(t, profils, "marcheur")]
+	if quidam.Hits != 3 {
+		t.Fatalf("le Quidam encaisse %d touches, ces chiffres en attendent trois",
+			quidam.Hits)
 	}
 
 	for _, c := range []struct {
@@ -44,7 +44,7 @@ func TestLaResistanceSArrondit(t *testing.T) {
 		{2.0, 6}, // le doublement, qu'un multiplicateur entier imposerait
 		{3.34, 10},
 	} {
-		if got := badaud.HitsAt(FromFloat(c.durcissement)); got != c.veut {
+		if got := quidam.HitsAt(FromFloat(c.durcissement)); got != c.veut {
 			t.Errorf("durcissement %v : %d touches, attendu %d",
 				c.durcissement, got, c.veut)
 		}
@@ -55,7 +55,7 @@ func TestLaResistanceSArrondit(t *testing.T) {
 //
 // **« Trois touches » est une unité, pas un nombre**, et elle ne le reste que si
 // une créature demande le même nombre de coups du premier au dernier. Une
-// résistance qui suivrait la courbe en cours de vie ferait qu'un Badaud entamé
+// résistance qui suivrait la courbe en cours de vie ferait qu'un Quidam entamé
 // avant un palier en réclamerait davantage après, sans que rien à l'écran ne
 // l'explique.
 //
@@ -70,7 +70,7 @@ func TestLaResistanceEstFigeeALApparition(t *testing.T) {
 	// **Une pression lente, et c'est nécessaire.** À forte pression le bassin se
 	// remplit avant le second palier : toutes les créatures naissent sous le
 	// premier, et le cas relève alors une résistance qu'il croit neuve. Trois par
-	// seconde pour un Badaud à trois en fait un par seconde, ce qui laisse de la
+	// seconde pour un Quidam à trois en fait un par seconde, ce qui laisse de la
 	// place à celle qui naîtra durcie.
 	w.scenario = &Scenario{Phases: []Phase{
 		{Start: 0, Pressure: parTick(3), Profiles: []int{marcheur}, Toughness: One},
@@ -79,7 +79,7 @@ func TestLaResistanceEstFigeeALApparition(t *testing.T) {
 	}}
 
 	// L'attente porte sur l'apparition et non sur un compte de ticks : le budget
-	// met une seconde à payer un Badaud, et un relevé pris trop tôt trouverait la
+	// met une seconde à payer un Quidam, et un relevé pris trop tôt trouverait la
 	// salle vide.
 	for w.tick < 2*TPS && w.Enemies().Len() == 0 {
 		w.Step(Vec{})

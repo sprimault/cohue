@@ -106,7 +106,7 @@ func TestLeSecouristeNeSeSoignePas(t *testing.T) {
 // TestLeSoinNeDepassePasLaResistance vérifie qu'un soin ne rend pas une créature
 // plus solide que son profil.
 //
-// Sans plafond, un Badaud laissé longtemps auprès d'un Secouriste accumulerait
+// Sans plafond, un Quidam laissé longtemps auprès d'un Secouriste accumulerait
 // des touches que rien dans la table ne lui donne, et sa résistance cesserait
 // d'être une propriété du profil.
 //
@@ -160,7 +160,7 @@ func TestLeSoinNeRessuscitePas(t *testing.T) {
 // dans la passe commune sans y peser.
 //
 // Toute la horde la traverse : si la portée nulle ne fermait pas le mécanisme,
-// chaque Badaud remettrait ses voisines debout et plus rien ne mourrait.
+// chaque Quidam remettrait ses voisines debout et plus rien ne mourrait.
 //
 // **Les deux cobayes sont exactement superposés, et c'est ce qui discrimine.**
 // Une portée nulle rejette toute distance non nulle par la comparaison de
@@ -174,7 +174,7 @@ func TestLeSoinNeRessuscitePas(t *testing.T) {
 // d'avoir posé sa question.
 //
 // **La propriété gardée n'est visible que par un effet secondaire**, ce qui est
-// assez contre-intuitif pour être dit : un Badaud rend zéro touche, si bien que
+// assez contre-intuitif pour être dit : un Quidam rend zéro touche, si bien que
 // la résistance reste identique même quand le mécanisme s'ouvre à lui. Mesurer
 // ce que le soin est censé changer ne peut donc rien voir ; le seul témoin est
 // le retour visuel, qui s'allume sur un soin qui n'a pas eu lieu.
@@ -183,7 +183,7 @@ func TestUnProfilSansPorteeDeSoinNeSoignePas(t *testing.T) {
 	blessee := poser(t, w, "marcheur", FromInt(10), 0)
 	poser(t, w, "marcheur", FromInt(10), 0)
 	if w.profils.Enemies[blessee.Profile].HealRange != 0 {
-		t.Fatal("le Badaud soigne, ce cas suppose le contraire")
+		t.Fatal("le Quidam soigne, ce cas suppose le contraire")
 	}
 
 	blessee.Hits = 1
@@ -193,12 +193,12 @@ func TestUnProfilSansPorteeDeSoinNeSoignePas(t *testing.T) {
 			"superposée à lui", blessee.Hits)
 	}
 
-	// **Les éclairs sont ce qui discrimine vraiment.** Un Badaud rend zéro
+	// **Les éclairs sont ce qui discrimine vraiment.** Un Quidam rend zéro
 	// touche, donc la résistance ne bouge pas même quand le mécanisme s'ouvre à
 	// lui : ce qui se voit alors est un soin annoncé et sans effet, c'est-à-dire
 	// un joueur qui part chercher un Secouriste qui n'existe pas.
 	if blessee.Healed != 0 || w.Enemies().At(1).Healing != 0 {
-		t.Errorf("éclairs %d et %d sur deux Badauds : un soin s'affiche là où "+
+		t.Errorf("éclairs %d et %d sur deux Quidams : un soin s'affiche là où "+
 			"aucun n'a lieu", blessee.Healed, w.Enemies().At(1).Healing)
 	}
 }

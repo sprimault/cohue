@@ -79,7 +79,7 @@ DIRECTIONS = ["S", "SO", "O", "NO", "N", "NE", "E", "SE"]
 #
 # `max_simultane` borne les vivants d'un profil, pas les apparus. Un coût élevé
 # règle une fréquence moyenne, pas une simultanéité : le Secouriste ne vaut rien
-# seul et double la difficulté au milieu de vingt Badauds, donc sa rareté ne peut
+# seul et double la difficulté au milieu de vingt Quidams, donc sa rareté ne peut
 # pas se régler par son prix. Un scénario peut resserrer ce plafond, jamais le
 # desserrer.
 JEU = {
@@ -172,7 +172,7 @@ JEU = {
     # Le Passant n'est pas un monstre : il ne blesse pas, ne rapporte rien, ne
     # se cible pas et ne se paie pas dans le budget de pression. Il traverse la
     # scène et occupe l'espace, ce qui suffit à le rendre gênant. Lui laisser
-    # des dégâts de contact en ferait un Badaud affaibli, donc un doublon.
+    # des dégâts de contact en ferait un Quidam affaibli, donc un doublon.
     #
     # `va_et_vient` dit ce qu'on voit, comme `poursuite` pour les autres ; le
     # moyen est un rebond — il avance tout droit jusqu'à buter, puis repart —
@@ -194,7 +194,7 @@ BOUCLENT = {"repos", "marche"}
 PROFILS = {
     "joueur":    {"nom": "Survivant", "habit": (72, 108, 152),  "peau": (214, 170, 132), "carrure": 1.0,
                   "cycles": {"repos": 1, "attaque": 1, "marche": 4, "mort": 2}},
-    "marcheur":  {"nom": "Badaud", "habit": (120, 148, 116), "peau": (128, 168, 116), "carrure": 1.0,
+    "marcheur":  {"nom": "Quidam", "habit": (120, 148, 116), "peau": (128, 168, 116), "carrure": 1.0,
                   # Une foule d'un seul bleu se lit comme un bloc : les variantes
                   # cassent la répétition sans coûter une silhouette de plus.
                   "variantes": [(120, 148, 116), (92, 116, 140), (146, 122, 96),
@@ -520,7 +520,7 @@ def figurine(profil, direction, cycle, image, total, variante=0):
     # Zones de couleur dérivées de l'habit. C'est ce qui distingue une figurine
     # d'un bonhomme monochrome : le regard sépare les membres avant de lire la
     # silhouette. Elles se dérivent plutôt que de se déclarer — six variantes
-    # de Badaud donneraient sinon dix-huit teintes à tenir à la main.
+    # de Quidam donneraient sinon dix-huit teintes à tenir à la main.
     pantalon = _matiere(f"_pantalon_{profil}_{variante % len(teintes)}",
                         _teinter(teinte_habit, 0.58))
     chaussures = _matiere("_chaussures", (48, 44, 42))

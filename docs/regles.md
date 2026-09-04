@@ -166,7 +166,7 @@ sans rien faire.
 
 | Nom | Vitesse | Résistance | Dégâts au contact |
 |---|---|---|---|
-| **Badaud** | lente | 3 touches | 6 par seconde |
+| **Quidam** | lente | 3 touches | 6 par seconde |
 | **Molosse** | **très rapide** | 2 touches | 8 par seconde |
 | **Arpenteur** | moyenne | 4 touches | 7 par seconde |
 | **Buse** | lente | 5 touches | 4 par seconde |
@@ -177,7 +177,7 @@ sans rien faire.
 La résistance se compte en **touches de votre arme de base**, pas en points : une
 arme qui grossit toute la partie rendrait un chiffre absolu illisible.
 
-Aujourd'hui, le lieu de démonstration ne convoque que le **Badaud**. Les six
+Aujourd'hui, le lieu de démonstration ne convoque que le **Quidam**. Les six
 autres existent et attendent ce qui les rendra reconnaissables à l'écran : une
 horde de sept sortes qu'aucune couleur ne distingue rend la difficulté illisible,
 et on ne saurait pas dire ce qui a rendu une minute plus dure.
@@ -188,7 +188,7 @@ En haut à gauche, la jauge de **vie** en rouge, celle d'**expérience** en bleu
 le niveau atteint. En haut à droite, le **temps écoulé**.
 
 Le personnage est jaune et clair, la horde sombre, les projectiles clairs, les
-gemmes vertes. **Chaque créature a sa teinte** : le Badaud rouge, l'Arpenteur
+gemmes vertes. **Chaque créature a sa teinte** : le Quidam rouge, l'Arpenteur
 violet, le Molosse orange, le Vigile bleu, la Buse olive, la Baudruche magenta,
 le Secouriste vert. Elles restent toutes sombres — c'est ce qui garde votre
 personnage visible au milieu d'une foule.

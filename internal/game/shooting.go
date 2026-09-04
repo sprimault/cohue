@@ -303,7 +303,7 @@ func (w *World) traverse(depart Vec, x, y Fixed) bool {
 //
 // **Viser où la cible est se voit en jouant.** Le projectile vole à douze tuiles
 // par seconde sur une portée de six : une demi-seconde au plus loin, pendant
-// laquelle un Badaud parcourt une tuile et demie pour un rayon de un huitième. Une
+// laquelle un Quidam parcourt une tuile et demie pour un rayon de un huitième. Une
 // créature qui traverse était donc manquée de douze fois son rayon, et seules
 // celles qui venaient droit sur le joueur étaient touchées de façon fiable — ce
 // que le champ de flux rend fréquent, d'où un tir qui rate « parfois » plutôt

@@ -16,7 +16,7 @@ type Enemy struct {
 	// Profile est l'index de son profil dans `Profiles.Enemies`, et jamais une
 	// copie de ses valeurs — même « pour éviter une indirection ». C'est ce qui
 	// rend une modification de la table effective sans recharger le monde, et ce
-	// qui empêche deux Badauds d'avoir des vitesses différentes.
+	// qui empêche deux Quidams d'avoir des vitesses différentes.
 	Profile int
 	// X et Y sont sa position dans le monde, en tuiles.
 	X, Y Fixed

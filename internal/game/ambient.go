@@ -50,7 +50,7 @@ type AmbientPlacement struct {
 // la compilation des vagues, et pour la même raison : qui met au point un lieu
 // veut la liste.
 //
-// **Un profil d'ennemi y est refusé autant qu'un nom inconnu.** Poser un Badaud
+// **Un profil d'ennemi y est refusé autant qu'un nom inconnu.** Poser un Quidam
 // en figurant le sortirait du budget de pression et du plafond d'effectif tout
 // en le laissant dans la salle — une horde gratuite, que rien dans la courbe
 // n'expliquerait.

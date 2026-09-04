@@ -23,6 +23,7 @@ index.
 | avec quelles permissions écrire | [Écriture de fichiers](#7-écriture-de-fichiers) |
 | si un chiffre a le droit d'être écrit | [Une affirmation de nombre](#8-une-affirmation-de-nombre-sadosse-à-un-test-ou-perd-son-quantificateur) |
 | comment formuler une justification qui vieillira | [Une condition vaut mieux qu'une conclusion](#une-condition-vaut-mieux-quune-conclusion) |
+| pourquoi une chose juste devient fausse sans qu'on y touche | [Correct pour l'usage qu'on en fait](#correct-pour-lusage-quon-en-fait-faux-pour-celui-quon-va-en-faire) |
 | ce qu'un commentaire doit dire pour ne pas se périmer | [Intention ou structure](#un-commentaire-dintention-se-périme-un-commentaire-de-structure-non) |
 | comment citer un test, une section, un fichier | [Un renvoi nomme sa cible](#un-renvoi-nomme-sa-cible) |
 | quoi journaliser, et où ne pas le faire | [Journalisation](#9-journalisation) |
@@ -31,12 +32,15 @@ index.
 | si un comportement doit être du code | [Les données ne sont pas du code](#les-données-ne-sont-pas-du-code) |
 | où vit une valeur, et ce qui l'y garde seule | [Deux descriptions](#deux-descriptions-de-la-même-chose-finissent-par-diverger) |
 | pourquoi un champ absent se comporte comme un champ nul | [La valeur zéro](#la-valeur-zéro-ne-se-partage-pas-entre-labsence-et-une-valeur-légitime) |
+| pourquoi un réglage plausible ne marche jamais | [Une valeur posée sur la borne](#une-valeur-posée-sur-la-borne-du-problème-est-fausse-en-permanence) |
+| s'il faut un test ou une forme qui interdit la faute | [Détecter et empêcher](#détecter-et-empêcher-ne-sont-pas-au-même-endroit) |
+| pourquoi le mécanisme accusé est irréprochable | [Le symptôme trompeur](#le-symptôme-désigne-parfois-le-mauvais-mécanisme) |
 | où convertir entre le monde et l'écran | [La projection isométrique](#la-projection-isométrique-ne-se-recalcule-pas) |
 | ce qu'un test doit garder, et comment | [Tests](#11-tests) |
 | pourquoi un test échoue sur un diff qui ne l'atteint pas | [Un rouge que le diff ne peut pas atteindre](#un-rouge-que-le-diff-ne-peut-pas-atteindre-vient-de-linstrument) |
 | pourquoi un test passe alors qu'il exécute le code fautif | [Un instrument qui moyenne](#un-instrument-qui-moyenne-ne-voit-quun-coût-que-chaque-exécution-paie) |
 | pourquoi une image de relecture juste montre autre chose | [Un artefact capture un instant](#un-artefact-de-relecture-capture-un-instant-autant-quun-état) |
-| si un test vert prouve quelque chose | [Quatre façons d'avoir un test vert](#quatre-façons-davoir-un-test-vert-qui-ne-prouve-rien) |
+| si un test vert prouve quelque chose | [Cinq façons d'avoir un test vert](#cinq-façons-davoir-un-test-vert-qui-ne-prouve-rien) |
 | contre quoi éprouver un test qui garde une décision | [L'implémentation abandonnée](#un-test-qui-garde-une-décision-séprouve-contre-limplémentation-abandonnée) |
 | comment défendre un test qu'on croirait faux | [Le test contre-intuitif](#le-test-qui-garde-une-propriété-contre-intuitive) |
 | pourquoi un contrôle passe sans rien vérifier | [Un contrôle privé de son entrée](#un-contrôle-privé-de-son-entrée-échoue-il-ne-passe-pas) |
@@ -376,6 +380,36 @@ la phrase : un commentaire d'intention se périme exactement comme une conclusio
 périme](#un-commentaire-dintention-se-périme-un-commentaire-de-structure-non) en
 donne le test et le cas.
 
+## Correct pour l'usage qu'on en fait, faux pour celui qu'on va en faire
+
+**Un objet peut être juste au moment où on l'écrit et devenir faux sans qu'une
+ligne bouge**, parce que ce qui a changé est l'usage qu'on en fait. Ni une
+relecture ni un test ne le trouvent : il n'y a rien à trouver.
+
+Deux cas, de deux natures :
+
+- **Une godoc.** `Fingerprint` consomme trois tirages, ce que sa documentation
+  annonçait « sans conséquence ». C'était vrai : un seul instant final était
+  relevé, et la partie ne se jouait plus après. La phrase n'est devenue fausse
+  qu'en passant à trois instants — et personne n'avait de raison de la relire ce
+  jour-là.
+- **Un instrument.** Une planche de mêlée était juste tant qu'on lui demandait de
+  montrer une horde ; elle est devenue fausse le jour où on a voulu y juger un
+  contact qu'elle n'avait jamais eu à montrer.
+
+**La parade n'est pas de prévoir les usages futurs**, ce qui serait de
+l'anticipation et se tromperait. Elle est plus modeste : quand une justification
+s'appuie sur une propriété de l'usage courant, **l'écrire comme condition**.
+« Sans conséquence » aurait dû être « sans conséquence tant qu'un seul instant est
+relevé », et la phrase se serait signalée d'elle-même au deuxième.
+
+C'est [Une condition vaut mieux qu'une
+conclusion](#une-condition-vaut-mieux-quune-conclusion) transposée, et le renvoi
+va dans les deux sens parce qu'aucune des deux ne couvre l'autre : là-bas la
+condition protège d'un changement **du code**, ici d'un changement de **l'usage**
+— qui n'en modifie aucune ligne, et que la relecture du code ne peut donc pas
+rattraper.
+
 ## Un commentaire d'intention se périme, un commentaire de structure non
 
 Cousin du précédent, sur ce qu'on écrit plutôt que sur la forme de la phrase. Il
@@ -442,6 +476,23 @@ lui ne dit sa raison d'être.
 « Voir aussi X » n'en est donc pas un. Il nomme sa cible, ce qui satisfait la
 première moitié, mais il ne protège rien : ce qui protège est la phrase qui dit
 ce qu'on perdrait en retirant l'autre.
+
+**Une paire se reconnaît à sa dissymétrie, pas à sa ressemblance**, et c'est le
+signe pratique : deux textes qui traitent du même domaine par deux bords qui ne
+se recouvrent pas. Trois de ce document sont bâties pareil.
+
+| La paire | Ce que l'une porte | Ce que l'autre porte |
+|---|---|---|
+| les deux règles d'instrument | ce qu'il mesure | quand il le mesure |
+| la valeur zéro et la valeur sur la borne | le domaine de l'absence | la frontière du possible |
+| l'artefact de relecture et le symptôme trompeur | l'observation au mauvais instant | l'action au mauvais instant |
+
+Deux textes qui se ressemblent ne forment pas une paire : ils font doublon, et
+c'est [Deux descriptions de la même chose finissent par
+diverger](#deux-descriptions-de-la-même-chose-finissent-par-diverger) qui
+s'applique alors, pas cette règle. Le test qui les sépare : **si l'on ne garde
+qu'un des deux textes, perd-on un cas réel ?** Si oui c'est une paire, et chacun
+doit nommer ce que l'autre couvre. Si non, il n'y en avait qu'un à écrire.
 
 ## 9. Journalisation
 
@@ -605,7 +656,95 @@ Cette règle est de la même famille que les deux du chapitre Tests, « un contr
 privé de son entrée échoue » et « une planche que rien ne fabrique ne relit
 rien » : toutes trois portent sur des défauts sans existence textuelle, qu'aucune
 relecture ne peut donc trouver. Ce qui les attrape est une forme choisie de
-telle sorte que le défaut ne puisse pas s'écrire.
+telle sorte que le défaut ne puisse pas s'écrire — c'est [Détecter et empêcher ne
+sont pas au même
+endroit](#détecter-et-empêcher-ne-sont-pas-au-même-endroit) qui dit comment.
+
+Elle a par ailleurs une jumelle, qui porte sur un autre bord du même domaine :
+[Une valeur posée sur la borne du
+problème](#une-valeur-posée-sur-la-borne-du-problème-est-fausse-en-permanence).
+Ici une valeur légitime partage le domaine de **l'absence** ; là-bas elle partage
+la **frontière du possible**, et aucun `*int` ne l'en sortira.
+
+## Une valeur posée sur la borne du problème est fausse en permanence
+
+**Une constante peut être ni trop petite ni trop grande, et fausse quand même :
+posée exactement sur la limite que la géométrie du problème autorise.** C'est le
+seul réglage faux qui produise un mécanisme *paraissant* fonctionner, ce qui le
+rend plus coûteux qu'une valeur franchement absurde.
+
+Le cas est la portée de contact de la porte de sortie. Elle valait le rayon du
+joueur plus une demi-case. Or la porte est murée : la distance minimale
+d'approche de son centre **est** une demi-case plus ce rayon. Le test de contact
+était donc faux en permanence, et la porte restait ouverte, signalée par le rendu
+et par le bandeau, sans aucun effet.
+
+**Rien autour du défaut ne le désigne** : l'ouverture marche, la teinte change,
+le décompte est juste. Le seul symptôme est que rien ne se passe au dernier pas,
+ce qui se lit comme un défaut de collision plutôt que comme un nombre — voir [Le
+symptôme désigne parfois le mauvais
+mécanisme](#le-symptôme-désigne-parfois-le-mauvais-mécanisme).
+
+D'où la question, à poser une fois par constante de portée : **quelle est la
+distance minimale que la géométrie autorise, et ma valeur est-elle strictement
+au-delà ?** Un rayon de contact adossé à un obstacle infranchissable hérite de la
+borne de cet obstacle, jamais de celle de l'entité qui s'en approche.
+
+## Détecter et empêcher ne sont pas au même endroit
+
+**Un test qui détecte trouve l'erreur après qu'elle a été écrite ; une forme qui
+empêche fait qu'elle ne s'écrit pas.** Le projet préfère la seconde partout où le
+compilateur peut porter la contrainte, et cinq cas en disent la portée :
+
+| La forme | Ce qu'elle rend inécrivable |
+|---|---|
+| `Fixed` plutôt qu'un entier nu | mêler des tuiles et des pixels |
+| `Spawn` par valeur | garder un pointeur dans un bassin |
+| la table par accesseur | modifier un profil du manifeste |
+| l'extinction dérivée de la valeur | désynchroniser un drapeau et son état |
+| `Capacities` plutôt que six `int` | inverser deux capacités de bassin |
+
+Le dernier est celui qui donne la formulation, parce qu'il a été éprouvé :
+**l'inversion était déjà détectée** — quatre tests tombaient, dont ceux du budget
+d'allocation. Sans cette épreuve, on aurait cru gagner une garantie qu'on avait
+déjà. Ce que la struct ajoute n'est pas la détection, c'est l'impossibilité
+d'écrire la faute.
+
+**Le critère qui choisit entre les deux n'est donc pas la sûreté** — un test qui
+tombe est une sûreté suffisante — mais **le coût du diagnostic**. Six `int`
+inversés donnent des tests rouges qu'il faut relier à un appel ; une struct
+nommée donne une erreur de compilation à la ligne fautive. C'est la même
+différence qu'entre un contrôle et un type.
+
+Ce qui la limite : elle ne vaut que là où le compilateur peut aider. Ce qu'il ne
+peut pas porter reste au test, et [Un test se vérifie en le faisant
+échouer](#un-test-se-vérifie-en-le-faisant-échouer) dit à quelle condition il
+vaut quelque chose.
+
+## Le symptôme désigne parfois le mauvais mécanisme
+
+**Dans une boucle où plusieurs passes se suivent, un effet produit puis consommé
+dans le même tick est indiscernable d'un effet jamais produit.** L'observation ne
+peut pas les séparer — les deux donnent le même écran — et le nom du symptôme
+oriente vers la production, qui est la moitié saine.
+
+Le cas est l'ordre de la casse d'une caisse. Elle posait ses gemmes avant le
+ramassage du même tick ; le joueur, qui est sur la caisse au moment où elle cède,
+les absorbait aussitôt. Le symptôme observé était « la caisse ne laisse rien », et
+il désigne le contenu — donc le manifeste, la volée, la capacité du bassin. La
+cause était trois lignes plus loin, dans l'ordre de deux appels qui n'ont rien à
+voir avec le butin.
+
+**Ce qui le rend coûteux est qu'il résiste à la relecture du mécanisme accusé** :
+on relit la production, et tout y est juste. Le réflexe qui le trouve n'est pas
+de relire mieux mais de **remonter à l'ordre des passes** dès qu'un effet attendu
+est absent sans qu'aucune valeur soit fausse.
+
+Il fait paire avec [Un artefact de relecture capture un instant autant qu'un
+état](#un-artefact-de-relecture-capture-un-instant-autant-quun-état), et la paire
+est dissymétrique : là on **regarde** au mauvais instant, ici le code **agit** au
+mauvais instant. Aucune des deux ne couvre l'autre, et leur question de
+diagnostic est la même — demander *quand*, jamais *quoi*.
 
 ## La projection isométrique ne se recalcule pas
 
@@ -876,6 +1015,12 @@ moyenne](#un-instrument-qui-moyenne-ne-voit-quun-coût-que-chaque-exécution-pai
 garde le cas où l'instant et la mesure sont tous deux justes, et où le résultat
 ne dit rien quand même.
 
+**Et le même mauvais instant se rencontre dans le code**, où c'est lui qui agit
+trop tôt plutôt que nous qui regardons trop tôt : [Le symptôme désigne parfois le
+mauvais mécanisme](#le-symptôme-désigne-parfois-le-mauvais-mécanisme). Cette
+règle-ci ne l'attrape pas — l'artefact y est juste, et l'écran qu'il montre est
+celui que le jeu produit.
+
 ### Un instrument qui moyenne ne voit qu'un coût que chaque exécution paie
 
 Troisième face du même sujet, après ce que l'instrument mesure et le moment où il
@@ -908,10 +1053,11 @@ d'instrument mais de faire entrer l'événement dans chaque exécution. Un régl
 extrême y est légitime — ce qu'on garde n'est pas le réglage, c'est ce que
 l'événement coûte.
 
-### Quatre façons d'avoir un test vert qui ne prouve rien
+### Cinq façons d'avoir un test vert qui ne prouve rien
 
-Les trois premières rencontrées le même jour, la quatrième au lot des gemmes ;
-toutes trouvées par mutation, aucune par relecture :
+Les trois premières rencontrées le même jour, la quatrième au lot des gemmes, la
+cinquième à celui de la Buse ; toutes trouvées par mutation, aucune par
+relecture :
 
 - **il mesure une propriété inexistante.** Le contournement d'une flaque, éprouvé
   sur une seule case coûteuse : la traversée et le détour valaient quatre tous
@@ -932,6 +1078,11 @@ toutes trouvées par mutation, aucune par relecture :
   qu'elle laisse y tombe : « à la position exacte » et « arrondi au centre de la
   case » désignent alors le même point, et le test qui gardait le premier passait
   sous le second. Un décalage d'une fraction de tuile les sépare.
+- **son état de départ ne pose pas la question.**
+  `TestLaBuseNeConsommePasSaCadenceAVide` partait d'un compteur à zéro : il n'y
+  avait rien à consommer, si bien qu'il vérifiait qu'une créature ne tire pas
+  hors de portée — ce qu'un autre cas garde déjà — et passait sur le code fautif.
+  Il a fallu la faire tirer d'abord pour que la question existe.
 
 Le troisième est le plus retors, parce que rien dans le test n'est faux. Ni la
 relecture ni la couverture ne le disent : seule la mutation.
@@ -941,6 +1092,23 @@ phase avec une période, une position en phase avec la grille. La parade y est l
 même : choisir des valeurs qui ne tombent ni sur un multiple de la cadence, ni
 sur une frontière de case. Un scénario aux nombres ronds paraît neutre, et il
 choisit précisément les points où deux mécanismes distincts se confondent.
+
+**Le cinquième est d'une autre nature que les quatre autres, et c'est ce qui
+mérite d'être retenu.** Les quatre premiers tiennent au **scénario** — une
+géométrie, une durée, des valeurs —, et se trouvent donc en le relisant avec la
+bonne question. Le cinquième tient à l'**état de départ**, où rien n'est faux et
+qui ne fait pas partie de ce qu'on relit : le test part d'un état où le mécanisme
+qu'il doit éprouver n'a rien à faire. La question qui l'attrape n'est pas « mon
+scénario discrimine-t-il » mais « le mécanisme a-t-il quelque chose à faire au
+premier tick de mon cas ».
+
+**Sa parade est d'une autre nature aussi, et c'est ce qui la rend
+reconnaissable.** Les quatre premières se corrigent en changeant des valeurs :
+une durée première avec la cadence, deux cibles désalignées, une position hors
+d'une frontière de case. Celle-ci se corrige par une **action préalable** — faire
+tirer la Buse pour qu'il y ait une cadence à consommer. Amener le système dans
+l'état où la question se pose n'est pas un choix de scénario, c'est un pas de
+plus avant le relevé.
 
 ### Un test qui garde une décision s'éprouve contre l'implémentation abandonnée
 

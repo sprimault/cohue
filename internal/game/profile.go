@@ -643,6 +643,27 @@ func parTick(parSeconde float64) Fixed {
 
 // liste énumère des valeurs admises pour un message de refus, ce qui vaut mieux
 // qu'un adjectif : l'auteur y lit du premier coup ce qu'il pouvait écrire.
+// listeDesEnnemis énumère les profils achetables, chaque clé suivie de son nom
+// de fiction.
+//
+// **Les deux, parce que l'auteur d'un lieu arrive avec le mauvais des deux.** Le
+// fichier attend la clé du moteur — `flanqueur` —, quand tout ce qu'un humain
+// lit ailleurs porte le nom — Arpenteur : la règle du jeu, la table des rôles,
+// l'écran. Un refus qui ne listerait que les clés laisserait donc chercher la
+// correspondance dans un manifeste, et un refus qui ne listerait que les noms
+// serait inutilisable. Les apparier ne crée aucune seconde description : le
+// manifeste porte déjà les deux champs, et c'est lui qu'on relit.
+//
+// L'ordre est celui de la table, triée par clé au chargement, donc stable d'un
+// lancement à l'autre.
+func listeDesEnnemis(profils *Profiles) string {
+	libelles := make([]string, len(profils.Enemies))
+	for i, e := range profils.Enemies {
+		libelles[i] = "« " + e.Key + " » (" + e.Name + ")"
+	}
+	return strings.Join(libelles, ", ")
+}
+
 func liste[T ~string](valeurs []T) string {
 	libelles := make([]string, len(valeurs))
 	for i, v := range valeurs {

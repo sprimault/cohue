@@ -211,7 +211,8 @@ func profilsAutorises(ou string, noms []string, profils *Profiles,
 		if rang < 0 {
 			// Le Passant n'est pas dans cette table : son rôle est `ambiance`,
 			// et ce qui n'est pas hostile n'entre dans aucun compte.
-			dire("%s.profils : « %s » n'est pas un profil d'ennemi", ou, nom)
+			dire("%s.profils : « %s » n'est pas un profil d'ennemi, attendu %s",
+				ou, nom, listeDesEnnemis(profils))
 			continue
 		}
 		index = append(index, rang)

@@ -2,11 +2,20 @@
 
 ## Le but
 
-Survivre. Une horde converge sur vous sans arrêt, elle ne s'épuise pas, et vous
-finirez par tomber. Ce qui compte est **combien de temps**, et ce que vous aurez
-construit avant.
+Survivre, puis sortir. Une horde converge sur vous sans arrêt et elle ne
+s'épuise pas ; ce qui compte est **combien de temps** vous tenez, et ce que vous
+aurez construit avant.
 
-Quand vous mourez, une touche relance immédiatement, sur le même lieu.
+Un lieu a une porte, et elle est fermée. Elle s'ouvre quand vous avez abattu ce
+qu'il demande — le décompte est en haut à droite, sous le temps. La case de la
+porte s'éclaircit alors, et il suffit de venir contre elle pour quitter le lieu.
+
+**Vous choisissez quand partir**, et c'est là qu'est la décision : la horde
+durcit avec le temps, mais elle est aussi ce qui vous fait monter de niveau.
+Partir tôt, c'est renoncer à ce qu'on n'a pas encore ramassé.
+
+Quand vous mourez, une touche relance immédiatement, sur le même lieu. La même
+touche repart après une sortie.
 
 ## Ce que vous contrôlez
 
@@ -173,7 +182,8 @@ Le personnage est jaune, la horde rouge, les projectiles clairs, les gemmes
 vertes.
 
 Le sol se lit à sa teinte : gris pour une case libre, **bleuté pour une case
-qui ralentit**, sombre pour un mur qu'on ne traverse pas.
+qui ralentit**, sombre pour un mur qu'on ne traverse pas. La **porte** est la
+case cyan : éteinte tant qu'elle est fermée, vive une fois gagnée.
 
 ## Les touches
 

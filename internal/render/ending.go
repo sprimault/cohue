@@ -24,10 +24,10 @@ import "github.com/hajimehoshi/ebiten/v2"
 // rien hors du panneau de choix, qui met la mort hors de portée puisque `Update`
 // traite l'une avant l'autre.
 func (s *Screen) WantsRestart() bool {
-	return !s.monde.Alive() && presse(validation)
+	return s.monde.Over() && presse(validation)
 }
 
-// peindreMort couvre l'écran et dit comment repartir.
+// peindreFin couvre l'écran et dit comment repartir.
 //
 // **Le monde reste visible dessous.** La conception veut que le joueur puisse se
 // raconter sa mort : l'écran qui la masquerait retirerait ce qu'il y a à
@@ -37,7 +37,13 @@ func (s *Screen) WantsRestart() bool {
 // pose le bandeau sous le voile, et le niveau atteint comme le temps tenu se
 // lisent au travers. Ce qui manque est le score, qui suppose l'enchaînement de
 // salles — c'est lui qui donne un total, et le bonus de temps qui s'y oppose.
-func (s *Screen) peindreMort(ecran *ebiten.Image) {
+//
+// **Les deux fins partagent cet écran, et seul le titre les sépare.** Sortir
+// n'ouvre pas encore sur un lieu suivant — l'étape 8 apporte l'enchaînement, le
+// temps mort et le choix de branche —, si bien qu'un écran propre à la sortie
+// n'aurait rien de plus à montrer que celui-ci. Ce qui compte pour l'instant est
+// que la fin se voie et se distingue.
+func (s *Screen) peindreFin(ecran *ebiten.Image) {
 	if s.hud == nil {
 		return
 	}
@@ -46,6 +52,9 @@ func (s *Screen) peindreMort(ecran *ebiten.Image) {
 	s.hud.Rect(ecran, 0, 0, Width, Height, voile)
 
 	titre, invite := "Mort", "Entrée pour relancer"
+	if s.monde.Escaped() {
+		titre = "Sorti"
+	}
 	hauteur := s.hud.Font.Height()
 	y := Height/2 - hauteur
 

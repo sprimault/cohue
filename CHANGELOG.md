@@ -44,6 +44,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Un lieu peut se gagner et se quitter.** Il déclare sa sortie dans un champ
+  `sortie` facultatif : la case de sa porte, et le nombre de créatures à abattre
+  pour l'ouvrir. La porte se touche une fois gagnée, elle ne se traverse jamais,
+  et les figurants n'entrent pas dans le compte. La place de démonstration
+  demande cent créatures.
 - **Le lieu de démonstration convoque de nouveau les sept créatures.** Une entre
   par palier, du plus spatial au plus subtil : l'Arpenteur à une minute, le
   Molosse et le Vigile à quatre, la Buse à six, la Baudruche à huit, le
@@ -104,6 +109,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **A place can now be won and left.** It declares its exit in an optional
+  `sortie` field: the door's tile, and how many creatures must be killed to open
+  it. Once earned the door is touched, never walked through, and bystanders do
+  not count towards it. The demonstration place asks for a hundred creatures.
 - **The demonstration place summons all seven creatures again.** One enters per
   step, from the most spatial to the most subtle: the Arpenteur at one minute,
   the Molosse and the Vigile at four, the Buse at six, the Baudruche at eight,

@@ -147,12 +147,14 @@ func (l *Loader) Load(dossier string) (*Loaded, error) {
 
 	scenario, ecarts := game.CompileScenario(lieu.Waves, l.profils, l.report)
 	ambiance, ecartsAmbiance := game.CompileAmbient(lieu.Ambient, l.profils, grille)
+	sortie, ecartsSortie := game.CompileExit(lieu.Exit, grille)
 	manques := append(valider(nom, lieu, jeu, pieces), ecarts...)
 	manques = append(manques, ecartsAmbiance...)
+	manques = append(manques, ecartsSortie...)
 	if len(manques) > 0 {
 		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
-	return &Loaded{Grid: grille, Scenario: scenario, Ambient: ambiance}, nil
+	return &Loaded{Grid: grille, Scenario: scenario, Ambient: ambiance, Exit: sortie}, nil
 }
 
 // Loaded est ce qu'un lieu devient une fois cuit, jamais le fichier qu'il était.
@@ -173,6 +175,8 @@ type Loaded struct {
 	Scenario *game.Scenario
 	// Ambient est le peuplement de figurants, résolu en index de profils.
 	Ambient []game.AmbientPlacement
+	// Exit est la porte de sortie, nulle quand le lieu n'en a pas.
+	Exit *game.Exit
 }
 
 // cuire assemble les pièces posées en une seule grille de coûts.

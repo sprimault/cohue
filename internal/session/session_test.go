@@ -137,6 +137,49 @@ func TestLaRelanceNeConserveRienDeLaPartie(t *testing.T) {
 	}
 }
 
+// TestLaRelanceRefermeLaPorte garde la raison pour laquelle l'ouverture ne vit
+// pas dans la carte.
+//
+// **La carte est partagée par toutes les runs d'une session**, ce que le
+// remontage énonce comme une propriété par construction : ce qui survit est ce
+// que la partie n'a pas touché. Ouvrir la porte en changeant le coût de sa case
+// aurait été la voie la plus courte, et elle transformait la grille en état de
+// jeu — la run suivante serait partie porte ouverte, gagnée sans avoir rien
+// abattu.
+//
+// Le cas force l'objectif plutôt que de l'atteindre en jouant : ce qu'il éprouve
+// est ce que la relance efface, pas la façon dont la porte s'ouvre.
+func TestLaRelanceRefermeLaPorte(t *testing.T) {
+	partie, err := Open(cohue.Assets, cohue.StartingCampaign, graineDeTest)
+	if err != nil {
+		t.Fatalf("montage de la partie livrée : %v", err)
+	}
+	sortie := partie.World.Exit()
+	if sortie == nil {
+		t.Fatal("le lieu livré n'a pas de porte : ce cas ne garde rien")
+	}
+
+	for !partie.World.DoorOpen() {
+		if !partie.World.Alive() {
+			t.Fatalf("mort avant l'ouverture, %d abattus sur %d",
+				partie.World.Kills(), sortie.Kills)
+		}
+		partie.World.Step(Pilot(partie.World.Tick()))
+	}
+
+	partie.Restart()
+
+	if partie.World.DoorOpen() {
+		t.Error("la porte est ouverte au premier tick de la relance")
+	}
+	if got := partie.World.Kills(); got != 0 {
+		t.Errorf("%d abattus après la relance, attendu 0", got)
+	}
+	if partie.World.Exit() == nil {
+		t.Error("la relance a perdu la porte, que le lieu porte et non la partie")
+	}
+}
+
 // TestLaSuiteDesRunsDescendDeLaGraineDeDepart garde ce que la relance fait de la
 // graine, et non ce qu'elle en calcule.
 //

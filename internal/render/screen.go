@@ -88,6 +88,19 @@ var (
 	solLibre  = color.RGBA{R: 96, G: 98, B: 104, A: 255}
 	solLent   = color.RGBA{R: 74, G: 96, B: 120, A: 255}
 
+	// La porte, dans ses deux états. Elle est peinte à part de la grille parce
+	// qu'elle n'y change rien : fermée elle est un mur comme un autre, ouverte
+	// elle l'est encore. Ce que ces deux teintes disent est ce qu'aucun coût ne
+	// porte — le lieu est gagné, et la sortie est là.
+	//
+	// **Une seule teinte, éteinte puis vive**, plutôt que deux couleurs : c'est
+	// le même objet dans deux états, et l'écart de valeur se voit en périphérie
+	// là où un changement de teinte demande de regarder. Un cyan, parce que le
+	// vert est deux fois pris — la gemme et le Secouriste — et qu'ouvrir une
+	// porte n'a rien à voir avec l'un ni avec l'autre.
+	porteFermee  = color.RGBA{R: 40, G: 88, B: 100, A: 255}
+	porteOuverte = color.RGBA{R: 96, G: 220, B: 240, A: 255}
+
 	// Le joueur en clair et les créatures en sombre : le chapitre de la
 	// lisibilité veut que le personnage reste distinguable à cent ennemis à
 	// l'écran, ce qui se joue d'abord sur la valeur et non sur la teinte.
@@ -257,7 +270,7 @@ func (s *Screen) Update() error {
 	// raconter sa mort ; une horde qui continue d'avancer sous le voile efface
 	// en deux secondes la configuration qui l'a tué, c'est-à-dire ce qu'il y
 	// avait à comprendre.
-	if !s.monde.Alive() {
+	if s.monde.Over() {
 		return nil
 	}
 
@@ -295,8 +308,8 @@ func (s *Screen) Draw(ecran *ebiten.Image) {
 	s.peindreEntites(ecran)
 	s.peindreDanger(ecran)
 	s.peindreBandeau(ecran)
-	if !s.monde.Alive() {
-		s.peindreMort(ecran)
+	if s.monde.Over() {
+		s.peindreFin(ecran)
 		return
 	}
 	s.peindreCartes(ecran)
@@ -366,11 +379,28 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 			s.op.GeoM.Reset()
 			s.op.GeoM.Translate(float64(x-s.demiTuile), float64(y))
 			s.op.ColorScale.Reset()
-			s.op.ColorScale.ScaleWithColor(teinte(s.carte.At(u, v)))
+			s.op.ColorScale.ScaleWithColor(s.teinteCase(u, v))
 			ecran.DrawImage(s.face, &s.op)
 		}
 	}
 	s.peindreEmprises(ecran)
+}
+
+// teinteCase rend la couleur d'une case : celle de la porte si c'en est une,
+// celle de son coût sinon.
+//
+// **La porte prime sur le coût**, sans quoi elle se peindrait en mur et le
+// joueur n'aurait aucun moyen de la trouver — c'est la seule case du lieu dont
+// la grille ne dit pas ce qu'il faut en savoir.
+func (s *Screen) teinteCase(u, v int) color.RGBA {
+	sortie := s.monde.Exit()
+	if sortie != nil && sortie.U == u && sortie.V == v {
+		if s.monde.DoorOpen() {
+			return porteOuverte
+		}
+		return porteFermee
+	}
+	return teinte(s.carte.At(u, v))
 }
 
 // peindreEmprises marque au sol ce qu'une explosion amorcée va couvrir.

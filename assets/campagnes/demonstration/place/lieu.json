@@ -95,5 +95,10 @@
     { "profil": "civil", "position": [62, 62] },
     { "profil": "civil", "position": [36, 62] },
     { "profil": "civil", "position": [62, 36] }
-  ]
+  ],
+  "sortie": {
+    "$comment": "La porte se pose dans l'enceinte, à mi-hauteur du bord est : elle est donc infranchissable, ce que le chargement exige — une sortie posée sur du sol libre se traverserait avant d'être gagnée. || Le compte est celui d'une horde qu'on a affrontée sans l'avoir épuisée : assez pour que partir se mérite, assez peu pour que le choix se pose pendant que la courbe monte encore. Le joueur qui l'atteint choisit alors quand partir, ce que ce lieu existe pour faire sentir.",
+    "position": [97, 49],
+    "abattus": 100
+  }
 }

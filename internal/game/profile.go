@@ -578,6 +578,16 @@ func controler(cle string, p rawProfile, dire func(string, ...any)) {
 		}
 	}
 
+	// **Un coût nul n'est pas gratuit, il est impossible.** Le spawner tire le
+	// profil qu'il va acheter avec un poids inversement proportionnel à son
+	// prix : un prix de zéro y diviserait par zéro. Et le sens de jeu suit le
+	// sens arithmétique — une créature qu'aucun budget ne limite remplirait le
+	// bassin au premier tick.
+	if p.PressureCost != nil && *p.PressureCost < 1 {
+		dire("%s.cout_pression : %d, une créature que la pression n'achète pas "+
+			"apparaîtrait sans limite", cle, *p.PressureCost)
+	}
+
 	// Une portée nulle laisserait un profil déclaré chargeur qui ne charge
 	// jamais : le comportement serait au manifeste, les quatre champs présents,
 	// et rien n'arriverait en jeu.

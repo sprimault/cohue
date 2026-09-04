@@ -147,6 +147,15 @@ type World struct {
 	// achetables est la tranche de travail du spawner, réutilisée d'un achat à
 	// l'autre.
 	achetables []int
+	// convoite est le profil pour lequel le spawner épargne, **décalé de un** :
+	// zéro veut dire « aucun ».
+	//
+	// Le décalage n'est pas une coquetterie. L'index brut ferait du zéro à la
+	// fois « aucun convoité » et « le premier profil de la table », c'est-à-dire
+	// qu'un champ oublié désignerait silencieusement le Badaud. Décalé, le zéro
+	// est l'état que rien de valide ne produit — le même geste que les
+	// générations d'un `Handle`, qui partent à un.
+	convoite int
 }
 
 // Capacities dit combien de places chaque bassin préalloue.

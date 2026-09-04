@@ -90,6 +90,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Corrigé
 
+- **Une phase fait apparaître tous les profils qu'elle autorise.** Le budget se
+  vidait au prix le moins cher et n'atteignait jamais les prix élevés : une phase
+  qui en ouvrait sept n'en montrait qu'un. Le spawner met désormais de côté pour
+  un profil tiré au sort, d'autant plus souvent qu'il est bon marché — la masse
+  arrive vite, les exceptions se paient.
 - **Un profil de vague inconnu dit lequel écrire.** Le refus énumère désormais
   les clés attendues avec le nom de chaque créature — « flanqueur » (Arpenteur)
   —, là où il se contentait de déclarer le nom inconnu. Un lieu s'écrit avec la
@@ -144,6 +149,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Fixed
 
+- **A phase now spawns every profile it allows.** The budget drained at the
+  cheapest price and never reached the high ones: a phase opening seven profiles
+  showed only one. The spawner now saves up for a randomly drawn profile, drawn
+  the more often the cheaper it is — the mass arrives fast, the exceptions are
+  paid for.
 - **An unknown wave profile now says which one to write.** The rejection lists
   the expected keys along with each creature's name — "flanqueur" (Arpenteur) —
   where it merely declared the name unknown. A place is written with the key,

@@ -58,10 +58,7 @@ func (w *World) subir() {
 	// ensemble ferait qu'une meute de trois Molosses infligerait ce qu'un seul
 	// inflige, et le télégraphe n'annoncerait plus rien.
 	if chocs > 0 {
-		// Le plancher est nécessaire ici, là où il serait du code mort pour le
-		// contact : celui-ci retire un point à la fois sous condition de vie
-		// positive, quand un choc retire un montant qui peut la dépasser.
-		w.vie = max(w.vie-chocs, 0)
+		w.blesser(chocs)
 	}
 	if somme == 0 {
 		return
@@ -88,6 +85,20 @@ func (w *World) subir() {
 		w.degatsSubis -= TPS
 		w.vie--
 	}
+}
+
+// blesser retire un montant de vie d'un coup, sans passer par l'accumulateur.
+//
+// **C'est la voie des dégâts qui ne sont pas un débit** : le choc d'une charge,
+// le projectile d'une Buse, et l'explosion d'une Baudruche quand elle viendra.
+// L'accumulateur compte en points-ticks, si bien qu'y verser dix-huit points
+// d'un coup les diviserait par soixante et vaudrait un tiers de point.
+//
+// Le plancher est nécessaire ici, là où il serait du code mort pour le contact
+// continu : celui-ci retire un point à la fois sous condition de vie positive,
+// quand un montant peut la dépasser.
+func (w *World) blesser(points int) {
+	w.vie = max(w.vie-points, 0)
 }
 
 // auContact dit si une créature touche le joueur.

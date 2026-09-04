@@ -124,6 +124,10 @@ le corps vous arrête : toutes les autres se traversent, lui vous bloque — pri
 entre lui et un mur, vous tirez forcément dessus, puisque votre arme vise le plus
 proche.
 
+La **Buse** est la seule qui vous atteigne de loin. Elle s'arrête dès qu'elle
+vous tient à portée et tire par intervalles, sur la position où vous êtes : son
+projectile s'esquive, et un mur l'arrête.
+
 Le **Molosse** n'arrive jamais seul : il vient par trois, tous du même côté. Il
 s'immobilise un instant avant de foncer, puis file en ligne droite sans plus
 corriger sa trajectoire — un mur ou un pilier l'arrête, et il reste un moment

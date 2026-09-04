@@ -43,15 +43,21 @@ func (w *World) Fingerprint() string {
 		id := w.ennemis.IDAt(i)
 		fmt.Fprintf(&b,
 			"ennemi %d id=%d gen=%d profil=%d x=%d y=%d hits=%d pas=%d,%d flash=%d "+
-				"charge=%d,%d,%d,%d\n",
+				"charge=%d,%d,%d,%d tir=%d\n",
 			i, id, w.ennemis.gens[id], e.Profile, e.X, e.Y, e.Hits, e.Step.X, e.Step.Y,
-			e.Flash, e.ChargePhase, e.ChargeTimer, e.ChargeDir.X, e.ChargeDir.Y)
+			e.Flash, e.ChargePhase, e.ChargeTimer, e.ChargeDir.X, e.ChargeDir.Y, e.ShotTimer)
 	}
 	for i := range w.tirs.Active() {
 		p := w.tirs.At(i)
 		id := w.tirs.IDAt(i)
 		fmt.Fprintf(&b, "tir %d id=%d gen=%d x=%d y=%d reste=%d hits=%d pas=%d,%d\n",
 			i, id, w.tirs.gens[id], p.X, p.Y, p.Remaining, p.Hits, p.Step.X, p.Step.Y)
+	}
+	for i := range w.tirsEnnemis.Active() {
+		p := w.tirsEnnemis.At(i)
+		id := w.tirsEnnemis.IDAt(i)
+		fmt.Fprintf(&b, "tir horde %d id=%d gen=%d x=%d y=%d reste=%d degats=%d pas=%d,%d\n",
+			i, id, w.tirsEnnemis.gens[id], p.X, p.Y, p.Remaining, p.Hits, p.Step.X, p.Step.Y)
 	}
 	for i := range w.gemmes.Active() {
 		g := w.gemmes.At(i)

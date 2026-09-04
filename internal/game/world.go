@@ -69,6 +69,7 @@ type World struct {
 	densite     *DensityGrid
 	ennemis     *Pool[Enemy]
 	tirs        *Pool[Projectile]
+	tirsEnnemis *Pool[Projectile]
 	gemmes      *Pool[Gem]
 	// aimants tient au plus un objet, la règle du lot étant qu'un seul soit au
 	// sol à la fois. Un bassin quand même : le rendu parcourt les bassins, et une
@@ -149,7 +150,7 @@ type World struct {
 // quelle run il s'agit dans la suite d'une session. Une partie qui tirerait la
 // sienne ne se rejouerait plus.
 func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scenario *Scenario,
-	grille *CostGrid, graine uint64, capacite, tirs, gemmes int) *World {
+	grille *CostGrid, graine uint64, capacite, tirs, tirsEnnemis, gemmes int) *World {
 	return &World{
 		profils:     profils,
 		arme:        armes.Base,
@@ -163,6 +164,7 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scena
 		densite:     NewDensityGrid(grille.Width(), grille.Height()),
 		ennemis:     NewPool[Enemy](capacite),
 		tirs:        NewPool[Projectile](tirs),
+		tirsEnnemis: NewPool[Projectile](tirsEnnemis),
 		gemmes:      NewPool[Gem](gemmes),
 		aimants:     NewPool[Magnet](1),
 		hasard:      NewStreams(graine),
@@ -176,8 +178,19 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scena
 // Enemies rend le bassin des ennemis, pour le parcourir ou le peupler.
 func (w *World) Enemies() *Pool[Enemy] { return w.ennemis }
 
-// Shots rend le bassin des projectiles en vol.
+// Shots rend le bassin des projectiles du joueur en vol.
 func (w *World) Shots() *Pool[Projectile] { return w.tirs }
+
+// EnemyShots rend le bassin des projectiles tirés par la horde.
+//
+// **Deux bassins pour un même type, et ce n'est pas une commodité.** Ce que
+// `Projectile.Hits` retire s'exprime dans l'unité de ce qu'il touche : des
+// touches pour une créature, des points de vie pour le joueur. Un bassin unique
+// donnerait donc au champ deux sens qu'aucun type ne sépare — même déclaration,
+// valeur également plausible, et seule la lecture du code dirait laquelle
+// s'applique. C'est le bassin qui porte l'unité, comme le cadavre est une nature
+// et non un ennemi à drapeau.
+func (w *World) EnemyShots() *Pool[Projectile] { return w.tirsEnnemis }
 
 // Streams rend les flux aléatoires de la partie.
 //
@@ -249,6 +262,8 @@ func (w *World) Step(voulu Vec) {
 	w.progresser(w.ramasser())
 	w.tirer()
 	w.deplacerTirs()
+	w.tirerLaHorde()
+	w.deplacerTirsEnnemis()
 	w.retirerLesMorts()
 
 	w.tick++
@@ -299,6 +314,15 @@ func (w *World) deplacerEnnemis() {
 		if impose, charge := w.charger(e, profil); charge {
 			w.avancer(e, impose)
 			w.arreterAuMur(e, profil, impose)
+			continue
+		}
+
+		// **Une créature qui tire se stabilise dès qu'elle est à portée.** C'est
+		// ce qui la rend identifiable immobile au milieu d'une horde qui
+		// converge, et ce qui l'empêche de finir au contact — venir au corps à
+		// corps annulerait le seul rôle d'un profil qui blesse de loin.
+		if _, portee := w.viseeDe(e, profil); portee {
+			w.avancer(e, Vec{})
 			continue
 		}
 

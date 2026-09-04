@@ -128,7 +128,7 @@ func TestManquementsListesEnUneFois(t *testing.T) {
 			             "touches": 5, "points": 40, "cout_pression": 6,
 			             "poids_separation": 1.3, "max_simultane": 0, "groupe": 1,
 			             "degats_contact_s": 4, "gemmes": 1, "degats_tir": 6,
-			             "vitesse_projectile_tuiles_s": 7.0},
+			             "vitesse_projectile_tuiles_s": 7.0, "cadence_tir_ms": 1600},
 			"marcheur": {"role": "ennemi", "nom": "Badaud", "rayon_tuiles": 0.125,
 			             "comportement": "poursuite", "vitesse_relative": 0.62,
 			             "touches": 3, "points": 10, "cout_pression": 3,

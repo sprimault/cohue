@@ -45,6 +45,13 @@ type Enemy struct {
 	// ChargeTimer est ce qui reste de la phase en cours, en ticks. Un décompte
 	// et non une date, pour la raison qui vaut déjà pour `Flash`.
 	ChargeTimer Tick
+	// ShotTimer est ce qui reste avant que la créature puisse tirer, en ticks.
+	//
+	// **Il ne se consomme pas hors de portée**, comme la cadence de l'arme du
+	// joueur : une Buse qui sort d'un couloir désert tirerait sinon avec un
+	// retard fonction du temps passé sans cible, ce que rien à l'écran
+	// n'expliquerait.
+	ShotTimer Tick
 	// ChargeDir est la direction figée au départ de la course.
 	//
 	// **Figée, et c'est tout le comportement.** Une créature qui recalculerait

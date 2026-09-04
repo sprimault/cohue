@@ -23,6 +23,7 @@ type sorte uint8
 const (
 	sorteEnnemi sorte = iota
 	sorteTir
+	sorteTirHorde
 	sorteGemme
 	sorteAimant
 	sorteJoueur
@@ -130,6 +131,12 @@ func (s *scene) recueillir(monde *game.World) {
 	for i := range tirs.Active() {
 		p := tirs.At(i)
 		s.ajouter(p.X, p.Y, tirs.IDAt(i), sorteTir, i)
+	}
+
+	tirsHorde := monde.EnemyShots()
+	for i := range tirsHorde.Active() {
+		p := tirsHorde.At(i)
+		s.ajouter(p.X, p.Y, tirsHorde.IDAt(i), sorteTirHorde, i)
 	}
 
 	gemmes := monde.Gems()

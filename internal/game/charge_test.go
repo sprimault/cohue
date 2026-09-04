@@ -27,7 +27,7 @@ func arene(t *testing.T) (*World, *EnemyProfile, *CostGrid) {
 
 	g := NewCostGrid(32, 32)
 	w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g,
-		graineDeTest, 16, 64, 32)
+		graineDeTest, 16, 64, 16, 32)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 
 	molosse := &profils.Enemies[indexDuProfil(t, profils, "sprinteur")]

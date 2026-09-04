@@ -179,6 +179,12 @@ type EnemyProfile struct {
 	// ici et non sur l'objet qui vole : c'est elle qui décide si un tir de Buse
 	// s'esquive, donc la seule vraie question d'équilibrage du profil.
 	ShotSpeed Fixed
+	// ShotCooldown est le temps entre deux tirs, en ticks.
+	//
+	// Sans lui, une créature à portée tirerait soixante fois par seconde : la
+	// portée dit d'où elle atteint, elle ne dit rien de la fréquence, et les deux
+	// se règlent séparément.
+	ShotCooldown Tick
 	// BurstDamage est ce que son explosion inflige au centre.
 	BurstDamage int
 	// BurstRadius est la portée de cette explosion, en tuiles.
@@ -319,6 +325,7 @@ type rawProfile struct {
 	Range        *float64 `json:"portee_tuiles,omitempty"`
 	ShotDamage   *int     `json:"degats_tir,omitempty"`
 	ShotSpeed    *float64 `json:"vitesse_projectile_tuiles_s,omitempty"`
+	ShotEveryMs  *int     `json:"cadence_tir_ms,omitempty"`
 	BurstDamage  *int     `json:"degats_explosion,omitempty"`
 	BurstRadius  *float64 `json:"rayon_explosion_tuiles,omitempty"`
 
@@ -391,6 +398,7 @@ var champsConditionnels = []struct {
 	{"portee_tuiles", "« tir »", estComportement(Ranged), func(p rawProfile) bool { return p.Range != nil }},
 	{"degats_tir", "« tir »", estComportement(Ranged), func(p rawProfile) bool { return p.ShotDamage != nil }},
 	{"vitesse_projectile_tuiles_s", "« tir »", estComportement(Ranged), func(p rawProfile) bool { return p.ShotSpeed != nil }},
+	{"cadence_tir_ms", "« tir »", estComportement(Ranged), func(p rawProfile) bool { return p.ShotEveryMs != nil }},
 	{"degats_explosion", "« explosion »", estComportement(Burst), func(p rawProfile) bool { return p.BurstDamage != nil }},
 	{"rayon_explosion_tuiles", "« explosion »", estComportement(Burst), func(p rawProfile) bool { return p.BurstRadius != nil }},
 }
@@ -460,6 +468,7 @@ func controler(cle string, p rawProfile, dire func(string, ...any)) {
 		{"telegraphe_ms", p.TelegraphMs},
 		{"duree_charge_ms", p.ChargeMs},
 		{"recuperation_ms", p.RecoveryMs},
+		{"cadence_tir_ms", p.ShotEveryMs},
 	} {
 		if d.ms == nil {
 			continue
@@ -535,6 +544,7 @@ func (p rawProfile) ennemi(cle string, base float64) EnemyProfile {
 		Range:            FromFloat(ou0(p.Range)),
 		ShotDamage:       ou0(p.ShotDamage),
 		ShotSpeed:        parTick(ou0(p.ShotSpeed)),
+		ShotCooldown:     ticks(p.ShotEveryMs),
 		BurstDamage:      ou0(p.BurstDamage),
 		BurstRadius:      FromFloat(ou0(p.BurstRadius)),
 	}

@@ -52,7 +52,7 @@ func mondeDEssai(t *testing.T, largeur, hauteur int) (*World, *Profiles) {
 		t.Fatalf("armes livrées : %v", err)
 	}
 	return NewWorld(profils, armes, progressionLivree(t), sansVagues(), g, graineDeTest,
-		300, 256, 512), profils
+		300, 256, 64, 512), profils
 }
 
 // sansVagues rend le scénario d'un lieu qui n'achète rien.
@@ -307,7 +307,7 @@ func TestRienNeTraverseUnMur(t *testing.T) {
 
 	// Arme inerte : ce test isole le déplacement, et un joueur qui abat la
 	// créature dont on suit la trajectoire ne mesurerait plus rien.
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g, graineDeTest, 4, 1, 8)
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g, graineDeTest, 4, 1, 4, 8)
 	w.Place(FromInt(4)+One/2, FromInt(1)+One/2)
 	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), One/2+One, One/2+One); !ok {
 		t.Fatal("créature refusée")
@@ -382,7 +382,7 @@ func TestLeGlissementNeCoupeAucunAngle(t *testing.T) {
 		t.Run(c.nom, func(t *testing.T) {
 			// Arme inerte et bassin d'une place : ce test isole le déplacement.
 			w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(),
-				grilleDepuis(c.grille...), graineDeTest, 1, 1, 4)
+				grilleDepuis(c.grille...), graineDeTest, 1, 1, 1, 4)
 			w.Place(FromInt(c.depart[0])+One/2, FromInt(c.depart[1])+One/2)
 
 			// Vers le sud-est du monde, c'est-à-dire vers la case en diagonale.
@@ -417,7 +417,7 @@ func TestLeCoutDeLaCaseDiviseLaVitesse(t *testing.T) {
 			g.Set(u, 2, Blocked)
 			g.Set(u, 1, cout)
 		}
-		w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g, graineDeTest, 1, 1, 4)
+		w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g, graineDeTest, 1, 1, 1, 4)
 		w.Place(FromInt(1)+One/2, FromInt(1)+One/2)
 		depart := FromInt(10) + One/2
 		if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), depart, FromInt(1)+One/2); !ok {

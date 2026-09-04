@@ -86,6 +86,17 @@ var (
 	teinteJoueur = color.RGBA{R: 236, G: 214, B: 120, A: 255}
 	teinteHorde  = color.RGBA{R: 150, G: 78, B: 74, A: 255}
 	teinteTir    = color.RGBA{R: 226, G: 232, B: 238, A: 255}
+	// **Le projectile de la horde porte une teinte qu'aucune autre ne dispute**,
+	// et c'est entre projectiles que la distinction doit être maximale : « est-ce
+	// que ça me fait mal ? » ne se pose que sur eux, si bien que les confondre
+	// coûte plus cher que de confondre un projectile et une créature.
+	//
+	// Le violet plutôt que le cyan pour cette raison : le cyan voisinerait le
+	// blanc bleuté ci-dessus. Reste qu'à l'étape 5 l'Arpenteur retrouvera le
+	// violet de son manifeste, là où le rendu peint aujourd'hui toute la horde en
+	// rouge — l'arbitrage se rejugera alors sur la planche, entre deux teintes
+	// qui seront enfin celles du jeu.
+	teinteTirHorde = color.RGBA{R: 186, G: 138, B: 232, A: 255}
 	// **L'éclair d'une créature touchée est la même teinte, éclaircie**, et non
 	// une couleur nouvelle : ce qu'il doit dire est « celle-ci vient d'être
 	// atteinte », pas « ceci est autre chose ». Un blanc franc ferait clignoter
@@ -353,6 +364,9 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteTir:
 			p := s.monde.Shots().At(e.place)
 			s.silhouette(ecran, s.eclat, p.X, p.Y, teinteTir)
+		case sorteTirHorde:
+			p := s.monde.EnemyShots().At(e.place)
+			s.silhouette(ecran, s.eclat, p.X, p.Y, teinteTirHorde)
 		case sorteGemme:
 			g := s.monde.Gems().At(e.place)
 			// **Une gemme attirée reprend sa teinte pleine.** L'extinction dit

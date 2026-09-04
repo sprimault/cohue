@@ -12,7 +12,7 @@ tir 0 id=0 gen=9 x=3907586 y=2915366 reste=52434 hits=1 pas=-3464,-12641
 tir 1 id=1 gen=1 x=3997496 y=3230926 reste=380109 hits=1 pas=-154,-13106
 gemme 0 id=0 gen=1 x=3932818 y=3417382 ne=454 attiree=false
 gemme 1 id=1 gen=1 x=3996567 y=3407034 ne=527 attiree=false
-flux vagues=346658733 positions=262264943 butin=306793347 cosmetique=986892861
+flux vagues=346658733 positions=262264943 butin=306793347
 
 # choisi pour trois gemmes, le plus que cette run en pose au sol
 tick 671
@@ -24,7 +24,7 @@ ennemi 3 id=1 gen=2 profil=4 x=3171874 y=3441594 hits=3 pas=2394,-2394 flash=0 c
 gemme 0 id=0 gen=1 x=3932818 y=3417382 ne=454 attiree=false
 gemme 1 id=1 gen=1 x=3996567 y=3407034 ne=527 attiree=false
 gemme 2 id=2 gen=1 x=3996982 y=3211489 ne=670 attiree=false
-flux vagues=735455464 positions=176280181 butin=444631208 cosmetique=728009191
+flux vagues=735455464 positions=176280181 butin=444631208
 
 # choisi pour un aimant au sol, le niveau 2 franchi, la vie entamée et six créatures vivantes
 tick 1920
@@ -35,5 +35,5 @@ ennemi 2 id=3 gen=4 profil=4 x=3933145 y=2661530 hits=3 pas=0,3386 flash=0 charg
 ennemi 3 id=5 gen=2 profil=4 x=3866938 y=3626179 hits=3 pas=1197,-1197 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 ennemi 4 id=4 gen=4 profil=4 x=3865866 y=2090219 hits=3 pas=2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 aimant 0 id=0 gen=1 x=3112960 y=5341184
-flux vagues=845279877 positions=55044991 butin=495687234 cosmetique=361007533
+flux vagues=845279877 positions=55044991 butin=495687234
 

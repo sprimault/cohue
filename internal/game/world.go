@@ -80,7 +80,11 @@ type World struct {
 	tirs        *Pool[Projectile]
 	tirsEnnemis *Pool[Projectile]
 	souffles    *Pool[Blast]
-	gemmes      *Pool[Gem]
+	// ambiants sont les figurants du lieu. Un bassin à part parce qu'ils ne sont
+	// ni comptés, ni visés, ni hostiles — ce qui les range hors de tout ce que le
+	// bassin des ennemis suppose.
+	ambiants *Pool[Ambient]
+	gemmes   *Pool[Gem]
 	// aimants tient au plus un objet, la règle du lot étant qu'un seul soit au
 	// sol à la fois. Un bassin quand même : le rendu parcourt les bassins, et une
 	// entité rangée autrement y serait un cas particulier.
@@ -175,6 +179,8 @@ type Capacities struct {
 	EnemyShots int
 	// Blasts est le nombre d'explosions amorcées à la fois.
 	Blasts int
+	// Ambients est le nombre de figurants qu'un lieu peut porter.
+	Ambients int
 	// Gems est le nombre de gemmes au sol.
 	Gems int
 }
@@ -209,6 +215,7 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scena
 		tirs:        NewPool[Projectile](capacites.Shots),
 		tirsEnnemis: NewPool[Projectile](capacites.EnemyShots),
 		souffles:    NewPool[Blast](capacites.Blasts),
+		ambiants:    NewPool[Ambient](capacites.Ambients),
 		gemmes:      NewPool[Gem](capacites.Gems),
 		aimants:     NewPool[Magnet](1),
 		hasard:      NewStreams(graine),
@@ -316,6 +323,10 @@ func (w *World) Step(voulu Vec) {
 	w.tirerLaHorde()
 	w.deplacerTirsEnnemis()
 	w.soigner()
+	// L'ambiance en dernier, et hors de tout ce qui précède : elle ne lit rien de
+	// la partie et rien de la partie ne la lit. Sa place dans le tick est donc
+	// indifférente, ce qui est la meilleure preuve qu'elle ne décide de rien.
+	w.errer()
 	w.retirerLesMorts()
 
 	w.tick++

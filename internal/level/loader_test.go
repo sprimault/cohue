@@ -54,10 +54,11 @@ func chargeurDeTest(t *testing.T) *Loader {
 // première ligne, ouverture pleine sur la dernière. Un chargeur qui inverserait
 // `u` et `v` passerait tous les autres tests et échouerait ici.
 func TestCuissonEnGrilleDeCouts(t *testing.T) {
-	grille, _, err := chargeurDeTest(t).Load("essai")
+	charge, err := chargeurDeTest(t).Load("essai")
 	if err != nil {
 		t.Fatalf("chargement : %v", err)
 	}
+	grille := charge.Grid
 	if grille.Width() != 8 || grille.Height() != 4 {
 		t.Fatalf("grille %dx%d, attendu 8x4", grille.Width(), grille.Height())
 	}
@@ -92,7 +93,7 @@ func TestCleInconnueRefusee(t *testing.T) {
 			"pieces": [{"id": "salle", "u": 0, "v": 0, "rotaton": 1}]
 		}`)},
 	}
-	_, _, err := chargeur(fsys).Load("x")
+	_, err := chargeur(fsys).Load("x")
 	if err == nil {
 		t.Fatal("une clé inconnue s'est chargée en silence")
 	}
@@ -107,7 +108,7 @@ func TestCleInconnueRefusee(t *testing.T) {
 // C'est ce qui rend le JSON tenable pour une pièce écrite à la main : le fichier
 // de test en porte un dans son en-tête et un autre au fond d'un ancrage.
 func TestCommentaireAccepteEnTousPoints(t *testing.T) {
-	if _, _, err := chargeurDeTest(t).Load("essai"); err != nil {
+	if _, err := chargeurDeTest(t).Load("essai"); err != nil {
 		t.Fatalf("un commentaire a fait échouer le chargement : %v", err)
 	}
 }
@@ -134,7 +135,7 @@ func TestManquementsListesEnUneFois(t *testing.T) {
 			"taille": [4, 3], "grille": ["....", "..#"]
 		}`)},
 	}
-	_, _, err := chargeur(fsys).Load("x")
+	_, err := chargeur(fsys).Load("x")
 	if err == nil {
 		t.Fatal("un lieu invalide s'est chargé")
 	}
@@ -169,7 +170,7 @@ func TestDossierRenommeSansIdentifiant(t *testing.T) {
 			"taille": [1, 1], "grille": ["."]
 		}`)},
 	}
-	_, _, err := chargeur(fsys).Load("variante")
+	_, err := chargeur(fsys).Load("variante")
 	if err == nil {
 		t.Fatal("un lieu dont le dossier et l'identifiant divergent s'est chargé")
 	}
@@ -194,7 +195,7 @@ func TestLieuChargeParUnFichier(t *testing.T) {
 			"pieces": [{"id": "salle", "u": 0, "v": 0}]
 		}`)},
 	}
-	if _, _, err := chargeur(fsys).Load("."); err == nil {
+	if _, err := chargeur(fsys).Load("."); err == nil {
 		t.Fatal("un lieu chargé depuis la racine du système de fichiers")
 	}
 }
@@ -208,7 +209,7 @@ func TestFormatNonPrisEnCharge(t *testing.T) {
 			"pieces": [{"id": "salle", "u": 0, "v": 0}]
 		}`)},
 	}
-	_, _, err := chargeur(fsys).Load("x")
+	_, err := chargeur(fsys).Load("x")
 	if !errors.Is(err, manifest.ErrUnsupportedFormat) {
 		t.Errorf("format 99 accepté, ou refusé pour une autre raison : %v", err)
 	}
@@ -224,7 +225,7 @@ func TestLieuSansPiece(t *testing.T) {
 			"version_format": 1, "identifiant": "x", "jeu_pieces": "commun", "pieces": []
 		}`)},
 	}
-	if _, _, err := chargeur(fsys).Load("x"); !errors.Is(err, ErrEmptyLevel) {
+	if _, err := chargeur(fsys).Load("x"); !errors.Is(err, ErrEmptyLevel) {
 		t.Errorf("lieu vide accepté : %v", err)
 	}
 }
@@ -240,7 +241,7 @@ func TestPieceInconnue(t *testing.T) {
 			"version_format": 1, "identifiant": "commun", "palette": {".": "sol"}
 		}`)},
 	}
-	if _, _, err := chargeur(fsys).Load("x"); !errors.Is(err, ErrUnknownRoom) {
+	if _, err := chargeur(fsys).Load("x"); !errors.Is(err, ErrUnknownRoom) {
 		t.Errorf("pièce inconnue acceptée : %v", err)
 	}
 }
@@ -265,11 +266,11 @@ func TestTuileHorsCatalogueBloque(t *testing.T) {
 			"taille": [1, 1], "grille": ["?"]
 		}`)},
 	}
-	grille, _, err := chargeur(fsys).Load("x")
+	charge, err := chargeur(fsys).Load("x")
 	if err != nil {
 		t.Fatalf("chargement : %v", err)
 	}
-	if grille.Passable(0, 0) {
+	if charge.Grid.Passable(0, 0) {
 		t.Error("une forme hors catalogue se dit franchissable")
 	}
 }
@@ -296,7 +297,7 @@ func TestJeuDePiecesQuiDementLeLieu(t *testing.T) {
 			"taille": [1, 1], "grille": ["."]
 		}`)},
 	}
-	_, _, err := chargeur(fsys).Load("x")
+	_, err := chargeur(fsys).Load("x")
 	var invalide *manifest.Invalid
 	if !errors.As(err, &invalide) {
 		t.Fatalf("jeu de pièces étranger au lieu accepté : %v", err)
@@ -334,7 +335,7 @@ func lieuDePoses(poses string) fstest.MapFS {
 func TestCaseQueNullePieceNePose(t *testing.T) {
 	fsys := lieuDePoses(`{"id": "salle", "u": 0, "v": 0}, {"id": "salle", "u": 8, "v": 0}`)
 
-	_, _, err := chargeur(fsys).Load("x")
+	_, err := chargeur(fsys).Load("x")
 	var invalide *manifest.Invalid
 	if !errors.As(err, &invalide) {
 		t.Fatalf("un lieu troué s'est chargé : %v", err)
@@ -355,7 +356,7 @@ func TestCaseQueNullePieceNePose(t *testing.T) {
 func TestCasePoseeDeuxFois(t *testing.T) {
 	fsys := lieuDePoses(`{"id": "salle", "u": 0, "v": 0}, {"id": "salle", "u": 2, "v": 0}`)
 
-	_, _, err := chargeur(fsys).Load("x")
+	_, err := chargeur(fsys).Load("x")
 	var invalide *manifest.Invalid
 	if !errors.As(err, &invalide) {
 		t.Fatalf("deux pièces superposées se sont chargées : %v", err)
@@ -373,7 +374,7 @@ func TestCasePoseeDeuxFois(t *testing.T) {
 func TestPoseAvantLOrigine(t *testing.T) {
 	fsys := lieuDePoses(`{"id": "salle", "u": -1, "v": 0}`)
 
-	_, _, err := chargeur(fsys).Load("x")
+	_, err := chargeur(fsys).Load("x")
 	var invalide *manifest.Invalid
 	if !errors.As(err, &invalide) {
 		t.Fatalf("une pièce posée avant l'origine s'est chargée : %v", err)

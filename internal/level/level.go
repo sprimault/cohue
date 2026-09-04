@@ -45,6 +45,18 @@ type Level struct {
 	// appartient au paquet qui l'exécute. La décrire ici en aurait fait une
 	// seconde description, à tenir d'accord avec la première.
 	Waves game.WaveScenario `json:"vagues,omitempty"`
+	// Ambient est le peuplement de figurants, absent le plus souvent.
+	//
+	// **Il vit à côté des vagues et non dedans**, parce qu'un figurant ne
+	// s'achète pas : il n'a pas de coût de pression, donc rien à faire dans une
+	// courbe qui dépense un budget. Un lieu dit combien il en veut, une fois pour
+	// toutes ; c'est du décor qu'on pose, pas une horde qui arrive.
+	//
+	// Champ facultatif, donc `version_format` ne bouge pas : un lieu publié
+	// avant lui reste lisible tel quel. Le type vient d'`internal/game` pour la
+	// raison qui vaut déjà pour les vagues : c'est une table de jeu, et son sens
+	// appartient au paquet qui l'exécute.
+	Ambient game.AmbientSpec `json:"ambiance,omitempty"`
 }
 
 // Placement est une pièce posée dans un lieu.

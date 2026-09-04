@@ -61,11 +61,12 @@ func TestLieuLivre(t *testing.T) {
 	if err != nil {
 		t.Fatalf("profils livrés : %v", err)
 	}
-	grille, scenario, err := NewLoader(cohue.Assets, couts, profils).
+	charge, err := NewLoader(cohue.Assets, couts, profils).
 		Load("assets/campagnes/demonstration/place")
 	if err != nil {
 		t.Fatalf("chargement du lieu : %v", err)
 	}
+	grille, scenario := charge.Grid, charge.Scenario
 
 	// **Le scénario du lieu livré est le seul que rien d'autre n'exigerait.** Le
 	// format admet une salle sans horde — une boutique, un passage —, si bien

@@ -44,6 +44,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Les Passants peuplent un lieu.** Un lieu déclare son ambiance dans un champ
+  `ambiance` facultatif, chaque figurant à la case où il commence ; ils vont et
+  viennent sans être visés, sans gêner la horde et sans compter nulle part. Une
+  position dans un mur ou hors du lieu est refusée au chargement. La place de
+  démonstration en pose douze autour du carrefour central.
 - **Le Secouriste soigne la horde.** Il rend des touches à la créature la plus
   entamée autour de lui, une à la fois, et jamais à lui-même. Deux éclairs le
   disent : l'un sur la soignée, l'autre sur lui — c'est ce dernier qui indique
@@ -52,9 +57,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   traverse pas : elle bouche un goulot au lieu d'être un ennemi lent de plus.
   Elle ne traverse pas le joueur non plus, et son corps cesse de bloquer dès
   qu'elle tombe.
-- **La Baudruche explose en mourant.** Son emprise se marque au sol le temps que
-  l'amorce brûle, ce qui laisse un instant pour en sortir ; passé ce délai, le
-  souffle retire ses points hors du plafond. Il n'atteint que le joueur : une
+- **La Baudruche explose en mourant.** Son emprise se marque au sol entière dès
+  le premier instant — ce qui est marqué est ce qui sera touché —, et c'est son
+  intensité qui dit le temps restant pour en sortir ; passé ce délai, le souffle
+  retire ses points hors du plafond. Il n'atteint que le joueur : une
   déflagration qui emporterait la horde récompenserait le nettoyage à l'aveugle
   qu'elle punit.
 - **La Buse tire.** Elle s'arrête dès que le joueur entre dans sa portée et
@@ -64,10 +70,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
   droite sans plus corriger, et son choc s'ajoute hors du plafond de dégâts. Un
   mur ou un pilier interposé l'arrête : il charge sans regarder si la voie est
   libre, et toute fin de course lui coûte un temps mort.
-- **Le Molosse arrive par meutes de trois.** Le spawner achète d'un coup la
-  taille de groupe que le profil déclare, et pose la meute au même point de
-  l'anneau : elle arrive d'un seul côté. Le coût de pression du manifeste étant
-  unitaire, une meute se paie trois fois ce prix et n'apparaît jamais rognée.
+- **Le Molosse arrive par meutes de trois.** La meute apparaît d'un seul côté et
+  d'un seul coup : elle se paie trois fois le prix d'un Molosse, et jamais
+  un chien n'arrive seul parce qu'il ne restait de la place que pour lui.
 
 ### Corrigé
 
@@ -80,6 +85,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **Passants populate a place.** A place declares its ambience in an optional
+  `ambiance` field, each extra at the cell where it starts; they wander without
+  being targeted, without hindering the horde and without counting anywhere. A
+  position inside a wall or outside the place is rejected at load time. The
+  demonstration place puts twelve of them around the central crossroads.
 - **The Secouriste heals the horde.** It restores hits to the most damaged
   creature around it, one at a time, and never to itself. Two flashes say so: one
   on the healed creature, one on it — the latter is what tells you who to go
@@ -88,9 +98,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   through: it plugs a chokepoint instead of being one more slow enemy. It does
   not walk through the player either, and its body stops blocking the moment it
   falls.
-- **The Baudruche explodes on death.** Its footprint is marked on the ground
-  while the fuse burns, leaving a moment to step out; past that delay the blast
-  takes its points outside the cap. It only reaches the player: a blast that
+- **The Baudruche explodes on death.** Its footprint is marked on the ground in
+  full from the first instant — what is marked is what will be hit — and its
+  intensity tells how long is left to step out; past that delay the blast takes
+  its points outside the cap. It only reaches the player: a blast that
   swept the horde would reward the blind clearing it exists to punish.
 - **The Buse shoots.** It stops as soon as the player enters its range and sends
   a projectile at intervals, aiming where they are rather than where they are
@@ -100,10 +111,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
   line without correcting, and its impact lands outside the damage cap. A wall or
   a pillar in the way stops it: it charges without checking whether the path is
   clear, and any end of a run costs it a pause.
-- **The Molosse arrives in packs of three.** The spawner buys the group size
-  declared by the profile in one go and places the pack at a single point on the
-  ring, so it comes from one side. The manifest's pressure cost is per creature,
-  so a pack costs three times that and never shows up trimmed.
+- **The Molosse arrives in packs of three.** The pack shows up from one side and
+  all at once: it costs three times the price of a single Molosse, and no hound
+  ever arrives alone because there was only room for one.
 
 ### Fixed
 

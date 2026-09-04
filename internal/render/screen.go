@@ -138,7 +138,13 @@ var (
 	// Une gemme est minuscule et posée sur un sol gris : elle a besoin d'une
 	// teinte saturée que rien d'autre ne porte, sans quoi un tas au sol
 	// disparaît sous la horde au moment où l'on cherche à l'estimer.
-	teinteGemme = color.RGBA{R: 96, G: 214, B: 168, A: 255}
+	// **Le figurant se lit comme du décor, pas comme une menace.** Il ne blesse
+	// pas, ne se vise pas et ne compte nulle part : lui donner la teinte de la
+	// horde ferait tirer le joueur dessus par réflexe, et lui en donner une vive
+	// le rendrait plus important que ce qui le tue. Un gris à peine teinté, plus
+	// clair que le sol pour se détacher, plus terne que tout le reste.
+	teinteAmbiance = color.RGBA{R: 132, G: 130, B: 138, A: 255}
+	teinteGemme    = color.RGBA{R: 96, G: 214, B: 168, A: 255}
 	// L'aimant doit se voir de loin, puisque tout son intérêt est qu'on décide
 	// d'aller le chercher. Le cuivre d'une bobine, qui ne dispute sa teinte à
 	// personne — le joueur tient le jaune, la horde le rouge, les gemmes le vert,
@@ -438,6 +444,9 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 				teinte = teinteAnnonce
 			}
 			s.silhouette(ecran, s.figurine, c.X, c.Y, teinte)
+		case sorteAmbiance:
+			a := s.monde.Ambients().At(e.place)
+			s.silhouette(ecran, s.figurine, a.X, a.Y, teinteAmbiance)
 		case sorteTir:
 			p := s.monde.Shots().At(e.place)
 			s.silhouette(ecran, s.eclat, p.X, p.Y, teinteTir)

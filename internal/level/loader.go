@@ -89,38 +89,38 @@ func NewLoader(fsys fs.FS, couts map[string]game.Cost, profils *game.Profiles) *
 // écart — `encoding/json` ne sait pas faire autrement —, la validation liste
 // tout ce qui manque en une fois, parce que c'est là que l'aller-retour coûte à
 // qui met au point un niveau.
-func (l *Loader) Load(dossier string) (*game.CostGrid, *game.Scenario, error) {
+func (l *Loader) Load(dossier string) (*Loaded, error) {
 	nom := path.Base(dossier)
 	if nom == "." || nom == "/" {
-		return nil, nil, fmt.Errorf("%q : un lieu se charge par son dossier, qui porte son nom", dossier)
+		return nil, fmt.Errorf("%q : un lieu se charge par son dossier, qui porte son nom", dossier)
 	}
 
 	chemin := path.Join(dossier, LevelFile)
 	lieu, err := manifest.Decode[Level](l.fsys, chemin)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	if lieu.Format != FormatLevel {
-		return nil, nil, fmt.Errorf("%s: %w : %d, ce binaire lit la %d",
+		return nil, fmt.Errorf("%s: %w : %d, ce binaire lit la %d",
 			chemin, manifest.ErrUnsupportedFormat, lieu.Format, FormatLevel)
 	}
 	if len(lieu.Placements) == 0 {
-		return nil, nil, fmt.Errorf("%s: %w", chemin, ErrEmptyLevel)
+		return nil, fmt.Errorf("%s: %w", chemin, ErrEmptyLevel)
 	}
 
 	jeu, err := manifest.Decode[Set](l.fsys, path.Join(dossier, SetFile))
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	if jeu.Format != FormatSet {
-		return nil, nil, fmt.Errorf("%w : jeu de pieces en %d", manifest.ErrUnsupportedFormat, jeu.Format)
+		return nil, fmt.Errorf("%w : jeu de pieces en %d", manifest.ErrUnsupportedFormat, jeu.Format)
 	}
 
 	pieces := make([]*Room, 0, len(lieu.Placements))
 	for _, pose := range lieu.Placements {
 		piece, err := manifest.Decode[Room](l.fsys, path.Join(dossier, RoomsDir, pose.RoomID+".json"))
 		if err != nil {
-			return nil, nil, fmt.Errorf("%w : %s", ErrUnknownRoom, pose.RoomID)
+			return nil, fmt.Errorf("%w : %s", ErrUnknownRoom, pose.RoomID)
 		}
 		pieces = append(pieces, piece)
 	}
@@ -128,12 +128,42 @@ func (l *Loader) Load(dossier string) (*game.CostGrid, *game.Scenario, error) {
 	// La géométrie et la courbe de pression se valident ensemble et se refusent
 	// ensemble : ce sont deux moitiés du même fichier, et rendre la seconde après
 	// avoir corrigé la première ferait un aller-retour de plus.
+	// **La cuisson précède la dernière validation**, et l'ordre annoncé plus haut
+	// s'entend donc « décoder, valider, cuire, valider ce qui a besoin de la
+	// carte ». Elle ne peut pas échouer — la grille est dimensionnée sur les
+	// placements qu'elle recopie —, si bien que la faire tôt ne coûte rien et
+	// donne aux positions de figurants la seule chose qui permette de les
+	// refuser : une carte où lire la passabilité.
+	grille := cuire(lieu, jeu, pieces, l.couts)
+
 	scenario, ecarts := game.CompileScenario(lieu.Waves, l.profils)
+	ambiance, ecartsAmbiance := game.CompileAmbient(lieu.Ambient, l.profils, grille)
 	manques := append(valider(nom, lieu, jeu, pieces), ecarts...)
+	manques = append(manques, ecartsAmbiance...)
 	if len(manques) > 0 {
-		return nil, nil, &manifest.Invalid{Path: chemin, Missing: manques}
+		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
-	return cuire(lieu, jeu, pieces, l.couts), scenario, nil
+	return &Loaded{Grid: grille, Scenario: scenario, Ambient: ambiance}, nil
+}
+
+// Loaded est ce qu'un lieu devient une fois cuit, jamais le fichier qu'il était.
+//
+// La distinction porte : `Level` est la structure décodée, avec ses pièces
+// posées et ses noms de profils ; ceci est le produit de la cuisson, où la
+// géométrie est devenue une grille et les noms des index. Rien ici ne se
+// réécrit dans un fichier.
+//
+// **N'y entre que ce que la cuisson produit**, jamais ce qu'un appelant
+// trouverait commode d'avoir sous la main : une struct de retour est une
+// invitation permanente à devenir un fourre-tout, et ce qui l'en garde est ce
+// critère plutôt que la vigilance.
+type Loaded struct {
+	// Grid est la carte assemblée, où le champ de flux tourne.
+	Grid *game.CostGrid
+	// Scenario est la courbe de pression compilée.
+	Scenario *game.Scenario
+	// Ambient est le peuplement de figurants, résolu en index de profils.
+	Ambient []game.AmbientPlacement
 }
 
 // cuire assemble les pièces posées en une seule grille de coûts.

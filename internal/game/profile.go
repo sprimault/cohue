@@ -115,6 +115,14 @@ type EnemyProfile struct {
 	// plafond ». Il compte les vivants et non les apparus : un quota par run
 	// ferait disparaître le profil après le premier.
 	MaxAlive int
+	// Group est le nombre de créatures que le spawner pose d'un coup, et il vaut
+	// au moins un.
+	//
+	// Le Molosse n'apparaît jamais seul : trois qui chargent en décalé sont ce
+	// qui oblige à cesser de reculer en ligne droite, quand un chien isolé se
+	// contourne. Une meute est donc indivisible, et son prix est `PressureCost`
+	// multiplié par elle — le coût du manifeste est unitaire.
+	Group int
 	// ContactDamage est ce qu'il inflige par seconde au contact.
 	ContactDamage int
 	// Gems est le nombre de gemmes que sa mort laisse au sol.
@@ -145,6 +153,18 @@ type EnemyProfile struct {
 	BurstDamage int
 	// BurstRadius est la portée de cette explosion, en tuiles.
 	BurstRadius Fixed
+}
+
+// PackCost est ce que le spawner dépense pour une apparition de ce profil.
+//
+// Le coût du manifeste est unitaire et la meute est indivisible, si bien que le
+// prix d'un achat n'est jamais celui d'une créature. Les deux endroits qui
+// jugent un prix passent par ici — le test d'achat, et le plancher sous lequel
+// la borne de report ne descend pas : le second oublié, une phase qui ne
+// convoque que le Molosse plafonnerait son budget au prix d'un chien et
+// n'achèterait jamais la meute.
+func (p *EnemyProfile) PackCost() Fixed {
+	return FromInt(p.PressureCost * p.Group)
 }
 
 // Profiles est la table que la simulation indexe.
@@ -256,6 +276,7 @@ type rawProfile struct {
 	PressureCost *int     `json:"cout_pression,omitempty"`
 	Separation   *float64 `json:"poids_separation,omitempty"`
 	MaxAlive     *int     `json:"max_simultane,omitempty"`
+	Group        *int     `json:"groupe,omitempty"`
 	Contact      *int     `json:"degats_contact_s,omitempty"`
 	Gems         *int     `json:"gemmes,omitempty"`
 
@@ -266,14 +287,6 @@ type rawProfile struct {
 	ShotSpeed    *float64 `json:"vitesse_projectile_tuiles_s,omitempty"`
 	BurstDamage  *int     `json:"degats_explosion,omitempty"`
 	BurstRadius  *float64 `json:"rayon_explosion_tuiles,omitempty"`
-
-	// Group est la taille de la meute : ce que le spawner achètera d'un coup.
-	//
-	// À part des champs qui suivent, malgré les apparences — c'est une valeur de
-	// jeu et non d'apparence, et le rendu ne la lira jamais. Rangée avec eux,
-	// elle serait relue à l'étape 5 comme un détail de figurine, et l'étape 4
-	// réinventerait le champ ailleurs.
-	Group int `json:"groupe"`
 
 	// Ce qui suit décrit la figurine et son identité, et la simulation n'en lit
 	// rien. Ces champs sont déclarés parce que le décodage refuse toute clé
@@ -331,6 +344,7 @@ var champsConditionnels = []struct {
 	{"cout_pression", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.PressureCost != nil }},
 	{"poids_separation", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Separation != nil }},
 	{"max_simultane", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.MaxAlive != nil }},
+	{"groupe", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Group != nil }},
 	{"degats_contact_s", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Contact != nil }},
 	{"gemmes", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Gems != nil }},
 
@@ -387,6 +401,23 @@ func controler(cle string, p rawProfile, dire func(string, ...any)) {
 			dire("%s.%s : réservé à %s", cle, champ.nom, champ.qui)
 		}
 	}
+
+	// La taille de meute est le seul champ dont le zéro serait accepté par la
+	// table ci-dessus tout en n'ayant pas de sens : un profil qui n'apparaît
+	// jamais est une entrée que rien ne signale. Le message ne double pas celui
+	// de l'absence, qui vient d'être écrit le cas échéant.
+	if p.Group != nil && *p.Group < 1 {
+		dire("%s.groupe : %d, un profil apparaît au moins par un", cle, *p.Group)
+	}
+
+	// Une meute plus grande que le plafond de simultanéité ne tiendrait jamais
+	// entière, et le spawner l'écarterait à chaque tick sans que rien ne le
+	// dise : le profil serait au manifeste, autorisé par une phase, et
+	// n'apparaîtrait pas une fois de la partie.
+	if p.Group != nil && p.MaxAlive != nil && *p.MaxAlive > 0 && *p.Group > *p.MaxAlive {
+		dire("%s.groupe : %d au-dessus de max_simultane %d, la meute ne tiendrait jamais",
+			cle, *p.Group, *p.MaxAlive)
+	}
 }
 
 // joueur tire le profil du personnage joué.
@@ -425,6 +456,7 @@ func (p rawProfile) ennemi(cle string, base float64) EnemyProfile {
 		PressureCost:     ou0(p.PressureCost),
 		SeparationWeight: FromFloat(ou0(p.Separation)),
 		MaxAlive:         ou0(p.MaxAlive),
+		Group:            ou0(p.Group),
 		ContactDamage:    ou0(p.Contact),
 		Gems:             ou0(p.Gems),
 		ChargeDamage:     ou0(p.ChargeDamage),

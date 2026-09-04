@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Les cas des profils : le manifeste livré monté sans rien injecter, les
-// manquements listés en une fois, le zéro écrit qui n'est pas une absence, le
-// rôle inconnu qui arrête là, et le comportement que plus aucun profil
-// n'exercerait.
+// manquements listés en une fois, le zéro écrit qui n'est pas une absence, la
+// meute que rien ne ferait apparaître, le rôle inconnu qui arrête là, et le
+// comportement que plus aucun profil n'exercerait.
 
 package game
 
@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -125,13 +126,13 @@ func TestManquementsListesEnUneFois(t *testing.T) {
 			"cracheur": {"role": "ennemi", "nom": "Buse", "rayon_tuiles": 0.125,
 			             "comportement": "tir", "vitesse_relative": 0.55,
 			             "touches": 5, "points": 40, "cout_pression": 6,
-			             "poids_separation": 1.3, "max_simultane": 0,
+			             "poids_separation": 1.3, "max_simultane": 0, "groupe": 1,
 			             "degats_contact_s": 4, "gemmes": 1, "degats_tir": 6,
 			             "vitesse_projectile_tuiles_s": 7.0},
 			"marcheur": {"role": "ennemi", "nom": "Badaud", "rayon_tuiles": 0.125,
 			             "comportement": "poursuite", "vitesse_relative": 0.62,
 			             "touches": 3, "points": 10, "cout_pression": 3,
-			             "poids_separation": 1.0, "max_simultane": 0,
+			             "poids_separation": 1.0, "max_simultane": 0, "groupe": 1,
 			             "degats_contact_s": 6, "gemmes": 1, "tangentiel": 0.55}
 		}
 	}`)}}
@@ -166,7 +167,7 @@ func TestZeroEcritNestPasUneAbsence(t *testing.T) {
 			"soigneur": {"role": "ennemi", "nom": "Secouriste", "rayon_tuiles": 0.109,
 			             "comportement": "soin", "vitesse_relative": 0.7,
 			             "touches": 3, "points": 15, "cout_pression": 6,
-			             "poids_separation": 1.0, "degats_contact_s": 4,
+			             "poids_separation": 1.0, "groupe": 1, "degats_contact_s": 4,
 			             "gemmes": 1%s}
 		}
 	}`
@@ -184,6 +185,54 @@ func TestZeroEcritNestPasUneAbsence(t *testing.T) {
 	absent := fstest.MapFS{"m.json": &fstest.MapFile{Data: []byte(fmt.Sprintf(modele, ""))}}
 	if _, err := LoadProfiles(absent, "m.json"); err == nil {
 		t.Error("plafond absent accepté, il ne se distingue plus d'un zéro écrit")
+	}
+}
+
+// TestUneMeuteQuiNApparaitraitJamaisEstRefusee éprouve les deux façons d'écrire
+// un groupe que le spawner écarterait à chaque tick.
+//
+// Aucune des deux ne se voit en jouant : le profil est au manifeste, une phase
+// l'autorise, et il n'apparaît pas une fois de la partie. Le contrôle est donc
+// le seul endroit qui puisse le dire, et il le dit au chargement.
+func TestUneMeuteQuiNApparaitraitJamaisEstRefusee(t *testing.T) {
+	const modele = `{
+		"version_format": 1,
+		"profils": {
+			"joueur": {"role": "joueur", "nom": "Survivant", "rayon_tuiles": 0.125,
+			           "vitesse_tuiles_s": 5.0, "vie": 100, "plafond_degats_s": 20,
+			           "seuil_alerte_vie": 30},
+			"sprinteur": {"role": "ennemi", "nom": "Molosse", "rayon_tuiles": 0.109,
+			              "comportement": "charge", "vitesse_relative": 1.35,
+			              "touches": 2, "points": 25, "cout_pression": 4,
+			              "poids_separation": 1.0, "degats_contact_s": 8,
+			              "gemmes": 1, "degats_charge": 18, %s}
+		}
+	}`
+
+	for _, c := range []struct {
+		nom     string
+		reglage string
+		attendu string
+	}{
+		{"une meute vide", `"max_simultane": 0, "groupe": 0`, "apparaît au moins par un"},
+		{"une meute au-dessus du plafond", `"max_simultane": 2, "groupe": 3`,
+			"la meute ne tiendrait jamais"},
+	} {
+		t.Run(c.nom, func(t *testing.T) {
+			fsys := fstest.MapFS{"m.json": &fstest.MapFile{
+				Data: []byte(fmt.Sprintf(modele, c.reglage))}}
+
+			_, err := LoadProfiles(fsys, "m.json")
+			var invalide *manifest.Invalid
+			if !errors.As(err, &invalide) {
+				t.Fatalf("manifeste accepté, ou refusé autrement : %v", err)
+			}
+			if !slices.ContainsFunc(invalide.Missing, func(m string) bool {
+				return strings.Contains(m, c.attendu)
+			}) {
+				t.Errorf("manquements %v, aucun ne dit « %s »", invalide.Missing, c.attendu)
+			}
+		})
 	}
 }
 

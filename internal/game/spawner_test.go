@@ -1,9 +1,9 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// Les cas du spawner : le budget qui achète à l'heure, l'anneau qui pose hors de
-// portée, et les trois façons de ne rien poser — dont deux perdent le budget et
-// une le reporte.
+// Les cas du spawner : le budget qui achète à l'heure, la meute qui n'arrive ni
+// seule ni rognée, l'anneau qui pose hors de portée, et les trois façons de ne
+// rien poser — dont deux perdent le budget et une le reporte.
 
 package game
 
@@ -199,6 +199,155 @@ func TestLePlafondDeSimultaneiteTientMalgreLeBudget(t *testing.T) {
 	}
 }
 
+// meuteDeMolosses monte une salle où le Molosse est le seul profil achetable, et
+// vérifie que son groupe vaut bien trois.
+//
+// Le contrôle du groupe n'est pas une précaution : les trois cas qui suivent
+// perdraient leur sujet si le manifeste ramenait le Molosse à un, et ils
+// passeraient tous les trois sans rien garder.
+func meuteDeMolosses(t *testing.T, pression, capacite int) (*World, *EnemyProfile) {
+	t.Helper()
+	w, profils := salleOuverte(t, nil, capacite)
+	sprinteur := indexDuProfil(t, profils, "sprinteur")
+	molosse := &profils.Enemies[sprinteur]
+	if molosse.Group != 3 {
+		t.Fatalf("le Molosse arrive par %d, ces cas en attendent trois", molosse.Group)
+	}
+	w.scenario = vagueUnique(pression, sprinteur)
+	return w, molosse
+}
+
+// TestLaMeuteApparaitEntiere vérifie que le Molosse n'arrive jamais seul.
+//
+// Trois qui chargent en décalé sont ce qui oblige à cesser de reculer en ligne
+// droite ; un chien isolé se contourne, et la conception range donc la taille de
+// groupe dans le profil plutôt que dans une exception du spawner.
+//
+// Le cas relève au premier tick qui pose quelque chose, et non après une durée
+// fixe : un compte de ticks tomberait entre deux achats et rendrait six.
+func TestLaMeuteApparaitEntiere(t *testing.T) {
+	w, molosse := meuteDeMolosses(t, 12, 16)
+
+	for range 5 * TPS {
+		w.Step(Vec{})
+		if w.Enemies().Len() > 0 {
+			break
+		}
+	}
+	if n := w.Enemies().Len(); n != molosse.Group {
+		t.Errorf("%d créature(s) à la première apparition, la meute en compte %d",
+			n, molosse.Group)
+	}
+}
+
+// TestLaMeuteArriveDUnSeulCote vérifie qu'une seule position est tirée pour
+// toute la meute.
+//
+// Un tirage par membre les ferait naître aux quatre coins de l'anneau : trois
+// créatures du même profil, et plus une meute. Elles partent donc du même point
+// et la séparation les écarte ensuite, ce qui borne l'écart d'un tick à un pas
+// de course — très en deçà des tuiles que deux directions indépendantes
+// mettraient entre elles sur un anneau de dix-neuf.
+func TestLaMeuteArriveDUnSeulCote(t *testing.T) {
+	w, _ := meuteDeMolosses(t, 12, 16)
+
+	for range 5 * TPS {
+		w.Step(Vec{})
+		if w.Enemies().Len() > 0 {
+			break
+		}
+	}
+
+	premier := w.Enemies().At(0)
+	for i := range w.Enemies().Active() {
+		e := w.Enemies().At(i)
+		ecart := (Vec{X: e.X - premier.X, Y: e.Y - premier.Y}).Len()
+		if ecart > One/2 {
+			t.Errorf("créature %d à %v de la première : la meute a été tirée membre "+
+				"par membre", i, ecart)
+		}
+	}
+}
+
+// TestUneMeuteSePaieEntiere vérifie que le prix d'un achat est celui de la
+// meute, le coût du manifeste étant unitaire.
+//
+// **Le premier relevé est celui qui discrimine.** Six de pression par seconde
+// paient un Molosse en une seconde et la meute en deux : un spawner qui
+// facturerait le prix unitaire aurait déjà posé trois chiens au premier relevé,
+// et les deux implémentations rendraient la même chose au second.
+func TestUneMeuteSePaieEntiere(t *testing.T) {
+	w, molosse := meuteDeMolosses(t, 6, 16)
+	if molosse.PressureCost != 4 {
+		t.Fatalf("le Molosse coûte %d, ce cas en attend quatre", molosse.PressureCost)
+	}
+
+	for range TPS {
+		w.Step(Vec{})
+	}
+	if n := w.Enemies().Len(); n != 0 {
+		t.Errorf("%d créature(s) après une seconde : la meute a été payée au prix "+
+			"d'un seul chien", n)
+	}
+
+	for range 3 * TPS / 2 {
+		w.Step(Vec{})
+	}
+	if n := w.Enemies().Len(); n != molosse.Group {
+		t.Errorf("%d créature(s) après deux secondes et demie, attendu %d",
+			n, molosse.Group)
+	}
+}
+
+// TestUneMeuteNeSeRognePasSurLaPlaceRestante vérifie qu'un bassin presque plein
+// ne fait pas apparaître un Molosse seul.
+//
+// C'est l'endroit exact où l'exception s'écrirait — il reste une place, le
+// budget est là, et poser un chien plutôt que rien paraît une bonne affaire. Le
+// bassin s'arrête donc à un multiple de la meute, et le budget refusé est perdu
+// comme celui du plafond d'effectif.
+func TestUneMeuteNeSeRognePasSurLaPlaceRestante(t *testing.T) {
+	const capacite = 16
+	w, molosse := meuteDeMolosses(t, 120, capacite)
+
+	for range 60 * TPS {
+		w.Step(Vec{})
+	}
+
+	veut := capacite - capacite%molosse.Group
+	if n := w.Enemies().Len(); n != veut {
+		t.Errorf("%d créature(s) dans un bassin de %d, attendu %d : la dernière "+
+			"meute a été rognée", n, capacite, veut)
+	}
+}
+
+// TestUnPlafondDeSimultaneiteSeCompteEnMeutes vérifie qu'un plafond ne se
+// franchit pas par le bas d'une meute.
+//
+// Aucun profil livré ne porte les deux à la fois — le Secouriste plafonne mais
+// arrive seul, le Molosse arrive à trois sans plafond —, si bien que rien
+// n'exercerait la ligne qui les croise. Le plafond est donc posé ici, sur une
+// table que le manifeste produirait : sept au-dessus de trois est une écriture
+// que le chargeur accepte.
+//
+// **Sept, et non six.** Un plafond multiple de la meute laisse les deux
+// arithmétiques tomber d'accord, et le cas passerait sous celle qui compare le
+// nombre de vivants avant l'achat plutôt qu'après.
+func TestUnPlafondDeSimultaneiteSeCompteEnMeutes(t *testing.T) {
+	w, molosse := meuteDeMolosses(t, 120, 32)
+	molosse.MaxAlive = 7
+
+	for range 10 * TPS {
+		w.Step(Vec{})
+	}
+
+	veut := molosse.MaxAlive - molosse.MaxAlive%molosse.Group
+	if n := w.Enemies().Len(); n != veut {
+		t.Errorf("%d Molosse(s) vivants pour un plafond de %d, attendu %d : la "+
+			"dernière meute a franchi le plafond", n, molosse.MaxAlive, veut)
+	}
+}
+
 // TestLaPhaseEnVigueurEstLaDerniereCommencee vérifie qu'un palier vaut jusqu'à
 // ce que le suivant le remplace.
 //
@@ -288,7 +437,7 @@ func TestUneBorneNeTuePasUnePhase(t *testing.T) {
 	w, profils := salleOuverte(t, nil, 16)
 	marcheur := indexDuProfil(t, profils, "marcheur")
 	w.scenario = vagueUnique(1, marcheur)
-	w.scenario.Phases[0].Cheapest = FromInt(profils.Enemies[marcheur].PressureCost)
+	w.scenario.Phases[0].Cheapest = profils.Enemies[marcheur].PackCost()
 
 	// Trois secondes de report pour trois de budget par seconde : le plafond et
 	// le prix se touchent, et c'est là que le cas se joue.

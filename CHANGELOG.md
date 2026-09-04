@@ -42,6 +42,22 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Ajouté
+
+- **Le Molosse arrive par meutes de trois.** Le spawner achète d'un coup la
+  taille de groupe que le profil déclare, et pose la meute au même point de
+  l'anneau : elle arrive d'un seul côté. Le coût de pression du manifeste étant
+  unitaire, une meute se paie trois fois ce prix et n'apparaît jamais rognée.
+
+***
+
+### Added
+
+- **The Molosse arrives in packs of three.** The spawner buys the group size
+  declared by the profile in one go and places the pack at a single point on the
+  ring, so it comes from one side. The manifest's pressure cost is per creature,
+  so a pack costs three times that and never shows up trimmed.
+
 ## [0.3.2] — 2026-09-03 — L'alerte de vie basse
 
 Une version de correction. Ce qui se voit en jouant tient en une chose : sous

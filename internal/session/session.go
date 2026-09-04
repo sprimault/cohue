@@ -49,6 +49,19 @@ const HordeCapacity = 300
 // élastique.
 const ShotCapacity = 256
 
+// EnemyShotCapacity plafonne le bassin des projectiles de la horde.
+//
+// **Bien plus bas que celui du joueur, et pour une raison de forme.** Une
+// créature qui tire n'a qu'un projectile en vol à la fois ou presque — sa
+// cadence dépasse la durée de vol —, si bien que le stock suit le nombre de
+// tireuses vivantes et non une cadence multipliée par des passifs. Soixante-
+// quatre est au-delà de ce qu'une phase achète de Buses.
+//
+// Son propre bassin, parce que ce que `Projectile.Hits` retire n'a pas la même
+// unité des deux côtés : des touches pour une créature, des points de vie pour
+// le joueur.
+const EnemyShotCapacity = 64
+
 // GemCapacity plafonne le bassin des gemmes au sol.
 //
 // Deux fois et demie le pic que la conception nomme — deux cents gemmes qui
@@ -115,7 +128,7 @@ func (s *Session) Restart() {
 // d'écrire un lieu de défi.
 func (s *Session) monter() {
 	s.World = game.NewWorld(s.profils, s.armes, s.progression, s.scenario, s.Grid, s.Seed,
-		HordeCapacity, ShotCapacity, GemCapacity)
+		HordeCapacity, ShotCapacity, EnemyShotCapacity, GemCapacity)
 	placer(s.World, s.Grid)
 }
 

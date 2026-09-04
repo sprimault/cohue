@@ -118,8 +118,13 @@ JEU = {
                   "vitesse_relative": 0.55, "rayon_tuiles": 0.125, "touches": 5,
                   "points": 40, "cout_pression": 6, "poids_separation": 1.3,
                   "max_simultane": 0, "groupe": 1, "degats_contact_s": 4, "gemmes": 1,
+                  # Six tuiles de portée pour sept tuiles par seconde : un tir met
+                  # un peu moins d'une seconde à couvrir sa course, et se voit
+                  # venir. La cadence est plus lente que ce vol, si bien qu'une
+                  # Buse n'a qu'un projectile en l'air à la fois.
                   "portee_tuiles": 6,
-                  "degats_tir": 6, "vitesse_projectile_tuiles_s": 7.0},
+                  "degats_tir": 6, "vitesse_projectile_tuiles_s": 7.0,
+                  "cadence_tir_ms": 1600},
     # Poids faible : dans le mécanisme du chapitre 4, ce poids dit combien une
     # créature s'écarte de ses voisines, et non combien elle résiste à être
     # poussée — personne n'est poussé, chacun s'applique la force à soi-même.

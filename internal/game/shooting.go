@@ -42,6 +42,104 @@ func (w *World) tirer() {
 	w.cooldown = w.arme.Cooldown
 }
 
+// tirerLaHorde fait tirer les créatures dont le profil porte une portée.
+//
+// **La cadence ne se consomme pas hors de portée**, exactement comme celle de
+// l'arme du joueur : une Buse qui voit le joueur réapparaître tirerait sinon
+// avec un retard fonction du temps qu'elle a passé sans cible, et rien à l'écran
+// ne l'expliquerait.
+//
+// **Rien ne vérifie que la voie est libre.** Le projectile part et meurt sur le
+// pilier, par le même chemin qu'un tir du joueur : le décor protège par le fait,
+// pas par une condition — c'est ce que la charge fait déjà, et pour la même
+// raison.
+func (w *World) tirerLaHorde() {
+	for i := range w.ennemis.Active() {
+		e := w.ennemis.At(i)
+		profil := &w.profils.Enemies[e.Profile]
+		if profil.Range == 0 {
+			continue
+		}
+
+		vers, portee := w.viseeDe(e, profil)
+		if !portee {
+			continue
+		}
+		if e.ShotTimer > 0 {
+			e.ShotTimer--
+			continue
+		}
+
+		// Le tir vise où le joueur est et non où il sera : c'est ce qui le rend
+		// esquivable, donc ce qui punit le camping sans punir le déplacement.
+		if _, ok := w.tirsEnnemis.Spawn(Projectile{
+			X:         e.X,
+			Y:         e.Y,
+			Step:      vers.Direction(i).Scale(profil.ShotSpeed),
+			Remaining: profil.Range,
+			Hits:      profil.ShotDamage,
+		}); !ok {
+			continue
+		}
+		e.ShotTimer = profil.ShotCooldown
+	}
+}
+
+// deplacerTirsEnnemis avance les projectiles de la horde et les applique au
+// joueur.
+//
+// Elle double la passe des tirs du joueur plutôt que de la partager, et la
+// raison n'est pas le bassin mais la cible : celle-là cherche la première
+// créature atteinte dans un bassin de trois cents, celle-ci compare à un seul
+// point. Les fondre demanderait un paramètre disant quoi toucher, pour deux
+// corps qui n'ont en commun que le déplacement.
+func (w *World) deplacerTirsEnnemis() {
+	for i := 0; i < w.tirsEnnemis.Len(); i++ {
+		p := w.tirsEnnemis.At(i)
+		depart := Vec{p.X, p.Y}
+		p.X += p.Step.X
+		p.Y += p.Step.Y
+		p.Remaining -= p.Step.Len()
+
+		touche := w.Alive() && w.auContactDu(p.X, p.Y)
+		if touche {
+			// Hors du plafond de dégâts, comme le choc d'une charge : ce que le
+			// plafond rend lisible est l'encerclement, pas un projectile qu'on
+			// a vu venir.
+			w.blesser(p.Hits)
+		}
+		if touche || p.Remaining <= 0 || w.traverse(depart, p.X, p.Y) {
+			w.tirsEnnemis.RemoveAt(i)
+		}
+	}
+}
+
+// viseeDe rend l'écart au joueur et dit s'il est à portée de tir.
+//
+// **Un seul prédicat pour les deux endroits qui en dépendent** : celui qui tire,
+// et celui qui immobilise la créature pour qu'elle tire. Écrits séparément, une
+// borne stricte d'un côté et large de l'autre donneraient une Buse arrêtée à la
+// distance exacte où elle refuse de tirer — un blocage qu'on chercherait dans le
+// champ de flux.
+func (w *World) viseeDe(e *Enemy, profil *EnemyProfile) (Vec, bool) {
+	vers := Vec{X: w.playerX - e.X, Y: w.playerY - e.Y}
+	if profil.Range == 0 {
+		return vers, false
+	}
+	return vers, vers.carres() <= int64(profil.Range)*int64(profil.Range)
+}
+
+// auContactDu dit si un point touche le joueur.
+//
+// Le rayon est celui du profil, comme pour le contact d'une créature : c'est la
+// même mesure, et un projectile qui aurait la sienne rendrait la hitbox du
+// joueur dépendante de ce qui l'atteint.
+func (w *World) auContactDu(x, y Fixed) bool {
+	portee := w.profils.Player.Radius
+	ecart := Vec{X: x - w.playerX, Y: y - w.playerY}
+	return ecart.carres() < int64(portee)*int64(portee)
+}
+
 // plusProche rend la place de la créature la plus proche à portée.
 //
 // La visée est omnidirectionnelle et le joueur ne choisit pas : c'est ce qui

@@ -44,6 +44,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **La Buse tire.** Elle s'arrête dès que le joueur entre dans sa portée et
+  envoie un projectile par intervalles, visant où il est plutôt que où il ira.
+  Le tir s'esquive, un mur l'arrête, et ses dégâts s'ajoutent hors du plafond.
 - **Le Molosse charge.** Il s'immobilise le temps d'annoncer, fonce en ligne
   droite sans plus corriger, et son choc s'ajoute hors du plafond de dégâts. Un
   mur ou un pilier interposé l'arrête : il charge sans regarder si la voie est
@@ -57,6 +60,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **The Buse shoots.** It stops as soon as the player enters its range and sends
+  a projectile at intervals, aiming where they are rather than where they are
+  headed. The shot can be dodged, a wall stops it, and its damage lands outside
+  the cap.
 - **The Molosse charges.** It stands still while it winds up, runs in a straight
   line without correcting, and its impact lands outside the damage cap. A wall or
   a pillar in the way stops it: it charges without checking whether the path is

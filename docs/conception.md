@@ -289,6 +289,8 @@ Il traverse la scène en va-et-vient — il avance tout droit et repart quand il
   **Le choc est unique parce qu'il clôt la course.** Il vaut un montant et non un débit — le contact ordinaire se compte par seconde, lui tombe d'un coup — et il ne passe pas sous le plafond de dégâts : celui-ci existe pour rendre lisible un encerclement dont on ne distingue pas les parts, quand une charge a été annoncée puis manquée. Les plafonner ensemble ferait qu'une meute de trois infligerait ce qu'un seul inflige, et l'annonce n'annoncerait plus rien.
 - **L'Arpenteur** : `Tangential` élevé, il coupe la trajectoire de fuite. C'est lui qui donne l'impression que les monstres réfléchissent.
 - **La Buse** : seul profil qui blesse à distance, elle se stabilise et tire. Elle punit le camping dans un coin, force à bouger vers le danger. Sans balancement de marche, elle reste identifiable même immobile au milieu d'une horde.
+
+  **Sa portée est aussi la distance où elle s'arrête**, et les deux ne se règlent pas séparément : approcher davantage la mènerait au contact, où un profil qui blesse de loin ne vaut plus rien. Elle vise où le joueur est et non où il sera — c'est ce qui rend le tir esquivable, donc ce qui punit l'immobilité sans punir le déplacement. Et rien ne vérifie que la voie est libre : le projectile part et meurt sur le pilier, comme la charge du Molosse s'y arrête. Le décor protège par le fait, jamais par une condition.
 - **Le Vigile** : lent, encaissant, il bouche les goulots. Dans un couloir de supermarché, il transforme une route de fuite en piège.
 - **La Baudruche** : explose en mourant. Sa silhouette disproportionnée dit « ne t'approche pas » avant même que le télégraphe ne s'allume. Elle punit le nettoyage à l'aveugle en mêlée.
 
@@ -1187,7 +1189,7 @@ Il n'y a pas de bon ordre, il y a un ordre écrit une fois. Dans un tick :
 7. les contacts et les dégâts ;
 8. l'aimant : son apparition, sa ruée, sa prise ;
 9. le ramassage, et ce qu'il fait monter ;
-10. le tir, puis le vol des projectiles et ce qu'ils touchent ;
+10. le tir — du joueur puis de la horde —, et le vol des projectiles avec ce qu'ils touchent ;
 11. les suppressions.
 
 Les apparitions avant la densité, et c'est ce qui commande leur place : le champ de flux ne dépend que du joueur et des obstacles, une créature apparue après son calcul n'y perd rien. La densité, elle, dépend des ennemis — deux créatures apparues au même endroit se superposeraient exactement le temps d'une image, et personne ne retrouverait jamais l'origine de ce scintillement.

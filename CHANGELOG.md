@@ -44,6 +44,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Le Secouriste soigne la horde.** Il rend des touches à la créature la plus
+  entamée autour de lui, une à la fois, et jamais à lui-même. Deux éclairs le
+  disent : l'un sur la soignée, l'autre sur lui — c'est ce dernier qui indique
+  qui aller chercher, puisque l'arme vise toujours le plus proche.
 - **Le corps du Vigile arrête le joueur.** C'est la seule créature qu'on ne
   traverse pas : elle bouche un goulot au lieu d'être un ennemi lent de plus.
   Elle ne traverse pas le joueur non plus, et son corps cesse de bloquer dès
@@ -69,6 +73,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **The Secouriste heals the horde.** It restores hits to the most damaged
+  creature around it, one at a time, and never to itself. Two flashes say so: one
+  on the healed creature, one on it — the latter is what tells you who to go
+  after, since the weapon always aims at the nearest.
 - **The Vigile's body stops the player.** It is the only creature you cannot walk
   through: it plugs a chokepoint instead of being one more slow enemy. It does
   not walk through the player either, and its body stops blocking the moment it

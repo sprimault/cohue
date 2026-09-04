@@ -124,6 +124,11 @@ le corps vous arrête : toutes les autres se traversent, lui vous bloque — pri
 entre lui et un mur, vous tirez forcément dessus, puisque votre arme vise le plus
 proche.
 
+Le **Secouriste** remet debout la créature la plus entamée autour de lui, une à
+la fois. Il ne se soigne pas lui-même, et il tombe vite : quand vos cibles
+cessent de mourir, c'est lui qu'il faut aller chercher — votre arme visant
+toujours le plus proche, il n'y a pas d'autre moyen que d'aller vers lui.
+
 La **Baudruche** explose quand vous la tuez, pas quand elle vous touche. Le sol
 se marque là où le souffle va porter, et vous avez un instant pour en sortir —
 elle ne blesse que vous, jamais les créatures autour d'elle.

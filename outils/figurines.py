@@ -160,8 +160,15 @@ JEU = {
     "soigneur":  {"role": "ennemi", "comportement": "soin",
                   "vitesse_relative": 0.70, "rayon_tuiles": 0.109, "touches": 3,
                   "points": 15, "cout_pression": 6, "poids_separation": 1.0,
+                  # Il rend une touche toutes les 1,5 s à la plus blessée dans
+                  # quatre tuiles, jamais à lui-même. L'arme de base en retire une
+                  # toutes les 400 ms : le soin ne rattrape donc pas un tir
+                  # soutenu sur une seule cible, il annule ce qu'on a entamé puis
+                  # laissé.
                   "max_simultane": 1, "groupe": 1, "corps_bloquant": False,
-                  "degats_contact_s": 4, "gemmes": 1},
+                  "degats_contact_s": 4, "gemmes": 1,
+                  "portee_soin_tuiles": 4.0, "cadence_soin_ms": 1500,
+                  "soin_touches": 1},
     # Le Passant n'est pas un monstre : il ne blesse pas, ne rapporte rien, ne
     # se cible pas et ne se paie pas dans le budget de pression. Il traverse la
     # scène et occupe l'espace, ce qui suffit à le rendre gênant. Lui laisser

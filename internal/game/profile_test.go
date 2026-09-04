@@ -170,7 +170,9 @@ func TestZeroEcritNestPasUneAbsence(t *testing.T) {
 			             "comportement": "soin", "vitesse_relative": 0.7,
 			             "touches": 3, "points": 15, "cout_pression": 6,
 			             "poids_separation": 1.0, "groupe": 1, "corps_bloquant": false,
-			             "degats_contact_s": 4, "gemmes": 1%s}
+			             "degats_contact_s": 4, "gemmes": 1,
+			             "portee_soin_tuiles": 4.0, "cadence_soin_ms": 1500,
+			             "soin_touches": 1%s}
 		}
 	}`
 

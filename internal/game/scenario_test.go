@@ -24,6 +24,14 @@ func profilsLivres(t *testing.T) *Profiles {
 	return profils
 }
 
+// reportDeTest est la borne du budget reporté que ces cas donnent à la
+// compilation.
+//
+// Trois secondes, comme la progression livrée : ce qui se règle ici est le refus
+// d'un profil trop cher pour son plafond, et le mesurer contre une borne
+// inventée ne dirait rien du lieu réel.
+const reportDeTest = 3 * TPS
+
 // phaseEcrite rend une phase minimale, datée et budgetée.
 func phaseEcrite(debut string, pression int, profils ...string) WavePhase {
 	return WavePhase{Start: debut, Pressure: &pression, Profiles: profils}
@@ -72,7 +80,7 @@ func TestLaFriseSeLitStrictement(t *testing.T) {
 func TestUnProfilQuiNExistePasEstRefuse(t *testing.T) {
 	_, manques := CompileScenario(WaveScenario{Phases: []WavePhase{
 		phaseEcrite("0:00", 8, "marcheur", "badaud"),
-	}}, profilsLivres(t))
+	}}, profilsLivres(t), reportDeTest)
 
 	if !contient(manques, "badaud") {
 		t.Errorf("le profil inconnu passe : %v", manques)
@@ -93,7 +101,7 @@ func TestUnProfilQuiNExistePasEstRefuse(t *testing.T) {
 func TestUnProfilRefuseNommeLaCleEtLeNom(t *testing.T) {
 	_, manques := CompileScenario(WaveScenario{Phases: []WavePhase{
 		phaseEcrite("0:00", 8, "arpenteur"),
-	}}, profilsLivres(t))
+	}}, profilsLivres(t), reportDeTest)
 
 	for _, attendu := range []string{"« flanqueur »", "(Arpenteur)"} {
 		if !contient(manques, attendu) {
@@ -113,7 +121,7 @@ func TestUnProfilRefuseNommeLaCleEtLeNom(t *testing.T) {
 func TestLePassantNEstPasAchetable(t *testing.T) {
 	_, manques := CompileScenario(WaveScenario{Phases: []WavePhase{
 		phaseEcrite("0:00", 8, "civil"),
-	}}, profilsLivres(t))
+	}}, profilsLivres(t), reportDeTest)
 
 	if !contient(manques, "civil") {
 		t.Errorf("le Passant s'achète : %v", manques)
@@ -130,7 +138,7 @@ func TestLesPhasesSuiventLaFrise(t *testing.T) {
 		phaseEcrite("0:00", 4, "marcheur"),
 		phaseEcrite("2:00", 8, "marcheur"),
 		phaseEcrite("1:00", 12, "marcheur"),
-	}}, profilsLivres(t))
+	}}, profilsLivres(t), reportDeTest)
 
 	if !contient(manques, "ne vient pas après") {
 		t.Errorf("une phase en arrière passe : %v", manques)
@@ -145,7 +153,7 @@ func TestLesPhasesSuiventLaFrise(t *testing.T) {
 func TestLaPremierePhaseDateLeDebut(t *testing.T) {
 	_, manques := CompileScenario(WaveScenario{Phases: []WavePhase{
 		phaseEcrite("0:30", 4, "marcheur"),
-	}}, profilsLivres(t))
+	}}, profilsLivres(t), reportDeTest)
 
 	if !contient(manques, "la première phase commence à 0:00") {
 		t.Errorf("une courbe qui commence en retard passe : %v", manques)
@@ -159,12 +167,56 @@ func TestLaPremierePhaseDateLeDebut(t *testing.T) {
 // garde le lieu livré d'y tomber par mégarde est un cas de conformité, dans
 // `internal/level`, et non un refus ici.
 func TestUneSalleSansHordeResteUnLieu(t *testing.T) {
-	scenario, manques := CompileScenario(WaveScenario{}, profilsLivres(t))
+	scenario, manques := CompileScenario(WaveScenario{}, profilsLivres(t), reportDeTest)
 	if len(manques) > 0 {
 		t.Fatalf("un lieu sans vagues est refusé : %v", manques)
 	}
 	if len(scenario.Phases) != 0 {
 		t.Errorf("%d phase(s) sorties d'un scénario absent", len(scenario.Phases))
+	}
+}
+
+// TestUnProfilTropCherPourSaPhaseEstRefuse garde le silence le plus coûteux de
+// la courbe.
+//
+// Un profil qu'une phase autorise sans pouvoir le payer est écrit dans le
+// fichier et n'arrive jamais : le budget monte, bute sur son plafond de report,
+// et le spawner n'a rien à signaler puisqu'il achète ce qu'il peut. C'est le
+// défaut qui a fait qu'un Molosse placé à la première minute du lieu livré
+// n'apparaissait dans aucune run de dix minutes.
+//
+// **Le second cas est le plus fin, et il est déjà décrit dans la godoc de
+// `Cheapest`** : une pression de quatre reportée sur trois secondes donne un
+// plafond de 11,9998 en virgule fixe pour une meute qui en coûte douze — la
+// conversion par tick le place un millième en dessous. Personne ne retrouverait
+// ce cas par hasard, et c'est celui qui décide si le refus se fait au bon
+// endroit.
+//
+// **Le Badaud accompagne le Molosse dans les deux cas, et ce n'est pas un
+// décor** : `Cheapest` relève le plafond au prix du moins cher, si bien qu'un
+// Molosse seul serait sauvé par son propre prix. C'est la présence d'un profil
+// bon marché qui laisse le cher inatteignable, et c'est ce qui rend le défaut
+// invisible.
+func TestUnProfilTropCherPourSaPhaseEstRefuse(t *testing.T) {
+	for _, c := range []struct {
+		nom      string
+		pression int
+	}{
+		{"franchement au-dessus", 3},
+		{"un millième au-dessus, par l'arrondi du tick", 4},
+	} {
+		t.Run(c.nom, func(t *testing.T) {
+			_, manques := CompileScenario(WaveScenario{Phases: []WavePhase{
+				phaseEcrite("0:00", c.pression, "marcheur", "sprinteur"),
+			}}, profilsLivres(t), reportDeTest)
+
+			if !contient(manques, "n'apparaîtrait jamais") {
+				t.Errorf("un profil impayable passe : %v", manques)
+			}
+			if !contient(manques, "sprinteur") {
+				t.Errorf("le refus ne nomme pas le profil fautif : %v", manques)
+			}
+		})
 	}
 }
 
@@ -180,7 +232,7 @@ func TestLePlancherDeReportCompteLaMeute(t *testing.T) {
 	profils := profilsLivres(t)
 	scenario, manques := CompileScenario(WaveScenario{Phases: []WavePhase{
 		phaseEcrite("0:00", 4, "sprinteur"),
-	}}, profils)
+	}}, profils, reportDeTest)
 	if len(manques) > 0 {
 		t.Fatalf("phase refusée : %v", manques)
 	}
@@ -207,7 +259,7 @@ func TestLaPointeSeCompileEnFenetre(t *testing.T) {
 	phase.Peak = &WavePeak{At: "2:10", Multiplier: &multiplicateur, Seconds: &duree}
 
 	scenario, manques := CompileScenario(WaveScenario{Phases: []WavePhase{phase}},
-		profilsLivres(t))
+		profilsLivres(t), reportDeTest)
 	if len(manques) > 0 {
 		t.Fatalf("pointe refusée : %v", manques)
 	}

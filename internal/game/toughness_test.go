@@ -130,7 +130,7 @@ func TestUneCourbeQuiAdoucitEstRefusee(t *testing.T) {
 			p.Toughness = &mou
 			return p
 		}(),
-	}}, profilsLivres(t))
+	}}, profilsLivres(t), reportDeTest)
 
 	if !contient(manques, "durcit et n'adoucit pas") {
 		t.Errorf("une courbe qui adoucit passe : %v", manques)
@@ -144,7 +144,7 @@ func TestUneCourbeQuiAdoucitEstRefusee(t *testing.T) {
 func TestUnDurcissementAbsentVautUn(t *testing.T) {
 	scenario, manques := CompileScenario(WaveScenario{Phases: []WavePhase{
 		phaseEcrite("0:00", 8, "marcheur"),
-	}}, profilsLivres(t))
+	}}, profilsLivres(t), reportDeTest)
 	if len(manques) > 0 {
 		t.Fatalf("phase refusée : %v", manques)
 	}

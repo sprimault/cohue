@@ -25,30 +25,56 @@
     { "id": "avenue", "u": 65, "v": 65 }
   ],
   "vagues": {
-    "$comment": "Une pression par seconde, jamais des compteurs : le spawner achète dans ce budget, ce qui reste cohérent quelle que soit l'aire ouverte de la salle. Chaque profil a son coût — un Badaud vaut trois, un Vigile douze — dans assets/personnages/manifeste.json. || Un seul profil, et c'est ce que l'étape 3 annonce : une arme, un profil d'ennemi, une courbe de pression. Sept créatures qu'aucune teinte ne distingue mettent dans la mesure une variable invisible — qui trouve la cinquième minute plus dure ne sait pas si c'est la courbe ou l'arrivée de quelque chose qu'il n'a pas vu arriver —, et le jalon demande de pouvoir nommer ce qui a produit une bascule. La variété n'est pas ce que le critère chiffré mesure, donc elle se neutralise ; la courbe l'est, donc elle ne bouge pas d'un chiffre. Les six autres profils reviennent à l'étape 4, avec ce qui les rendra lisibles. || Les instants et les pointes restent où ils sont. Leur placement tenait à l'ouverture d'un profil — doubler le débit juste après une rencontre neuve se lit comme un événement plutôt que comme du bruit —, et cette raison revient avec eux ; les déplacer maintenant ferait bouger la courbe, c'est-à-dire précisément ce qu'on mesure. || Le début est bas parce que la conception le demande : les trois premières minutes doivent être rapides à repasser, une mort au troisième lieu renvoyant au premier. Deux par seconde pour des Badauds à trois fait une créature toutes les seconde et demie, et la première salle doit se sentir vide. || La courbe monte ensuite d'environ un tiers par palier, ce qui suit à peu près la façon dont l'arme grossit : six paliers de cadence la font tirer deux fois plus vite, et la portée élargit ce qu'elle atteint. Au-delà de la dixième minute elle passe devant, et c'est voulu — une run se termine par une mort. || Ces chiffres ne sont pas jugés : ils sont calés contre une sonde qui tourne en cercle et prend toujours la première carte, c'est-à-dire un joueur médiocre. Le jugement est une séance de jeu, contre le critère du chapitre 2 — la bascule de puissance ressentie avant la minute 9.",
+    "$comment": "Une pression par seconde, jamais des compteurs : le spawner achète dans ce budget, ce qui reste cohérent quelle que soit l'aire ouverte de la salle. Chaque profil a son coût — un Badaud vaut trois, un Vigile douze — dans assets/personnages/manifeste.json. || Les sept profils sont de retour, un par palier, du plus spatial au plus subtil. L'étape 3 avait ramené le lieu à un seul : sept créatures qu'aucune teinte ne distinguait mettaient dans la mesure une variable invisible, et le jalon demandait de pouvoir nommer ce qui avait produit une bascule. Cette raison est éteinte — le jalon est franchi, et chaque profil a maintenant ce qui le rend lisible. || Un profil entre par palier et jamais deux, sauf à 4:00 où le budget l'impose. **L'ordre n'est donc pas entièrement libre** : une meute de Molosse coûte douze, et une phase ne peut acheter que jusqu'à son plafond de report — la pression multipliée par les trois secondes de report. Trois donne neuf, quatre donne 11,99 parce que la conversion par tick arrondit vers le bas : la cinquième pression est la première qui paie une meute. Déplacer le Molosse plus tôt fera refuser le lieu au chargement, avec le message qui dit lequel des trois nombres changer ; ce n'est pas une préférence de progression qui l'a placé là. Les instants et les pointes n'ont pas bougé d'un chiffre, parce que leur placement tenait justement à l'ouverture d'un profil — doubler le débit juste après une rencontre neuve se lit comme un événement plutôt que comme du bruit. || La résistance monte à partir de la sixième minute, sans quoi la fin n'est qu'un tapis roulant : l'arme a doublé de cadence en six paliers, et un Badaud qui vaut trois touches au départ en vaut six à la fin. Ces multiplicateurs sont des chiffres de départ au même titre que la pression, à régler en jouant — ils vivent dans ce fichier, donc ils se changent sans toucher au code. || Le début est bas parce que la conception le demande : les trois premières minutes doivent être rapides à repasser, une mort au troisième lieu renvoyant au premier. Deux par seconde pour des Badauds à trois fait une créature toutes les seconde et demie, et la première salle doit se sentir vide. || La courbe monte ensuite d'environ un tiers par palier, ce qui suit à peu près la façon dont l'arme grossit : six paliers de cadence la font tirer deux fois plus vite, et la portée élargit ce qu'elle atteint. Au-delà de la dixième minute elle passe devant, et c'est voulu — une run se termine par une mort. || Ces chiffres ne sont pas jugés : ils sont calés contre une sonde qui tourne en cercle et prend toujours la première carte, c'est-à-dire un joueur médiocre. Le jugement est une séance de jeu, contre le critère du chapitre 2 — la bascule de puissance ressentie avant la minute 9.",
     "phases": [
       { "debut": "0:00", "pression": 2, "profils": ["marcheur"] },
-      { "debut": "1:00", "pression": 3, "profils": ["marcheur"] },
       {
+        "$comment": "L'Arpenteur entre le premier, et non le Molosse : une meute coûte douze, quand une pression de trois reportée sur trois secondes plafonne le budget à neuf. Le Molosse serait écrit ici et n'apparaîtrait jamais — c'est ce que le chargement refuse désormais de laisser passer. L'Arpenteur, lui, coûte cinq et casse le kiting par le contournement, ce qui en fait la première rupture au même titre.",
+        "debut": "1:00",
+        "pression": 3,
+        "profils": ["marcheur", "flanqueur"]
+      },
+      {
+        "$comment": "La pointe met le contournement à l'épreuve pendant vingt secondes. Le Molosse n'entre toujours pas : à quatre de pression, le plafond vaut 11,99 pour une meute à douze — l'arrondi de la conversion par tick le place un millième en dessous, et le refus le dit.",
         "debut": "2:30",
         "pression": 4,
-        "profils": ["marcheur"],
+        "profils": ["marcheur", "flanqueur"],
         "pic": { "a": "3:20", "multiplicateur": 2, "duree_s": 20 }
       },
-      { "debut": "4:00", "pression": 5, "profils": ["marcheur"] },
       {
+        "$comment": "Le Molosse et le Vigile entrent ensemble à la cinquième pression, la première qui paie une meute : douze pour la meute, douze pour le Vigile, quinze de plafond. C'est le seul palier qui ouvre deux profils, et c'est le budget qui l'impose plutôt qu'un choix. Le Vigile est par ailleurs la mécanique la plus susceptible de produire une mort illisible, et c'est ici qu'elle se juge — plus tard, la horde serait assez dense pour masquer la cause.",
+        "debut": "4:00",
+        "pression": 5,
+        "profils": ["marcheur", "flanqueur", "sprinteur", "bloqueur"]
+      },
+      {
+        "$comment": "La Buse est la première menace qui ne vient pas au contact : elle punit le coin où l'on s'était réfugié devant les quatre précédentes.",
         "debut": "6:00",
         "pression": 7,
-        "profils": ["marcheur"],
-        "pic": { "a": "7:00", "multiplicateur": 2, "duree_s": 25 }
+        "profils": ["marcheur", "sprinteur", "flanqueur", "bloqueur", "cracheur"],
+        "pic": { "a": "7:00", "multiplicateur": 2, "duree_s": 25 },
+        "resistance": 1.2
       },
-      { "debut": "8:00", "pression": 9, "profils": ["marcheur"] },
-      { "debut": "10:00", "pression": 12, "profils": ["marcheur"] },
+      {
+        "$comment": "La Baudruche punit le nettoyage à l'aveugle, ce qui suppose qu'il y ait une foule à nettoyer — donc pas avant que la pression soit haute.",
+        "debut": "8:00",
+        "pression": 9,
+        "profils": ["marcheur", "sprinteur", "flanqueur", "bloqueur", "cracheur", "eclateur"],
+        "resistance": 1.4
+      },
+      {
+        "$comment": "Le Secouriste en dernier : sa mécanique suppose un travail à annuler, et elle demande d'abandonner sa position pour aller le chercher. C'est la plus exigeante des sept, et elle n'a de sens qu'une fois les autres comprises.",
+        "debut": "10:00",
+        "pression": 12,
+        "profils": ["marcheur", "sprinteur", "flanqueur", "bloqueur", "cracheur", "eclateur", "soigneur"],
+        "resistance": 1.7
+      },
       {
         "debut": "12:00",
         "pression": 16,
-        "profils": ["marcheur"],
-        "pic": { "a": "13:30", "multiplicateur": 2, "duree_s": 25 }
+        "profils": ["marcheur", "sprinteur", "flanqueur", "bloqueur", "cracheur", "eclateur", "soigneur"],
+        "pic": { "a": "13:30", "multiplicateur": 2, "duree_s": 25 },
+        "resistance": 2.0
       }
     ]
   },

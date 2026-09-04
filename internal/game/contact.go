@@ -23,16 +23,45 @@ func (w *World) subir() {
 		return
 	}
 
-	somme := 0
+	somme, chocs := 0, 0
 	for i := range w.ennemis.Len() {
 		e := w.ennemis.At(i)
 		if !w.auContact(e) {
 			continue
 		}
-		somme += w.profils.Enemies[e.Profile].ContactDamage
+		profil := &w.profils.Enemies[e.Profile]
+
+		// **Une charge qui touche s'arrête là**, et c'est ce qui évite un
+		// drapeau « a déjà frappé » : les dégâts de charge sont un choc unique,
+		// alors que tout ce qui l'entoure se compte par seconde. La fin de course
+		// est la seule chose qui puisse les rendre uniques sans état de plus.
+		if e.Charging() {
+			chocs += profil.ChargeDamage
+			w.finirLaCharge(e, profil)
+			continue
+		}
+		somme += profil.ContactDamage
 	}
 	if plafond := w.profils.Player.DamageCap; somme > plafond {
 		somme = plafond
+	}
+
+	// **Le choc se retire de la vie, il n'entre pas dans l'accumulateur.** Ce que
+	// celui-ci compte est un débit — des points par seconde, en points-ticks —,
+	// alors qu'une charge est un montant qui tombe d'un coup : l'y verser
+	// diviserait dix-huit points par soixante, et le choc vaudrait un tiers de
+	// point.
+	//
+	// **Et il ignore le plafond, sans le relever.** Ce que le plafond rend
+	// lisible est l'encerclement, trente corps collés dont on ne distingue pas la
+	// part ; une charge, elle, a été annoncée puis manquée. Les plafonner
+	// ensemble ferait qu'une meute de trois Molosses infligerait ce qu'un seul
+	// inflige, et le télégraphe n'annoncerait plus rien.
+	if chocs > 0 {
+		// Le plancher est nécessaire ici, là où il serait du code mort pour le
+		// contact : celui-ci retire un point à la fois sous condition de vie
+		// positive, quand un choc retire un montant qui peut la dépasser.
+		w.vie = max(w.vie-chocs, 0)
 	}
 	if somme == 0 {
 		return

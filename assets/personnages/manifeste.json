@@ -128,6 +128,10 @@
       "degats_contact_s": 8,
       "gemmes": 1,
       "degats_charge": 18,
+      "portee_charge_tuiles": 5.0,
+      "telegraphe_ms": 500,
+      "duree_charge_ms": 700,
+      "recuperation_ms": 600,
       "origine": "figurine générée",
       "cote": 64,
       "appui": [

@@ -38,6 +38,20 @@ type Enemy struct {
 	// n'ira pas là où le champ de flux l'appelle. Il sert à la visée, qui tire
 	// où la cible sera plutôt que là où elle est.
 	Step Vec
+	// ChargePhase est où elle en est de son cycle de charge, `ChargeNone` pour
+	// une créature qui ne charge pas — ce que sa valeur zéro rend vrai sans
+	// qu'on ait à l'initialiser, y compris après un échange de bassin.
+	ChargePhase ChargePhase
+	// ChargeTimer est ce qui reste de la phase en cours, en ticks. Un décompte
+	// et non une date, pour la raison qui vaut déjà pour `Flash`.
+	ChargeTimer Tick
+	// ChargeDir est la direction figée au départ de la course.
+	//
+	// **Figée, et c'est tout le comportement.** Une créature qui recalculerait
+	// sa direction pendant la course serait un poursuivant rapide ; ce qui rend
+	// la charge lisible est qu'elle ne corrige plus, donc qu'on peut s'en
+	// écarter d'un pas de côté.
+	ChargeDir Vec
 	// Hits est ce qu'il lui reste à encaisser, dans l'unité où s'exprime la
 	// résistance : des touches de l'arme de base à son premier niveau.
 	//

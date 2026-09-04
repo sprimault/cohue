@@ -44,6 +44,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Le Molosse charge.** Il s'immobilise le temps d'annoncer, fonce en ligne
+  droite sans plus corriger, et son choc s'ajoute hors du plafond de dégâts. Un
+  mur ou un pilier interposé l'arrête : il charge sans regarder si la voie est
+  libre, et toute fin de course lui coûte un temps mort.
 - **Le Molosse arrive par meutes de trois.** Le spawner achète d'un coup la
   taille de groupe que le profil déclare, et pose la meute au même point de
   l'anneau : elle arrive d'un seul côté. Le coût de pression du manifeste étant
@@ -53,6 +57,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **The Molosse charges.** It stands still while it winds up, runs in a straight
+  line without correcting, and its impact lands outside the damage cap. A wall or
+  a pillar in the way stops it: it charges without checking whether the path is
+  clear, and any end of a run costs it a pause.
 - **The Molosse arrives in packs of three.** The spawner buys the group size
   declared by the profile in one go and places the pack at a single point on the
   ring, so it comes from one side. The manifest's pressure cost is per creature,

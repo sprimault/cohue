@@ -100,7 +100,15 @@ JEU = {
                   # ce qui oblige à cesser de reculer en ligne droite. Le coût
                   # ci-dessus est unitaire, le spawner paie donc douze.
                   "max_simultane": 0, "groupe": 3, "degats_contact_s": 8, "gemmes": 1,
-                  "degats_charge": 18},
+                  # La charge : il déclenche à cinq tuiles, s'immobilise une
+                  # demi-seconde pour l'annoncer, fonce 700 ms sans corriger,
+                  # puis reste 600 ms sans rien faire — qu'il ait touché, raté ou
+                  # heurté un mur. Ces quatre chiffres se règlent en jouant ; ce
+                  # qui ne se règle pas est que la course soit plus courte que la
+                  # portée, sans quoi il s'arrête avant d'arriver.
+                  "degats_charge": 18, "portee_charge_tuiles": 5.0,
+                  "telegraphe_ms": 500, "duree_charge_ms": 700,
+                  "recuperation_ms": 600},
     "flanqueur": {"role": "ennemi", "comportement": "flanc",
                   "vitesse_relative": 0.82, "rayon_tuiles": 0.109, "touches": 4,
                   "points": 30, "cout_pression": 5, "poids_separation": 1.0,

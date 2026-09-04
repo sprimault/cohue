@@ -78,10 +78,17 @@ const emprisePlancher = 0.45
 
 // Les teintes du rendu provisoire, qui tiendront jusqu'à ce que l'atlas entre.
 //
-// Elles ne cherchent pas à ressembler à un lieu : ce sont trois états de la
-// grille de coûts, plus le joueur, choisis pour se distinguer et pour rien
+// Elles ne cherchent pas à ressembler à un lieu : ce sont des états de la grille
+// de coûts et des rôles de créature, choisis pour se distinguer et pour rien
 // d'autre. La palette fermée du jeu vaut pour les images du décor, qui sortent
 // des générateurs, et non pour ces aplats qui disparaîtront avec eux.
+//
+// **Deux axes, et ils ne servent pas la même question.** La valeur sépare ce
+// qu'on est de ce qu'on affronte — le joueur clair, la horde sombre —, et c'est
+// elle qui tient à cent créatures à l'écran. La teinte sépare les rôles entre
+// eux, ce qui ne se pose qu'une fois la première séparation acquise. Les
+// confondre donnerait un profil plus visible que les autres, décision de
+// conception que personne n'a prise.
 var (
 	fond      = color.RGBA{R: 24, G: 24, B: 28, A: 255}
 	solBloque = color.RGBA{R: 58, G: 58, B: 66, A: 255}
@@ -98,14 +105,20 @@ var (
 	// là où un changement de teinte demande de regarder. Un cyan, parce que le
 	// vert est deux fois pris — la gemme et le Secouriste — et qu'ouvrir une
 	// porte n'a rien à voir avec l'un ni avec l'autre.
-	porteFermee  = color.RGBA{R: 40, G: 88, B: 100, A: 255}
-	porteOuverte = color.RGBA{R: 96, G: 220, B: 240, A: 255}
+	//
+	// **Deux écarts de valeur à tenir, et le premier jet n'en a tenu qu'un.**
+	// L'écart entre les deux états était bon ; celui entre la porte fermée et le
+	// mur qui l'entoure ne l'était pas, si bien qu'une partie jouée n'a pas
+	// trouvé la porte en faisant les quatre coins de la salle. Une teinte ne se
+	// choisit pas contre l'autre état du même objet, elle se choisit **aussi**
+	// contre ce qui l'entoure — ici `solBloque`, qui occupe toute l'enceinte.
+	porteFermee  = color.RGBA{R: 48, G: 132, B: 152, A: 255}
+	porteOuverte = color.RGBA{R: 120, G: 232, B: 248, A: 255}
 
 	// Le joueur en clair et les créatures en sombre : le chapitre de la
 	// lisibilité veut que le personnage reste distinguable à cent ennemis à
 	// l'écran, ce qui se joue d'abord sur la valeur et non sur la teinte.
 	teinteJoueur = color.RGBA{R: 236, G: 214, B: 120, A: 255}
-	teinteHorde  = color.RGBA{R: 150, G: 78, B: 74, A: 255}
 	teinteTir    = color.RGBA{R: 226, G: 232, B: 238, A: 255}
 	// **Le projectile de la horde porte une teinte qu'aucune autre ne dispute**,
 	// et c'est entre projectiles que la distinction doit être maximale : « est-ce
@@ -113,10 +126,11 @@ var (
 	// coûte plus cher que de confondre un projectile et une créature.
 	//
 	// Le violet plutôt que le cyan pour cette raison : le cyan voisinerait le
-	// blanc bleuté ci-dessus. Reste qu'à l'étape 5 l'Arpenteur retrouvera le
-	// violet de son manifeste, là où le rendu peint aujourd'hui toute la horde en
-	// rouge — l'arbitrage se rejugera alors sur la planche, entre deux teintes
-	// qui seront enfin celles du jeu.
+	// blanc bleuté ci-dessus. **L'Arpenteur porte désormais un violet sourd**, et
+	// les deux ne se disputent pas — un projectile est clair et vif, une créature
+	// sombre, ce qui est la même séparation par la valeur que partout ailleurs.
+	// L'arbitrage se rejugera à l'étape 5, entre deux teintes qui seront enfin
+	// celles du jeu.
 	teinteTirHorde = color.RGBA{R: 186, G: 138, B: 232, A: 255}
 	// L'emprise d'une explosion se pose sur le sol et doit rester lisible sous
 	// les corps qui la traversent : une teinte chaude que ni la horde ni le
@@ -172,6 +186,42 @@ var (
 	// Ce qui doit rester distinct est l'objet qu'on va chercher — l'aimant — de
 	// celui qu'on casse en passant.
 	teinteCaisse = color.RGBA{R: 142, G: 108, B: 72, A: 255}
+
+	// La horde, une teinte par profil.
+	//
+	// **Toutes sombres, et c'est la contrainte qui commande.** Le chapitre de la
+	// lisibilité veut que le joueur reste distinguable à cent ennemis à l'écran,
+	// ce qui se joue sur la valeur et non sur la teinte : la horde occupe donc la
+	// moitié sombre, et le joueur seul la moitié claire. Ces sept-là se séparent
+	// entre elles par la teinte, jamais par la valeur — l'inverse aurait rendu un
+	// profil plus visible que les autres, ce qui est un choix de conception que
+	// personne n'a fait.
+	//
+	// **Elles sont provisoires et le resteront jusqu'à l'atlas**, où chaque
+	// créature aura son apparence. Ce qu'elles servent n'est pas l'apparence mais
+	// une question de jeu : reconnaître un Vigile, un Secouriste ou une Baudruche
+	// dans une foule décide de ce qu'on fait, et une horde d'une seule teinte
+	// rend cette décision impossible à juger.
+	//
+	// **Rangées par clé de manifeste et non par index**, et le premier jet a
+	// montré pourquoi : la table des profils est triée alphabétiquement, si bien
+	// qu'un tableau indexé par position donnait le rouge du Badaud au Vigile et
+	// l'olive du Vigile au Badaud. Rien ne pouvait le dire — les deux indices
+	// sont valides, une couleur fausse ne casse aucun test, et il a fallu
+	// demander « quelle couleur, le Vigile ? » pour que ça se voie.
+	//
+	// Une clé absente de cette table prend le rouge de la masse : un profil de
+	// plus doit se peindre, pas faire tomber le rendu.
+	teintesHorde = map[string]color.RGBA{
+		"marcheur":  {R: 150, G: 78, B: 74, A: 255},  // le Badaud garde le rouge de la masse
+		"flanqueur": {R: 122, G: 82, B: 150, A: 255}, // l'Arpenteur, violet sourd
+		"sprinteur": {R: 168, G: 96, B: 52, A: 255},  // le Molosse, orange terreux
+		"bloqueur":  {R: 84, G: 96, B: 140, A: 255},  // le Vigile, bleu d'uniforme
+		"cracheur":  {R: 110, G: 124, B: 62, A: 255}, // la Buse, olive
+		"eclateur":  {R: 162, G: 72, B: 116, A: 255}, // la Baudruche, magenta sourd
+		"soigneur":  {R: 74, G: 128, B: 102, A: 255}, // le Secouriste, vert de son éclair
+	}
+	teinteHordeParDefaut = color.RGBA{R: 150, G: 78, B: 74, A: 255}
 )
 
 // Screen est le jeu tel qu'Ebitengine le voit.
@@ -397,6 +447,15 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 	s.peindreEmprises(ecran)
 }
 
+// teinteDuProfil rend la couleur d'une créature, le rouge de la masse pour une
+// clé que la table ne connaît pas.
+func teinteDuProfil(cle string) color.RGBA {
+	if teinte, connue := teintesHorde[cle]; connue {
+		return teinte
+	}
+	return teinteHordeParDefaut
+}
+
 // teinteCase rend la couleur d'une case : celle de la porte si c'en est une,
 // celle de son coût sinon.
 //
@@ -467,7 +526,7 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		switch e.sorte {
 		case sorteEnnemi:
 			c := s.monde.Enemies().At(e.place)
-			teinte := teinteHorde
+			teinte := teinteDuProfil(s.monde.EnemyKey(c.Profile))
 			// **Le soigneur passe avant l'impact, la soignée après.** Ce qui
 			// change la conduite du joueur est de repérer d'où vient le soin :
 			// la visée prend le plus proche, donc abattre un Secouriste demande

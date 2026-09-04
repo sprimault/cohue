@@ -256,6 +256,15 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scena
 // Enemies rend le bassin des ennemis, pour le parcourir ou le peupler.
 func (w *World) Enemies() *Pool[Enemy] { return w.ennemis }
 
+// EnemyKey rend la clé de manifeste d'un profil de créature.
+//
+// **Elle existe pour que rien hors de ce paquet ne dépende de l'ordre de la
+// table.** Cet ordre est le tri alphabétique des clés, ce qu'aucun appelant n'a
+// de raison de savoir : le rendu qui teintait la horde par son index a donné le
+// rouge du Badaud au Vigile, et rien ne pouvait le dire — les deux indices sont
+// valides, et une couleur fausse ne casse aucun test.
+func (w *World) EnemyKey(profil int) string { return w.profils.Enemies[profil].Key }
+
 // Shots rend le bassin des projectiles du joueur en vol.
 func (w *World) Shots() *Pool[Projectile] { return w.tirs }
 

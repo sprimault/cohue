@@ -44,6 +44,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Chaque créature a sa teinte.** Le Badaud reste rouge et les six autres se
+  distinguent enfin — l'Arpenteur violet, le Molosse orange, le Vigile bleu, la
+  Buse olive, la Baudruche magenta, le Secouriste vert. Toutes restent sombres :
+  c'est la valeur qui garde le personnage visible dans une foule, la teinte ne
+  sert qu'à séparer les rôles. La porte fermée, elle, tranche maintenant sur le
+  mur qui l'entoure.
 - **Les caisses se cassent et laissent des gemmes.** Un lieu déclare les siennes
   dans un champ `caisses` facultatif, chacune à sa case ; le joueur les casse en
   arrivant dessus, jamais son arme, qui ne les vise pas. Ce qu'elles laissent est
@@ -114,6 +120,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **Each creature has its own hue.** The Badaud stays red and the other six are
+  finally told apart — the Arpenteur purple, the Molosse orange, the Vigile blue,
+  the Buse olive, the Baudruche magenta, the Secouriste green. All stay dark:
+  value is what keeps the character visible in a crowd, hue only separates roles.
+  The closed door now stands out against the wall around it.
 - **Crates break and leave gems.** A place declares its own in an optional
   `caisses` field, each at its tile; the player breaks them by walking into
   them, never their weapon, which does not aim at them. What they leave is a

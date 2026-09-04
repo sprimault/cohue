@@ -136,8 +136,38 @@ type EnemyProfile struct {
 	// Ce qui suit n'a de sens que pour un comportement, et vaut zéro ailleurs —
 	// le manifeste refusant de porter le champ sur un autre.
 
-	// ChargeDamage est le choc d'une charge aboutie.
+	// ChargeDamage est le choc d'une charge aboutie. Un coup unique, hors du
+	// plafond de dégâts par seconde : ce que le plafond couvre est le contact
+	// continu, qu'on ne voit pas venir dans une foule, là où une charge a été
+	// annoncée puis manquée.
 	ChargeDamage int
+	// ChargeRange est la distance à laquelle la charge se déclenche, en tuiles,
+	// et **son zéro est ce qui désactive le mécanisme** — un profil qui ne
+	// charge pas ne porte aucun des quatre champs, le manifeste les réservant au
+	// comportement.
+	//
+	// C'est elle qui décide, et non `Telegraph` : zéro milliseconde
+	// d'anticipation est un réglage légitime autant que ce qu'un oubli produit,
+	// quand une portée nulle n'a aucun autre sens.
+	//
+	// **Aucune ligne de vue n'est vérifiée.** Il charge à travers un pilier et
+	// s'y arrête : c'est la mécanique, pas un défaut. La vérifier retirerait au
+	// décor le seul usage défensif que la conception lui donne.
+	ChargeRange Fixed
+	// Telegraph est l'anticipation avant la course, en ticks. La créature y est
+	// immobile — c'est ce qui laisse le temps de se décaler, et une anticipation
+	// qui avance encore n'annonce rien.
+	Telegraph Tick
+	// ChargeDuration est la durée de la course, en ticks, quand rien ne
+	// l'interrompt.
+	ChargeDuration Tick
+	// Recovery est le temps mort qui suit toute fin de course, en ticks.
+	//
+	// **Toute fin, et pas seulement l'échec au mur.** Sans lui, une charge
+	// aboutie enchaîne sur la suivante et la créature n'a aucun moment
+	// vulnérable ; l'esquive latérale que la conception lui oppose suppose
+	// qu'esquiver laisse quelque chose.
+	Recovery Tick
 	// Tangential est la part du déplacement portée sur le côté plutôt que vers
 	// la cible, ce qui produit le contournement.
 	Tangential Fixed
@@ -281,6 +311,10 @@ type rawProfile struct {
 	Gems         *int     `json:"gemmes,omitempty"`
 
 	ChargeDamage *int     `json:"degats_charge,omitempty"`
+	ChargeRange  *float64 `json:"portee_charge_tuiles,omitempty"`
+	TelegraphMs  *int     `json:"telegraphe_ms,omitempty"`
+	ChargeMs     *int     `json:"duree_charge_ms,omitempty"`
+	RecoveryMs   *int     `json:"recuperation_ms,omitempty"`
 	Tangential   *float64 `json:"tangentiel,omitempty"`
 	Range        *float64 `json:"portee_tuiles,omitempty"`
 	ShotDamage   *int     `json:"degats_tir,omitempty"`
@@ -349,6 +383,10 @@ var champsConditionnels = []struct {
 	{"gemmes", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Gems != nil }},
 
 	{"degats_charge", "« charge »", estComportement(Charge), func(p rawProfile) bool { return p.ChargeDamage != nil }},
+	{"portee_charge_tuiles", "« charge »", estComportement(Charge), func(p rawProfile) bool { return p.ChargeRange != nil }},
+	{"telegraphe_ms", "« charge »", estComportement(Charge), func(p rawProfile) bool { return p.TelegraphMs != nil }},
+	{"duree_charge_ms", "« charge »", estComportement(Charge), func(p rawProfile) bool { return p.ChargeMs != nil }},
+	{"recuperation_ms", "« charge »", estComportement(Charge), func(p rawProfile) bool { return p.RecoveryMs != nil }},
 	{"tangentiel", "« flanc »", estComportement(Flank), func(p rawProfile) bool { return p.Tangential != nil }},
 	{"portee_tuiles", "« tir »", estComportement(Ranged), func(p rawProfile) bool { return p.Range != nil }},
 	{"degats_tir", "« tir »", estComportement(Ranged), func(p rawProfile) bool { return p.ShotDamage != nil }},
@@ -410,6 +448,35 @@ func controler(cle string, p rawProfile, dire func(string, ...any)) {
 		dire("%s.groupe : %d, un profil apparaît au moins par un", cle, *p.Group)
 	}
 
+	// Les durées de la charge passent par le refus que `TicksFromMs` oppose déjà
+	// partout ailleurs — zéro comme toute durée sous le pas de simulation. Elles
+	// se convertissent ici sans qu'on garde le résultat : c'est ce qui laisse
+	// `ennemi` convertir sans avoir à juger, comme `ou0` déréférence sans
+	// contrôler.
+	for _, d := range []struct {
+		nom string
+		ms  *int
+	}{
+		{"telegraphe_ms", p.TelegraphMs},
+		{"duree_charge_ms", p.ChargeMs},
+		{"recuperation_ms", p.RecoveryMs},
+	} {
+		if d.ms == nil {
+			continue
+		}
+		if _, err := TicksFromMs(*d.ms); err != nil {
+			dire("%s.%s : %v", cle, d.nom, err)
+		}
+	}
+
+	// Une portée nulle laisserait un profil déclaré chargeur qui ne charge
+	// jamais : le comportement serait au manifeste, les quatre champs présents,
+	// et rien n'arriverait en jeu.
+	if p.ChargeRange != nil && FromFloat(*p.ChargeRange) <= 0 {
+		dire("%s.portee_charge_tuiles : %v, une portée que la virgule fixe "+
+			"arrondit à zéro ne déclenche jamais la charge", cle, *p.ChargeRange)
+	}
+
 	// Une meute plus grande que le plafond de simultanéité ne tiendrait jamais
 	// entière, et le spawner l'écarterait à chaque tick sans que rien ne le
 	// dise : le profil serait au manifeste, autorisé par une phase, et
@@ -460,6 +527,10 @@ func (p rawProfile) ennemi(cle string, base float64) EnemyProfile {
 		ContactDamage:    ou0(p.Contact),
 		Gems:             ou0(p.Gems),
 		ChargeDamage:     ou0(p.ChargeDamage),
+		ChargeRange:      FromFloat(ou0(p.ChargeRange)),
+		Telegraph:        ticks(p.TelegraphMs),
+		ChargeDuration:   ticks(p.ChargeMs),
+		Recovery:         ticks(p.RecoveryMs),
 		Tangential:       FromFloat(ou0(p.Tangential)),
 		Range:            FromFloat(ou0(p.Range)),
 		ShotDamage:       ou0(p.ShotDamage),
@@ -479,6 +550,19 @@ func ou0[T any](v *T) T {
 		return zero
 	}
 	return *v
+}
+
+// ticks convertit une durée facultative de manifeste, l'absence valant zéro.
+//
+// Sans contrôle, pour la même raison qu'`ou0` : `controler` a déjà refusé les
+// durées qu'un tick ne porte pas, et rejuger ici donnerait deux messages pour un
+// seul manquement.
+func ticks(ms *int) Tick {
+	if ms == nil {
+		return 0
+	}
+	t, _ := TicksFromMs(*ms)
+	return t
 }
 
 // parTick convertit un débit par seconde vers le pas de simulation.

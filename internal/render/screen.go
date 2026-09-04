@@ -58,6 +58,16 @@ const (
 	paliersVignette   = 6
 )
 
+// poulsAnnonce est la demi-période du battement qui annonce une charge, en
+// ticks.
+//
+// Six donne cinq alternances sur une anticipation d'une demi-seconde : assez
+// lent pour se lire comme un signal et non comme un scintillement, assez rapide
+// pour qu'on n'attende pas le second battement avant de réagir. Il vit ici
+// parce qu'il est une cadence d'affichage — la durée qu'il découpe, elle,
+// appartient au profil.
+const poulsAnnonce = 6
+
 // Les teintes du rendu provisoire, qui tiendront jusqu'à ce que l'atlas entre.
 //
 // Elles ne cherchent pas à ressembler à un lieu : ce sont trois états de la
@@ -81,6 +91,15 @@ var (
 	// atteinte », pas « ceci est autre chose ». Un blanc franc ferait clignoter
 	// une foule dense en bandes qu'on ne relierait plus à des créatures.
 	teinteImpact = color.RGBA{R: 236, G: 186, B: 178, A: 255}
+	// **L'annonce d'une charge bat, elle ne se contente pas d'une couleur.** Une
+	// teinte fixe se perd dans une foule qui porte déjà le rouge, et c'est
+	// justement au milieu de la foule qu'il faut la repérer pour mettre un
+	// obstacle entre soi et elle. Le battement se lit là où un aplat de plus ne
+	// se lirait pas, et il dit l'imminence plutôt que l'état.
+	//
+	// La course, elle, n'est pas peinte : elle va vite et droit, ce qui est déjà
+	// à l'image. Un signal ne redit pas ce qu'on voit.
+	teinteAnnonce = color.RGBA{R: 232, G: 96, B: 72, A: 255}
 	// Une gemme est minuscule et posée sur un sol gris : elle a besoin d'une
 	// teinte saturée que rien d'autre ne porte, sans quoi un tas au sol
 	// disparaît sous la horde au moment où l'on cherche à l'estimer.
@@ -324,8 +343,11 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteEnnemi:
 			c := s.monde.Enemies().At(e.place)
 			teinte := teinteHorde
-			if c.Flash > 0 {
+			switch {
+			case c.Flash > 0:
 				teinte = teinteImpact
+			case c.Telegraphing() && (c.ChargeTimer/poulsAnnonce)%2 == 0:
+				teinte = teinteAnnonce
 			}
 			s.silhouette(ecran, s.figurine, c.X, c.Y, teinte)
 		case sorteTir:

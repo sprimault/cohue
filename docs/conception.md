@@ -279,6 +279,14 @@ Il traverse la scène en va-et-vient — il avance tout droit et repart quand il
 
 - **Le Badaud** : masse lente, il ne fait qu'exister en nombre. Il existe en plusieurs teintes de vêtement — une foule d'un seul bleu se lit comme un bloc uni, alors que six variantes cassent la répétition sans coûter une silhouette de plus. La variante est tirée à l'apparition depuis la graine de la run, donc elle ne casse pas le déterminisme.
 - **Le Molosse** : télégraphe une charge (une demi-seconde d'anticipation, un son), puis fonce en ligne droite et ne corrige plus. Sa charge inflige davantage qu'un contact ordinaire — sans cela, charger ne serait qu'un déplacement rapide. Il punit l'immobilité, mais s'esquive latéralement. Le fait qu'il abandonne le flow field pendant la charge est ce qui le rend lisible. **Il n'apparaît jamais seul** : une meute de trois qui charge en décalé impose d'arrêter de reculer en ligne droite, ce qu'un chien isolé n'obtient pas. La taille de groupe est un champ du profil, pas une exception du spawner.
+
+  Trois décisions complètent la charge, et elles se tiennent ensemble parce que chacune sans les deux autres retire à la mécanique ce qui la rend jouable.
+
+  **La charge s'arrête sur ce qu'elle heurte, et le décor devient une réponse.** Ne corrigeant plus, elle ne contourne rien : un pilier interposé la reçoit, et la créature a dépensé son annonce pour rien. Rien ne vérifie la ligne de vue au déclenchement — elle part *malgré* l'obstacle, faute de quoi un Molosse embusqué attendrait sagement que la voie soit libre et le décor perdrait son seul usage défensif.
+
+  **Toute fin de course ouvre un temps mort**, qu'elle ait touché, manqué ou heurté. Sans lui, une charge aboutie enchaîne sur la suivante et la créature n'a aucun moment vulnérable, ce qui contredit l'esquive latérale qu'on lui oppose. C'est ce temps mort qui paie le pas de côté.
+
+  **Le choc est unique parce qu'il clôt la course.** Il vaut un montant et non un débit — le contact ordinaire se compte par seconde, lui tombe d'un coup — et il ne passe pas sous le plafond de dégâts : celui-ci existe pour rendre lisible un encerclement dont on ne distingue pas les parts, quand une charge a été annoncée puis manquée. Les plafonner ensemble ferait qu'une meute de trois infligerait ce qu'un seul inflige, et l'annonce n'annoncerait plus rien.
 - **L'Arpenteur** : `Tangential` élevé, il coupe la trajectoire de fuite. C'est lui qui donne l'impression que les monstres réfléchissent.
 - **La Buse** : seul profil qui blesse à distance, elle se stabilise et tire. Elle punit le camping dans un coin, force à bouger vers le danger. Sans balancement de marche, elle reste identifiable même immobile au milieu d'une horde.
 - **Le Vigile** : lent, encaissant, il bouche les goulots. Dans un couloir de supermarché, il transforme une route de fuite en piège.

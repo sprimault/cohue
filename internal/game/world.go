@@ -292,6 +292,16 @@ func (w *World) deplacerEnnemis() {
 			e.Flash--
 		}
 
+		// La charge décide avant le champ de flux, et quand elle décide elle
+		// décide seule : une créature en course ne lit ni le champ ni la densité,
+		// c'est ce qui la fait aller droit. Les autres passent ici sans effet,
+		// leur portée de charge étant nulle.
+		if impose, charge := w.charger(e, profil); charge {
+			w.avancer(e, impose)
+			w.arreterAuMur(e, profil, impose)
+			continue
+		}
+
 		u, v := w.flux.Cell(e.X, e.Y)
 		attirance := w.flux.Direction(u, v)
 
@@ -323,15 +333,21 @@ func (w *World) deplacerEnnemis() {
 			voulu = voulu.Add(attirance.Perp().Scale(profil.Tangential))
 		}
 
-		pas := voulu.Direction(i).Scale(w.vitesse(profil.Speed, e.X, e.Y))
-		avantX, avantY := e.X, e.Y
-		e.X, e.Y = w.glisser(e.X, e.Y, pas)
-
-		// Le pas retenu est celui qui a eu lieu, projection sur la passabilité
-		// comprise : c'est la visée qui le lit, et prédire un déplacement que le
-		// mur a annulé ferait tirer dans le mur.
-		e.Step = Vec{X: e.X - avantX, Y: e.Y - avantY}
+		w.avancer(e, voulu.Direction(i).Scale(w.vitesse(profil.Speed, e.X, e.Y)))
 	}
+}
+
+// avancer applique un pas à une créature et retient celui qui a eu lieu.
+//
+// Le pas retenu est celui qui a eu lieu, projection sur la passabilité comprise :
+// c'est la visée qui le lit, et prédire un déplacement que le mur a annulé ferait
+// tirer dans le mur. C'est aussi ce que l'arrêt de la charge compare à son pas
+// voulu, d'où un seul endroit qui l'écrive — deux copies finiraient par ne plus
+// dire la même chose du même tick.
+func (w *World) avancer(e *Enemy, pas Vec) {
+	avantX, avantY := e.X, e.Y
+	e.X, e.Y = w.glisser(e.X, e.Y, pas)
+	e.Step = Vec{X: e.X - avantX, Y: e.Y - avantY}
 }
 
 // vitesse rend la vitesse effective sur la case du point d'appui.
@@ -357,6 +373,12 @@ func (w *World) vitesse(base Fixed, x, y Fixed) Fixed {
 // Les deux axes se traitent séparément : un déplacement qui mène dans un mur
 // perd sa composante bloquée et l'entité longe la paroi au lieu de s'y enfoncer.
 // Les deux bloqués, elle ne bouge pas.
+//
+// **Elle annule une composante, elle n'en raccourcit jamais aucune, et rien
+// n'arrondit** : sans obstacle, le pas rendu est exactement celui qu'on lui
+// passe. `arreterAuMur` en dépend — elle reconnaît un mur à l'inégalité stricte
+// entre le pas voulu et le pas obtenu, ce qu'un raccourcissement partiel, ou un
+// arrondi de la position, rendrait faux en silence.
 //
 // La poussée de séparation ne décide donc pas de la position finale, et c'est ce
 // qui permet à vingt Badauds de pousser un Vigile contre une cloison sans le

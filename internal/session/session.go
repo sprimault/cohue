@@ -62,6 +62,14 @@ const ShotCapacity = 256
 // le joueur.
 const EnemyShotCapacity = 64
 
+// BlastCapacity plafonne le bassin des explosions amorcées.
+//
+// Une Baudruche n'en laisse qu'une, et sa mèche est brève : ce qui tient à la
+// fois est le nombre de Baudruches abattues en moins d'une demi-seconde. Trente-
+// deux couvre une mêlée où l'arme en fauche plusieurs d'un coup, très au-delà de
+// ce qu'un plafond de simultanéité laisse vivre.
+const BlastCapacity = 32
+
 // GemCapacity plafonne le bassin des gemmes au sol.
 //
 // Deux fois et demie le pic que la conception nomme — deux cents gemmes qui
@@ -132,6 +140,7 @@ func (s *Session) monter() {
 			Enemies:    HordeCapacity,
 			Shots:      ShotCapacity,
 			EnemyShots: EnemyShotCapacity,
+			Blasts:     BlastCapacity,
 			Gems:       GemCapacity,
 		})
 	placer(s.World, s.Grid)

@@ -189,6 +189,14 @@ type EnemyProfile struct {
 	BurstDamage int
 	// BurstRadius est la portée de cette explosion, en tuiles.
 	BurstRadius Fixed
+	// Fuse est le temps entre la mort de la créature et sa détonation, en ticks.
+	//
+	// **C'est la durée du danger, donc une donnée de jeu**, et c'est ce qui la
+	// range ici plutôt que dans la cadence du cycle d'animation qui l'annonce.
+	// Le jour où le rendu lira les images de `assets/objets/`, l'animation devra
+	// s'étirer sur cette durée : un télégraphe qui s'éteint avant la détonation
+	// ment, et un mécanisme qui existe pour avertir ne peut pas se le permettre.
+	Fuse Tick
 }
 
 // PackCost est ce que le spawner dépense pour une apparition de ce profil.
@@ -328,6 +336,7 @@ type rawProfile struct {
 	ShotEveryMs  *int     `json:"cadence_tir_ms,omitempty"`
 	BurstDamage  *int     `json:"degats_explosion,omitempty"`
 	BurstRadius  *float64 `json:"rayon_explosion_tuiles,omitempty"`
+	FuseMs       *int     `json:"amorce_ms,omitempty"`
 
 	// Ce qui suit décrit la figurine et son identité, et la simulation n'en lit
 	// rien. Ces champs sont déclarés parce que le décodage refuse toute clé
@@ -401,6 +410,7 @@ var champsConditionnels = []struct {
 	{"cadence_tir_ms", "« tir »", estComportement(Ranged), func(p rawProfile) bool { return p.ShotEveryMs != nil }},
 	{"degats_explosion", "« explosion »", estComportement(Burst), func(p rawProfile) bool { return p.BurstDamage != nil }},
 	{"rayon_explosion_tuiles", "« explosion »", estComportement(Burst), func(p rawProfile) bool { return p.BurstRadius != nil }},
+	{"amorce_ms", "« explosion »", estComportement(Burst), func(p rawProfile) bool { return p.FuseMs != nil }},
 }
 
 // estRole rend le prédicat qui reconnaît une nature.
@@ -469,6 +479,7 @@ func controler(cle string, p rawProfile, dire func(string, ...any)) {
 		{"duree_charge_ms", p.ChargeMs},
 		{"recuperation_ms", p.RecoveryMs},
 		{"cadence_tir_ms", p.ShotEveryMs},
+		{"amorce_ms", p.FuseMs},
 	} {
 		if d.ms == nil {
 			continue
@@ -547,6 +558,7 @@ func (p rawProfile) ennemi(cle string, base float64) EnemyProfile {
 		ShotCooldown:     ticks(p.ShotEveryMs),
 		BurstDamage:      ou0(p.BurstDamage),
 		BurstRadius:      FromFloat(ou0(p.BurstRadius)),
+		Fuse:             ticks(p.FuseMs),
 	}
 }
 

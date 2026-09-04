@@ -466,7 +466,7 @@ func TestLeTirNeCoupePasUnAngle(t *testing.T) {
 	g := NewCostGrid(8, 8)
 	g.Set(1, 1, Blocked)
 	w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g,
-		graineDeTest, Capacities{Enemies: 4, Shots: 4, EnemyShots: 4, Gems: 4})
+		graineDeTest, Capacities{Enemies: 4, Shots: 4, EnemyShots: 4, Blasts: 4, Gems: 4})
 
 	// De la case (2,1) vers la case (1,2), en passant par l'angle du coin (2,2).
 	// Le départ et l'arrivée sont franchissables ; seule (1,1) ne l'est pas.

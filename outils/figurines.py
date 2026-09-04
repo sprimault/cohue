@@ -137,8 +137,14 @@ JEU = {
                   "vitesse_relative": 0.70, "rayon_tuiles": 0.141, "touches": 4,
                   "points": 35, "cout_pression": 5, "poids_separation": 1.0,
                   "max_simultane": 0, "groupe": 1, "degats_contact_s": 5, "gemmes": 1,
+                  # Elle explose en mourant, pas au contact : l'amorce est le
+                  # délai entre sa mort et la déflagration, et c'est lui qui
+                  # laisse une chance de s'écarter. Cinq cents millisecondes pour
+                  # un rayon d'une tuile et demie — à cinq tuiles par seconde, de
+                  # quoi sortir de l'emprise depuis son bord, pas depuis son
+                  # centre.
                   "degats_explosion": 35,
-                  "rayon_explosion_tuiles": 1.5},
+                  "rayon_explosion_tuiles": 1.5, "amorce_ms": 500},
     # Un seul à la fois : sa menace est multiplicative, pas additive.
     "soigneur":  {"role": "ennemi", "comportement": "soin",
                   "vitesse_relative": 0.70, "rayon_tuiles": 0.109, "touches": 3,

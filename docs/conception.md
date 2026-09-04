@@ -294,6 +294,12 @@ Il traverse la scène en va-et-vient — il avance tout droit et repart quand il
 - **Le Vigile** : lent, encaissant, il bouche les goulots. Dans un couloir de supermarché, il transforme une route de fuite en piège.
 - **La Baudruche** : explose en mourant. Sa silhouette disproportionnée dit « ne t'approche pas » avant même que le télégraphe ne s'allume. Elle punit le nettoyage à l'aveugle en mêlée.
 
+  **La déflagration n'emporte que le joueur, jamais la horde autour.** Une explosion qui nettoie ses voisines serait plus imitative du réel et retournerait la mécanique : tuer sans regarder ce qu'on tue deviendrait la bonne façon d'éclaircir une foule, c'est-à-dire exactement le geste que ce profil existe pour décourager.
+
+  **Ce qui sépare sa mort de sa détonation est une amorce**, et c'est elle qui rend l'esquive possible. Le télégraphe couvre ce délai et doit le couvrir entier : une annonce qui s'éteint avant l'explosion ment sur le seul point qui compte. La durée vit donc dans le profil, avec le rayon et les dégâts, et l'animation qui l'annonce s'étire dessus plutôt que l'inverse.
+
+  **L'emprise se montre entière dès la première image**, et c'est l'intensité qui dit le temps restant. Une zone qui s'élargirait laisserait croire qu'on est hors de portée jusqu'à l'instant où l'on ne l'est plus.
+
 Sept profils suffisent pour tout le jeu — les six décrits ci-dessus et le Secouriste. Ce sont des données, pas du code : une structure `EnemyProfile` avec nom, vitesse, résistance en touches, points, **coût de pression**, poids de séparation, tangentiel, portée, taille de groupe, comportement spécial. Le reste est du mixage de vagues.
 
 Le **coût de pression** est ce que le spawner dépense pour acheter la créature ; les **points** sont ce que le joueur gagne en la tuant. Deux monnaies sans rapport, que le mot « points » a d'abord désignées toutes les deux à cinquante lignes d'écart. Le mot reste au joueur, qui le voit à l'écran.
@@ -342,7 +348,7 @@ Le spawner porte donc aussi un **plafond d'effectif**, et cesse d'acheter quand 
 
 **Le tir** n'appartient qu'à la Buse. C'est ce qui punit le camping dans un coin, et le seul cas où un projectile ennemi traverse l'écran : il porte une couleur qui n'existe nulle part ailleurs dans la palette.
 
-**L'explosion** de la Baudruche, avec son télégraphe en anneaux croissants.
+**L'explosion** de la Baudruche, annoncée par son emprise marquée au sol pendant que l'amorce brûle.
 
 ### Le contact fait mal en continu, avec un plafond
 

@@ -70,6 +70,7 @@ type World struct {
 	ennemis     *Pool[Enemy]
 	tirs        *Pool[Projectile]
 	tirsEnnemis *Pool[Projectile]
+	souffles    *Pool[Blast]
 	gemmes      *Pool[Gem]
 	// aimants tient au plus un objet, la règle du lot étant qu'un seul soit au
 	// sol à la fois. Un bassin quand même : le rendu parcourt les bassins, et une
@@ -163,6 +164,8 @@ type Capacities struct {
 	// EnemyShots est celui des projectiles de la horde, qui a son bassin parce
 	// que ce qu'ils retirent n'a pas la même unité.
 	EnemyShots int
+	// Blasts est le nombre d'explosions amorcées à la fois.
+	Blasts int
 	// Gems est le nombre de gemmes au sol.
 	Gems int
 }
@@ -196,6 +199,7 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scena
 		ennemis:     NewPool[Enemy](capacites.Enemies),
 		tirs:        NewPool[Projectile](capacites.Shots),
 		tirsEnnemis: NewPool[Projectile](capacites.EnemyShots),
+		souffles:    NewPool[Blast](capacites.Blasts),
 		gemmes:      NewPool[Gem](capacites.Gems),
 		aimants:     NewPool[Magnet](1),
 		hasard:      NewStreams(graine),
@@ -222,6 +226,9 @@ func (w *World) Shots() *Pool[Projectile] { return w.tirs }
 // s'applique. C'est le bassin qui porte l'unité, comme le cadavre est une nature
 // et non un ennemi à drapeau.
 func (w *World) EnemyShots() *Pool[Projectile] { return w.tirsEnnemis }
+
+// Blasts rend le bassin des explosions amorcées.
+func (w *World) Blasts() *Pool[Blast] { return w.souffles }
 
 // Streams rend les flux aléatoires de la partie.
 //
@@ -287,6 +294,10 @@ func (w *World) Step(voulu Vec) {
 	w.compterDensite()
 	w.deplacerEnnemis()
 	w.subir()
+	// Les mèches brûlent avec les dégâts de contact, dont l'explosion est une
+	// source au même titre. Elle vient après le déplacement du joueur, ce qui lui
+	// laisse le dernier tick pour sortir de l'emprise.
+	w.detoner()
 	w.poserAimant()
 	w.attirer()
 	w.prendreAimant()

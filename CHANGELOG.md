@@ -44,6 +44,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **La Baudruche explose en mourant.** Son emprise se marque au sol le temps que
+  l'amorce brûle, ce qui laisse un instant pour en sortir ; passé ce délai, le
+  souffle retire ses points hors du plafond. Il n'atteint que le joueur : une
+  déflagration qui emporterait la horde récompenserait le nettoyage à l'aveugle
+  qu'elle punit.
 - **La Buse tire.** Elle s'arrête dès que le joueur entre dans sa portée et
   envoie un projectile par intervalles, visant où il est plutôt que où il ira.
   Le tir s'esquive, un mur l'arrête, et ses dégâts s'ajoutent hors du plafond.
@@ -60,6 +65,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **The Baudruche explodes on death.** Its footprint is marked on the ground
+  while the fuse burns, leaving a moment to step out; past that delay the blast
+  takes its points outside the cap. It only reaches the player: a blast that
+  swept the horde would reward the blind clearing it exists to punish.
 - **The Buse shoots.** It stops as soon as the player enters its range and sends
   a projectile at intervals, aiming where they are rather than where they are
   headed. The shot can be dodged, a wall stops it, and its damage lands outside

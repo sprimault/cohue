@@ -135,22 +135,53 @@ type World struct {
 	achetables []int
 }
 
+// Capacities dit combien de places chaque bassin préalloue.
+//
+// **Une struct plutôt que des entiers de rang.** Quatre `int` consécutifs à
+// l'appel sont une inversion silencieuse : les valeurs sont toutes plausibles,
+// le compilateur les accepte dans n'importe quel ordre, et un bassin de gemmes
+// réduit à seize places ne se manifesterait que par des gemmes qui n'apparaissent
+// pas, longtemps après. C'est le geste que le projet fait partout où le
+// compilateur ne peut pas aider — `Fixed` plutôt qu'un entier nu, `Spawn` par
+// valeur —, appliqué à un appel plutôt qu'à une valeur.
+//
+// **Elle ne se valide pas, et le motif tient à d'où viennent ses valeurs.**
+// Elles sont des constantes de `internal/session` et ne sortent d'aucun fichier :
+// aucune donnée tierce ne peut les rendre nulles, si bien qu'un zéro y serait
+// une faute de programmation et non une entrée invalide. Le premier test qui
+// fait apparaître une créature la trouverait — un bassin sans place ne pose
+// rien.
+//
+// C'est ce qui sépare ce cas des durées nulles que le chargement refuse : celles-
+// là viennent d'un manifeste, donc d'une main qu'on ne contrôle pas. Ce que cette
+// struct ferme est l'inversion, pas l'oubli.
+type Capacities struct {
+	// Enemies est la horde vivante à un instant.
+	Enemies int
+	// Shots est le nombre de projectiles du joueur en vol.
+	Shots int
+	// EnemyShots est celui des projectiles de la horde, qui a son bassin parce
+	// que ce qu'ils retirent n'a pas la même unité.
+	EnemyShots int
+	// Gems est le nombre de gemmes au sol.
+	Gems int
+}
+
 // NewWorld monte une partie sur une carte et les tables du manifeste.
 //
 // La table d'armes entre entière plutôt que sa seule arme de base : les passifs
 // y vivent, et le monde en a besoin dès la première montée de niveau. Les passer
 // à côté aurait fait deux paramètres pour ce qui est un seul fichier.
 //
-// Les deux capacités sont celles des bassins — les ennemis, puis les
-// projectiles — et ne changent plus après le montage. Les plafonds eux-mêmes et
-// ce qui les justifie vivent dans `internal/session`, qui monte les parties : ce
+// Les capacités ne changent plus après le montage. Les plafonds eux-mêmes et ce
+// qui les justifie vivent dans `internal/session`, qui monte les parties : ce
 // sont des valeurs de jeu, pas un paramètre que chaque appelant choisirait.
 //
 // La graine en est un, en revanche, et elle vient du montage : lui seul sait de
 // quelle run il s'agit dans la suite d'une session. Une partie qui tirerait la
 // sienne ne se rejouerait plus.
 func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scenario *Scenario,
-	grille *CostGrid, graine uint64, capacite, tirs, tirsEnnemis, gemmes int) *World {
+	grille *CostGrid, graine uint64, capacites Capacities) *World {
 	return &World{
 		profils:     profils,
 		arme:        armes.Base,
@@ -162,10 +193,10 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scena
 		grille:      grille,
 		flux:        NewFlowField(grille),
 		densite:     NewDensityGrid(grille.Width(), grille.Height()),
-		ennemis:     NewPool[Enemy](capacite),
-		tirs:        NewPool[Projectile](tirs),
-		tirsEnnemis: NewPool[Projectile](tirsEnnemis),
-		gemmes:      NewPool[Gem](gemmes),
+		ennemis:     NewPool[Enemy](capacites.Enemies),
+		tirs:        NewPool[Projectile](capacites.Shots),
+		tirsEnnemis: NewPool[Projectile](capacites.EnemyShots),
+		gemmes:      NewPool[Gem](capacites.Gems),
 		aimants:     NewPool[Magnet](1),
 		hasard:      NewStreams(graine),
 		cartes:      make([]Card, 0, Choices),

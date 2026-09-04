@@ -29,7 +29,7 @@ func champDeCartes(t *testing.T, seuils *Progression) (*World, *Profiles) {
 		t.Fatalf("armes livrées : %v", err)
 	}
 
-	w := NewWorld(profils, armes, seuils, sansVagues(), NewCostGrid(32, 32), graineDeTest, 16, 64, 16, 32)
+	w := NewWorld(profils, armes, seuils, sansVagues(), NewCostGrid(32, 32), graineDeTest, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils
 }

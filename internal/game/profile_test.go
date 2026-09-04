@@ -127,12 +127,14 @@ func TestManquementsListesEnUneFois(t *testing.T) {
 			             "comportement": "tir", "vitesse_relative": 0.55,
 			             "touches": 5, "points": 40, "cout_pression": 6,
 			             "poids_separation": 1.3, "max_simultane": 0, "groupe": 1,
+			             "corps_bloquant": false,
 			             "degats_contact_s": 4, "gemmes": 1, "degats_tir": 6,
 			             "vitesse_projectile_tuiles_s": 7.0, "cadence_tir_ms": 1600},
 			"marcheur": {"role": "ennemi", "nom": "Badaud", "rayon_tuiles": 0.125,
 			             "comportement": "poursuite", "vitesse_relative": 0.62,
 			             "touches": 3, "points": 10, "cout_pression": 3,
 			             "poids_separation": 1.0, "max_simultane": 0, "groupe": 1,
+			             "corps_bloquant": false,
 			             "degats_contact_s": 6, "gemmes": 1, "tangentiel": 0.55}
 		}
 	}`)}}
@@ -167,8 +169,8 @@ func TestZeroEcritNestPasUneAbsence(t *testing.T) {
 			"soigneur": {"role": "ennemi", "nom": "Secouriste", "rayon_tuiles": 0.109,
 			             "comportement": "soin", "vitesse_relative": 0.7,
 			             "touches": 3, "points": 15, "cout_pression": 6,
-			             "poids_separation": 1.0, "groupe": 1, "degats_contact_s": 4,
-			             "gemmes": 1%s}
+			             "poids_separation": 1.0, "groupe": 1, "corps_bloquant": false,
+			             "degats_contact_s": 4, "gemmes": 1%s}
 		}
 	}`
 
@@ -204,7 +206,8 @@ func TestUneMeuteQuiNApparaitraitJamaisEstRefusee(t *testing.T) {
 			"sprinteur": {"role": "ennemi", "nom": "Molosse", "rayon_tuiles": 0.109,
 			              "comportement": "charge", "vitesse_relative": 1.35,
 			              "touches": 2, "points": 25, "cout_pression": 4,
-			              "poids_separation": 1.0, "degats_contact_s": 8,
+			              "poids_separation": 1.0, "corps_bloquant": false,
+			              "degats_contact_s": 8,
 			              "gemmes": 1, "degats_charge": 18, %s}
 		}
 	}`

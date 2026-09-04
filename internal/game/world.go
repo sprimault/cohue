@@ -320,7 +320,7 @@ func (w *World) deplacerJoueur(voulu Vec) {
 		return
 	}
 	pas := voulu.Direction(0).Scale(w.vitesse(w.profils.Player.Speed, w.playerX, w.playerY))
-	w.playerX, w.playerY = w.glisser(w.playerX, w.playerY, pas)
+	w.playerX, w.playerY = w.glisserJoueur(w.playerX, w.playerY, pas)
 }
 
 // compterDensite refait le comptage des ennemis, cellule par cellule.
@@ -410,9 +410,19 @@ func (w *World) deplacerEnnemis() {
 // tirer dans le mur. C'est aussi ce que l'arrêt de la charge compare à son pas
 // voulu, d'où un seul endroit qui l'écrive — deux copies finiraient par ne plus
 // dire la même chose du même tick.
+//
+// **Une créature en traverse une autre, y compris un Molosse lancé sur un
+// Vigile.** Ce qu'une créature solide refuse est le joueur, jamais ses
+// congénères : une charge ne s'interrompt donc que sur le décor, et un bloqueur
+// qui servirait de bouclier à la horde contre les charges n'aurait de sens pour
+// personne.
 func (w *World) avancer(e *Enemy, pas Vec) {
 	avantX, avantY := e.X, e.Y
-	e.X, e.Y = w.glisser(e.X, e.Y, pas)
+	if profil := &w.profils.Enemies[e.Profile]; profil.Solid {
+		e.X, e.Y = w.glisserSolide(e.X, e.Y, pas, profil.Radius)
+	} else {
+		e.X, e.Y = w.glisser(e.X, e.Y, pas)
+	}
 	e.Step = Vec{X: e.X - avantX, Y: e.Y - avantY}
 }
 
@@ -451,14 +461,157 @@ func (w *World) vitesse(base Fixed, x, y Fixed) Fixed {
 // faire passer au travers : ils s'entassent derrière lui, ce qui est tout
 // l'intérêt d'un couloir bouché.
 func (w *World) glisser(x, y Fixed, pas Vec) (Fixed, Fixed) {
+	return w.projeter(x, y, pas, exclusionAucune, 0)
+}
+
+// glisserJoueur applique un pas au joueur, que les corps solides arrêtent en
+// plus du décor.
+//
+// **Deux fonctions nommées plutôt qu'un booléen à l'appel.** `glisser(x, y, pas,
+// true)` ne dirait pas *true quoi*, et c'est le défaut qu'on vient de fermer sur
+// les capacités de bassin ; un prédicat passé en argument le dirait, mais un
+// method value alloue et cette ligne est dans la boucle de mise à jour.
+func (w *World) glisserJoueur(x, y Fixed, pas Vec) (Fixed, Fixed) {
+	return w.projeter(x, y, pas, exclusionCorps, 0)
+}
+
+// glisserSolide applique un pas à une créature dont le corps bloque, que le
+// joueur arrête en retour.
+//
+// C'est l'autre moitié de l'exception, et elle est ce qui la rend vraie : sans
+// elle, le Vigile entre dans le joueur et le blocage cesse au moment précis où
+// il devrait jouer.
+func (w *World) glisserSolide(x, y Fixed, pas Vec, rayon Fixed) (Fixed, Fixed) {
+	return w.projeter(x, y, pas, exclusionJoueur, rayon)
+}
+
+// exclusion dit quels corps, en plus du décor, arrêtent le mobile qu'on projette.
+//
+// **La solidité du Vigile joue dans les deux sens, et c'est ce qui la rend
+// effective.** Le premier jet ne l'arrêtait que du côté du joueur : le Vigile
+// poursuivant, il finissait toujours par le recouvrir, et la règle qui rend ses
+// mouvements libres une fois dedans annulait le blocage à chaque rencontre. Un
+// corps qui bouche un couloir doit donc refuser d'entrer dans le joueur autant
+// que le joueur refuse d'entrer en lui — sans quoi il n'a jamais bouché quoi que
+// ce soit.
+//
+// Les créatures continuent de se traverser entre elles : ce qui est exclu ici
+// est le couple joueur / corps solide, jamais deux corps de la horde.
+type exclusion uint8
+
+const (
+	// exclusionAucune est le cas de la horde ordinaire, que seul le décor arrête.
+	exclusionAucune exclusion = iota
+	// exclusionCorps est celui du joueur, qu'un corps solide arrête en plus.
+	exclusionCorps
+	// exclusionJoueur est celui d'une créature solide, que le joueur arrête.
+	exclusionJoueur
+)
+
+// projeter est le corps commun des trois, `exclut` disant ce qui bloque en plus
+// du décor.
+//
+// `rayon` est celui du mobile projeté, et il ne sert qu'à l'exclusion par le
+// joueur : les deux autres cas mesurent depuis le joueur, dont le rayon est déjà
+// connu ici. Le porter en paramètre plutôt que de le retrouver évite à cette
+// passe de traverser la table des profils à chaque axe.
+//
+// **On n'empêche pas d'être dans un recouvrement, on empêche d'y entrer.**
+// Depuis l'intérieur, toutes les directions redeviennent libres ; venant de
+// dehors, chaque axe qui entrerait est annulé comme il le serait par un mur.
+//
+// **Ce n'est pas la parade à un cas du jeu : la réciprocité l'a rendu
+// inatteignable.** Le recouvrement n'arrive que si un corps solide et le joueur
+// se trouvent superposés, ce qu'aucun chemin ne produit plus une fois qu'aucun
+// des deux ne peut entrer dans l'autre.
+//
+// **Ce qui justifie de le garder est le mode d'échec, pas la totalité par
+// principe.** Sans lui, une position que rien ne devrait produire ne plante pas
+// et ne signale rien : elle fige le joueur jusqu'à la fin de la partie, sans
+// qu'un pixel dise pourquoi. C'est le silence, et le projet le ferme partout où
+// il peut. Si l'absence de garde produisait une panique, il faudrait le retirer —
+// un état impossible qui panique est une information.
+//
+// **Il n'est éprouvé que par un test qui forge son entrée**, jamais par une
+// partie. Il doit donc rester de cette taille : le jour où on voudra l'étendre —
+// deux corps, une sortie préférentielle —, c'est qu'il faut le retirer plutôt
+// que le faire grandir. On ne développe pas du code que rien n'exerce.
+//
+// Le garde a d'ailleurs précédé la réciprocité, et l'ordre vaut d'être connu :
+// il avait été écrit pour libérer un joueur recouvert par un Vigile qui avance,
+// et c'est en le voyant annuler le blocage à chaque rencontre qu'on a compris
+// qu'un corps qui se rend traversable en avançant n'est plus un corps.
+func (w *World) projeter(x, y Fixed, pas Vec, exclut exclusion, rayon Fixed) (Fixed, Fixed) {
+	dedans := w.recouvert(x, y, exclut, rayon)
 	nx, ny := x+pas.X, y+pas.Y
-	if !w.passable(nx, y) {
+	if !w.libre(nx, y, exclut, rayon, dedans) {
 		nx = x
 	}
-	if !w.passable(nx, ny) {
+	if !w.libre(nx, ny, exclut, rayon, dedans) {
 		ny = y
 	}
 	return nx, ny
+}
+
+// libre dit si une position accueille le mobile qu'on y projette.
+//
+// `dedans` porte l'état du **départ** et non celui de l'arrivée : c'est lui qui
+// rend la règle asymétrique, et le passer en paramètre plutôt que de le
+// recalculer ici évite un parcours de horde par axe.
+func (w *World) libre(x, y Fixed, exclut exclusion, rayon Fixed, dedans bool) bool {
+	if !w.passable(x, y) {
+		return false
+	}
+	return dedans || !w.recouvert(x, y, exclut, rayon)
+}
+
+// recouvert dit si une position tombe dans ce que l'exclusion refuse.
+//
+// Le cas sans exclusion sort avant tout parcours : la horde ordinaire traverse
+// la horde, et c'est elle qui appelle cette passe trois cents fois par tick.
+func (w *World) recouvert(x, y Fixed, exclut exclusion, rayon Fixed) bool {
+	switch exclut {
+	case exclusionCorps:
+		return w.dansUnCorps(x, y)
+	case exclusionJoueur:
+		return w.surLeJoueur(x, y, rayon)
+	default:
+		return false
+	}
+}
+
+// surLeJoueur dit si un corps posé là recouvrirait le joueur.
+//
+// Mort, il ne s'oppose plus à rien : une créature figée contre un cadavre serait
+// arrêtée par ce que la partie ne montre plus.
+func (w *World) surLeJoueur(x, y, rayon Fixed) bool {
+	if !w.Alive() {
+		return false
+	}
+	portee := w.profils.Player.Radius + rayon
+	return (Vec{X: w.playerX - x, Y: w.playerY - y}).carres() < int64(portee)*int64(portee)
+}
+
+// dansUnCorps dit si un point tombe dans une créature qui bloque.
+//
+// **Le corps n'est solide que vivant**, ce que la conception pose pour que le
+// blocage ne puisse pas devenir un piège : un joueur coincé entre un Vigile et
+// un mur tire nécessairement dessus, puisque la visée prend le plus proche, et
+// douze touches finissent par tomber. Une créature dont la résistance est
+// tombée cesse donc de bloquer dans le tick même, sans attendre le nettoyage.
+func (w *World) dansUnCorps(x, y Fixed) bool {
+	for i := range w.ennemis.Active() {
+		e := w.ennemis.At(i)
+		profil := &w.profils.Enemies[e.Profile]
+		if !profil.Solid || e.Hits <= 0 {
+			continue
+		}
+		portee := w.profils.Player.Radius + profil.Radius
+		if (Vec{X: e.X - x, Y: e.Y - y}).carres() < int64(portee)*int64(portee) {
+			return true
+		}
+	}
+	return false
 }
 
 // retirerLesMorts ferme le tick en vidant le bassin de ce qui n'a plus de

@@ -359,6 +359,7 @@
       "gemmes": 1,
       "degats_explosion": 35,
       "rayon_explosion_tuiles": 1.5,
+      "amorce_ms": 500,
       "origine": "figurine générée",
       "cote": 64,
       "appui": [

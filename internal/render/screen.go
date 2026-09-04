@@ -68,6 +68,14 @@ const (
 // appartient au profil.
 const poulsAnnonce = 6
 
+// emprisePlancher est l'opacité de l'emprise d'une explosion au moment où elle
+// s'amorce, en fraction de sa teinte pleine.
+//
+// Elle ne part pas de zéro : ce que la marque dit d'abord est « ne reste pas
+// là », et une zone invisible à sa première image ne le dirait qu'une fois trop
+// tard. Ce qui monte ensuite est le temps qui manque, pas l'existence du danger.
+const emprisePlancher = 0.45
+
 // Les teintes du rendu provisoire, qui tiendront jusqu'à ce que l'atlas entre.
 //
 // Elles ne cherchent pas à ressembler à un lieu : ce sont trois états de la
@@ -97,6 +105,11 @@ var (
 	// rouge — l'arbitrage se rejugera alors sur la planche, entre deux teintes
 	// qui seront enfin celles du jeu.
 	teinteTirHorde = color.RGBA{R: 186, G: 138, B: 232, A: 255}
+	// L'emprise d'une explosion se pose sur le sol et doit rester lisible sous
+	// les corps qui la traversent : une teinte chaude que ni la horde ni le
+	// joueur ne portent, et translucide **prémultipliée par son alpha** — écrite
+	// à plat, elle rendrait un aplat trois fois trop dense.
+	teinteEmprise = color.RGBA{R: 108, G: 54, B: 24, A: 132}
 	// **L'éclair d'une créature touchée est la même teinte, éclaircie**, et non
 	// une couleur nouvelle : ce qu'il doit dire est « celle-ci vient d'être
 	// atteinte », pas « ceci est autre chose ». Un blanc franc ferait clignoter
@@ -338,6 +351,49 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 			s.op.ColorScale.Reset()
 			s.op.ColorScale.ScaleWithColor(teinte(s.carte.At(u, v)))
 			ecran.DrawImage(s.face, &s.op)
+		}
+	}
+	s.peindreEmprises(ecran)
+}
+
+// peindreEmprises marque au sol ce qu'une explosion amorcée va couvrir.
+//
+// **Le télégraphe se peint en cases pleines, et cette forme n'est pas un
+// pis-aller.** Le rendu ne lit aucune image : il n'a rien à agrandir, et
+// redimensionner un aplat par une fraction casserait le pixel entier qui est
+// toute la règle du pixel art. Des cases se peignent à l'échelle exacte du
+// décor, avec la face qui sert déjà au sol.
+//
+// **L'emprise est montrée entière dès la première image**, et c'est ce qui la
+// sépare d'un cercle qui grandirait : une zone qui s'élargit ferait croire qu'on
+// est hors de portée jusqu'à l'instant où l'on ne l'est plus, c'est-à-dire
+// exactement le mensonge qu'un avertissement ne peut pas se permettre. Ce qui
+// croît est l'intensité, qui dit le temps restant sans rien dire de faux sur
+// l'espace.
+func (s *Screen) peindreEmprises(ecran *ebiten.Image) {
+	souffles := s.monde.Blasts()
+	for i := range souffles.Active() {
+		b := souffles.At(i)
+
+		// L'imminence monte quand la mèche descend : le rapport rendu est ce
+		// qu'il reste, et c'est son complément qui s'affiche.
+		imminence := float32(1000-s.monde.FuseLeft(b)) / 1000
+		vif := teinteEmprise
+		vif.A = uint8(float32(teinteEmprise.A) * (emprisePlancher + (1-emprisePlancher)*imminence))
+
+		u0, v0, u1, v1 := s.monde.BlastBounds(b)
+		for v := v0; v <= v1; v++ {
+			for u := u0; u <= u1; u++ {
+				if !s.carte.InBounds(u, v) || !s.monde.BlastCovers(b, u, v) {
+					continue
+				}
+				x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
+				s.op.GeoM.Reset()
+				s.op.GeoM.Translate(float64(x-s.demiTuile), float64(y))
+				s.op.ColorScale.Reset()
+				s.op.ColorScale.ScaleWithColor(vif)
+				ecran.DrawImage(s.face, &s.op)
+			}
 		}
 	}
 }

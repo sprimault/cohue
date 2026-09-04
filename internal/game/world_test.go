@@ -52,7 +52,7 @@ func mondeDEssai(t *testing.T, largeur, hauteur int) (*World, *Profiles) {
 		t.Fatalf("armes livrées : %v", err)
 	}
 	return NewWorld(profils, armes, progressionLivree(t), sansVagues(), g, graineDeTest,
-		Capacities{Enemies: 300, Shots: 256, EnemyShots: 64, Gems: 512}), profils
+		Capacities{Enemies: 300, Shots: 256, EnemyShots: 64, Blasts: 32, Gems: 512}), profils
 }
 
 // sansVagues rend le scénario d'un lieu qui n'achète rien.
@@ -97,7 +97,9 @@ const graineDeTest uint64 = 1
 // Un cas qui éprouve un refus écrit les siennes en clair, et c'est ce qui les
 // rend visibles : une capacité qui décide du résultat n'a pas à être héritée
 // d'ici, pour la raison qui vaut déjà pour la graine.
-var capacitesDeTest = Capacities{Enemies: 16, Shots: 64, EnemyShots: 16, Gems: 32}
+var capacitesDeTest = Capacities{
+	Enemies: 16, Shots: 64, EnemyShots: 16, Blasts: 8, Gems: 32,
+}
 
 // indexDuProfil rend la place d'un profil dans la table, ou arrête le test.
 func indexDuProfil(t *testing.T, profils *Profiles, cle string) int {
@@ -317,7 +319,7 @@ func TestRienNeTraverseUnMur(t *testing.T) {
 	// Arme inerte : ce test isole le déplacement, et un joueur qui abat la
 	// créature dont on suit la trajectoire ne mesurerait plus rien.
 	w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g, graineDeTest,
-		Capacities{Enemies: 4, Shots: 1, EnemyShots: 4, Gems: 8})
+		Capacities{Enemies: 4, Shots: 1, EnemyShots: 4, Blasts: 4, Gems: 8})
 	w.Place(FromInt(4)+One/2, FromInt(1)+One/2)
 	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), One/2+One, One/2+One); !ok {
 		t.Fatal("créature refusée")
@@ -393,7 +395,7 @@ func TestLeGlissementNeCoupeAucunAngle(t *testing.T) {
 			// Arme inerte et bassin d'une place : ce test isole le déplacement.
 			w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(),
 				grilleDepuis(c.grille...), graineDeTest,
-				Capacities{Enemies: 1, Shots: 1, EnemyShots: 1, Gems: 4})
+				Capacities{Enemies: 1, Shots: 1, EnemyShots: 1, Blasts: 1, Gems: 4})
 			w.Place(FromInt(c.depart[0])+One/2, FromInt(c.depart[1])+One/2)
 
 			// Vers le sud-est du monde, c'est-à-dire vers la case en diagonale.
@@ -429,7 +431,7 @@ func TestLeCoutDeLaCaseDiviseLaVitesse(t *testing.T) {
 			g.Set(u, 1, cout)
 		}
 		w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g, graineDeTest,
-			Capacities{Enemies: 1, Shots: 1, EnemyShots: 1, Gems: 4})
+			Capacities{Enemies: 1, Shots: 1, EnemyShots: 1, Blasts: 1, Gems: 4})
 		w.Place(FromInt(1)+One/2, FromInt(1)+One/2)
 		depart := FromInt(10) + One/2
 		if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), depart, FromInt(1)+One/2); !ok {

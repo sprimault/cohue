@@ -268,6 +268,7 @@ func (w *World) toucher(depart Vec, p *Projectile) bool {
 	e.Flash = eclairImpact
 	if e.Hits <= 0 {
 		w.lacher(e)
+		w.amorcer(e)
 	}
 	return true
 }

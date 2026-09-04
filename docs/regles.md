@@ -124,6 +124,10 @@ le corps vous arrête : toutes les autres se traversent, lui vous bloque — pri
 entre lui et un mur, vous tirez forcément dessus, puisque votre arme vise le plus
 proche.
 
+La **Baudruche** explose quand vous la tuez, pas quand elle vous touche. Le sol
+se marque là où le souffle va porter, et vous avez un instant pour en sortir —
+elle ne blesse que vous, jamais les créatures autour d'elle.
+
 La **Buse** est la seule qui vous atteigne de loin. Elle s'arrête dès qu'elle
 vous tient à portée et tire par intervalles, sur la position où vous êtes : son
 projectile s'esquive, et un mur l'arrête.

@@ -90,7 +90,8 @@ func (w *World) subir() {
 // blesser retire un montant de vie d'un coup, sans passer par l'accumulateur.
 //
 // **C'est la voie des dégâts qui ne sont pas un débit** : le choc d'une charge,
-// le projectile d'une Buse, et l'explosion d'une Baudruche quand elle viendra.
+// le projectile d'une Buse, la déflagration d'une Baudruche. Trois cas de même
+// forme — ce qui diffère entre eux est le test de portée, jamais l'application.
 // L'accumulateur compte en points-ticks, si bien qu'y verser dix-huit points
 // d'un coup les diviserait par soixante et vaudrait un tiers de point.
 //

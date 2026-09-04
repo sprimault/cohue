@@ -59,6 +59,12 @@ func (w *World) Fingerprint() string {
 		fmt.Fprintf(&b, "tir horde %d id=%d gen=%d x=%d y=%d reste=%d degats=%d pas=%d,%d\n",
 			i, id, w.tirsEnnemis.gens[id], p.X, p.Y, p.Remaining, p.Hits, p.Step.X, p.Step.Y)
 	}
+	for i := range w.souffles.Active() {
+		souffle := w.souffles.At(i)
+		id := w.souffles.IDAt(i)
+		fmt.Fprintf(&b, "souffle %d id=%d gen=%d x=%d y=%d profil=%d meche=%d\n",
+			i, id, w.souffles.gens[id], souffle.X, souffle.Y, souffle.Profile, souffle.Fuse)
+	}
 	for i := range w.gemmes.Active() {
 		g := w.gemmes.At(i)
 		id := w.gemmes.IDAt(i)

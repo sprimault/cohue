@@ -42,6 +42,15 @@ const separationScale = One / 8
 // appartient.
 const eclairImpact Tick = 4
 
+// eclairSoin est la durée des deux éclairs de soin, en ticks.
+//
+// Plus long que celui de l'impact, et pour une raison de lecture opposée : un
+// impact se répète à chaque salve, donc il doit s'éteindre vite ou la foule
+// clignote ; un soin arrive une fois par seconde et demie, et sa rareté est ce
+// qui doit se remarquer. Un quart de seconde laisse le temps de trouver d'où il
+// vient au milieu d'une horde.
+const eclairSoin Tick = 15
+
 // rabattement est la distance sous laquelle une créature vise le joueur plutôt
 // que la cellule suivante du champ de flux, en tuiles.
 //
@@ -306,6 +315,7 @@ func (w *World) Step(voulu Vec) {
 	w.deplacerTirs()
 	w.tirerLaHorde()
 	w.deplacerTirsEnnemis()
+	w.soigner()
 	w.retirerLesMorts()
 
 	w.tick++

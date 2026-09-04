@@ -43,9 +43,10 @@ func (w *World) Fingerprint() string {
 		id := w.ennemis.IDAt(i)
 		fmt.Fprintf(&b,
 			"ennemi %d id=%d gen=%d profil=%d x=%d y=%d hits=%d pas=%d,%d flash=%d "+
-				"charge=%d,%d,%d,%d tir=%d\n",
+				"charge=%d,%d,%d,%d tir=%d soin=%d,%d,%d\n",
 			i, id, w.ennemis.gens[id], e.Profile, e.X, e.Y, e.Hits, e.Step.X, e.Step.Y,
-			e.Flash, e.ChargePhase, e.ChargeTimer, e.ChargeDir.X, e.ChargeDir.Y, e.ShotTimer)
+			e.Flash, e.ChargePhase, e.ChargeTimer, e.ChargeDir.X, e.ChargeDir.Y, e.ShotTimer,
+			e.HealTimer, e.Healing, e.Healed)
 	}
 	for i := range w.tirs.Active() {
 		p := w.tirs.At(i)

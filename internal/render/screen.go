@@ -124,6 +124,17 @@ var (
 	// La course, elle, n'est pas peinte : elle va vite et droit, ce qui est déjà
 	// à l'image. Un signal ne redit pas ce qu'on voit.
 	teinteAnnonce = color.RGBA{R: 232, G: 96, B: 72, A: 255}
+	// **Le soigneur tranche, la soignée nuance.** Les deux disent le même
+	// événement mais n'apprennent pas la même chose : qu'une créature récupère
+	// explique pourquoi elle ne tombe pas, et cela peut rester dans la famille du
+	// rouge ; savoir *lequel* d'une horde identique est le Secouriste change la
+	// conduite du joueur, et cela doit sauter aux yeux là où tout est rouge.
+	//
+	// D'où un vert franc pour l'un et un rouge éclairci vers le vert pour
+	// l'autre : les relier tient à la teinte commune, les séparer à la distance
+	// qui les sépare du fond de la horde.
+	teinteSoigneur = color.RGBA{R: 120, G: 226, B: 132, A: 255}
+	teinteSoigne   = color.RGBA{R: 172, G: 178, B: 108, A: 255}
 	// Une gemme est minuscule et posée sur un sol gris : elle a besoin d'une
 	// teinte saturée que rien d'autre ne porte, sans quoi un tas au sol
 	// disparaît sous la horde au moment où l'on cherche à l'estimer.
@@ -410,9 +421,19 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteEnnemi:
 			c := s.monde.Enemies().At(e.place)
 			teinte := teinteHorde
+			// **Le soigneur passe avant l'impact, la soignée après.** Ce qui
+			// change la conduite du joueur est de repérer d'où vient le soin :
+			// la visée prend le plus proche, donc abattre un Secouriste demande
+			// d'abord de savoir lequel c'est. Une créature soignée qu'on est en
+			// train de toucher, elle, porte les deux informations — et celle qui
+			// compte alors est le coup qui vient de partir.
 			switch {
+			case c.Healing > 0:
+				teinte = teinteSoigneur
 			case c.Flash > 0:
 				teinte = teinteImpact
+			case c.Healed > 0:
+				teinte = teinteSoigne
 			case c.Telegraphing() && (c.ChargeTimer/poulsAnnonce)%2 == 0:
 				teinte = teinteAnnonce
 			}

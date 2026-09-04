@@ -427,6 +427,9 @@
       "corps_bloquant": false,
       "degats_contact_s": 4,
       "gemmes": 1,
+      "portee_soin_tuiles": 4.0,
+      "cadence_soin_ms": 1500,
+      "soin_touches": 1,
       "origine": "figurine générée",
       "cote": 64,
       "appui": [

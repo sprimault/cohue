@@ -201,6 +201,25 @@ type EnemyProfile struct {
 	BurstDamage int
 	// BurstRadius est la portée de cette explosion, en tuiles.
 	BurstRadius Fixed
+	// HealRange est la distance à laquelle il rend des touches à ses voisines, en
+	// tuiles, et **son zéro ferme le mécanisme** comme celui de `ChargeRange`
+	// ferme la charge.
+	HealRange Fixed
+	// HealCooldown est le temps entre deux soins, en ticks.
+	HealCooldown Tick
+	// HealHits est ce qu'un soin rend, dans l'unité de la résistance.
+	//
+	// **Il ne se soigne pas lui-même**, et c'est ce qui garde la mécanique
+	// entière : trois touches font de lui une cible qui tombe vite une fois
+	// atteinte, et c'est cette récompense qui paie le trajet dans la horde. Un
+	// soigneur qui se régénère la retirerait au moment de l'obtenir.
+	//
+	// **Une seule voisine par soin, la plus blessée à portée.** Soigner tout le
+	// monde ferait de lui une invulnérabilité collective, quand la conception
+	// écrit qu'il annule le travail — pas qu'il rend la horde invincible. La plus
+	// blessée est en outre celle que le joueur est en train d'abattre, donc celle
+	// dont la guérison se lit.
+	HealHits int
 	// Fuse est le temps entre la mort de la créature et sa détonation, en ticks.
 	//
 	// **C'est la durée du danger, donc une donnée de jeu**, et c'est ce qui la
@@ -350,6 +369,9 @@ type rawProfile struct {
 	BurstDamage  *int     `json:"degats_explosion,omitempty"`
 	BurstRadius  *float64 `json:"rayon_explosion_tuiles,omitempty"`
 	FuseMs       *int     `json:"amorce_ms,omitempty"`
+	HealRange    *float64 `json:"portee_soin_tuiles,omitempty"`
+	HealEveryMs  *int     `json:"cadence_soin_ms,omitempty"`
+	HealHits     *int     `json:"soin_touches,omitempty"`
 
 	// Ce qui suit décrit la figurine et son identité, et la simulation n'en lit
 	// rien. Ces champs sont déclarés parce que le décodage refuse toute clé
@@ -425,6 +447,10 @@ var champsConditionnels = []struct {
 	{"degats_explosion", "« explosion »", estComportement(Burst), func(p rawProfile) bool { return p.BurstDamage != nil }},
 	{"rayon_explosion_tuiles", "« explosion »", estComportement(Burst), func(p rawProfile) bool { return p.BurstRadius != nil }},
 	{"amorce_ms", "« explosion »", estComportement(Burst), func(p rawProfile) bool { return p.FuseMs != nil }},
+
+	{"portee_soin_tuiles", "« soin »", estComportement(Heal), func(p rawProfile) bool { return p.HealRange != nil }},
+	{"cadence_soin_ms", "« soin »", estComportement(Heal), func(p rawProfile) bool { return p.HealEveryMs != nil }},
+	{"soin_touches", "« soin »", estComportement(Heal), func(p rawProfile) bool { return p.HealHits != nil }},
 }
 
 // estRole rend le prédicat qui reconnaît une nature.
@@ -494,6 +520,7 @@ func controler(cle string, p rawProfile, dire func(string, ...any)) {
 		{"recuperation_ms", p.RecoveryMs},
 		{"cadence_tir_ms", p.ShotEveryMs},
 		{"amorce_ms", p.FuseMs},
+		{"cadence_soin_ms", p.HealEveryMs},
 	} {
 		if d.ms == nil {
 			continue
@@ -574,6 +601,9 @@ func (p rawProfile) ennemi(cle string, base float64) EnemyProfile {
 		BurstDamage:      ou0(p.BurstDamage),
 		BurstRadius:      FromFloat(ou0(p.BurstRadius)),
 		Fuse:             ticks(p.FuseMs),
+		HealRange:        FromFloat(ou0(p.HealRange)),
+		HealCooldown:     ticks(p.HealEveryMs),
+		HealHits:         ou0(p.HealHits),
 	}
 }
 

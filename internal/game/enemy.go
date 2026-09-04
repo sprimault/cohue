@@ -45,6 +45,18 @@ type Enemy struct {
 	// ChargeTimer est ce qui reste de la phase en cours, en ticks. Un décompte
 	// et non une date, pour la raison qui vaut déjà pour `Flash`.
 	ChargeTimer Tick
+	// HealTimer est ce qui reste avant qu'elle puisse soigner, en ticks.
+	HealTimer Tick
+	// Healing et Healed sont deux éclairs de soin : ce qui reste de celui du
+	// soigneur, et de celui de la créature qu'il vient de remettre debout.
+	//
+	// **Deux décomptes plutôt qu'un, parce qu'ils apprennent deux choses.** Le
+	// second dit pourquoi le travail est perdu ; le premier dit *qui* aller
+	// chercher, et c'est la seule information qui change la conduite du joueur —
+	// la visée prenant le plus proche, abattre un Secouriste demande d'abord de
+	// savoir lequel c'est. Des deux, celui du soigneur est le plus utile, et
+	// c'est celui qui ne suit pas le patron de `Flash`.
+	Healing, Healed Tick
 	// ShotTimer est ce qui reste avant que la créature puisse tirer, en ticks.
 	//
 	// **Il ne se consomme pas hors de portée**, comme la cadence de l'arme du

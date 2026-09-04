@@ -149,7 +149,7 @@ func TestLExplosionEpargneLaHorde(t *testing.T) {
 	w, profil := areneExplosive(t)
 	b := abattreUneBaudruche(t, w, FromInt(3))
 
-	// Un Badaud posé au centre même de l'emprise, après l'amorce pour que l'arme
+	// Un Quidam posé au centre même de l'emprise, après l'amorce pour que l'arme
 	// du joueur ne l'abatte pas avant la détonation.
 	if _, ok := w.SpawnEnemy(indexDuProfil(t, w.profils, "marcheur"), b.X, b.Y); !ok {
 		t.Fatal("bassin plein")
@@ -178,13 +178,13 @@ func TestLExplosionEpargneLaHorde(t *testing.T) {
 // la transition de mort commune.
 //
 // Toutes les créatures y passent : si le rayon nul ne fermait pas le mécanisme,
-// chaque Badaud abattu poserait une explosion sans dégâts ni emprise, et le
+// chaque Quidam abattu poserait une explosion sans dégâts ni emprise, et le
 // bassin se remplirait de déflagrations invisibles.
 func TestUnProfilSansRayonNAmorceRien(t *testing.T) {
 	w, _ := areneExplosive(t)
 	marcheur := indexDuProfil(t, w.profils, "marcheur")
 	if w.profils.Enemies[marcheur].BurstRadius != 0 {
-		t.Fatal("le Badaud porte un rayon d'explosion, ce cas suppose le contraire")
+		t.Fatal("le Quidam porte un rayon d'explosion, ce cas suppose le contraire")
 	}
 	if _, ok := w.SpawnEnemy(marcheur, w.playerX+FromInt(3), w.playerY); !ok {
 		t.Fatal("bassin plein")

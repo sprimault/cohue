@@ -109,7 +109,7 @@ func (w *World) apparaitre() {
 		// **Un tirage par achat, et non un convoité gardé tant qu'il est
 		// payable.** Le garder ferait sortir des Vigiles en série une fois le
 		// budget monté à leur prix — une monotonie qui en remplacerait une autre.
-		// C'est le retirage qui produit la masse : le Badaud est tiré souvent,
+		// C'est le retirage qui produit la masse : le Quidam est tiré souvent,
 		// donc il revient souvent.
 		w.convoite = 0
 	}
@@ -118,10 +118,10 @@ func (w *World) apparaitre() {
 // tirerConvoite choisit le profil pour lequel le spawner va épargner.
 //
 // **Pondéré par l'inverse du prix, ce qui donne à chaque profil la même part de
-// budget.** Le nombre suit alors l'inverse du prix — quatre Badauds pour un
+// budget.** Le nombre suit alors l'inverse du prix — quatre Quidams pour un
 // Vigile —, et c'est ce qui produit une horde faite de masse avec des exceptions
 // sans qu'aucun réglage nouveau l'exprime. Un tirage uniforme donnerait autant de
-// Vigiles que de Badauds en nombre, donc quatre fois plus de budget dépensé par
+// Vigiles que de Quidams en nombre, donc quatre fois plus de budget dépensé par
 // les gros : une horde chère et clairsemée.
 //
 // Les poids se calculent sur le prix entier du manifeste et non sur sa virgule

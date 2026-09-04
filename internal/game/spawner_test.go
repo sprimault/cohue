@@ -54,7 +54,7 @@ func vagueUnique(pression int, profils ...int) *Scenario {
 // TestLeBudgetAchèteALHeure vérifie que la pression s'accumule au lieu d'acheter
 // tout de suite ou jamais.
 //
-// **Le chiffre est le sujet du cas.** Trois de pression par seconde et un Badaud
+// **Le chiffre est le sujet du cas.** Trois de pression par seconde et un Quidam
 // à trois : la première créature coûte une seconde de budget, et rien avant.
 // Un spawner qui poserait à chaque tick passerait le second relevé, un spawner
 // qui n'accumulerait pas passerait le premier ; il faut les deux.
@@ -84,7 +84,7 @@ func TestLeBudgetAchèteALHeure(t *testing.T) {
 // La simulation ne connaît pas l'écran ; ce qu'elle peut garantir est la
 // distance, et le manifeste dit d'où vient le chiffre.
 //
-// Un seul tick, et une pression qui paie un Badaud à chaque tick : la mesure
+// Un seul tick, et une pression qui paie un Quidam à chaque tick : la mesure
 // doit se prendre à l'apparition, une créature s'approchant de trois tuiles par
 // seconde dès qu'on la laisse vivre.
 func TestLApparitionSePoseSurLAnneau(t *testing.T) {
@@ -138,7 +138,7 @@ func TestLAnneauBoucheReporteSonBudget(t *testing.T) {
 // **Sans borne, le report est un mur d'ennemis à retardement** — exactement ce
 // que la règle « jamais dans le champ de vision » interdit, avec en prime
 // l'impression que le jeu triche. Dix secondes murées valent trente de budget ;
-// la borne publiée en garde trois secondes, soit trois Badauds.
+// la borne publiée en garde trois secondes, soit trois Quidams.
 func TestLeReportEstBorne(t *testing.T) {
 	w, profils := salleOuverte(t, nil, 64)
 	w.scenario = vagueUnique(3, indexDuProfil(t, profils, "marcheur"))
@@ -186,7 +186,7 @@ func TestLePlafondDEffectifPerdSonBudget(t *testing.T) {
 // reste quand le budget pourrait en payer vingt.
 //
 // Le Secouriste ne vaut rien seul et double la difficulté au milieu de vingt
-// Badauds : sa rareté ne peut pas se régler par son prix, trop bas il
+// Quidams : sa rareté ne peut pas se régler par son prix, trop bas il
 // déséquilibre et trop haut sa mécanique ne s'apprend jamais.
 func TestLePlafondDeSimultaneiteTientMalgreLeBudget(t *testing.T) {
 	w, profils := salleOuverte(t, nil, 32)
@@ -432,7 +432,7 @@ func degager(w *World) {
 //
 // **Il est né du réglage de la courbe et d'aucune relecture.** Une pression d'un
 // par seconde et un report de trois secondes plafonnent le budget au prix exact
-// d'un Badaud, que l'arrondi de la conversion par tick place un millième en
+// d'un Quidam, que l'arrondi de la conversion par tick place un millième en
 // dessous : le budget monte, bute sur la borne, et la phase n'achète jamais rien.
 // Rien ne le signalait — pas un refus au chargement, pas une erreur, une salle
 // simplement vide.

@@ -44,7 +44,7 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
-- **Chaque créature a sa teinte.** Le Badaud reste rouge et les six autres se
+- **Chaque créature a sa teinte.** Le Quidam reste rouge et les six autres se
   distinguent enfin — l'Arpenteur violet, le Molosse orange, le Vigile bleu, la
   Buse olive, la Baudruche magenta, le Secouriste vert. Toutes restent sombres :
   c'est la valeur qui garde le personnage visible dans une foule, la teinte ne
@@ -72,7 +72,7 @@ publié, et explique les conventions du dépôt à qui y contribue.
   puisse choisir lequel des trois changer.
 - **Une phase peut durcir ce qu'elle fait apparaître.** Un champ `resistance`
   facultatif multiplie les touches des créatures nées sous elle — 1,3 fait passer
-  un Badaud de trois à quatre. La résistance est figée à l'apparition : une
+  un Quidam de trois à quatre. La résistance est figée à l'apparition : une
   créature demande le même nombre de coups du premier au dernier.
 - **Les Passants peuplent un lieu.** Un lieu déclare son ambiance dans un champ
   `ambiance` facultatif, chaque figurant à la case où il commence ; ils vont et
@@ -104,6 +104,15 @@ publié, et explique les conventions du dépôt à qui y contribue.
   d'un seul coup : elle se paie trois fois le prix d'un Molosse, et jamais
   un chien n'arrive seul parce qu'il ne restait de la place que pour lui.
 
+### Modifié
+
+- **Le Badaud s'appelle désormais le Quidam.** Les deux noms de la foule — celui
+  de la horde et celui des figurants — désignaient à peu près la même personne
+  en français, et on les confondait. Le Passant garde le sien, qui dit ce qu'il
+  est ; la masse hostile prend celui qui dit ce qu'elle a de terrible, à savoir
+  n'importe qui. La clé `marcheur` ne change pas : les lieux déjà écrits restent
+  valides.
+
 ### Corrigé
 
 - **Une phase fait apparaître tous les profils qu'elle autorise.** Le budget se
@@ -120,7 +129,7 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
-- **Each creature has its own hue.** The Badaud stays red and the other six are
+- **Each creature has its own hue.** The Quidam stays red and the other six are
   finally told apart — the Arpenteur purple, the Molosse orange, the Vigile blue,
   the Buse olive, the Baudruche magenta, the Secouriste green. All stay dark:
   value is what keeps the character visible in a crowd, hue only separates roles.
@@ -144,7 +153,7 @@ publié, et explique les conventions du dépôt à qui y contribue.
   never showed up, without a word. The rejection names the price, the ceiling and
   the pressure that produces it, so you can choose which of the three to change.
 - **A phase can toughen what it spawns.** An optional `resistance` field
-  multiplies the hits of creatures born under it — 1.3 takes a Badaud from three
+  multiplies the hits of creatures born under it — 1.3 takes a Quidam from three
   to four. Toughness is fixed at spawn: a creature takes the same number of hits
   from first to last.
 - **Passants populate a place.** A place declares its ambience in an optional
@@ -176,6 +185,14 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **The Molosse arrives in packs of three.** The pack shows up from one side and
   all at once: it costs three times the price of a single Molosse, and no hound
   ever arrives alone because there was only room for one.
+
+### Changed
+
+- **The Badaud is now the Quidam.** The two names for the crowd — the horde's
+  and the bystanders' — meant roughly the same person in French, and they were
+  being confused. The Passant keeps its own, which says what it is; the hostile
+  mass takes the one that says what is dreadful about it, namely anyone at all.
+  The `marcheur` key does not change: places already written stay valid.
 
 ### Fixed
 

@@ -133,7 +133,7 @@ func TestUnFigurantChangeDeCap(t *testing.T) {
 // il déplacerait ou abandonnerait en silence, et un lieu qui demande douze
 // figurants en poserait neuf sans que son auteur l'apprenne.
 //
-// Les deux premiers gardent la séparation des tables : un Badaud posé en
+// Les deux premiers gardent la séparation des tables : un Quidam posé en
 // figurant serait une horde gratuite, hors du budget de pression et du plafond
 // d'effectif, que rien dans la courbe n'expliquerait.
 func TestUnPeuplementMalEcritEstRefuse(t *testing.T) {
@@ -155,7 +155,7 @@ func TestUnPeuplementMalEcritEstRefuse(t *testing.T) {
 	}{
 		{"un profil d'ennemi", AmbientGroup{Profile: "marcheur", At: &libre},
 			"n'est pas un profil d'ambiance"},
-		{"un nom inconnu", AmbientGroup{Profile: "badaud", At: &libre},
+		{"un nom inconnu", AmbientGroup{Profile: "quidam", At: &libre},
 			"n'est pas un profil d'ambiance"},
 		{"une position absente", AmbientGroup{Profile: "civil"},
 			"un figurant se place"},

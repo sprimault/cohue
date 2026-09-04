@@ -269,7 +269,7 @@ CHAMPS_PAR_ROLE = {
 }
 
 # Ce qu'un comportement ajoute, et qui n'a de sens que pour lui. Un
-# `portee_tuiles` sur un Badaud ne serait jamais lu et laisserait croire qu'il
+# `portee_tuiles` sur un Quidam ne serait jamais lu et laisserait croire qu'il
 # tire : le contrôle attrape donc le champ de trop autant que le champ absent.
 CHAMPS_PAR_COMPORTEMENT = {
     "poursuite":   set(),

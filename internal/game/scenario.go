@@ -44,7 +44,7 @@ type WavePhase struct {
 	// Toughness multiplie la résistance des créatures de la phase, un par défaut.
 	//
 	// **Fractionnaire, et pas un entier.** La première valeur entière au-dessus
-	// de un est deux : toute progression de dureté commencerait par un Badaud à
+	// de un est deux : toute progression de dureté commencerait par un Quidam à
 	// six touches au lieu de trois, ce qui n'est pas un palier mais un mur. Un
 	// virgule trois en donne quatre, qui est le pas naturel.
 	Toughness *float64 `json:"resistance,omitempty"`
@@ -98,7 +98,7 @@ type Phase struct {
 	//
 	// **Il ne sert qu'à empêcher la borne de report de tuer la phase.** Une
 	// pression d'un par seconde et un report de trois secondes plafonnent le
-	// budget à trois, c'est-à-dire au prix exact d'un Badaud — et l'arrondi de la
+	// budget à trois, c'est-à-dire au prix exact d'un Quidam — et l'arrondi de la
 	// conversion par tick le place un millième en dessous. La phase n'achète alors
 	// jamais rien, sans qu'aucun refus ne le dise : le budget monte, bute sur la
 	// borne, et redescend jamais. Le cas est arrivé en réglant la courbe.
@@ -239,7 +239,7 @@ func CompileScenario(brut WaveScenario, profils *Profiles, report Tick) (*Scenar
 // travail.
 //
 // `Cheapest` ne le ferme pas, et c'est ce qui rend le cas surprenant : il retient
-// le prix **le moins cher** de la phase, si bien qu'un Badaud à trois satisfait
+// le prix **le moins cher** de la phase, si bien qu'un Quidam à trois satisfait
 // la garde et laisse un Molosse à douze inatteignable dans la même phase.
 //
 // **Le message nomme les trois nombres**, parce que c'est leur relation qui est

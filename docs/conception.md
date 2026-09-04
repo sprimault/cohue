@@ -45,7 +45,7 @@ Quatre minutes et non deux, parce que c'est ce qui amène la toute-puissance à 
 
 Le choix compte plus que la récompense. Trois cartes, dont deux tentantes. Si le joueur prend systématiquement la même, l'équilibrage est cassé — la bonne carte est celle qui fait hésiter.
 
-**C'est le seuil qui monte, jamais la valeur d'une gemme.** Une gemme vaut la même chose du début à la fin, quel que soit ce qui l'a laissée tomber ; c'est le seuil du niveau suivant qui croît, et c'est lui qu'on règle pour espacer les choix. L'inverse mélangerait deux questions que ce chapitre traite séparément — ce que vaut un kill, et à quel rythme les choix arrivent —, et un Badaud vaudrait davantage en fin de run pour une raison qui ne le concerne pas. Un profil qui doit rapporter plus laisse tomber **plusieurs** gemmes : la quantité au sol dit alors ce qu'on va gagner, ce dont l'aimant a besoin pour qu'on estime sa récolte avant de déclencher.
+**C'est le seuil qui monte, jamais la valeur d'une gemme.** Une gemme vaut la même chose du début à la fin, quel que soit ce qui l'a laissée tomber ; c'est le seuil du niveau suivant qui croît, et c'est lui qu'on règle pour espacer les choix. L'inverse mélangerait deux questions que ce chapitre traite séparément — ce que vaut un kill, et à quel rythme les choix arrivent —, et un Quidam vaudrait davantage en fin de run pour une raison qui ne le concerne pas. Un profil qui doit rapporter plus laisse tomber **plusieurs** gemmes : la quantité au sol dit alors ce qu'on va gagner, ce dont l'aimant a besoin pour qu'on estime sa récolte avant de déclencher.
 
 **Le temps compte aussi**, et c'est ce qui rend la règle des quarante-cinq secondes vraie par construction. Un joueur qui a tenu quarante-cinq secondes a fait quelque chose — il a kité, esquivé, survécu — et le jeu le reconnaît par une montée. Ce n'est pas un rattrapage mais une seconde source de progression, trois fois plus lente que le tempo nominal, si bien que fuir sans ramasser reste le mauvais calcul.
 
@@ -229,7 +229,7 @@ Le budget de pression correspondant n'est pas perdu pour autant : il est report�
 
 La poussée de séparation n'est qu'une force parmi d'autres : elle ne décide pas de la position finale. Le déplacement calculé est **projeté sur la grille de passabilité** avant d'être appliqué — s'il mène dans un obstacle, sa composante bloquée est annulée et l'entité glisse le long du mur au lieu de s'y enfoncer. Si les deux composantes sont bloquées, elle ne bouge pas.
 
-Vingt Badauds qui poussent un Vigile contre une cloison ne le font donc pas passer au travers : ils s'entassent derrière lui. C'est le comportement voulu — un couloir bouché par un bloqueur doit rester bouché, c'est tout son intérêt.
+Vingt Quidams qui poussent un Vigile contre une cloison ne le font donc pas passer au travers : ils s'entassent derrière lui. C'est le comportement voulu — un couloir bouché par un bloqueur doit rester bouché, c'est tout son intérêt.
 
 Corollaire à assumer : **les entités se chevauchent** quand la place manque. Il n'y a pas de collision dure entre ennemis, seulement la répulsion douce du gradient de densité. Résoudre les chevauchements par un décalage géométrique produirait des tremblements en chaîne dans une foule dense, et pousserait mécaniquement les créatures du bord dans les murs — exactement ce qu'on vient d'interdire.
 
@@ -273,7 +273,7 @@ Le rôle est l'identifiant du moteur ; le nom est de la fiction, et vit dans la 
 
 | Rôle | Nom | Silhouette | Ce qu'il casse |
 |---|---|---|---|
-| marcheur | **Badaud** | humanoïde | la masse, pure pression |
+| marcheur | **Quidam** | humanoïde | la masse, pure pression |
 | sprinteur | **Molosse** | quadrupède | la fuite en ligne droite |
 | flanqueur | **Arpenteur** | six pattes hautes | le kiting circulaire |
 | cracheur | **Buse** | bulbe posé au sol | le camping dans un coin |
@@ -301,9 +301,9 @@ Cette mécanique n'existe que parce que la visée est omnidirectionnelle et auto
 
 Il n'est pas davantage une cible. Le tir étant automatique, le rendre ciblable ferait tuer des civils au joueur **sans qu'il l'ait décidé** — le jeu orienterait la salve à sa place, et la charge du geste lui reviendrait sans le choix. Le moment où cela se produirait est le pire : salle nettoyée, quand plus rien ne presse et que ça se voit. La règle existe déjà pour le mobilier, et une seule phrase couvre les deux cas — la visée ne choisit que ce qui menace.
 
-Il traverse la scène en va-et-vient — il avance tout droit et repart quand il bute, ce qui n'exige aucune trajectoire posée dans la pièce — et son seul effet est d'occuper l'espace où l'on voulait passer. Lui donner des dégâts de contact en referait un Badaud affaibli, c'est-à-dire un doublon ; le ranger parmi les ennemis obligerait chaque boucle écrite ensuite à demander « celui-là attaque-t-il ? ».
+Il traverse la scène en va-et-vient — il avance tout droit et repart quand il bute, ce qui n'exige aucune trajectoire posée dans la pièce — et son seul effet est d'occuper l'espace où l'on voulait passer. Lui donner des dégâts de contact en referait un Quidam affaibli, c'est-à-dire un doublon ; le ranger parmi les ennemis obligerait chaque boucle écrite ensuite à demander « celui-là attaque-t-il ? ».
 
-- **Le Badaud** : masse lente, il ne fait qu'exister en nombre. Il existe en plusieurs teintes de vêtement — une foule d'un seul bleu se lit comme un bloc uni, alors que six variantes cassent la répétition sans coûter une silhouette de plus. La variante est tirée à l'apparition depuis la graine de la run, donc elle ne casse pas le déterminisme.
+- **Le Quidam** : masse lente, il ne fait qu'exister en nombre. Il existe en plusieurs teintes de vêtement — une foule d'un seul bleu se lit comme un bloc uni, alors que six variantes cassent la répétition sans coûter une silhouette de plus. La variante est tirée à l'apparition depuis la graine de la run, donc elle ne casse pas le déterminisme.
 - **Le Molosse** : télégraphe une charge (une demi-seconde d'anticipation, un son), puis fonce en ligne droite et ne corrige plus. Sa charge inflige davantage qu'un contact ordinaire — sans cela, charger ne serait qu'un déplacement rapide. Il punit l'immobilité, mais s'esquive latéralement. Le fait qu'il abandonne le flow field pendant la charge est ce qui le rend lisible. **Il n'apparaît jamais seul** : une meute de trois qui charge en décalé impose d'arrêter de reculer en ligne droite, ce qu'un chien isolé n'obtient pas. La taille de groupe est un champ du profil, pas une exception du spawner.
 
   Trois décisions complètent la charge, et elles se tiennent ensemble parce que chacune sans les deux autres retire à la mécanique ce qui la rend jouable.
@@ -354,7 +354,7 @@ Chaque profil a son coût de pression. Le spawner remplit, respecte la passabili
 
 **Le spawner épargne au lieu d'acheter ce qu'il peut.** Il tire un profil parmi ceux que la phase autorise, puis met de côté jusqu'à pouvoir le payer. Sans cela, un budget qui se dépense au fil de l'eau se vide au prix le moins cher de la phase et n'atteint jamais les prix élevés : une phase qui ouvre sept profils n'en fait apparaître qu'un, et les six autres sont écrits sans jamais arriver. Le défaut est silencieux — chaque achat est légitime, c'est leur suite qui ne l'est pas.
 
-**Le tirage est pondéré par l'inverse du prix**, ce qui donne à chaque profil la même part de budget et fait donc suivre au nombre l'inverse du prix : quatre Badauds pour un Vigile qui coûte quatre fois plus. C'est de là que vient une horde faite de masse avec des exceptions, sans qu'aucun réglage nouveau l'exprime — le coût de pression, qui disait déjà la rareté, la dit maintenant en nombres. Un tirage uniforme donnerait autant de Vigiles que de Badauds, donc quatre fois plus de budget aux gros : une horde chère et clairsemée, qui n'est pas celle que ce document décrit.
+**Le tirage est pondéré par l'inverse du prix**, ce qui donne à chaque profil la même part de budget et fait donc suivre au nombre l'inverse du prix : quatre Quidams pour un Vigile qui coûte quatre fois plus. C'est de là que vient une horde faite de masse avec des exceptions, sans qu'aucun réglage nouveau l'exprime — le coût de pression, qui disait déjà la rareté, la dit maintenant en nombres. Un tirage uniforme donnerait autant de Vigiles que de Quidams, donc quatre fois plus de budget aux gros : une horde chère et clairsemée, qui n'est pas celle que ce document décrit.
 
 **Le profil convoité s'abandonne dès qu'il cesse d'être achetable** — son plafond de simultanéité atteint, ou le bassin qui se remplit. Sinon la horde entière attendrait derrière un profil que rien ne débloquera avant une mort. Ce qui a été mis de côté reste acquis : le budget ne se perd que par les plafonds, comme avant.
 
@@ -368,9 +368,9 @@ Le spawner porte donc aussi un **plafond d'effectif**, et cesse d'acheter quand 
 
 **Une phase ne peut autoriser que ce qu'elle sait payer.** Le budget s'accumule jusqu'à sa borne de report et pas au-delà : un profil dont l'apparition coûte davantage est écrit dans le fichier et n'arrive jamais. Pire depuis que le spawner épargne : convoité, il arrête toute la horde au lieu d'être seulement absent, puisque le budget qu'il attend est celui que la borne lui refuse. Le refus se fait donc au chargement, et il nomme les trois nombres dont la relation est fausse : le prix, le plafond, et la pression qui le produit. C'est la seule façon pour l'auteur de savoir lequel changer.
 
-**Un profil peut aussi porter son propre plafond**, en nombre de vivants. Un coût règle une fréquence moyenne, il ne sait pas exprimer une simultanéité : le Secouriste ne vaut rien seul et double la difficulté au milieu de vingt Badauds, si bien que sa rareté ne peut pas se régler par son prix — trop bas il déséquilibre, trop haut il n'apparaît jamais et sa mécanique ne s'apprend pas. Le plafond compte les vivants et non les apparus, faute de quoi il deviendrait un quota par run et le profil disparaîtrait après le premier. Plafond atteint, le spawner achète autre chose ; s'il ne peut rien acheter, le budget est perdu.
+**Un profil peut aussi porter son propre plafond**, en nombre de vivants. Un coût règle une fréquence moyenne, il ne sait pas exprimer une simultanéité : le Secouriste ne vaut rien seul et double la difficulté au milieu de vingt Quidams, si bien que sa rareté ne peut pas se régler par son prix — trop bas il déséquilibre, trop haut il n'apparaît jamais et sa mécanique ne s'apprend pas. Le plafond compte les vivants et non les apparus, faute de quoi il deviendrait un quota par run et le profil disparaîtrait après le premier. Plafond atteint, le spawner achète autre chose ; s'il ne peut rien acheter, le budget est perdu.
 
-**Un scénario ne peut que restreindre les propriétés d'un profil, jamais les étendre.** Il resserre un plafond, il ne le desserre pas ; et le jour où quelqu'un voudra donner plus de résistance ou une autre vitesse à un Badaud dans son lieu, la réponse est déjà écrite et c'est non. C'est ce qui garantit qu'une créature signifie la même chose partout — les touches annoncées, le coût de pression, ce que le joueur a appris de la première salle. La règle se vérifie au chargement : un plafond de scénario supérieur à celui du profil est refusé, avec le nom du profil et les deux valeurs.
+**Un scénario ne peut que restreindre les propriétés d'un profil, jamais les étendre.** Il resserre un plafond, il ne le desserre pas ; et le jour où quelqu'un voudra donner plus de résistance ou une autre vitesse à un Quidam dans son lieu, la réponse est déjà écrite et c'est non. C'est ce qui garantit qu'une créature signifie la même chose partout — les touches annoncées, le coût de pression, ce que le joueur a appris de la première salle. La règle se vérifie au chargement : un plafond de scénario supérieur à celui du profil est refusé, avec le nom du profil et les deux valeurs.
 
 ---
 
@@ -378,7 +378,7 @@ Le spawner porte donc aussi un **plafond d'effectif**, et cesse d'acheter quand 
 
 ### Trois sources, une dominante
 
-**Le contact** est le mode principal : le Badaud, le Molosse, l'Arpenteur et le Vigile n'ont pas d'autre moyen. Ils ne portent pas de coups, ils occupent l'espace — les dégâts ne sont donc pas des frappes isolées mais une **pression continue** quand on se laisse encercler.
+**Le contact** est le mode principal : le Quidam, le Molosse, l'Arpenteur et le Vigile n'ont pas d'autre moyen. Ils ne portent pas de coups, ils occupent l'espace — les dégâts ne sont donc pas des frappes isolées mais une **pression continue** quand on se laisse encercler.
 
 **Le tir** n'appartient qu'à la Buse. C'est ce qui punit le camping dans un coin, et le seul cas où un projectile ennemi traverse l'écran : il porte une couleur qui n'existe nulle part ailleurs dans la palette.
 
@@ -388,7 +388,7 @@ Le spawner porte donc aussi un **plafond d'effectif**, et cesse d'acheter quand 
 
 Un dégât par seconde tant que le contact dure, pas un coup unique suivi d'invulnérabilité. C'est ce qui rend l'encerclement mortel et le déplacement obligatoire — la lecture du jeu vient de là, pas d'un compteur de coups.
 
-Mais **le total encaissé par seconde est plafonné**, quel que soit le nombre d'ennemis collés. Sans ce plafond, trente Badauds tuent instantanément, et la mort devient illisible : le joueur n'a rien vu venir et ne peut rien en apprendre. Avec lui, être encerclé est très dangereux mais laisse une fenêtre pour se dégager, ce qui est exactement le moment de jeu recherché.
+Mais **le total encaissé par seconde est plafonné**, quel que soit le nombre d'ennemis collés. Sans ce plafond, trente Quidams tuent instantanément, et la mort devient illisible : le joueur n'a rien vu venir et ne peut rien en apprendre. Avec lui, être encerclé est très dangereux mais laisse une fenêtre pour se dégager, ce qui est exactement le moment de jeu recherché.
 
 Corollaire sur le retour : à cette cadence, un son de dégât par tick serait insupportable. Le son se déclenche à l'entrée en contact et se réarme après un silence ; l'écran, lui, porte la jauge qui descend visiblement.
 
@@ -429,7 +429,7 @@ Une valeur absolue de PV ne veut rien dire dans un jeu où l'arme grossit toute 
 
 | Profil | Touches | Points | Ce que le chiffre traduit |
 |---|---|---|---|
-| Badaud | 3 | 10 | il meurt vite, il revient en nombre |
+| Quidam | 3 | 10 | il meurt vite, il revient en nombre |
 | Molosse | 2 | 25 | fragile, mais il arrive à trois et vite |
 | Arpenteur | 4 | 30 | il faut le suivre pendant qu'il tourne |
 | Baudruche | 4 | 35 | l'abattre de près est une erreur |
@@ -441,7 +441,7 @@ Ces valeurs sont un point de départ, pas un équilibrage : elles se règlent à
 
 **La résistance monte au fil de la run**, par un multiplicateur adossé à la courbe de pression — sinon la fin de partie n'est qu'un tapis roulant, puisque l'arme a été multipliée par dix. C'est ce multiplicateur qu'on ajuste, jamais les touches de chaque profil, qui restent le rapport entre eux.
 
-**Il vit sur la phase, à côté du budget qu'elle dépense**, et il est fractionnaire : la première valeur entière au-dessus de un est deux, si bien qu'un multiplicateur entier ferait commencer toute progression par un Badaud à six touches. Un virgule trois en donne quatre, qui est le pas naturel. Il ne descend pas sous un — une courbe durcit, et un profil d'une touche sous un demi rendrait une créature morte à l'apparition.
+**Il vit sur la phase, à côté du budget qu'elle dépense**, et il est fractionnaire : la première valeur entière au-dessus de un est deux, si bien qu'un multiplicateur entier ferait commencer toute progression par un Quidam à six touches. Un virgule trois en donne quatre, qui est le pas naturel. Il ne descend pas sous un — une courbe durcit, et un profil d'une touche sous un demi rendrait une créature morte à l'apparition.
 
 **Il s'applique à l'apparition et jamais après, et c'est ce qui garde l'unité.** Une créature qui durcirait pendant qu'on la frappe demanderait plus de coups qu'au coup précédent : « trois touches » cesserait d'être une unité pour redevenir un nombre, et le joueur ne pourrait plus compter. Le nombre et la dureté restent par ailleurs deux réglages distincts — monter la pression pour avoir plus d'ennemis ne doit pas les rendre plus durs par la même écriture.
 
@@ -1095,7 +1095,7 @@ Un **rôle** décide d'abord, et il en a trois : le joueur porte une vie, un pla
 
 Le nombre de gemmes est un **nombre et non une valeur**, ce que le chapitre 2 impose : une gemme rapporte la même chose du début à la fin, et c'est le seuil du niveau suivant qui monte. Un profil qui doit rapporter davantage en laisse donc plusieurs, et c'est la quantité au sol qui dit au joueur ce qu'il va gagner. Un booléen n'en aurait couvert que deux, le troisième cas se lisant dans son absence — le genre de défaut par défaut qu'on ne voit pas.
 
-Un **comportement** ajoute ensuite ce qui n'a de sens que pour lui : tangentiel du flanqueur, portée de la Buse, dégâts de charge du Molosse, rayon d'explosion de la Baudruche. Déclarés avec le comportement et non dans une liste de champs facultatifs, ils se contrôlent dans les deux sens — une portée sur un Badaud ne serait jamais lue et laisserait croire qu'il tire.
+Un **comportement** ajoute ensuite ce qui n'a de sens que pour lui : tangentiel du flanqueur, portée de la Buse, dégâts de charge du Molosse, rayon d'explosion de la Baudruche. Déclarés avec le comportement et non dans une liste de champs facultatifs, ils se contrôlent dans les deux sens — une portée sur un Quidam ne serait jamais lue et laisserait croire qu'il tire.
 
 Deux unités enfin, et jamais deux fois le même nom pour deux unités : `vitesse_tuiles_s` sur le seul joueur, `vitesse_relative` sur les autres. Et `rayon_tuiles`, pas un rayon en pixels : la simulation ne connaît que la tuile, et une distance mesurée à l'écran décrirait une ellipse dans le monde.
 
@@ -1195,7 +1195,7 @@ Un seul compteur de ticks porte la partie. Il n'avance ni pendant la pause de la
 
 ### Les repères
 
-**La tuile est le repère du monde, et le seul.** Le pixel n'existe que dans `internal/render` ; l'élévation est une troisième grandeur qui ne participe à aucun calcul de simulation. Une distance de jeu se mesure dans le plan du sol et jamais à l'écran, sinon un rayon exprimé en pixels décrit une ellipse et deux Badauds se touchent à une distance différente selon qu'ils sont alignés est-ouest ou nord-sud.
+**La tuile est le repère du monde, et le seul.** Le pixel n'existe que dans `internal/render` ; l'élévation est une troisième grandeur qui ne participe à aucun calcul de simulation. Une distance de jeu se mesure dans le plan du sol et jamais à l'écran, sinon un rayon exprimé en pixels décrit une ellipse et deux Quidams se touchent à une distance différente selon qu'ils sont alignés est-ouest ou nord-sud.
 
 **Les positions sont en virgule fixe entière, une tuile valant 65536.** Pas des flottants : la spécification Go autorise une implémentation à fusionner une multiplication et une addition en une seule opération arrondie une fois, et arm64 le fait là où amd64 ne le fait pas. Deux binaires publiés divergeraient sur la même graine, ce qui viderait l'invariant du déterminisme de sa substance — et avec lui le classement par graine, la graine du jour et le partage d'un défi, que le chapitre 6 promet tous les trois.
 
@@ -1268,7 +1268,7 @@ Trois règles le tiennent :
 
 - **Il partage la clé de tri en profondeur des autres entités, et passe sous tout ce qui est vivant** à profondeur égale. Sans cela, un tapis de cadavres finit par masquer la horde en fin de run — ce que le chapitre 2 interdit.
 - **Son bassin est borné comme les autres.** Plein, le plus ancien cède sa place plutôt que d'allouer. À vingt morts par seconde en pic, c'est le cas ordinaire et non une erreur : un cadavre disparaît un peu tôt au milieu d'une mêlée, ce qui ne se voit pas, et le budget d'allocation ne bouge pas d'un pic à l'autre.
-- **Il porte la teinte de variante de l'ennemi dont il vient**, sinon un Badaud bleu laisse un cadavre vert et cela se remarque immédiatement.
+- **Il porte la teinte de variante de l'ennemi dont il vient**, sinon un Quidam bleu laisse un cadavre vert et cela se remarque immédiatement.
 
 Le bassin de cadavres est donc entièrement cosmétique : il n'entre pas dans l'empreinte d'état, et ne consommant aucun tirage, une run simulée sans rendu peut ne pas l'alimenter.
 
@@ -1375,7 +1375,7 @@ Note de prudence : survivor, roguelite, exploration, ressources et éditeur avec
 - **La palette définitive** : le plafond de couleurs de `MATIERES`, et les teintes réservées — celle du personnage joueur et celle des projectiles ennemis, qui ne doivent apparaître nulle part ailleurs.
 - **La portée du tir de base**, qui remplace l'angle du cône comme réglage décisif du kiting : trop courte, il faut faire face pour toucher ; trop longue, la horde meurt avant d'être une menace.
 - **Le plafond de dégâts par seconde** et le rapport entre contact ordinaire et charge du Molosse : deux chiffres qui décident si l'encerclement est tendu ou injuste.
-- **La vitesse du joueur rapportée à celle des profils** : à 60 % de sa vitesse un Badaud ne rattrape jamais, à 90 % la fuite ne suffit plus. Tout le kiting tient dans ce rapport, et il se règle en jouant. Le point de départ est cinq tuiles par seconde pour le joueur — un peu plus de trois secondes pour traverser l'écran — ce qui donne au Molosse en charge un gain d'une tuile trois quarts par seconde, franc plutôt que rapide.
+- **La vitesse du joueur rapportée à celle des profils** : à 60 % de sa vitesse un Quidam ne rattrape jamais, à 90 % la fuite ne suffit plus. Tout le kiting tient dans ce rapport, et il se règle en jouant. Le point de départ est cinq tuiles par seconde pour le joueur — un peu plus de trois secondes pour traverser l'écran — ce qui donne au Molosse en charge un gain d'une tuile trois quarts par seconde, franc plutôt que rapide.
 - **La portée de ramassage des gemmes et la durée de vie d'une gemme** : deux valeurs, un seul réglage — le chapitre 2 dit pourquoi elles ne se décident pas séparément.
 - **Le pilote de persistance** : SQLite si et seulement si il se compile pour `js/wasm`, sinon un fichier JSON.
 - **La courbe de résistance** au fil de la run, et le **temps de référence** de chaque lieu : c'est lui qui fixe le poids réel du bonus de temps face aux points d'ennemis.

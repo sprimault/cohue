@@ -27,15 +27,15 @@ func coller(t *testing.T, w *World, profil, combien int) {
 
 // TestLeContactRetireDeLaVieEnContinu garde le rythme, pas seulement la perte.
 //
-// Un Badaud collé retire ce que son profil annonce par seconde : au bout d'une
+// Un Quidam collé retire ce que son profil annonce par seconde : au bout d'une
 // seconde exacte il en manque autant, ni un de plus ni un de moins. C'est ce que
 // l'accumulateur en points-ticks rend exact — six points par seconde font un
 // dixième de point par tick, qu'aucun entier ne représente, et une division
 // faite à chaque tick perdrait le reste jusqu'à ne rien retirer du tout.
 func TestLeContactRetireDeLaVieEnContinu(t *testing.T) {
 	w, profils := champSansTir(t)
-	badaud := indexDuProfil(t, profils, "marcheur")
-	coller(t, w, badaud, 1)
+	quidam := indexDuProfil(t, profils, "marcheur")
+	coller(t, w, quidam, 1)
 	depart := w.Health()
 
 	for range TPS {
@@ -43,7 +43,7 @@ func TestLeContactRetireDeLaVieEnContinu(t *testing.T) {
 	}
 
 	perdu := depart - w.Health()
-	if attendu := profils.Enemies[badaud].ContactDamage; perdu != attendu {
+	if attendu := profils.Enemies[quidam].ContactDamage; perdu != attendu {
 		t.Errorf("%d points perdus en une seconde, attendu %d", perdu, attendu)
 	}
 }
@@ -62,10 +62,10 @@ func TestLePlafondTientQuelQueSoitLeNombreDEnnemis(t *testing.T) {
 	const colles = 10
 
 	w, profils := champSansTir(t)
-	badaud := indexDuProfil(t, profils, "marcheur")
-	coller(t, w, badaud, colles)
+	quidam := indexDuProfil(t, profils, "marcheur")
+	coller(t, w, quidam, colles)
 
-	if n := colles * profils.Enemies[badaud].ContactDamage; n <= profils.Player.DamageCap {
+	if n := colles * profils.Enemies[quidam].ContactDamage; n <= profils.Player.DamageCap {
 		t.Fatalf("le cas ne teste rien : %d de dégâts sous un plafond de %d",
 			n, profils.Player.DamageCap)
 	}
@@ -137,11 +137,11 @@ func TestLaVieAZeroEstLaMort(t *testing.T) {
 // des intentions au contact.
 func TestLaHordeFinitParBlesser(t *testing.T) {
 	w, profils := champSansTir(t)
-	badaud := indexDuProfil(t, profils, "marcheur")
+	quidam := indexDuProfil(t, profils, "marcheur")
 	px, py := w.Player()
 
 	for i := range 8 {
-		if _, ok := w.SpawnEnemy(badaud, px+FromInt(2+i%3), py+FromInt(i%4)); !ok {
+		if _, ok := w.SpawnEnemy(quidam, px+FromInt(2+i%3), py+FromInt(i%4)); !ok {
 			t.Fatal("la créature n'a pas été posée")
 		}
 	}

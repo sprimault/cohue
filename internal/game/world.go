@@ -167,7 +167,7 @@ type World struct {
 	//
 	// Le décalage n'est pas une coquetterie. L'index brut ferait du zéro à la
 	// fois « aucun convoité » et « le premier profil de la table », c'est-à-dire
-	// qu'un champ oublié désignerait silencieusement le Badaud. Décalé, le zéro
+	// qu'un champ oublié désignerait silencieusement le Quidam. Décalé, le zéro
 	// est l'état que rien de valide ne produit — le même geste que les
 	// générations d'un `Handle`, qui partent à un.
 	convoite int
@@ -261,7 +261,7 @@ func (w *World) Enemies() *Pool[Enemy] { return w.ennemis }
 // **Elle existe pour que rien hors de ce paquet ne dépende de l'ordre de la
 // table.** Cet ordre est le tri alphabétique des clés, ce qu'aucun appelant n'a
 // de raison de savoir : le rendu qui teintait la horde par son index a donné le
-// rouge du Badaud au Vigile, et rien ne pouvait le dire — les deux indices sont
+// rouge du Quidam au Vigile, et rien ne pouvait le dire — les deux indices sont
 // valides, et une couleur fausse ne casse aucun test.
 func (w *World) EnemyKey(profil int) string { return w.profils.Enemies[profil].Key }
 
@@ -522,7 +522,7 @@ func (w *World) vitesse(base Fixed, x, y Fixed) Fixed {
 // arrondi de la position, rendrait faux en silence.
 //
 // La poussée de séparation ne décide donc pas de la position finale, et c'est ce
-// qui permet à vingt Badauds de pousser un Vigile contre une cloison sans le
+// qui permet à vingt Quidams de pousser un Vigile contre une cloison sans le
 // faire passer au travers : ils s'entassent derrière lui, ce qui est tout
 // l'intérêt d'un couloir bouché.
 func (w *World) glisser(x, y Fixed, pas Vec) (Fixed, Fixed) {

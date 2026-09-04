@@ -204,14 +204,14 @@ func TestLePilierArreteLeTirDeLaBuse(t *testing.T) {
 // TestUnProfilSansPorteeNeTirePas garde ce qui permet au tir de vivre dans la
 // passe commune sans y peser.
 //
-// Le Badaud partage la boucle de la horde : si sa portée nulle ne le sortait
+// Le Quidam partage la boucle de la horde : si sa portée nulle ne le sortait
 // pas, il tirerait des projectiles sans dégâts ni vitesse, et le bassin se
 // remplirait de tirs immobiles.
 func TestUnProfilSansPorteeNeTirePas(t *testing.T) {
 	w, _, _ := buse(t)
 	marcheur := indexDuProfil(t, w.profils, "marcheur")
 	if w.profils.Enemies[marcheur].Range != 0 {
-		t.Fatal("le Badaud porte une portée, ce cas suppose le contraire")
+		t.Fatal("le Quidam porte une portée, ce cas suppose le contraire")
 	}
 	if _, ok := w.SpawnEnemy(marcheur, w.playerX+FromInt(3), w.playerY); !ok {
 		t.Fatal("bassin plein")

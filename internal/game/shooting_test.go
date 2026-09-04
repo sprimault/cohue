@@ -174,7 +174,7 @@ func TestLaCadenceEspaceLesTirs(t *testing.T) {
 
 // TestLeTirTueEtLaCreatureQuitteLeBassin éprouve la mort comme état.
 //
-// La résistance du Badaud vaut trois touches de l'arme de base : trois tirs, et
+// La résistance du Quidam vaut trois touches de l'arme de base : trois tirs, et
 // il n'est plus dans le bassin. Aucun drapeau, aucune liste de morts en attente.
 func TestLeTirTueEtLaCreatureQuitteLeBassin(t *testing.T) {
 	w, profils := champDeTir(t)
@@ -490,7 +490,7 @@ func TestLeTirNeCoupePasUnAngle(t *testing.T) {
 // TestLeTirViseOuLaCibleSera garde ce qu'une partie jouée a fait remarquer.
 //
 // **La cible traverse, et c'est le cas que la visée manquait.** Le projectile met
-// une demi-seconde à parcourir six tuiles ; un Badaud en couvre une et demie dans
+// une demi-seconde à parcourir six tuiles ; un Quidam en couvre une et demie dans
 // ce temps, pour un rayon d'un huitième. Viser sa position rendait le tir sans
 // effet sur tout ce qui ne venait pas droit dessus, et le joueur n'a aucun moyen
 // de corriger une visée qu'il ne tient pas.

@@ -93,7 +93,7 @@ type EnemyProfile struct {
 	// Key est la clé du profil dans le manifeste — `marcheur`, `sprinteur`.
 	// C'est l'identifiant du moteur ; le nom est de la fiction.
 	Key string
-	// Name est le nom de fiction — Badaud, Molosse.
+	// Name est le nom de fiction — Quidam, Molosse.
 	Name string
 	// Behaviour est la manière dont il approche le joueur.
 	Behaviour Behaviour
@@ -126,13 +126,13 @@ type EnemyProfile struct {
 	// Solid dit si son corps arrête le joueur, ce qu'un seul profil fait.
 	//
 	// **Exigé de tous les ennemis, et non réservé à un comportement**, parce que
-	// le Vigile poursuit comme le Badaud : rien dans son comportement ne
+	// le Vigile poursuit comme le Quidam : rien dans son comportement ne
 	// distingue celui qui bouche de celui qui suit. Un champ facultatif ferait
 	// d'un Vigile dont on l'aurait oublié un colosse qui ne bloque rien — lent,
 	// encaissant, et sans le rôle qui justifie ces deux traits.
 	//
 	// Il n'arrête que le joueur. Les créatures se traversent entre elles, et ce
-	// qui empêche vingt Badauds de pousser un Vigile à travers une cloison est la
+	// qui empêche vingt Quidams de pousser un Vigile à travers une cloison est la
 	// projection sur la passabilité, pas leurs corps.
 	Solid bool
 	// ContactDamage est ce qu'il inflige par seconde au contact.
@@ -288,7 +288,7 @@ type AmbientProfile struct {
 //
 // Une entité ne garde que l'index de son profil dans `Enemies`, jamais une copie
 // de ses valeurs : c'est ce qui rend une modification de table effective sans
-// recharger le monde, et ce qui empêche deux Badauds d'avoir des valeurs
+// recharger le monde, et ce qui empêche deux Quidams d'avoir des valeurs
 // différentes.
 type Profiles struct {
 	// Player est le profil du personnage joué.
@@ -452,7 +452,7 @@ type rawCycle struct {
 //
 // Une entrée dit les deux choses à la fois, et la seconde est celle qui attrape
 // le copier-coller d'un profil vers un autre : un `tangentiel` resté sur un
-// Badaud ne serait jamais lu, et laisserait croire à un réglage. Le contrôle est
+// Quidam ne serait jamais lu, et laisserait croire à un réglage. Le contrôle est
 // donc symétrique sans qu'il ait fallu l'écrire deux fois.
 var champsConditionnels = []struct {
 	// nom est la clé telle qu'elle s'écrit dans le fichier.

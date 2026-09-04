@@ -80,16 +80,28 @@ func (w *World) Gems() *Pool[Gem] { return w.gemmes }
 // qui borne vraiment le stock est l'effacement, qui retire une gemme au bout de
 // sa durée de vie.
 func (w *World) lacher(e *Enemy) {
-	for rang := range w.profils.Enemies[e.Profile].Gems {
-		x, y := e.X, e.Y
-		// La première reste au point de la mort ; les suivantes s'écartent. Une
+	w.lacherEn(e.X, e.Y, w.profils.Enemies[e.Profile].Gems)
+}
+
+// lacherEn pose une volée de gemmes autour d'un point.
+//
+// **Séparée de `lacher` parce qu'une caisse en laisse aussi**, et que
+// l'étalement est ce qu'il ne faut surtout pas réécrire : le pas de trois, le
+// rayon qui croît d'un tour de table au suivant, et la raison pour laquelle la
+// neuvième ne retombe pas sur la première tiennent en trois lignes qu'une
+// seconde copie perdrait au premier ajustement. Ce qui diffère entre les deux
+// sources est d'où vient le nombre, jamais la façon de poser.
+func (w *World) lacherEn(x, y Fixed, combien int) {
+	for rang := range combien {
+		px, py := x, y
+		// La première reste au point d'origine ; les suivantes s'écartent. Une
 		// créature qui n'en laisse qu'une la pose donc exactement où elle est
 		// tombée, ce qui est le cas de toutes aujourd'hui.
 		if rang > 0 {
 			ecart := Heading(rang * 3).Scale(rayonVolee * Fixed(1+rang/Headings))
-			x, y = x+ecart.X, y+ecart.Y
+			px, py = px+ecart.X, py+ecart.Y
 		}
-		if _, pose := w.gemmes.Spawn(Gem{X: x, Y: y, Born: w.tick}); !pose {
+		if _, pose := w.gemmes.Spawn(Gem{X: px, Y: py, Born: w.tick}); !pose {
 			return
 		}
 	}

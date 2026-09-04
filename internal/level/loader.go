@@ -148,13 +148,18 @@ func (l *Loader) Load(dossier string) (*Loaded, error) {
 	scenario, ecarts := game.CompileScenario(lieu.Waves, l.profils, l.report)
 	ambiance, ecartsAmbiance := game.CompileAmbient(lieu.Ambient, l.profils, grille)
 	sortie, ecartsSortie := game.CompileExit(lieu.Exit, grille)
+	caisses, ecartsCaisses := game.CompileCrates(lieu.Crates, grille)
 	manques := append(valider(nom, lieu, jeu, pieces), ecarts...)
 	manques = append(manques, ecartsAmbiance...)
 	manques = append(manques, ecartsSortie...)
+	manques = append(manques, ecartsCaisses...)
 	if len(manques) > 0 {
 		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
-	return &Loaded{Grid: grille, Scenario: scenario, Ambient: ambiance, Exit: sortie}, nil
+	return &Loaded{
+		Grid: grille, Scenario: scenario, Ambient: ambiance,
+		Exit: sortie, Crates: caisses,
+	}, nil
 }
 
 // Loaded est ce qu'un lieu devient une fois cuit, jamais le fichier qu'il était.
@@ -177,6 +182,8 @@ type Loaded struct {
 	Ambient []game.AmbientPlacement
 	// Exit est la porte de sortie, nulle quand le lieu n'en a pas.
 	Exit *game.Exit
+	// Crates sont les caisses posées, vides quand le lieu n'en a pas.
+	Crates []game.CratePlacement
 }
 
 // cuire assemble les pièces posées en une seule grille de coûts.

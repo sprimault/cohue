@@ -180,6 +180,36 @@ func TestLaRelanceRefermeLaPorte(t *testing.T) {
 	}
 }
 
+// TestLaRelanceRepose LesCaisses garde ce que la salle redevient après une mort.
+//
+// Une salle dont les caisses resteraient cassées ne serait pas la même salle :
+// le joueur qui relance trouverait un lieu vidé de ce qu'il a déjà pris, sans
+// que rien ne l'explique — et la deuxième run serait plus difficile que la
+// première pour une raison qui n'appartient ni à la graine ni à la courbe.
+func TestLaRelanceReposeLesCaisses(t *testing.T) {
+	partie, err := Open(cohue.Assets, cohue.StartingCampaign, graineDeTest)
+	if err != nil {
+		t.Fatalf("montage de la partie livrée : %v", err)
+	}
+	semis := partie.World.Crates().Len()
+	if semis == 0 {
+		t.Fatal("le lieu livré ne pose aucune caisse : ce cas ne garde rien")
+	}
+
+	for partie.World.Crates().Len() == semis {
+		if !partie.World.Alive() {
+			t.Fatal("mort sans avoir cassé une seule caisse")
+		}
+		partie.World.Step(Pilot(partie.World.Tick()))
+	}
+
+	partie.Restart()
+
+	if got := partie.World.Crates().Len(); got != semis {
+		t.Errorf("%d caisse(s) après la relance, attendu le semis de %d", got, semis)
+	}
+}
+
 // TestLaSuiteDesRunsDescendDeLaGraineDeDepart garde ce que la relance fait de la
 // graine, et non ce qu'elle en calcule.
 //

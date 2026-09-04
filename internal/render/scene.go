@@ -31,6 +31,11 @@ const (
 	sorteTirHorde
 	sorteGemme
 	sorteAimant
+	// sorteCaisse est un objet posé au sol, trié avec le reste : elle ne bloque
+	// pas encore le champ de flux, si bien qu'une créature lui passe dessus et
+	// doit alors être peinte devant ou derrière selon sa profondeur, comme
+	// n'importe quel corps.
+	sorteCaisse
 	sorteJoueur
 )
 
@@ -105,8 +110,8 @@ type scene struct {
 // de ses deux côtés, à sa pointe basse : il faut donc un seau de plus que cette
 // somme. La capacité des séquences couvre les quatre bassins pleins et le
 // joueur, c'est-à-dire le plus grand nombre d'entités qu'une image puisse porter.
-func nouvelleScene(carte *game.CostGrid, ennemis, tirs, gemmes, aimants int) *scene {
-	total := ennemis + tirs + gemmes + aimants + 1
+func nouvelleScene(carte *game.CostGrid, ennemis, tirs, gemmes, aimants, caisses int) *scene {
+	total := ennemis + tirs + gemmes + aimants + caisses + 1
 	return &scene{
 		comptes: make([]int, carte.Width()+carte.Height()+1),
 		recueil: make([]entite, 0, total),
@@ -160,6 +165,12 @@ func (s *scene) recueillir(monde *game.World) {
 	for i := range aimants.Active() {
 		a := aimants.At(i)
 		s.ajouter(a.X, a.Y, aimants.IDAt(i), sorteAimant, i)
+	}
+
+	caisses := monde.Crates()
+	for i := range caisses.Active() {
+		c := caisses.At(i)
+		s.ajouter(c.X, c.Y, caisses.IDAt(i), sorteCaisse, i)
 	}
 
 	// Le joueur ne vit dans aucun bassin : il est seul, donc son identité ne

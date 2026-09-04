@@ -32,7 +32,7 @@ func salleOuverte(t *testing.T, scenario *Scenario, capacite int) (*World, *Prof
 
 	g := NewCostGrid(48, 48)
 	w := NewWorld(profils, armesInertes(t), progressionLivree(t), scenario, g, graineDeTest,
-		Capacities{Enemies: capacite, Shots: 8, EnemyShots: 8, Blasts: 8, Gems: 8})
+		Capacities{Enemies: capacite, Shots: 8, EnemyShots: 8, Blasts: 8, Gems: 16, Crates: 8})
 	w.Place(FromInt(24)+One/2, FromInt(24)+One/2)
 	return w, profils
 }

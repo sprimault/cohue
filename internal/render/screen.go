@@ -167,6 +167,11 @@ var (
 	// rendu lise les images. Deux descriptions de la même couleur, donc, et elles
 	// cesseront de l'être à l'étape 5 : c'est l'aplat qui disparaîtra.
 	teinteAimant = color.RGBA{R: 198, G: 126, B: 78, A: 255}
+	// **La caisse est du décor jusqu'à ce qu'on la touche**, et sa teinte le
+	// dit : un bois sourd, moins saturé que l'aimant qu'elle voisine en teinte.
+	// Ce qui doit rester distinct est l'objet qu'on va chercher — l'aimant — de
+	// celui qu'on casse en passant.
+	teinteCaisse = color.RGBA{R: 142, G: 108, B: 72, A: 255}
 )
 
 // Screen est le jeu tel qu'Ebitengine le voit.
@@ -185,6 +190,7 @@ type Screen struct {
 	eclat    *ebiten.Image
 	gemme    *ebiten.Image
 	aimant   *ebiten.Image
+	caisse   *ebiten.Image
 	// demiTuile est l'abscisse du sommet dans l'image d'une face, ce que le
 	// manifeste appellera son ancrage quand les images viendront de lui.
 	demiTuile int
@@ -233,7 +239,7 @@ func NewScreen(monde *game.World, carte *game.CostGrid, tuile [2]int) *Screen {
 		carte: carte,
 		cam:   nouvelleCamera(tuile, carte),
 		scene: nouvelleScene(carte, monde.Enemies().Cap(), monde.Shots().Cap(),
-			monde.Gems().Cap(), monde.Magnets().Cap()),
+			monde.Gems().Cap(), monde.Magnets().Cap(), monde.Crates().Cap()),
 		face:     face(tuile),
 		figurine: aplat(tuile[0]/4, tuile[0]*3/4),
 		eclat:    aplat(tuile[1]/8, tuile[1]/8),
@@ -243,7 +249,12 @@ func NewScreen(monde *game.World, carte *game.CostGrid, tuile [2]int) *Screen {
 		// Deux fois la gemme : il ne s'agit pas d'estimer un tas mais de
 		// repérer un objet unique à l'autre bout de la salle, et c'est la
 		// taille qui porte ça avant la teinte.
-		aimant:    aplat(tuile[1]/2, tuile[1]/2),
+		aimant: aplat(tuile[1]/2, tuile[1]/2),
+		// Plus large que haute, à l'inverse d'une figurine : ce qui doit se lire
+		// est un objet posé au sol qu'on va casser, pas une créature qu'on
+		// affronte. La confusion coûterait un détour ou une salve, et elle est
+		// facile à faire tant que tout est un aplat.
+		caisse:    aplat(tuile[0]/3, tuile[1]/2),
 		demiTuile: tuile[0] / 2,
 	}
 	s.cam.suivre(monde.Player())
@@ -499,6 +510,9 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteAimant:
 			a := s.monde.Magnets().At(e.place)
 			s.silhouette(ecran, s.aimant, a.X, a.Y, teinteAimant)
+		case sorteCaisse:
+			c := s.monde.Crates().At(e.place)
+			s.silhouette(ecran, s.caisse, c.X, c.Y, teinteCaisse)
 		case sorteJoueur:
 			x, y := s.monde.Player()
 			s.silhouette(ecran, s.figurine, x, y, teinteJoueur)

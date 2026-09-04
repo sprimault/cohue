@@ -85,6 +85,10 @@ type World struct {
 	// bassin des ennemis suppose.
 	ambiants *Pool[Ambient]
 	gemmes   *Pool[Gem]
+	// caisses sont les caisses posées par le lieu. Un bassin à part des gemmes
+	// qu'elles laissent : elles ne s'attirent pas, ne s'éteignent pas, et ne se
+	// ramassent pas — elles se cassent.
+	caisses *Pool[Crate]
 	// aimants tient au plus un objet, la règle du lot étant qu'un seul soit au
 	// sol à la fois. Un bassin quand même : le rendu parcourt les bassins, et une
 	// entité rangée autrement y serait un cas particulier.
@@ -203,6 +207,8 @@ type Capacities struct {
 	Ambients int
 	// Gems est le nombre de gemmes au sol.
 	Gems int
+	// Crates est le nombre de caisses qu'un lieu peut porter.
+	Crates int
 }
 
 // NewWorld monte une partie sur une carte et les tables du manifeste.
@@ -237,6 +243,7 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scena
 		souffles:    NewPool[Blast](capacites.Blasts),
 		ambiants:    NewPool[Ambient](capacites.Ambients),
 		gemmes:      NewPool[Gem](capacites.Gems),
+		caisses:     NewPool[Crate](capacites.Crates),
 		aimants:     NewPool[Magnet](1),
 		hasard:      NewStreams(graine),
 		cartes:      make([]Card, 0, Choices),
@@ -338,6 +345,13 @@ func (w *World) Step(voulu Vec) {
 	w.attirer()
 	w.prendreAimant()
 	w.progresser(w.ramasser())
+	// **Après le ramassage, et l'ordre inverse a été essayé.** Le joueur casse
+	// la caisse en arrivant dessus, donc les gemmes tombent à ses pieds : posées
+	// avant la récolte du même tick, elles étaient ramassées sans avoir jamais
+	// existé à l'écran. Elles entrent maintenant dans le cycle ordinaire — une
+	// image au sol au moins, la durée de vie, l'aimant —, ce qui est ce que la
+	// conception attend d'un butin.
+	w.casser()
 	w.tirer()
 	w.deplacerTirs()
 	w.tirerLaHorde()

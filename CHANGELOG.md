@@ -44,6 +44,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Les caisses se cassent et laissent des gemmes.** Un lieu déclare les siennes
+  dans un champ `caisses` facultatif, chacune à sa case ; le joueur les casse en
+  arrivant dessus, jamais son arme, qui ne les vise pas. Ce qu'elles laissent est
+  un réglage de partie et non de lieu, comme la valeur d'une gemme. La place de
+  démonstration en pose huit autour du carrefour.
 - **Un lieu peut se gagner et se quitter.** Il déclare sa sortie dans un champ
   `sortie` facultatif : la case de sa porte, et le nombre de créatures à abattre
   pour l'ouvrir. La porte se touche une fois gagnée, elle ne se traverse jamais,
@@ -109,6 +114,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **Crates break and leave gems.** A place declares its own in an optional
+  `caisses` field, each at its tile; the player breaks them by walking into
+  them, never their weapon, which does not aim at them. What they leave is a
+  game setting rather than a place setting, like a gem's value. The
+  demonstration place puts eight around the crossroads.
 - **A place can now be won and left.** It declares its exit in an optional
   `sortie` field: the door's tile, and how many creatures must be killed to open
   it. Once earned the door is touched, never walked through, and bystanders do

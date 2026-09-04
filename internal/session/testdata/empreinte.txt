@@ -3,7 +3,7 @@
 
 # choisi pour deux projectiles en vol et deux gemmes au sol, que nul autre instant ne montre ensemble
 tick 780
-joueur x=3511831 y=3342113 vie=100 niveau=1 xp=0 charge=false
+joueur x=3511831 y=3342113 vie=100 niveau=1 xp=3 charge=false
 ennemi 0 id=2 gen=1 profil=4 x=3582079 y=3646487 hits=3 pas=-2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 ennemi 1 id=4 gen=1 profil=4 x=3677175 y=3341913 hits=3 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 ennemi 2 id=1 gen=2 profil=4 x=3091749 y=5035044 hits=3 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
@@ -11,13 +11,15 @@ ennemi 3 id=3 gen=1 profil=4 x=2565882 y=4446494 hits=3 pas=2394,-2394 flash=0 c
 ennemi 4 id=0 gen=3 profil=4 x=4260293 y=3249792 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 tir 0 id=1 gen=9 x=3711070 y=3283847 reste=52434 hits=1 pas=12914,-2241
 tir 1 id=0 gen=4 x=3524938 y=3342093 reste=380109 hits=1 pas=13107,-20
-gemme 0 id=2 gen=1 x=3146667 y=3550911 ne=694 attiree=false
+gemme 0 id=4 gen=2 x=3146667 y=3550911 ne=694 attiree=false
 gemme 1 id=1 gen=1 x=3788748 y=4391273 ne=427 attiree=false
+gemme 2 id=5 gen=1 x=3255617 y=4500801 ne=446 attiree=false
+gemme 3 id=3 gen=1 x=3232447 y=4500801 ne=446 attiree=false
 flux vagues=905137858 positions=847631723 butin=306793347
 
 # choisi pour un aimant au sol, le niveau 2 franchi, la vie entamée et dix créatures vivantes
 tick 2700
-joueur x=2538388 y=3514861 vie=91 niveau=2 xp=3 charge=false
+joueur x=2538388 y=3514861 vie=91 niveau=2 xp=6 charge=false
 ennemi 0 id=3 gen=3 profil=4 x=2752003 y=3723447 hits=1 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 ennemi 1 id=4 gen=4 profil=4 x=2711126 y=3160933 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 ennemi 2 id=7 gen=1 profil=4 x=2807238 y=3724762 hits=3 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
@@ -29,16 +31,16 @@ ennemi 7 id=5 gen=3 profil=4 x=2743274 y=3668383 hits=3 pas=-1307,-1076 flash=0 
 ennemi 8 id=8 gen=2 profil=4 x=1927758 y=4211500 hits=3 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 ennemi 9 id=0 gen=6 profil=4 x=1509500 y=4210280 hits=3 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 tir 0 id=0 gen=50 x=2624709 y=3602303 reste=301467 hits=1 pas=9573,8953
-gemme 0 id=0 gen=5 x=3455103 y=3209852 ne=2401 attiree=false
-gemme 1 id=1 gen=6 x=3446381 y=3286543 ne=2431 attiree=false
-gemme 2 id=2 gen=4 x=3096082 y=3808223 ne=2553 attiree=false
-gemme 3 id=3 gen=5 x=2951190 y=3801639 ne=2603 attiree=false
+gemme 0 id=3 gen=5 x=3455103 y=3209852 ne=2401 attiree=false
+gemme 1 id=5 gen=6 x=3446381 y=3286543 ne=2431 attiree=false
+gemme 2 id=4 gen=5 x=3096082 y=3808223 ne=2553 attiree=false
+gemme 3 id=1 gen=6 x=2951190 y=3801639 ne=2603 attiree=false
 aimant 0 id=0 gen=1 x=4816896 y=884736
 flux vagues=450897158 positions=1036398020 butin=444631208
 
 # choisi pour quatre gemmes et une horde de onze, le plus que ces trois instants montrent
 tick 3163
-joueur x=3284240 y=3370570 vie=91 niveau=2 xp=3 charge=false
+joueur x=3284240 y=3370570 vie=91 niveau=2 xp=6 charge=false
 ennemi 0 id=3 gen=3 profil=4 x=3280510 y=3155250 hits=1 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 ennemi 1 id=0 gen=6 profil=4 x=2676450 y=3295772 hits=3 pas=2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 ennemi 2 id=7 gen=1 profil=4 x=3282311 y=3170005 hits=2 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
@@ -50,9 +52,9 @@ ennemi 7 id=5 gen=3 profil=4 x=3283963 y=3139756 hits=2 pas=0,3386 flash=0 charg
 ennemi 8 id=8 gen=2 profil=4 x=3057012 y=3258688 hits=3 pas=2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 ennemi 9 id=4 gen=5 profil=4 x=2326246 y=2910058 hits=3 pas=2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 ennemi 10 id=2 gen=4 profil=4 x=4075826 y=2379180 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-gemme 0 id=1 gen=7 x=3277635 y=3080412 ne=3130 attiree=false
-gemme 1 id=3 gen=6 x=3082709 y=2884224 ne=3038 attiree=false
-gemme 2 id=2 gen=5 x=3164808 y=2897088 ne=3059 attiree=false
+gemme 0 id=5 gen=7 x=3277635 y=3080412 ne=3130 attiree=false
+gemme 1 id=1 gen=7 x=3082709 y=2884224 ne=3038 attiree=false
+gemme 2 id=4 gen=6 x=3164808 y=2897088 ne=3059 attiree=false
 aimant 0 id=0 gen=1 x=4816896 y=884736
 flux vagues=26261793 positions=287567265 butin=495687234
 

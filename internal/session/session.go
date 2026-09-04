@@ -86,6 +86,15 @@ const AmbientCapacity = 64
 // d'allouer quand elles tombent plus vite qu'elles ne s'éteignent.
 const GemCapacity = 512
 
+// CrateCapacity plafonne le bassin des caisses d'un lieu.
+//
+// **Il borne un semis écrit, pas un flux** : les caisses sont posées une fois au
+// montage et ne réapparaissent pas, si bien que ce nombre est le maximum qu'un
+// auteur peut placer et non un pic à absorber. Trente-deux est déjà beaucoup
+// pour une salle de trois minutes — au-delà, casser cesse d'être un détour pour
+// devenir le sol.
+const CrateCapacity = 32
+
 // Session est une partie montée, prête à tourner.
 //
 // La taille de tuile voyage avec le monde parce qu'elle vient du même
@@ -116,6 +125,9 @@ type Session struct {
 	// sortie est la porte du lieu, reposée à chaque relance comme le reste. Elle
 	// est immuable — l'ouverture vit dans le monde, jamais ici.
 	sortie *game.Exit
+	// caisses est le semis du lieu, reposé entier à chaque relance : une salle
+	// dont les caisses resteraient cassées après une mort ne serait pas la même.
+	caisses []game.CratePlacement
 }
 
 // Restart rejoue le même lieu, sans rien redemander.
@@ -157,11 +169,13 @@ func (s *Session) monter() {
 			EnemyShots: EnemyShotCapacity,
 			Blasts:     BlastCapacity,
 			Gems:       GemCapacity,
+			Crates:     CrateCapacity,
 			Ambients:   AmbientCapacity,
 		})
 	placer(s.World, s.Grid)
 	s.World.Populate(s.ambiance)
 	s.World.SetExit(s.sortie)
+	s.World.Stock(s.caisses)
 }
 
 // Open monte une partie sur la campagne donnée, à son lieu de départ.
@@ -225,7 +239,8 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 	grille, scenario := charge.Grid, charge.Scenario
 	slog.Info("lieu chargé", "campaign", graphe.ID, "name", lieu,
 		"width", grille.Width(), "height", grille.Height(), "phases", len(scenario.Phases),
-		"ambient", len(charge.Ambient), "exit", charge.Exit != nil)
+		"ambient", len(charge.Ambient), "exit", charge.Exit != nil,
+		"crates", len(charge.Crates))
 
 	armes, err := game.LoadWeapons(fsys, cohue.WeaponManifest)
 	if err != nil {
@@ -243,6 +258,7 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		scenario:    scenario,
 		ambiance:    charge.Ambient,
 		sortie:      charge.Exit,
+		caisses:     charge.Crates,
 	}
 	partie.monter()
 	slog.Info("partie montée", "seed", graine)

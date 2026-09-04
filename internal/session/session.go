@@ -128,7 +128,12 @@ func (s *Session) Restart() {
 // d'écrire un lieu de défi.
 func (s *Session) monter() {
 	s.World = game.NewWorld(s.profils, s.armes, s.progression, s.scenario, s.Grid, s.Seed,
-		HordeCapacity, ShotCapacity, EnemyShotCapacity, GemCapacity)
+		game.Capacities{
+			Enemies:    HordeCapacity,
+			Shots:      ShotCapacity,
+			EnemyShots: EnemyShotCapacity,
+			Gems:       GemCapacity,
+		})
 	placer(s.World, s.Grid)
 }
 

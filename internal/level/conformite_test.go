@@ -61,7 +61,14 @@ func TestLieuLivre(t *testing.T) {
 	if err != nil {
 		t.Fatalf("profils livrés : %v", err)
 	}
-	charge, err := NewLoader(cohue.Assets, couts, profils).
+	// La progression livrée, et non une borne d'essai : ce cas monte ce que le
+	// jeu monte, et le refus d'un profil trop cher pour son plafond fait partie
+	// de ce qu'il doit vérifier sur le lieu réel.
+	progression, err := game.LoadProgression(cohue.Assets, "assets/progression/manifeste.json")
+	if err != nil {
+		t.Fatalf("progression livrée : %v", err)
+	}
+	charge, err := NewLoader(cohue.Assets, couts, profils, progression.CarryOver).
 		Load("assets/campagnes/demonstration/place")
 	if err != nil {
 		t.Fatalf("chargement du lieu : %v", err)
@@ -75,6 +82,28 @@ func TestLieuLivre(t *testing.T) {
 	if len(scenario.Phases) == 0 {
 		t.Error("le lieu livré n'a aucune phase : la partie se jouerait sans horde")
 	}
+
+	// **Les sept profils sont convoqués, et ça ne se vérifie que d'ici.** Une run
+	// de référence ne peut pas le dire : ses instants tombent dans la première
+	// minute, et son pilote — une direction constante — meurt avant le troisième
+	// palier, après quoi le bassin sature et plus rien n'apparaît. Ce qui garantit
+	// qu'un profil peut apparaître est le refus au chargement d'une phase qui ne
+	// peut pas le payer ; ce qui garantit qu'il est **écrit** est ce cas-ci.
+	//
+	// Sans lui, un profil retiré du lieu par mégarde ne se verrait qu'en jouant
+	// dix minutes, et seulement si l'on savait déjà lequel chercher.
+	convoques := map[int]bool{}
+	for _, phase := range scenario.Phases {
+		for _, rang := range phase.Profiles {
+			convoques[rang] = true
+		}
+	}
+	if len(convoques) != len(profils.Enemies) {
+		t.Errorf("le lieu livré convoque %d profils sur %d : l'étape 4 les rend "+
+			"tous jouables, et ce lieu est le seul endroit où ça se voit",
+			len(convoques), len(profils.Enemies))
+	}
+	t.Logf("profils convoqués : %d sur %d", len(convoques), len(profils.Enemies))
 	if grille.Width() != 98 || grille.Height() != 98 {
 		t.Fatalf("grille %dx%d, attendu 98x98", grille.Width(), grille.Height())
 	}

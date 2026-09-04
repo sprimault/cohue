@@ -50,10 +50,7 @@ func (w *World) apparaitre() {
 	// l'accumulation ; l'empêcher d'atteindre un seul achat ne serait plus une
 	// limite mais un arrêt, et une phase à faible pression cesserait de produire
 	// quoi que ce soit sans qu'aucun refus ne le dise.
-	plafond := borner(int64(accorde) * int64(w.progression.CarryOver))
-	if plafond < phase.Cheapest {
-		plafond = phase.Cheapest
-	}
+	plafond := PlafondDeReport(accorde, w.progression.CarryOver, phase.Cheapest)
 	if w.budget > plafond {
 		w.budget = plafond
 	}
@@ -89,6 +86,26 @@ func (w *World) apparaitre() {
 		w.budget -= meute.PackCost()
 		w.vivants[profil] += meute.Group
 	}
+}
+
+// PlafondDeReport rend la borne au-delà de laquelle un budget cesse de
+// s'accumuler.
+//
+// **Un seul domicile pour ce calcul, parce que deux lecteurs en dépendent.** Le
+// tick s'en sert pour borner ce qu'il accumule ; la compilation d'un scénario
+// s'en sert pour refuser une phase dont un profil coûte plus que ce plafond, et
+// n'apparaîtrait donc jamais. Écrit deux fois, l'un des deux finirait par oublier
+// le plancher — et le contrôle certifierait alors une phase que le jeu ne sait
+// pas jouer.
+//
+// Le plancher est ce prix le moins cher : la borne limite l'accumulation, elle ne
+// doit pas l'empêcher d'atteindre un seul achat.
+func PlafondDeReport(parTick Fixed, report Tick, moinsCher Fixed) Fixed {
+	plafond := borner(int64(parTick) * int64(report))
+	if plafond < moinsCher {
+		return moinsCher
+	}
+	return plafond
 }
 
 // etalage range dans `w.achetables` les profils que la phase autorise, dont la

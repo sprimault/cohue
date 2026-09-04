@@ -44,6 +44,16 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Le lieu de démonstration convoque de nouveau les sept créatures.** Une entre
+  par palier, du plus spatial au plus subtil : l'Arpenteur à une minute, le
+  Molosse et le Vigile à quatre, la Buse à six, la Baudruche à huit, le
+  Secouriste à dix. La résistance monte à partir de la sixième minute, sans quoi
+  la fin de partie n'est qu'un tapis roulant.
+- **Un profil qu'une phase ne peut pas payer est refusé au chargement.** Le
+  budget d'une phase s'accumule jusqu'à un plafond ; un profil qui coûte
+  davantage était écrit dans le fichier et n'apparaissait jamais, sans un mot. Le
+  refus nomme le prix, le plafond et la pression qui le produit, pour qu'on
+  puisse choisir lequel des trois changer.
 - **Une phase peut durcir ce qu'elle fait apparaître.** Un champ `resistance`
   facultatif multiplie les touches des créatures nées sous elle — 1,3 fait passer
   un Badaud de trois à quatre. La résistance est figée à l'apparition : une
@@ -89,6 +99,15 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **The demonstration place summons all seven creatures again.** One enters per
+  step, from the most spatial to the most subtle: the Arpenteur at one minute,
+  the Molosse and the Vigile at four, the Buse at six, the Baudruche at eight,
+  the Secouriste at ten. Toughness rises from the sixth minute on, or the endgame
+  is just a conveyor belt.
+- **A profile a phase cannot afford is rejected at load time.** A phase's budget
+  accumulates up to a ceiling; a profile costing more was written in the file and
+  never showed up, without a word. The rejection names the price, the ceiling and
+  the pressure that produces it, so you can choose which of the three to change.
 - **A phase can toughen what it spawns.** An optional `resistance` field
   multiplies the hits of creatures born under it — 1.3 takes a Badaud from three
   to four. Toughness is fixed at spawn: a creature takes the same number of hits

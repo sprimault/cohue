@@ -35,8 +35,15 @@ var couts = map[string]game.Cost{
 // profil suffit — ce qui se vérifie ici est qu'un nom se résout ou se refuse.
 var profils = &game.Profiles{Enemies: []game.EnemyProfile{{Key: "marcheur"}}}
 
+// reportDeTest est la borne du budget reporté que ces cas donnent au chargeur.
+//
+// Trois secondes, comme la progression livrée. Ces cas n'éprouvent pas le refus
+// d'un profil trop cher — le profil d'essai ne coûte rien —, et une borne
+// généreuse évite qu'ils échouent pour une raison qui n'est pas la leur.
+const reportDeTest = 3 * game.TPS
+
 // chargeur monte un chargeur de test sur un système de fichiers.
-func chargeur(fsys fs.FS) *Loader { return NewLoader(fsys, couts, profils) }
+func chargeur(fsys fs.FS) *Loader { return NewLoader(fsys, couts, profils, reportDeTest) }
 
 // chargeurDeTest monte un chargeur sur les fichiers de testdata.
 //

@@ -165,7 +165,7 @@ func (w *World) durcissement() Fixed {
 //
 // Un scénario absent — aucune phase — est admis et ne produit aucune apparition.
 // Le refuser ferait d'une salle de passage une erreur de fichier.
-func CompileScenario(brut WaveScenario, profils *Profiles) (*Scenario, []string) {
+func CompileScenario(brut WaveScenario, profils *Profiles, report Tick) (*Scenario, []string) {
 	var manques []string
 	dire := func(format string, args ...any) {
 		manques = append(manques, fmt.Sprintf(format, args...))
@@ -221,10 +221,64 @@ func CompileScenario(brut WaveScenario, profils *Profiles) (*Scenario, []string)
 				phase.Cheapest = prix
 			}
 		}
+		payables(ou, &phase, profils, pression, report, dire)
 		phase.Peak = pointe(ou, p.Peak, pression, dire)
 		scenario.Phases = append(scenario.Phases, phase)
 	}
 	return scenario, manques
+}
+
+// payables refuse les profils qu'une phase autorise sans jamais pouvoir les
+// payer.
+//
+// **C'est un réglage mort et parfaitement silencieux.** Le budget d'une phase
+// s'accumule jusqu'à son plafond de report et pas au-delà : un profil dont
+// l'apparition coûte davantage n'est jamais acheté, alors qu'il est écrit dans le
+// fichier. L'auteur voit un nom dans sa courbe et ne voit jamais la créature ; le
+// spawner, lui, n'a rien à signaler — il achète ce qu'il peut, ce qui est son
+// travail.
+//
+// `Cheapest` ne le ferme pas, et c'est ce qui rend le cas surprenant : il retient
+// le prix **le moins cher** de la phase, si bien qu'un Badaud à trois satisfait
+// la garde et laisse un Molosse à douze inatteignable dans la même phase.
+//
+// **Le message nomme les trois nombres**, parce que c'est leur relation qui est
+// fausse et non l'un d'eux : le prix, le plafond, et la pression qui le produit.
+// Avec les trois, l'auteur choisit de monter la pression, d'allonger le report ou
+// de déplacer le profil ; avec le seul refus, il ne sait pas quoi toucher.
+//
+// La pression de base sert de référence, jamais celle d'une pointe : un profil
+// qui n'apparaîtrait que pendant vingt-cinq secondes de pointe serait presque
+// aussi muet, et rien dans le format ne dit qu'on peut réserver un profil à une
+// pointe.
+func payables(ou string, phase *Phase, profils *Profiles, pression int, report Tick,
+	dire func(string, ...any)) {
+	plafond := PlafondDeReport(phase.Pressure, report, phase.Cheapest)
+	for _, rang := range phase.Profiles {
+		profil := &profils.Enemies[rang]
+		prix := profil.PackCost()
+		if prix <= plafond {
+			continue
+		}
+		dire("%s.profils : « %s » coûte %d par apparition, quand une pression de %d "+
+			"par seconde reportée sur %d s plafonne le budget à %s — il "+
+			"n'apparaîtrait jamais. Monter la pression, allonger le report, ou "+
+			"déplacer ce profil vers une phase plus dense",
+			ou, profil.Key, profil.PressureCost*profil.Group, pression,
+			int(report)/TPS, tronque(plafond))
+	}
+}
+
+// tronque écrit un budget en unités de jeu, arrondi vers le bas au centième.
+//
+// **Vers le bas et non au plus proche**, parce que le cas qui a motivé ce message
+// se joue à un cheveu : une pression de quatre reportée sur trois secondes donne
+// un plafond de 11,9998 pour une meute qui coûte douze, la conversion par tick le
+// plaçant un millième en dessous. Arrondi au plus proche, le message dirait
+// « plafond 12,00 » face à « coûte 12 », et l'auteur chercherait longtemps.
+func tronque(f Fixed) string {
+	centiemes := int64(f) * 100 / int64(One)
+	return fmt.Sprintf("%d,%02d", centiemes/100, centiemes%100)
 }
 
 // profilsAutorises résout les noms d'une phase en index de la table des profils.

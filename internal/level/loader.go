@@ -69,12 +69,21 @@ type Loader struct {
 	// Les résoudre plus tard aurait rendu à l'auteur deux listes de manquements
 	// au lieu d'une.
 	profils *game.Profiles
+	// report est la borne du budget de pression reporté d'un tick au suivant.
+	//
+	// Elle vient de la progression et non du lieu, et elle entre pourtant dans sa
+	// validation : une phase qui autorise un profil coûtant plus que ce plafond
+	// ne le fera jamais apparaître. Le refus appartient au fichier — c'est le
+	// scénario qui est mal formé, quelle que soit la partie qui le monte —, donc
+	// il se fait ici plutôt qu'au montage.
+	report game.Tick
 }
 
 // NewLoader monte un chargeur sur un système de fichiers et les deux catalogues
 // qu'un lieu cite : les coûts de traversée et les profils de créatures.
-func NewLoader(fsys fs.FS, couts map[string]game.Cost, profils *game.Profiles) *Loader {
-	return &Loader{fsys: fsys, couts: couts, profils: profils}
+func NewLoader(fsys fs.FS, couts map[string]game.Cost, profils *game.Profiles,
+	report game.Tick) *Loader {
+	return &Loader{fsys: fsys, couts: couts, profils: profils, report: report}
 }
 
 // Load lit le lieu que porte un dossier, ses pièces et son jeu, puis les cuit
@@ -136,7 +145,7 @@ func (l *Loader) Load(dossier string) (*Loaded, error) {
 	// refuser : une carte où lire la passabilité.
 	grille := cuire(lieu, jeu, pieces, l.couts)
 
-	scenario, ecarts := game.CompileScenario(lieu.Waves, l.profils)
+	scenario, ecarts := game.CompileScenario(lieu.Waves, l.profils, l.report)
 	ambiance, ecartsAmbiance := game.CompileAmbient(lieu.Ambient, l.profils, grille)
 	manques := append(valider(nom, lieu, jeu, pieces), ecarts...)
 	manques = append(manques, ecartsAmbiance...)

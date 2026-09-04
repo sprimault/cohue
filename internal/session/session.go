@@ -204,7 +204,17 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 	}
 	slog.Info("profils chargés", "enemies", len(profils.Enemies))
 
-	charge, err := level.NewLoader(fsys, couts, profils).Load(lieu)
+	// **La progression précède le lieu, et cet ordre porte.** La validation d'un
+	// scénario a besoin de la borne de report pour refuser une phase qui
+	// autoriserait un profil trop cher pour son budget : sans elle, le refus ne
+	// pourrait se faire qu'au montage, où il vaudrait pour la partie et non pour
+	// le fichier.
+	progression, err := game.LoadProgression(fsys, cohue.ProgressionManifest)
+	if err != nil {
+		return nil, err
+	}
+
+	charge, err := level.NewLoader(fsys, couts, profils, progression.CarryOver).Load(lieu)
 	if err != nil {
 		return nil, err
 	}
@@ -218,11 +228,6 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		return nil, err
 	}
 	slog.Info("armes chargées", "base", armes.Base.Key)
-
-	progression, err := game.LoadProgression(fsys, cohue.ProgressionManifest)
-	if err != nil {
-		return nil, err
-	}
 
 	partie := &Session{
 		Grid:        grille,

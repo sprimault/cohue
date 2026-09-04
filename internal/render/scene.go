@@ -22,6 +22,11 @@ type sorte uint8
 // bassins ont numéroté chacun de son côté.
 const (
 	sorteEnnemi sorte = iota
+	// sorteAmbiance est le décor mouvant. Il est trié avec le reste et non peint
+	// à part : un figurant passe devant et derrière les créatures comme
+	// n'importe quel corps posé au sol, et l'exclure du tri le mettrait toujours
+	// au-dessus ou toujours en dessous — ce qui se verrait aussitôt.
+	sorteAmbiance
 	sorteTir
 	sorteTirHorde
 	sorteGemme
@@ -125,6 +130,12 @@ func (s *scene) recueillir(monde *game.World) {
 	for i := range ennemis.Active() {
 		e := ennemis.At(i)
 		s.ajouter(e.X, e.Y, ennemis.IDAt(i), sorteEnnemi, i)
+	}
+
+	ambiants := monde.Ambients()
+	for i := range ambiants.Active() {
+		a := ambiants.At(i)
+		s.ajouter(a.X, a.Y, ambiants.IDAt(i), sorteAmbiance, i)
 	}
 
 	tirs := monde.Shots()

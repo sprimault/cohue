@@ -124,6 +124,10 @@ le corps vous arrête : toutes les autres se traversent, lui vous bloque — pri
 entre lui et un mur, vous tirez forcément dessus, puisque votre arme vise le plus
 proche.
 
+Les **Passants** ne sont pas de la horde : ils vont et viennent sans vous
+chercher, votre arme ne les vise jamais, et ils ne gênent personne. Ils ne se
+tuent pas et ne comptent nulle part.
+
 Le **Secouriste** remet debout la créature la plus entamée autour de lui, une à
 la fois. Il ne se soigne pas lui-même, et il tombe vite : quand vos cibles
 cessent de mourir, c'est lui qu'il faut aller chercher — votre arme visant

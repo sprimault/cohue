@@ -242,6 +242,30 @@ func (p *EnemyProfile) PackCost() Fixed {
 	return FromInt(p.PressureCost * p.Group)
 }
 
+// AmbientProfile est ce que partagent les figurants d'un lieu.
+//
+// **Une table à part, et tout en découle.** Ce qui n'est pas hostile n'entre
+// dans aucun compte : ni le budget de pression, ni le plafond d'effectif, ni un
+// objectif de porte fondé sur les kills. Le ranger parmi les ennemis avec un
+// drapeau aurait obligé chaque compte à connaître l'exception, quand une table
+// distincte les en dispense tous.
+//
+// **Et il n'est pas une cible.** La visée prend le plus proche sans que le
+// joueur puisse choisir : un figurant dans le bassin des ennemis détournerait le
+// tir sur des civils, et la mécanique du Secouriste — qui repose entièrement sur
+// cette visée — tomberait avec. La séparation le garantit par construction, là
+// où un test devrait le surveiller.
+type AmbientProfile struct {
+	// Key est la clé du profil dans le manifeste — `civil`.
+	Key string
+	// Name est le nom de fiction — Passant.
+	Name string
+	// Speed est sa vitesse, en tuiles par tick.
+	Speed Fixed
+	// Radius est le rayon de son corps, en tuiles.
+	Radius Fixed
+}
+
 // Profiles est la table que la simulation indexe.
 //
 // Une entité ne garde que l'index de son profil dans `Enemies`, jamais une copie
@@ -251,6 +275,9 @@ func (p *EnemyProfile) PackCost() Fixed {
 type Profiles struct {
 	// Player est le profil du personnage joué.
 	Player Player
+	// Ambient sont les figurants, triés par clé comme les ennemis et pour la même
+	// raison : leur index est ce qu'une entité conserve.
+	Ambient []AmbientProfile
 	// Enemies sont les profils d'ennemis, triés par clé de manifeste.
 	//
 	// Triés, parce que l'index dans cette tranche est ce que l'entité conserve :
@@ -304,8 +331,11 @@ func LoadProfiles(fsys fs.FS, chemin string) (*Profiles, error) {
 	}
 
 	for _, cle := range cles {
-		if p := brut.Profiles[cle]; p.Role == roleEnemy {
+		switch p := brut.Profiles[cle]; p.Role {
+		case roleEnemy:
 			table.Enemies = append(table.Enemies, p.ennemi(cle, base))
+		case roleAmbient:
+			table.Ambient = append(table.Ambient, p.figurant(cle, base))
 		}
 	}
 
@@ -607,6 +637,21 @@ func (p rawProfile) ennemi(cle string, base float64) EnemyProfile {
 	}
 }
 
+// figurant tire le profil d'une entité d'ambiance.
+//
+// Elle ne retient que ce qu'il faut pour le déplacer et le dessiner : un
+// figurant n'a ni résistance, ni dégâts, ni points, et le manifeste lui refuse
+// ces champs. Sa vitesse se rapporte à celle du joueur comme celle d'un ennemi —
+// c'est la seule chose qu'ils partagent, et `nonJoueur` le dit déjà.
+func (p rawProfile) figurant(cle string, base float64) AmbientProfile {
+	return AmbientProfile{
+		Key:    cle,
+		Name:   p.Name,
+		Speed:  parTick(ou0(p.RelSpeed) * base),
+		Radius: FromFloat(ou0(p.TileRadius)),
+	}
+}
+
 // ou0 déréférence un champ facultatif, l'absence valant zéro.
 //
 // Sans contrôle : c'est `controler` qui décide si l'absence est un défaut, et
@@ -660,6 +705,18 @@ func listeDesEnnemis(profils *Profiles) string {
 	libelles := make([]string, len(profils.Enemies))
 	for i, e := range profils.Enemies {
 		libelles[i] = "« " + e.Key + " » (" + e.Name + ")"
+	}
+	return strings.Join(libelles, ", ")
+}
+
+// listeDesFigurants énumère les profils d'ambiance, clé et nom de fiction.
+//
+// Même appariement que pour les ennemis, et pour la même raison : le fichier
+// attend la clé quand tout ce qu'un humain lit porte le nom.
+func listeDesFigurants(profils *Profiles) string {
+	libelles := make([]string, len(profils.Ambient))
+	for i, a := range profils.Ambient {
+		libelles[i] = "« " + a.Key + " » (" + a.Name + ")"
 	}
 	return strings.Join(libelles, ", ")
 }

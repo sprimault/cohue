@@ -70,6 +70,14 @@ const EnemyShotCapacity = 64
 // ce qu'un plafond de simultanéité laisse vivre.
 const BlastCapacity = 32
 
+// AmbientCapacity plafonne le bassin des figurants.
+//
+// Un lieu en demande quelques-uns : ils peuplent une rue, ils ne font pas
+// nombre. Soixante-quatre laisse de la marge à un auteur sans qu'une salle
+// entière de civils puisse masquer la horde — ce qui serait le seul moyen qu'un
+// décor gêne le jeu, puisqu'il ne pousse ni ne bloque personne.
+const AmbientCapacity = 64
+
 // GemCapacity plafonne le bassin des gemmes au sol.
 //
 // Deux fois et demie le pic que la conception nomme — deux cents gemmes qui
@@ -101,6 +109,10 @@ type Session struct {
 	armes       *game.Weapons
 	progression *game.Progression
 	scenario    *game.Scenario
+	// ambiance est le peuplement de figurants du lieu, reposé à chaque relance
+	// comme le reste : une salle vide de civils après une mort ne serait pas la
+	// même salle.
+	ambiance []game.AmbientPlacement
 }
 
 // Restart rejoue le même lieu, sans rien redemander.
@@ -142,8 +154,10 @@ func (s *Session) monter() {
 			EnemyShots: EnemyShotCapacity,
 			Blasts:     BlastCapacity,
 			Gems:       GemCapacity,
+			Ambients:   AmbientCapacity,
 		})
 	placer(s.World, s.Grid)
+	s.World.Populate(s.ambiance)
 }
 
 // Open monte une partie sur la campagne donnée, à son lieu de départ.
@@ -190,12 +204,14 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 	}
 	slog.Info("profils chargés", "enemies", len(profils.Enemies))
 
-	grille, scenario, err := level.NewLoader(fsys, couts, profils).Load(lieu)
+	charge, err := level.NewLoader(fsys, couts, profils).Load(lieu)
 	if err != nil {
 		return nil, err
 	}
+	grille, scenario := charge.Grid, charge.Scenario
 	slog.Info("lieu chargé", "campaign", graphe.ID, "name", lieu,
-		"width", grille.Width(), "height", grille.Height(), "phases", len(scenario.Phases))
+		"width", grille.Width(), "height", grille.Height(), "phases", len(scenario.Phases),
+		"ambient", len(charge.Ambient))
 
 	armes, err := game.LoadWeapons(fsys, cohue.WeaponManifest)
 	if err != nil {
@@ -216,6 +232,7 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		armes:       armes,
 		progression: progression,
 		scenario:    scenario,
+		ambiance:    charge.Ambient,
 	}
 	partie.monter()
 	slog.Info("partie montée", "seed", graine)

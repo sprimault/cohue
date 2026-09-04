@@ -51,5 +51,23 @@
         "pic": { "a": "13:30", "multiplicateur": 2, "duree_s": 25 }
       }
     ]
-  }
+  },
+  "ambiance": [
+    {
+      "$comment": "Des Passants, qui ne comptent nulle part : ni dans le budget de pression, ni dans le plafond d'effectif, ni dans ce qu'une graine rejoue. Ils sont ici pour que le chemin qui les pose soit celui qu'un lieu tiers empruntera, et parce qu'une place déserte avant l'arrivée de la horde ne ressemble à rien. || Chacun porte sa case, comme une pièce porte la sienne : un peuplement tiré au sort abandonnerait en silence ce qui tombe dans un mur, et sauterait d'un coin à l'autre entre deux relances. Ils sont répartis autour du carrefour central, où le joueur commence. || Leur nombre est celui d'une rue passante et non d'une foule : au-delà, ils masqueraient la horde sans rien coûter à personne, ce qui est le seul moyen qu'un décor gêne le jeu.",
+      "profil": "civil",
+      "position": [45, 45]
+    },
+    { "profil": "civil", "position": [49, 45] },
+    { "profil": "civil", "position": [53, 49] },
+    { "profil": "civil", "position": [45, 53] },
+    { "profil": "civil", "position": [40, 49] },
+    { "profil": "civil", "position": [58, 49] },
+    { "profil": "civil", "position": [49, 40] },
+    { "profil": "civil", "position": [49, 58] },
+    { "profil": "civil", "position": [36, 36] },
+    { "profil": "civil", "position": [62, 62] },
+    { "profil": "civil", "position": [36, 62] },
+    { "profil": "civil", "position": [62, 36] }
+  ]
 }

@@ -90,9 +90,21 @@ func (w *World) Fingerprint() string {
 	//
 	// Le tirage se consomme, ce qui est sans conséquence : une empreinte se
 	// prend d'une partie qu'on ne joue plus.
-	fmt.Fprintf(&b, "flux vagues=%d positions=%d butin=%d cosmetique=%d\n",
+	// **Le flux cosmétique n'y est pas, et son absence est le fond de la
+	// promesse.** Ce que cette empreinte compare est l'état de la simulation ;
+	// or `Cosmetic` ne décide de rien par construction, si bien qu'y inclure son
+	// état ferait échouer une comparaison sur ce qu'elle prétend ignorer. La
+	// première fois que quelque chose l'a consommé — les figurants d'un lieu —,
+	// l'attendu a bougé sans qu'aucune décision de jeu n'ait changé, ce qui est
+	// exactement le défaut que la doctrine annonçait sans pouvoir le montrer.
+	//
+	// Ce qu'on y perd est réel : une divergence de consommation du cosmétique ne
+	// se verra plus ici. C'est ce qu'il faut accepter pour que la séparation des
+	// flux devienne vérifiable, et c'est `TestLeCosmetiqueNeDecideDeRien` qui la
+	// garde en face.
+	fmt.Fprintf(&b, "flux vagues=%d positions=%d butin=%d\n",
 		w.hasard.Waves.IntN(1<<30), w.hasard.Positions.IntN(1<<30),
-		w.hasard.Loot.IntN(1<<30), w.hasard.Cosmetic.IntN(1<<30))
+		w.hasard.Loot.IntN(1<<30))
 
 	return b.String()
 }

@@ -98,7 +98,7 @@ const graineDeTest uint64 = 1
 // rend visibles : une capacité qui décide du résultat n'a pas à être héritée
 // d'ici, pour la raison qui vaut déjà pour la graine.
 var capacitesDeTest = Capacities{
-	Enemies: 16, Shots: 64, EnemyShots: 16, Blasts: 8, Gems: 32,
+	Enemies: 16, Shots: 64, EnemyShots: 16, Blasts: 8, Ambients: 16, Gems: 32,
 }
 
 // indexDuProfil rend la place d'un profil dans la table, ou arrête le test.

@@ -353,7 +353,7 @@ func (p *planche) vue(v vue) error {
 	// de tourner après elle — c'est l'écran qui fige, et la planche l'appelle
 	// directement —, si bien qu'un cadavre continue de tirer et de ramasser. La
 	// vue du choix montrait ainsi un niveau gagné trente secondes après la mort.
-	for range v.ticks {
+	for tick := range v.ticks {
 		if v.arrive(partie.World) {
 			break
 		}
@@ -371,7 +371,13 @@ func (p *planche) vue(v vue) error {
 		if v.videLaHorde {
 			degagerLaHorde(partie.World)
 		}
-		partie.World.Step(game.Vec{})
+
+		// **Le personnage tourne au lieu de rester planté.** Immobile, il mourait
+		// à 1:28 — avant l'entrée du deuxième profil —, si bien qu'aucune planche
+		// ne pouvait montrer une charge, une meute superposée, un souffle amorcé
+		// ni un éclair de soin. Le pilote est celui du test de déterminisme, pour
+		// que les deux relectures voient la même chose.
+		partie.World.Step(session.Pilot(game.Tick(tick)))
 	}
 	if v.videLaHorde {
 		degagerLaHorde(partie.World)

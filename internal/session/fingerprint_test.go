@@ -57,22 +57,34 @@ const enteteAttendu = "# Copyright 2026 Stéphane Primault <sprimault@users.nore
 // divergence qui apparaît puis se résorbe.
 //
 // **Les ticks sont choisis pour ce qu'ils contiennent, jamais pour être ronds.**
-// Les ramener à 600, 1200 et 1800 perdrait exactement ce pour quoi ils sont là.
+// Les ramener à 800, 2600 et 2700 perdrait exactement ce pour quoi ils sont là.
+//
+// **Ils se rechoisissent quand le pilote change**, et c'est arrivé : les trois
+// premiers avaient été relevés sur une trajectoire constante, et le tour de
+// l'octogone les a vidés de ce qu'ils décrivaient — le troisième annonçait un
+// niveau 2 que la nouvelle run n'avait pas encore atteint. Régénérer l'attendu
+// sans rouvrir cette table aurait laissé trois phrases fausses sous des chiffres
+// justes, c'est-à-dire la pire des deux moitiés.
 var instantanes = []struct {
 	tick     int
 	pourquoi string
 }{
-	{619, "deux projectiles en vol et deux gemmes au sol, que nul autre instant ne montre ensemble"},
-	{671, "trois gemmes, le plus que cette run en pose au sol"},
-	{1920, "un aimant au sol, le niveau 2 franchi, la vie entamée et six créatures vivantes"},
+	{780, "deux projectiles en vol et deux gemmes au sol, que nul autre instant ne montre ensemble"},
+	{2700, "un aimant au sol, le niveau 2 franchi, la vie entamée et dix créatures vivantes"},
+	{3163, "quatre gemmes et une horde de onze, le plus que ces trois instants montrent"},
 }
 
 // jouerLaRun monte la partie livrée sur une graine et rend l'empreinte des trois
 // instants.
 //
-// Le déplacement est le même à chaque tick : ce que le test garde est le
-// déterminisme, pas une trajectoire intéressante, et une entrée constante est
-// celle qu'on relit sans se demander ce qu'elle valait au tick 412.
+// Le déplacement vient de `Pilot`, qui ne lit rien du monde : ce que le test
+// garde est le déterminisme, pas une trajectoire intéressante, et une entrée qui
+// ne dépend que du tick se relit sans se demander ce qu'elle valait au 412e.
+//
+// **Elle était constante et menait au mur.** Le joueur mourait vers 2:00, ce qui
+// bornait la run bien avant les paliers tardifs de la courbe : allonger les
+// instants aurait fait jouer dix minutes à un cadavre. Le tour de l'octogone ne
+// fait pas un bon joueur, il fait un joueur qui traverse la courbe.
 func jouerLaRun(t *testing.T, graine uint64) string {
 	t.Helper()
 	s, err := Open(cohue.Assets, cohue.StartingCampaign, graine)
@@ -83,7 +95,7 @@ func jouerLaRun(t *testing.T, graine uint64) string {
 	var b strings.Builder
 	suivant := 0
 	for tick := 1; tick <= instantanes[len(instantanes)-1].tick; tick++ {
-		s.World.Step(game.Vec{X: game.One, Y: 0})
+		s.World.Step(Pilot(game.Tick(tick)))
 		if tick != instantanes[suivant].tick {
 			continue
 		}

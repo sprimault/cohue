@@ -113,6 +113,9 @@ type Session struct {
 	// comme le reste : une salle vide de civils après une mort ne serait pas la
 	// même salle.
 	ambiance []game.AmbientPlacement
+	// sortie est la porte du lieu, reposée à chaque relance comme le reste. Elle
+	// est immuable — l'ouverture vit dans le monde, jamais ici.
+	sortie *game.Exit
 }
 
 // Restart rejoue le même lieu, sans rien redemander.
@@ -158,6 +161,7 @@ func (s *Session) monter() {
 		})
 	placer(s.World, s.Grid)
 	s.World.Populate(s.ambiance)
+	s.World.SetExit(s.sortie)
 }
 
 // Open monte une partie sur la campagne donnée, à son lieu de départ.
@@ -221,7 +225,7 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 	grille, scenario := charge.Grid, charge.Scenario
 	slog.Info("lieu chargé", "campaign", graphe.ID, "name", lieu,
 		"width", grille.Width(), "height", grille.Height(), "phases", len(scenario.Phases),
-		"ambient", len(charge.Ambient))
+		"ambient", len(charge.Ambient), "exit", charge.Exit != nil)
 
 	armes, err := game.LoadWeapons(fsys, cohue.WeaponManifest)
 	if err != nil {
@@ -238,6 +242,7 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		progression: progression,
 		scenario:    scenario,
 		ambiance:    charge.Ambient,
+		sortie:      charge.Exit,
 	}
 	partie.monter()
 	slog.Info("partie montée", "seed", graine)

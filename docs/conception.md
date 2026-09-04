@@ -150,6 +150,12 @@ Le joueur dispose d'un moyen d'échapper à la difficulté : courir vers la port
 
 La porte s'ouvre donc après un objectif : un temps de survie, un compteur de kills, trois points à réamorcer, une élite à abattre. Une fois l'objectif rempli, le joueur choisit **quand** partir — rester pour farmer ou partir avant que ça déborde est un des meilleurs choix du jeu, et le score du chapitre 6 lui donne une mesure.
 
+**Le compteur de kills est celui qui est écrit**, et les trois autres attendent leur usage. Il est le seul qui ne récompense pas l'attente : un temps de survie se remplit en tournant en rond dans un coin, c'est-à-dire par le comportement même que ce chapitre existe pour décourager. Il éprouve du même coup la règle du figurant — ce qui n'est pas hostile n'entre dans aucun compte —, jusque-là écrite sans qu'aucun compte existe pour la contredire.
+
+**L'objectif est écrit par le lieu, pas par le binaire.** C'est son auteur qui compose sa longueur, comme il compose sa courbe : un seuil en dur ferait de tous les lieux la même durée. Il se refuse en dessous de un, faute de quoi le champ oublié donnerait une porte ouverte au premier tick.
+
+**La porte se touche, elle ne se traverse pas.** Elle reste l'obstacle que le décor déclare, ouverte comme fermée, et le joueur qui l'atteint sort du lieu. Deux raisons vont dans le même sens : une horde qui sortirait par où le joueur sort n'aurait pas de sens, et rendre la case franchissable demanderait de modifier la carte cuite — or celle-ci est partagée par toutes les runs d'une session, si bien qu'une porte gagnée rouvrirait la suivante avant son premier tick. L'ouverture est un état de partie, elle vit là où vivent les états de partie.
+
 ### Le temps mort à la porte
 
 Entre deux lieux, une pause courte : choix d'amélioration, gestion des consommables, et éventuellement choix de destination. C'est le seul endroit où l'on ouvre un écran ; jamais pendant l'action.

@@ -66,6 +66,14 @@ type Readings struct {
 	Charged bool
 	// Mark est l'accusé d'un repère, vide quand il n'y a rien à confirmer.
 	Mark string
+	// Objective est l'avancement vers l'ouverture de la porte, vide quand le
+	// lieu n'a pas de sortie.
+	//
+	// Une chaîne déjà mise en forme plutôt que deux entiers : le bandeau ne sait
+	// pas ce qu'une porte demande — un compteur d'abattus aujourd'hui, un temps
+	// ou une élite quand la conception les apportera —, et il n'a pas à
+	// l'apprendre pour poser une ligne de texte.
+	Objective string
 }
 
 // Panel pose les trois lectures : la vie, l'expérience et le temps écoulé.
@@ -120,6 +128,20 @@ func (h *HUD) Panel(dst *ebiten.Image, r Readings) {
 	if r.Mark != "" {
 		h.libelle(dst, r.Mark, Width-margeEcran-h.Font.Advance(r.Mark),
 			margeEcran+h.Font.Height(), h.Color("texte_attenue"))
+	}
+
+	// **L'objectif se pose sous le minuteur, en pleine teinte.** C'est une des
+	// lectures qui décident — savoir qu'il reste trois créatures avant de pouvoir
+	// partir change ce qu'on fait de la minute suivante —, pas un accusé de
+	// réception. Il descend d'une ligne quand un repère occupe la sienne, plutôt
+	// que de la lui disputer.
+	if r.Objective != "" {
+		ligne := margeEcran + h.Font.Height()
+		if r.Mark != "" {
+			ligne += h.Font.Height()
+		}
+		h.libelle(dst, r.Objective, Width-margeEcran-h.Font.Advance(r.Objective),
+			ligne, h.Color("texte"))
 	}
 
 	h.emplacement(dst, margeEcran, y+h.Font.Height()+h.Margin(), r.Charged)
@@ -203,7 +225,25 @@ func (s *Screen) peindreBandeau(ecran *ebiten.Image) {
 		Elapsed:    s.monde.Tick(),
 		Charged:    s.monde.Charged(),
 		Mark:       s.marque(),
+		Objective:  s.objectif(),
 	})
+}
+
+// objectif met en forme l'avancement vers la porte, vide sans sortie.
+//
+// **Le compte s'arrête à l'objectif au lieu de le dépasser.** Ce que la ligne
+// dit est « puis-je partir », pas « combien ai-je tué » : un « 34 / 20 » ferait
+// lire un dépassement là où il n'y a qu'une porte ouverte, et le bandeau porte
+// déjà le niveau pour qui veut mesurer sa récolte.
+func (s *Screen) objectif() string {
+	sortie := s.monde.Exit()
+	if sortie == nil {
+		return ""
+	}
+	if s.monde.DoorOpen() {
+		return "Porte ouverte"
+	}
+	return fmt.Sprintf("Porte %d / %d", s.monde.Kills(), sortie.Kills)
 }
 
 // hauteurBandeau rend ce que le bandeau occupe, mesuré plutôt qu'écrit.

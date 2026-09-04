@@ -147,6 +147,17 @@ type World struct {
 	// achetables est la tranche de travail du spawner, réutilisée d'un achat à
 	// l'autre.
 	achetables []int
+	// sortie est la porte du lieu, nulle quand il n'en a pas. Elle vient de son
+	// fichier, comme le scénario et les figurants.
+	sortie *Exit
+	// abattus compte les créatures tombées depuis le début de la run. C'est ce
+	// que l'objectif de porte mesure, et les figurants n'y entrent pas — ils ne
+	// sont pas dans ce bassin.
+	abattus int
+	// echappe dit que le joueur est sorti par la porte. Un drapeau, là où la
+	// mort n'en a pas besoin : la vie à zéro *est* la mort, quand rien dans la
+	// position du joueur ne distingue « contre la porte » de « sorti ».
+	echappe bool
 	// convoite est le profil pour lequel le spawner épargne, **décalé de un** :
 	// zéro veut dire « aucun ».
 	//
@@ -337,6 +348,7 @@ func (w *World) Step(voulu Vec) {
 	// indifférente, ce qui est la meilleure preuve qu'elle ne décide de rien.
 	w.errer()
 	w.retirerLesMorts()
+	w.franchir()
 
 	w.tick++
 }
@@ -655,10 +667,16 @@ func (w *World) dansUnCorps(x, y Fixed) bool {
 // de mise à jour : celle-ci ferait avancer deux fois l'entité remontée, alors que
 // ce nettoyage ne fait que filtrer — la sauter y laisserait un mort jusqu'au tick
 // suivant.
+// **C'est aussi le seul endroit qui compte les morts**, et il le peut parce que
+// sortir de ce bassin veut dire mourir : rien d'autre n'y retire une créature.
+// Le recyclage de la traîne, à l'étape 8, sera la première exception — il
+// retirera des vivantes, et devra donc entrer par une autre porte que celle-ci
+// sous peine d'ouvrir la sortie en éloignant la horde.
 func (w *World) retirerLesMorts() {
 	for i := 0; i < w.ennemis.Len(); {
 		if w.ennemis.At(i).Hits <= 0 {
 			w.ennemis.RemoveAt(i)
+			w.abattus++
 			continue
 		}
 		i++

@@ -57,6 +57,15 @@ type Level struct {
 	// raison qui vaut déjà pour les vagues : c'est une table de jeu, et son sens
 	// appartient au paquet qui l'exécute.
 	Ambient game.AmbientSpec `json:"ambiance,omitempty"`
+	// Exit est la porte de sortie, absente d'un lieu qui n'en a pas.
+	//
+	// **Elle vit à côté des vagues plutôt que dedans**, comme le peuplement : une
+	// courbe dit ce qui arrive et à quel rythme, une porte dit quand on a le droit
+	// de partir. Les mêler ferait de l'objectif un réglage de phase, et un lieu à
+	// huit phases en aurait huit.
+	//
+	// Champ facultatif, donc `version_format` ne bouge pas.
+	Exit *game.ExitSpec `json:"sortie,omitempty"`
 }
 
 // Placement est une pièce posée dans un lieu.

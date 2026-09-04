@@ -423,6 +423,10 @@ Ces valeurs sont un point de départ, pas un équilibrage : elles se règlent à
 
 **La résistance monte au fil de la run**, par un multiplicateur adossé à la courbe de pression — sinon la fin de partie n'est qu'un tapis roulant, puisque l'arme a été multipliée par dix. C'est ce multiplicateur qu'on ajuste, jamais les touches de chaque profil, qui restent le rapport entre eux.
 
+**Il vit sur la phase, à côté du budget qu'elle dépense**, et il est fractionnaire : la première valeur entière au-dessus de un est deux, si bien qu'un multiplicateur entier ferait commencer toute progression par un Badaud à six touches. Un virgule trois en donne quatre, qui est le pas naturel. Il ne descend pas sous un — une courbe durcit, et un profil d'une touche sous un demi rendrait une créature morte à l'apparition.
+
+**Il s'applique à l'apparition et jamais après, et c'est ce qui garde l'unité.** Une créature qui durcirait pendant qu'on la frappe demanderait plus de coups qu'au coup précédent : « trois touches » cesserait d'être une unité pour redevenir un nombre, et le joueur ne pourrait plus compter. Le nombre et la dureté restent par ailleurs deux réglages distincts — monter la pression pour avoir plus d'ennemis ne doit pas les rendre plus durs par la même écriture.
+
 ### Les points et la tension qu'ils créent
 
 Chaque ennemi rapporte, et le score d'un lieu additionne les points récoltés et un **bonus de temps** : ce qui reste d'un temps de référence quand la porte est franchie.

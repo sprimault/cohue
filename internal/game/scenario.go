@@ -41,6 +41,13 @@ type WavePhase struct {
 	Profiles []string `json:"profils"`
 	// Peak est la pointe de la phase, absente le plus souvent.
 	Peak *WavePeak `json:"pic,omitempty"`
+	// Toughness multiplie la résistance des créatures de la phase, un par défaut.
+	//
+	// **Fractionnaire, et pas un entier.** La première valeur entière au-dessus
+	// de un est deux : toute progression de dureté commencerait par un Badaud à
+	// six touches au lieu de trois, ce qui n'est pas un palier mais un mur. Un
+	// virgule trois en donne quatre, qui est le pas naturel.
+	Toughness *float64 `json:"resistance,omitempty"`
 }
 
 // WavePeak est une pointe de pression à l'intérieur d'une phase.
@@ -78,6 +85,14 @@ type Phase struct {
 	Profiles []int
 	// Peak est la pointe de la phase.
 	Peak Peak
+	// Toughness multiplie la résistance de ce que la phase fait apparaître.
+	//
+	// **Il s'applique à l'apparition et jamais après**, ce qui est ce qui garde
+	// la résistance en touches. Une créature qui durcirait pendant qu'on la
+	// frappe demanderait plus de coups qu'au coup précédent : « trois touches »
+	// cesserait d'être une unité pour redevenir un nombre, et le joueur ne
+	// pourrait plus compter.
+	Toughness Fixed
 	// Cheapest est le prix de l'apparition la moins chère de la phase, meute
 	// comprise.
 	//
@@ -129,6 +144,19 @@ func (s *Scenario) phase(t Tick) *Phase {
 	return courante
 }
 
+// durcissement rend le multiplicateur de résistance en vigueur.
+//
+// Un lieu sans horde n'en a aucun, et `phase` ne saurait pas quoi rendre sur une
+// courbe vide : la garde vit ici plutôt que chez elle, parce que c'est le seul
+// appelant qui puisse être interrogé hors d'un tick d'achat — `SpawnEnemy` est
+// exportée, et les cas qui posent une créature à la main n'ont pas de scénario.
+func (w *World) durcissement() Fixed {
+	if len(w.scenario.Phases) == 0 {
+		return One
+	}
+	return w.scenario.phase(w.tick).Toughness
+}
+
 // CompileScenario résout un scénario écrit contre la table des profils.
 //
 // Elle rend tout ce qui l'empêche de valoir, plutôt que le premier écart :
@@ -172,6 +200,18 @@ func CompileScenario(brut WaveScenario, profils *Profiles) (*Scenario, []string)
 		phase.Pressure = parTick(float64(pression))
 		if p.Pressure != nil && pression < 1 {
 			dire("%s.pression : %d, une phase sans budget n'achète rien", ou, pression)
+		}
+
+		// Le durcissement absent vaut un : une phase qui ne dit rien laisse les
+		// profils à la résistance de leur table, et c'est ce qui rend le champ
+		// facultatif sans lui donner de valeur d'absence à distinguer.
+		phase.Toughness = One
+		if p.Toughness != nil {
+			phase.Toughness = FromFloat(*p.Toughness)
+			if phase.Toughness < One {
+				dire("%s.resistance : %v, une courbe durcit et n'adoucit pas — un "+
+					"profil d'une touche y tomberait à zéro", ou, *p.Toughness)
+			}
 		}
 
 		phase.Profiles = profilsAutorises(ou, p.Profiles, profils, dire)

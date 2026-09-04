@@ -42,6 +42,12 @@ func vagueUnique(pression int, profils ...int) *Scenario {
 	return &Scenario{Phases: []Phase{{
 		Pressure: parTick(float64(pression)),
 		Profiles: profils,
+		// **Le durcissement se pose ici parce qu'une phase bâtie à la main n'est
+		// pas une phase compilée.** Son zéro ne veut pas dire « pas de
+		// durcissement » mais « zéro touche », c'est-à-dire une créature morte au
+		// moment où elle apparaît. `CompileScenario` le met à un ; un cas qui
+		// s'en dispenserait éprouverait une horde qui ne vit pas.
+		Toughness: One,
 	}}}
 }
 

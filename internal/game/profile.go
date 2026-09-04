@@ -230,6 +230,24 @@ type EnemyProfile struct {
 	Fuse Tick
 }
 
+// HitsAt rend la résistance de ce profil sous un durcissement donné.
+//
+// **L'arrondi est au plus proche et il n'a qu'un domicile.** Trois touches
+// multipliées par 1,4 en font 4,2, et un profil doit tomber sur un entier : que
+// deux profils de bases différentes arrondissent différemment sous le même
+// multiplicateur est correct, mais qu'une seconde règle d'arrondi existe
+// ailleurs changerait toutes les résistances du jeu le jour où l'une des deux
+// bouge.
+//
+// **Le durcissement ne descend jamais sous un**, ce que le chargement refuse
+// plutôt que ce qu'un plancher rattraperait : un profil à une touche sous un
+// demi rendrait zéro, c'est-à-dire une créature morte à l'apparition. Ce champ
+// dit une courbe qui durcit ; en faire aussi une courbe qui adoucit lui donnerait
+// deux sens.
+func (p *EnemyProfile) HitsAt(durcissement Fixed) int {
+	return (FromInt(p.Hits).Mul(durcissement) + One/2).Floor()
+}
+
 // PackCost est ce que le spawner dépense pour une apparition de ce profil.
 //
 // Le coût du manifeste est unitaire et la meute est indivisible, si bien que le

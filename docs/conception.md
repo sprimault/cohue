@@ -229,6 +229,12 @@ Corollaire à assumer : **les entités se chevauchent** quand la place manque. I
 
 **Le joueur traverse la horde, sauf le Vigile.** C'est la seule exception, et elle lui donne ce que le tableau des rôles lui promet : un corps qui bouche un couloir, et pas seulement une résistance qui met du temps à tomber. S'il ne traversait rien, une foule dense le figerait et la mort deviendrait illisible ; s'il traversait tout, l'encerclement ne serait qu'un mur de dégâts et le bloqueur n'aurait plus de rôle.
 
+**La solidité joue dans les deux sens** : le Vigile ne traverse pas le joueur plus que le joueur ne le traverse. Ce n'est pas une symétrie décorative, et l'ordre du raisonnement compte parce que la conclusion inverse paraît plus naturelle.
+
+Un obstacle immobile n'appelle qu'une règle : on ne peut y entrer que par accident, donc en sortir doit toujours être permis. Appliquée telle quelle à un poursuivant, elle se retourne — c'est lui qui crée le recouvrement en avançant, et il annule alors sa propre solidité. **Un corps qui se rend traversable en avançant n'est plus un corps**, et le blocage cesserait à l'instant précis de la rencontre, c'est-à-dire au seul moment où il sert.
+
+La réciprocité règle les deux d'un coup : le Vigile ne pouvant pas entrer dans le joueur, le recouvrement n'a pas lieu et la question de la sortie ne se pose plus. Qui voudra corriger le cas du joueur emmuré en rétablissant la règle asymétrique retirera donc le blocage lui-même, sans le voir.
+
 Le blocage ne peut pas devenir un piège, parce que le corps solide ne l'est que vivant : un joueur pris entre un Vigile et un mur tire nécessairement dessus — c'est le plus proche, et la visée est omnidirectionnelle. Douze touches, c'est long et c'est fini. À éprouver au jalon 3 : si cette situation se lit comme une mort injuste, c'est l'exception qui tombe, pas le plafond de dégâts.
 
 ### Le recyclage de la traîne

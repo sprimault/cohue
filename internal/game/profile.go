@@ -123,6 +123,18 @@ type EnemyProfile struct {
 	// contourne. Une meute est donc indivisible, et son prix est `PressureCost`
 	// multiplié par elle — le coût du manifeste est unitaire.
 	Group int
+	// Solid dit si son corps arrête le joueur, ce qu'un seul profil fait.
+	//
+	// **Exigé de tous les ennemis, et non réservé à un comportement**, parce que
+	// le Vigile poursuit comme le Badaud : rien dans son comportement ne
+	// distingue celui qui bouche de celui qui suit. Un champ facultatif ferait
+	// d'un Vigile dont on l'aurait oublié un colosse qui ne bloque rien — lent,
+	// encaissant, et sans le rôle qui justifie ces deux traits.
+	//
+	// Il n'arrête que le joueur. Les créatures se traversent entre elles, et ce
+	// qui empêche vingt Badauds de pousser un Vigile à travers une cloison est la
+	// projection sur la passabilité, pas leurs corps.
+	Solid bool
 	// ContactDamage est ce qu'il inflige par seconde au contact.
 	ContactDamage int
 	// Gems est le nombre de gemmes que sa mort laisse au sol.
@@ -321,6 +333,7 @@ type rawProfile struct {
 	Separation   *float64 `json:"poids_separation,omitempty"`
 	MaxAlive     *int     `json:"max_simultane,omitempty"`
 	Group        *int     `json:"groupe,omitempty"`
+	Solid        *bool    `json:"corps_bloquant,omitempty"`
 	Contact      *int     `json:"degats_contact_s,omitempty"`
 	Gems         *int     `json:"gemmes,omitempty"`
 
@@ -395,6 +408,7 @@ var champsConditionnels = []struct {
 	{"poids_separation", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Separation != nil }},
 	{"max_simultane", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.MaxAlive != nil }},
 	{"groupe", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Group != nil }},
+	{"corps_bloquant", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Solid != nil }},
 	{"degats_contact_s", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Contact != nil }},
 	{"gemmes", "un ennemi", estRole(roleEnemy), func(p rawProfile) bool { return p.Gems != nil }},
 
@@ -544,6 +558,7 @@ func (p rawProfile) ennemi(cle string, base float64) EnemyProfile {
 		SeparationWeight: FromFloat(ou0(p.Separation)),
 		MaxAlive:         ou0(p.MaxAlive),
 		Group:            ou0(p.Group),
+		Solid:            ou0(p.Solid),
 		ContactDamage:    ou0(p.Contact),
 		Gems:             ou0(p.Gems),
 		ChargeDamage:     ou0(p.ChargeDamage),

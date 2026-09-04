@@ -44,6 +44,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Le corps du Vigile arrête le joueur.** C'est la seule créature qu'on ne
+  traverse pas : elle bouche un goulot au lieu d'être un ennemi lent de plus.
+  Elle ne traverse pas le joueur non plus, et son corps cesse de bloquer dès
+  qu'elle tombe.
 - **La Baudruche explose en mourant.** Son emprise se marque au sol le temps que
   l'amorce brûle, ce qui laisse un instant pour en sortir ; passé ce délai, le
   souffle retire ses points hors du plafond. Il n'atteint que le joueur : une
@@ -65,6 +69,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **The Vigile's body stops the player.** It is the only creature you cannot walk
+  through: it plugs a chokepoint instead of being one more slow enemy. It does
+  not walk through the player either, and its body stops blocking the moment it
+  falls.
 - **The Baudruche explodes on death.** Its footprint is marked on the ground
   while the fuse burns, leaving a moment to step out; past that delay the blast
   takes its points outside the cap. It only reaches the player: a blast that

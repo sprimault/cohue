@@ -92,14 +92,16 @@ JEU = {
     "marcheur":  {"role": "ennemi", "comportement": "poursuite",
                   "vitesse_relative": 0.62, "rayon_tuiles": 0.125, "touches": 3,
                   "points": 10, "cout_pression": 3, "poids_separation": 1.0,
-                  "max_simultane": 0, "groupe": 1, "degats_contact_s": 6, "gemmes": 1},
+                  "max_simultane": 0, "groupe": 1, "corps_bloquant": False,
+                  "degats_contact_s": 6, "gemmes": 1},
     "sprinteur": {"role": "ennemi", "comportement": "charge",
                   "vitesse_relative": 1.35, "rayon_tuiles": 0.109, "touches": 2,
                   "points": 25, "cout_pression": 4, "poids_separation": 1.0,
                   # Il n'apparaît jamais seul : trois qui chargent en décalé sont
                   # ce qui oblige à cesser de reculer en ligne droite. Le coût
                   # ci-dessus est unitaire, le spawner paie donc douze.
-                  "max_simultane": 0, "groupe": 3, "degats_contact_s": 8, "gemmes": 1,
+                  "max_simultane": 0, "groupe": 3, "corps_bloquant": False,
+                  "degats_contact_s": 8, "gemmes": 1,
                   # La charge : il déclenche à cinq tuiles, s'immobilise une
                   # demi-seconde pour l'annoncer, fonce 700 ms sans corriger,
                   # puis reste 600 ms sans rien faire — qu'il ait touché, raté ou
@@ -112,12 +114,14 @@ JEU = {
     "flanqueur": {"role": "ennemi", "comportement": "flanc",
                   "vitesse_relative": 0.82, "rayon_tuiles": 0.109, "touches": 4,
                   "points": 30, "cout_pression": 5, "poids_separation": 1.0,
-                  "max_simultane": 0, "groupe": 1, "degats_contact_s": 7, "gemmes": 1,
+                  "max_simultane": 0, "groupe": 1, "corps_bloquant": False,
+                  "degats_contact_s": 7, "gemmes": 1,
                   "tangentiel": 0.55},
     "cracheur":  {"role": "ennemi", "comportement": "tir",
                   "vitesse_relative": 0.55, "rayon_tuiles": 0.125, "touches": 5,
                   "points": 40, "cout_pression": 6, "poids_separation": 1.3,
-                  "max_simultane": 0, "groupe": 1, "degats_contact_s": 4, "gemmes": 1,
+                  "max_simultane": 0, "groupe": 1, "corps_bloquant": False,
+                  "degats_contact_s": 4, "gemmes": 1,
                   # Six tuiles de portée pour sept tuiles par seconde : un tir met
                   # un peu moins d'une seconde à couvrir sa course, et se voit
                   # venir. La cadence est plus lente que ce vol, si bien qu'une
@@ -132,11 +136,18 @@ JEU = {
     "bloqueur":  {"role": "ennemi", "comportement": "poursuite",
                   "vitesse_relative": 0.45, "rayon_tuiles": 0.188, "touches": 12,
                   "points": 60, "cout_pression": 12, "poids_separation": 0.4,
-                  "max_simultane": 0, "groupe": 1, "degats_contact_s": 10, "gemmes": 1},
+                  # Le seul corps que le joueur ne traverse pas : c'est ce qui
+                  # fait d'un couloir bouché un couloir bouché, et non un ennemi
+                  # lent de plus. La conception met l'exception en sursis — si
+                  # être coincé se lit comme une mort injuste, c'est elle qui
+                  # tombe.
+                  "max_simultane": 0, "groupe": 1, "corps_bloquant": True,
+                  "degats_contact_s": 10, "gemmes": 1},
     "eclateur":  {"role": "ennemi", "comportement": "explosion",
                   "vitesse_relative": 0.70, "rayon_tuiles": 0.141, "touches": 4,
                   "points": 35, "cout_pression": 5, "poids_separation": 1.0,
-                  "max_simultane": 0, "groupe": 1, "degats_contact_s": 5, "gemmes": 1,
+                  "max_simultane": 0, "groupe": 1, "corps_bloquant": False,
+                  "degats_contact_s": 5, "gemmes": 1,
                   # Elle explose en mourant, pas au contact : l'amorce est le
                   # délai entre sa mort et la déflagration, et c'est lui qui
                   # laisse une chance de s'écarter. Cinq cents millisecondes pour
@@ -149,7 +160,8 @@ JEU = {
     "soigneur":  {"role": "ennemi", "comportement": "soin",
                   "vitesse_relative": 0.70, "rayon_tuiles": 0.109, "touches": 3,
                   "points": 15, "cout_pression": 6, "poids_separation": 1.0,
-                  "max_simultane": 1, "groupe": 1, "degats_contact_s": 4, "gemmes": 1},
+                  "max_simultane": 1, "groupe": 1, "corps_bloquant": False,
+                  "degats_contact_s": 4, "gemmes": 1},
     # Le Passant n'est pas un monstre : il ne blesse pas, ne rapporte rien, ne
     # se cible pas et ne se paie pas dans le budget de pression. Il traverse la
     # scène et occupe l'espace, ce qui suffit à le rendre gênant. Lui laisser

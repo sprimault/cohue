@@ -13,7 +13,7 @@ tir 0 id=1 gen=9 x=3711070 y=3283847 reste=52434 hits=1 pas=12914,-2241
 tir 1 id=0 gen=4 x=3524938 y=3342093 reste=380109 hits=1 pas=13107,-20
 gemme 0 id=2 gen=1 x=3146667 y=3550911 ne=694 attiree=false
 gemme 1 id=1 gen=1 x=3788748 y=4391273 ne=427 attiree=false
-flux vagues=735455464 positions=847631723 butin=306793347
+flux vagues=905137858 positions=847631723 butin=306793347
 
 # choisi pour un aimant au sol, le niveau 2 franchi, la vie entamée et dix créatures vivantes
 tick 2700
@@ -34,7 +34,7 @@ gemme 1 id=1 gen=6 x=3446381 y=3286543 ne=2431 attiree=false
 gemme 2 id=2 gen=4 x=3096082 y=3808223 ne=2553 attiree=false
 gemme 3 id=3 gen=5 x=2951190 y=3801639 ne=2603 attiree=false
 aimant 0 id=0 gen=1 x=4816896 y=884736
-flux vagues=130589969 positions=1036398020 butin=444631208
+flux vagues=450897158 positions=1036398020 butin=444631208
 
 # choisi pour quatre gemmes et une horde de onze, le plus que ces trois instants montrent
 tick 3163
@@ -54,5 +54,5 @@ gemme 0 id=1 gen=7 x=3277635 y=3080412 ne=3130 attiree=false
 gemme 1 id=3 gen=6 x=3082709 y=2884224 ne=3038 attiree=false
 gemme 2 id=2 gen=5 x=3164808 y=2897088 ne=3059 attiree=false
 aimant 0 id=0 gen=1 x=4816896 y=884736
-flux vagues=20464133 positions=287567265 butin=495687234
+flux vagues=26261793 positions=287567265 butin=495687234
 

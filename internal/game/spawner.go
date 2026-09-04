@@ -8,6 +8,8 @@
 
 package game
 
+import "slices"
+
 // tentativesApparition est le nombre de directions tirées avant d'abandonner
 // une apparition.
 //
@@ -57,16 +59,34 @@ func (w *World) apparaitre() {
 
 	w.compterLesVivants()
 	for {
-		sousPlafond, abordables := w.etalage(phase)
-		if sousPlafond == 0 {
+		if w.etalage(phase) == 0 {
 			w.budget = 0
-			return
-		}
-		if abordables == 0 {
+			w.convoite = 0
 			return
 		}
 
-		profil := w.achetables[w.hasard.Waves.Pick(abordables)]
+		// **Le convoité s'abandonne dès qu'il cesse d'être achetable.** Un plafond
+		// de simultanéité atteint en cours de partie, ou un bassin qui se remplit,
+		// bloqueraient toute la horde derrière un profil que rien ne débloquera
+		// avant une mort. Le budget, lui, reste acquis : il attend le prochain
+		// convoité.
+		if w.convoite > 0 && !slices.Contains(w.achetables, w.convoite-1) {
+			w.convoite = 0
+		}
+		if w.convoite == 0 {
+			w.convoite = w.tirerConvoite() + 1
+		}
+
+		profil := w.convoite - 1
+		// **Ici le spawner épargne au lieu d'acheter ce qu'il peut.** Sans cette
+		// ligne, le budget se vidait dès qu'il atteignait le prix minimal de la
+		// phase, si bien qu'il n'atteignait jamais les prix élevés : un seul
+		// profil apparaissait dans toute une run, et les six autres étaient
+		// écrits sans jamais arriver.
+		if w.profils.Enemies[profil].PackCost() > w.budget {
+			return
+		}
+
 		x, y, trouve := w.placeApparition()
 		if !trouve {
 			return
@@ -85,7 +105,49 @@ func (w *World) apparaitre() {
 		}
 		w.budget -= meute.PackCost()
 		w.vivants[profil] += meute.Group
+
+		// **Un tirage par achat, et non un convoité gardé tant qu'il est
+		// payable.** Le garder ferait sortir des Vigiles en série une fois le
+		// budget monté à leur prix — une monotonie qui en remplacerait une autre.
+		// C'est le retirage qui produit la masse : le Badaud est tiré souvent,
+		// donc il revient souvent.
+		w.convoite = 0
 	}
+}
+
+// tirerConvoite choisit le profil pour lequel le spawner va épargner.
+//
+// **Pondéré par l'inverse du prix, ce qui donne à chaque profil la même part de
+// budget.** Le nombre suit alors l'inverse du prix — quatre Badauds pour un
+// Vigile —, et c'est ce qui produit une horde faite de masse avec des exceptions
+// sans qu'aucun réglage nouveau l'exprime. Un tirage uniforme donnerait autant de
+// Vigiles que de Badauds en nombre, donc quatre fois plus de budget dépensé par
+// les gros : une horde chère et clairsemée.
+//
+// Les poids se calculent sur le prix entier du manifeste et non sur sa virgule
+// fixe : une division exacte, sans arrondi à tenir d'accord avec quoi que ce
+// soit. Le refus d'un coût nul au chargement est ce qui rend cette division sûre.
+func (w *World) tirerConvoite() int {
+	total := 0
+	for _, p := range w.achetables {
+		total += poidsDAchat(&w.profils.Enemies[p])
+	}
+
+	tirage := w.hasard.Waves.Pick(total)
+	for _, p := range w.achetables {
+		if tirage -= poidsDAchat(&w.profils.Enemies[p]); tirage < 0 {
+			return p
+		}
+	}
+	// Inatteignable : la somme des poids borne le tirage. La ligne existe parce
+	// que le compilateur l'exige, et rendre le dernier candidat est ce qui
+	// ressemble le plus à ce qui précède.
+	return w.achetables[len(w.achetables)-1]
+}
+
+// poidsDAchat est la fréquence relative d'un profil dans le tirage.
+func poidsDAchat(p *EnemyProfile) int {
+	return int(One) / (p.PressureCost * p.Group)
 }
 
 // PlafondDeReport rend la borne au-delà de laquelle un budget cesse de
@@ -108,21 +170,24 @@ func PlafondDeReport(parTick Fixed, report Tick, moinsCher Fixed) Fixed {
 	return plafond
 }
 
-// etalage range dans `w.achetables` les profils que la phase autorise, dont la
-// meute entière tient dans le bassin et sous leur plafond de simultanéité, et
-// que le budget paie.
+// etalage range dans `w.achetables` les profils que la phase autorise et dont la
+// meute entière tient dans le bassin comme sous son plafond de simultanéité.
 //
-// Elle rend aussi le nombre de profils qui tiennent, budget mis à part, et c'est
-// ce compte qui distingue les deux façons de ne rien acheter : plus rien qui
-// tienne est une impasse dont le budget ne sortira pas, tandis que rien
-// d'abordable se règle en attendant un tick de plus.
+// **Le budget n'entre pas dans ce filtre**, et c'est ce qui a changé le jour où
+// le spawner s'est mis à épargner : ce qu'on tire est un profil qu'on pourra
+// payer, pas un qu'on peut payer tout de suite. Filtrer sur le budget ramènerait
+// le défaut qu'on ferme — le moins cher serait seul candidat la plupart du temps,
+// donc seul acheté.
+//
+// Rien qui tienne est une impasse dont le budget ne sortira pas, et c'est le seul
+// cas où il se perd.
 //
 // **Une meute qui ne tient pas est écartée entière**, jamais rognée : le Molosse
 // n'apparaît jamais seul, et un bassin presque plein est précisément le moment
 // où l'exception s'écrirait. C'est aussi pour cela que la place restante se juge
 // ici plutôt que dans la boucle appelante — un seul endroit décide de ce qu'on
 // peut acheter, et c'est lui qui borne la boucle quand le bassin se remplit.
-func (w *World) etalage(phase *Phase) (sousPlafond, abordables int) {
+func (w *World) etalage(phase *Phase) int {
 	w.achetables = w.achetables[:0]
 	place := w.ennemis.Cap() - w.ennemis.Len()
 	for _, p := range phase.Profiles {
@@ -133,12 +198,9 @@ func (w *World) etalage(phase *Phase) (sousPlafond, abordables int) {
 		if profil.MaxAlive > 0 && w.vivants[p]+profil.Group > profil.MaxAlive {
 			continue
 		}
-		sousPlafond++
-		if profil.PackCost() <= w.budget {
-			w.achetables = append(w.achetables, p)
-		}
+		w.achetables = append(w.achetables, p)
 	}
-	return sousPlafond, len(w.achetables)
+	return len(w.achetables)
 }
 
 // compterLesVivants recompte la horde par profil.

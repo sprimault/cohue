@@ -276,7 +276,7 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 		Profile: profil,
 		X:       x,
 		Y:       y,
-		Hits:    w.profils.Enemies[profil].Hits,
+		Hits:    w.profils.Enemies[profil].HitsAt(w.durcissement()),
 	})
 }
 

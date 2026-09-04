@@ -44,6 +44,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Une phase peut durcir ce qu'elle fait apparaître.** Un champ `resistance`
+  facultatif multiplie les touches des créatures nées sous elle — 1,3 fait passer
+  un Badaud de trois à quatre. La résistance est figée à l'apparition : une
+  créature demande le même nombre de coups du premier au dernier.
 - **Les Passants peuplent un lieu.** Un lieu déclare son ambiance dans un champ
   `ambiance` facultatif, chaque figurant à la case où il commence ; ils vont et
   viennent sans être visés, sans gêner la horde et sans compter nulle part. Une
@@ -85,6 +89,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **A phase can toughen what it spawns.** An optional `resistance` field
+  multiplies the hits of creatures born under it — 1.3 takes a Badaud from three
+  to four. Toughness is fixed at spawn: a creature takes the same number of hits
+  from first to last.
 - **Passants populate a place.** A place declares its ambience in an optional
   `ambiance` field, each extra at the cell where it starts; they wander without
   being targeted, without hindering the horde and without counting anywhere. A

@@ -241,7 +241,11 @@ Un obstacle immobile n'appelle qu'une règle : on ne peut y entrer que par accid
 
 La réciprocité règle les deux d'un coup : le Vigile ne pouvant pas entrer dans le joueur, le recouvrement n'a pas lieu et la question de la sortie ne se pose plus. Qui voudra corriger le cas du joueur emmuré en rétablissant la règle asymétrique retirera donc le blocage lui-même, sans le voir.
 
-Le blocage ne peut pas devenir un piège, parce que le corps solide ne l'est que vivant : un joueur pris entre un Vigile et un mur tire nécessairement dessus — c'est le plus proche, et la visée est omnidirectionnelle. Douze touches, c'est long et c'est fini. À éprouver au jalon 3 : si cette situation se lit comme une mort injuste, c'est l'exception qui tombe, pas le plafond de dégâts.
+Le blocage ne peut pas devenir un piège, parce que le corps solide ne l'est que vivant : un joueur pris entre un Vigile et un mur tire nécessairement dessus — c'est le plus proche, et la visée est omnidirectionnelle. Douze touches, c'est long et c'est fini.
+
+**L'exception tient, et le sursis n'est levé qu'à moitié.** Ce qui est éprouvé : le blocage ne piège pas et ne se lit pas comme une injustice — le joueur s'arrête, comprend qu'il doit contourner, et repart. Ce qui ne l'est pas : le cas décrit juste au-dessus, celui d'un joueur **pris entre un Vigile et un mur**, sans direction de repli. C'est lui qui déciderait, et il ne s'est pas présenté.
+
+**L'arrêt se comprend par le mouvement empêché avant de se comprendre par la vue**, ce qui est une nuance et non un détail : le joueur sait qu'il est bloqué parce qu'il n'avance plus, pas parce qu'il a reconnu la créature devant lui. Tant qu'une issue existe, cela suffit — c'est acculé que la distinction compterait, puisqu'il faudrait alors savoir qu'on tire sur ce qui retient plutôt que chercher un passage qui n'existe pas.
 
 ### Le recyclage de la traîne
 

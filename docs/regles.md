@@ -187,8 +187,11 @@ et on ne saurait pas dire ce qui a rendu une minute plus dure.
 En haut à gauche, la jauge de **vie** en rouge, celle d'**expérience** en bleu, et
 le niveau atteint. En haut à droite, le **temps écoulé**.
 
-Le personnage est jaune, la horde rouge, les projectiles clairs, les gemmes
-vertes.
+Le personnage est jaune et clair, la horde sombre, les projectiles clairs, les
+gemmes vertes. **Chaque créature a sa teinte** : le Badaud rouge, l'Arpenteur
+violet, le Molosse orange, le Vigile bleu, la Buse olive, la Baudruche magenta,
+le Secouriste vert. Elles restent toutes sombres — c'est ce qui garde votre
+personnage visible au milieu d'une foule.
 
 Le sol se lit à sa teinte : gris pour une case libre, **bleuté pour une case
 qui ralentit**, sombre pour un mur qu'on ne traverse pas. La **porte** est la

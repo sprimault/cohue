@@ -88,8 +88,23 @@ func (w *World) Fingerprint() string {
 	// rendent le même tirage suivant — c'est suffisant ici, et ça ne l'est pas
 	// pour qui lirait « empreinte de l'état des flux ».
 	//
-	// Le tirage se consomme, ce qui est sans conséquence : une empreinte se
-	// prend d'une partie qu'on ne joue plus.
+	// **Le tirage se consomme, et ce n'est plus sans conséquence.** Cette phrase
+	// était vraie quand un seul instant final était relevé : la partie ne se
+	// jouait plus après. Depuis qu'il y en a trois, chaque relevé consomme trois
+	// tirages et décale la suite de la run — les deux derniers instants sont donc
+	// pris sur une trajectoire que les relevés précédents ont déviée.
+	//
+	// **La frontière est celle de l'usage, et elle se dit en une phrase :** ce
+	// qui est mesuré ici est une trajectoire que les relevés précédents ont
+	// déviée, ce qui reste déterministe mais n'est plus la run qu'on aurait
+	// jouée. Acceptable pour un test de reproductibilité — les deux exécutions
+	// dévient pareil — et inacceptable pour une mesure d'équilibrage, qui
+	// prétendrait décrire une partie.
+	//
+	// Ce qui en souffre aussi est le **choix** des instants : un tick repéré en
+	// parcourant la run sans relever ne contient pas la même chose une fois les
+	// relevés en place. Le corollaire pour qui explore : compter sur les bassins,
+	// jamais en appelant cette fonction à chaque pas.
 	// **Le flux cosmétique n'y est pas, et son absence est le fond de la
 	// promesse.** Ce que cette empreinte compare est l'état de la simulation ;
 	// or `Cosmetic` ne décide de rien par construction, si bien qu'y inclure son

@@ -92,21 +92,24 @@ JEU = {
     "marcheur":  {"role": "ennemi", "comportement": "poursuite",
                   "vitesse_relative": 0.62, "rayon_tuiles": 0.125, "touches": 3,
                   "points": 10, "cout_pression": 3, "poids_separation": 1.0,
-                  "max_simultane": 0, "degats_contact_s": 6, "gemmes": 1},
+                  "max_simultane": 0, "groupe": 1, "degats_contact_s": 6, "gemmes": 1},
     "sprinteur": {"role": "ennemi", "comportement": "charge",
                   "vitesse_relative": 1.35, "rayon_tuiles": 0.109, "touches": 2,
                   "points": 25, "cout_pression": 4, "poids_separation": 1.0,
-                  "max_simultane": 0, "degats_contact_s": 8, "gemmes": 1,
+                  # Il n'apparaît jamais seul : trois qui chargent en décalé sont
+                  # ce qui oblige à cesser de reculer en ligne droite. Le coût
+                  # ci-dessus est unitaire, le spawner paie donc douze.
+                  "max_simultane": 0, "groupe": 3, "degats_contact_s": 8, "gemmes": 1,
                   "degats_charge": 18},
     "flanqueur": {"role": "ennemi", "comportement": "flanc",
                   "vitesse_relative": 0.82, "rayon_tuiles": 0.109, "touches": 4,
                   "points": 30, "cout_pression": 5, "poids_separation": 1.0,
-                  "max_simultane": 0, "degats_contact_s": 7, "gemmes": 1,
+                  "max_simultane": 0, "groupe": 1, "degats_contact_s": 7, "gemmes": 1,
                   "tangentiel": 0.55},
     "cracheur":  {"role": "ennemi", "comportement": "tir",
                   "vitesse_relative": 0.55, "rayon_tuiles": 0.125, "touches": 5,
                   "points": 40, "cout_pression": 6, "poids_separation": 1.3,
-                  "max_simultane": 0, "degats_contact_s": 4, "gemmes": 1,
+                  "max_simultane": 0, "groupe": 1, "degats_contact_s": 4, "gemmes": 1,
                   "portee_tuiles": 6,
                   "degats_tir": 6, "vitesse_projectile_tuiles_s": 7.0},
     # Poids faible : dans le mécanisme du chapitre 4, ce poids dit combien une
@@ -116,18 +119,18 @@ JEU = {
     "bloqueur":  {"role": "ennemi", "comportement": "poursuite",
                   "vitesse_relative": 0.45, "rayon_tuiles": 0.188, "touches": 12,
                   "points": 60, "cout_pression": 12, "poids_separation": 0.4,
-                  "max_simultane": 0, "degats_contact_s": 10, "gemmes": 1},
+                  "max_simultane": 0, "groupe": 1, "degats_contact_s": 10, "gemmes": 1},
     "eclateur":  {"role": "ennemi", "comportement": "explosion",
                   "vitesse_relative": 0.70, "rayon_tuiles": 0.141, "touches": 4,
                   "points": 35, "cout_pression": 5, "poids_separation": 1.0,
-                  "max_simultane": 0, "degats_contact_s": 5, "gemmes": 1,
+                  "max_simultane": 0, "groupe": 1, "degats_contact_s": 5, "gemmes": 1,
                   "degats_explosion": 35,
                   "rayon_explosion_tuiles": 1.5},
     # Un seul à la fois : sa menace est multiplicative, pas additive.
     "soigneur":  {"role": "ennemi", "comportement": "soin",
                   "vitesse_relative": 0.70, "rayon_tuiles": 0.109, "touches": 3,
                   "points": 15, "cout_pression": 6, "poids_separation": 1.0,
-                  "max_simultane": 1, "degats_contact_s": 4, "gemmes": 1},
+                  "max_simultane": 1, "groupe": 1, "degats_contact_s": 4, "gemmes": 1},
     # Le Passant n'est pas un monstre : il ne blesse pas, ne rapporte rien, ne
     # se cible pas et ne se paie pas dans le budget de pression. Il traverse la
     # scène et occupe l'espace, ce qui suffit à le rendre gênant. Lui laisser
@@ -159,7 +162,7 @@ PROFILS = {
                   "variantes": [(120, 148, 116), (92, 116, 140), (146, 122, 96),
                                 (132, 108, 120), (104, 132, 128), (150, 140, 108)],
                   "cycles": {"repos": 1, "marche": 5, "attaque": 3, "degat": 1, "mort": 3}},
-    "sprinteur": {"nom": "Molosse", "groupe": 3, "habit": (112, 88, 72),   "peau": (150, 118, 88),  "carrure": 1.0,
+    "sprinteur": {"nom": "Molosse", "habit": (112, 88, 72),   "peau": (150, 118, 88),  "carrure": 1.0,
                   "gabarit": "quadrupede",
                   "cycles": {"marche": 8, "mort": 2}},
     "flanqueur": {"nom": "Arpenteur", "habit": (108, 76, 132),  "peau": (168, 132, 196), "carrure": 0.9,
@@ -684,7 +687,6 @@ def main():
                         dossier / f"{cycle}_{direction}.png")
         manifeste[profil] = {
             "nom": reglages["nom"],
-            "groupe": reglages.get("groupe", 1),
             "variantes": len(variantes),
             "gabarit": reglages.get("gabarit", "bipede"),
             **JEU.get(profil, {}),

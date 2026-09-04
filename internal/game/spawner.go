@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Le spawner : un budget de pression qui s'accumule tick après tick, des
-// créatures achetées dedans, et un anneau hors du champ de vision où les poser.
-// Trois façons de ne rien poser, et elles ne font pas la même chose du budget.
+// créatures achetées dedans par meutes indivisibles, et un anneau hors du champ
+// de vision où les poser. Trois façons de ne rien poser, et elles ne font pas la
+// même chose du budget.
 
 package game
 
@@ -58,7 +59,7 @@ func (w *World) apparaitre() {
 	}
 
 	w.compterLesVivants()
-	for w.ennemis.Len() < w.ennemis.Cap() {
+	for {
 		sousPlafond, abordables := w.etalage(phase)
 		if sousPlafond == 0 {
 			w.budget = 0
@@ -74,29 +75,49 @@ func (w *World) apparaitre() {
 			return
 		}
 
-		w.SpawnEnemy(profil, x, y)
-		w.budget -= FromInt(w.profils.Enemies[profil].PressureCost)
-		w.vivants[profil]++
+		// **Une seule position pour toute la meute.** Elles arrivent ensemble ou
+		// ce ne sont que trois créatures du même profil, et un tirage par membre
+		// les ferait naître aux quatre coins de l'anneau. Elles se superposent
+		// donc à l'apparition, ce que la conception admet au chapitre 4 en
+		// donnant une direction au vecteur nul ; la séparation les écarte au
+		// même tick, tant que les apparitions y précèdent le comptage de
+		// densité.
+		meute := &w.profils.Enemies[profil]
+		for range meute.Group {
+			w.SpawnEnemy(profil, x, y)
+		}
+		w.budget -= meute.PackCost()
+		w.vivants[profil] += meute.Group
 	}
-	w.budget = 0
 }
 
-// etalage range dans `w.achetables` les profils que la phase autorise, que leur
-// plafond de simultanéité laisse passer et que le budget paie.
+// etalage range dans `w.achetables` les profils que la phase autorise, dont la
+// meute entière tient dans le bassin et sous leur plafond de simultanéité, et
+// que le budget paie.
 //
-// Elle rend aussi le nombre de profils sous leur plafond, budget mis à part, et
-// c'est ce compte qui distingue les deux façons de ne rien acheter : plus rien
-// sous son plafond est une impasse dont le budget ne sortira pas, tandis que
-// rien d'abordable se règle en attendant un tick de plus.
+// Elle rend aussi le nombre de profils qui tiennent, budget mis à part, et c'est
+// ce compte qui distingue les deux façons de ne rien acheter : plus rien qui
+// tienne est une impasse dont le budget ne sortira pas, tandis que rien
+// d'abordable se règle en attendant un tick de plus.
+//
+// **Une meute qui ne tient pas est écartée entière**, jamais rognée : le Molosse
+// n'apparaît jamais seul, et un bassin presque plein est précisément le moment
+// où l'exception s'écrirait. C'est aussi pour cela que la place restante se juge
+// ici plutôt que dans la boucle appelante — un seul endroit décide de ce qu'on
+// peut acheter, et c'est lui qui borne la boucle quand le bassin se remplit.
 func (w *World) etalage(phase *Phase) (sousPlafond, abordables int) {
 	w.achetables = w.achetables[:0]
+	place := w.ennemis.Cap() - w.ennemis.Len()
 	for _, p := range phase.Profiles {
 		profil := &w.profils.Enemies[p]
-		if profil.MaxAlive > 0 && w.vivants[p] >= profil.MaxAlive {
+		if profil.Group > place {
+			continue
+		}
+		if profil.MaxAlive > 0 && w.vivants[p]+profil.Group > profil.MaxAlive {
 			continue
 		}
 		sousPlafond++
-		if FromInt(profil.PressureCost) <= w.budget {
+		if profil.PackCost() <= w.budget {
 			w.achetables = append(w.achetables, p)
 		}
 	}

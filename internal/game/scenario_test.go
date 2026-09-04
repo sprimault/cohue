@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Les cas de la compilation d'un scénario : la frise stricte, les profils qui
-// doivent exister et être hostiles, l'ordre des phases, et la salle sans horde
-// qui reste un lieu valide.
+// doivent exister et être hostiles, l'ordre des phases, le prix d'une meute au
+// plancher du report, et la salle sans horde qui reste un lieu valide.
 
 package game
 
@@ -142,6 +142,34 @@ func TestUneSalleSansHordeResteUnLieu(t *testing.T) {
 	}
 	if len(scenario.Phases) != 0 {
 		t.Errorf("%d phase(s) sorties d'un scénario absent", len(scenario.Phases))
+	}
+}
+
+// TestLePlancherDeReportCompteLaMeute vérifie que le prix retenu pour la phase
+// est celui d'une apparition et non d'une créature.
+//
+// C'est le second endroit où le prix intervient, et l'oublier ne se voit pas :
+// une phase qui ne convoque que le Molosse plafonnerait son report au prix d'un
+// chien, si bien que le budget monterait, buterait sous les douze de la meute et
+// n'achèterait jamais rien — la salle resterait vide sans qu'aucun refus ne le
+// dise, ce qui est exactement le défaut que `Cheapest` existe pour fermer.
+func TestLePlancherDeReportCompteLaMeute(t *testing.T) {
+	profils := profilsLivres(t)
+	scenario, manques := CompileScenario(WaveScenario{Phases: []WavePhase{
+		phaseEcrite("0:00", 4, "sprinteur"),
+	}}, profils)
+	if len(manques) > 0 {
+		t.Fatalf("phase refusée : %v", manques)
+	}
+
+	// L'attendu se recompose ici plutôt que d'appeler `PackCost` : adossé à la
+	// méthode, ce cas resterait vert le jour où elle-même rendrait le prix d'une
+	// créature, et ne garderait plus que l'accord de deux erreurs.
+	molosse := &profils.Enemies[indexDuProfil(t, profils, "sprinteur")]
+	veut := FromInt(molosse.PressureCost * molosse.Group)
+	if scenario.Phases[0].Cheapest != veut {
+		t.Errorf("prix de la phase %v, attendu %v : le plancher retient le prix "+
+			"unitaire", scenario.Phases[0].Cheapest, veut)
 	}
 }
 

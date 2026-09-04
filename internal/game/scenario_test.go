@@ -79,6 +79,29 @@ func TestUnProfilQuiNExistePasEstRefuse(t *testing.T) {
 	}
 }
 
+// TestUnProfilRefuseNommeLaCleEtLeNom vérifie que le refus donne de quoi le
+// corriger.
+//
+// **Le cas est écrit avec le mot qu'un auteur essaie vraiment.** Tout ce qu'un
+// humain lit ailleurs porte le nom de fiction — la règle du jeu, la table des
+// rôles —, quand le fichier attend la clé du moteur. Un auteur arrive donc avec
+// « arpenteur », et un refus qui se contente de le déclarer inconnu le laisse
+// chercher `flanqueur` dans un manifeste qu'il n'a aucune raison d'ouvrir.
+//
+// Les deux moitiés sont exigées ensemble : la clé seule ne se relie à rien de ce
+// qu'il a lu, le nom seul ne s'écrit pas dans un fichier.
+func TestUnProfilRefuseNommeLaCleEtLeNom(t *testing.T) {
+	_, manques := CompileScenario(WaveScenario{Phases: []WavePhase{
+		phaseEcrite("0:00", 8, "arpenteur"),
+	}}, profilsLivres(t))
+
+	for _, attendu := range []string{"« flanqueur »", "(Arpenteur)"} {
+		if !contient(manques, attendu) {
+			t.Errorf("le refus ne porte pas %s : %v", attendu, manques)
+		}
+	}
+}
+
 // TestLePassantNEstPasAchetable vérifie que ce qui n'est pas hostile n'entre
 // dans aucun compte.
 //

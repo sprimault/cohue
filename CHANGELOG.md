@@ -69,6 +69,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
   l'anneau : elle arrive d'un seul côté. Le coût de pression du manifeste étant
   unitaire, une meute se paie trois fois ce prix et n'apparaît jamais rognée.
 
+### Corrigé
+
+- **Un profil de vague inconnu dit lequel écrire.** Le refus énumère désormais
+  les clés attendues avec le nom de chaque créature — « flanqueur » (Arpenteur)
+  —, là où il se contentait de déclarer le nom inconnu. Un lieu s'écrit avec la
+  clé, quand tout ce qui se lit ailleurs porte le nom.
+
 ***
 
 ### Added
@@ -97,6 +104,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
   declared by the profile in one go and places the pack at a single point on the
   ring, so it comes from one side. The manifest's pressure cost is per creature,
   so a pack costs three times that and never shows up trimmed.
+
+### Fixed
+
+- **An unknown wave profile now says which one to write.** The rejection lists
+  the expected keys along with each creature's name — "flanqueur" (Arpenteur) —
+  where it merely declared the name unknown. A place is written with the key,
+  while everything read elsewhere carries the name.
 
 ## [0.3.2] — 2026-09-03 — L'alerte de vie basse
 

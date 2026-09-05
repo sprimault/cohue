@@ -207,14 +207,17 @@ func TestLaBuseTireASaCadence(t *testing.T) {
 	w, profil, _ := buse(t)
 	poserBuse(t, w, FromInt(3))
 
-	const duree = 330
+	// Première avec la cadence, ce que 330 n'était pas : leur plus grand commun
+	// diviseur valait six, si bien que la durée retombait sur un multiple de la
+	// période et que la coïncidence que cette godoc écarte restait possible.
+	const duree = 331
 	for range duree {
 		w.Step(Vec{})
 	}
 
 	// Le premier part au tick où elle entre à portée, les suivants toutes les
-	// `ShotCooldown` : quatre en trois cent trente ticks pour une cadence de
-	// quatre-vingt-seize.
+	// `ShotCooldown` : quatre en trois cent trente et un ticks pour une cadence
+	// de quatre-vingt-seize.
 	veut := int(1 + (duree-1)/profil.ShotCooldown)
 	if perdu := w.MaxHealth() - w.Health(); perdu != veut*profil.ShotDamage {
 		t.Errorf("%d points perdus en %d ticks, attendu %d pour %d tirs",

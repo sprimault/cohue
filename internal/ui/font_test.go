@@ -90,7 +90,8 @@ func TestLeManifesteDInterfaceRefuseCeQuiEstIncoherent(t *testing.T) {
 	}
 }
 
-// TestLeManifesteValideSeCharge est le témoin des refus ci-dessus.
+// TestLeManifesteValideSeCharge est le témoin des refus de
+// `TestLeManifesteDInterfaceRefuseCeQuiEstIncoherent`.
 //
 // Sans lui, un `LoadFont` qui refuserait tout les ferait tous passer : ils
 // vérifient qu'un manifeste est refusé, jamais qu'un autre est accepté. C'est la
@@ -128,9 +129,9 @@ func TestUnGlypheAbsentOccupeUneCellule(t *testing.T) {
 
 // TestLaPoliceLivreeSeCharge lit le manifeste publié, sans rien injecter.
 //
-// Les cas ci-dessus bâtissent leur entrée pour isoler un refus ; celui-ci passe
-// par le chemin qui produit la vraie, et c'est le seul qui tombe si le
-// générateur change ce qu'il écrit. Ce qu'il garde en propre : la table couvre
+// `TestLeManifesteDInterfaceRefuseCeQuiEstIncoherent` bâtit son entrée pour
+// isoler un refus ; celui-ci passe par le chemin qui produit la vraie, et c'est
+// le seul qui tombe si le générateur change ce qu'il écrit. Ce qu'il garde en propre : la table couvre
 // l'ASCII imprimable et les capitales accentuées, que le français impose et
 // qu'une fonte de jeu anglophone porte rarement.
 func TestLaPoliceLivreeSeCharge(t *testing.T) {

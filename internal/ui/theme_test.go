@@ -97,7 +97,8 @@ func TestLesReglagesRefusentCeQuiEstIncoherent(t *testing.T) {
 	}
 }
 
-// TestLesReglagesValidesSeChargent est le témoin des refus ci-dessus.
+// TestLesReglagesValidesSeChargent est le témoin des refus de
+// `TestLesReglagesRefusentCeQuiEstIncoherent`.
 //
 // Sans lui, un `LoadTheme` qui refuserait tout les ferait tous passer.
 func TestLesReglagesValidesSeChargent(t *testing.T) {
@@ -117,9 +118,9 @@ func TestLesReglagesValidesSeChargent(t *testing.T) {
 
 // TestLeThemeLivreSeCharge lit le manifeste publié, sans rien injecter.
 //
-// Les cas ci-dessus bâtissent leur entrée pour isoler un refus ; celui-ci passe
-// par le chemin qui produit la vraie, et c'est le seul qui tombe si le
-// générateur cesse d'écrire une teinte que la table exige.
+// `TestLesReglagesRefusentCeQuiEstIncoherent` bâtit son entrée pour isoler un
+// refus ; celui-ci passe par le chemin qui produit la vraie, et c'est le seul
+// qui tombe si le générateur cesse d'écrire une teinte que la table exige.
 func TestLeThemeLivreSeCharge(t *testing.T) {
 	theme, err := LoadTheme(cohue.Assets, cohue.InterfaceManifest)
 	if err != nil {

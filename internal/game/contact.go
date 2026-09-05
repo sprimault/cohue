@@ -173,9 +173,14 @@ func (w *World) Alive() bool { return w.vie > 0 }
 // quelques points de vie ne se lit qu'en haut à gauche, là où l'on ne regarde
 // pas en kitant. Un signal redit rarement ce qui est déjà à l'image.
 //
-// Mort, le joueur n'est plus en danger : c'est fait. L'écran de mort prend le
-// relais, et laisser l'alerte allumée sous lui la ferait durer jusqu'à la
-// relance.
+// **La partie finie, le joueur n'est plus en danger : c'est fait.** L'écran de
+// fin prend le relais, et laisser l'alerte allumée sous lui la ferait durer
+// jusqu'à la relance.
+//
+// **Finie et non morte**, depuis qu'il y a deux issues. La vie seule éteignait
+// l'alerte à la mort et la laissait allumée sur une sortie, si bien que le même
+// écran se présentait rouge ou non selon la façon dont on y était arrivé —
+// alors que ce qu'il montre est justement commun aux deux.
 func (w *World) InDanger() bool {
-	return w.Alive() && w.vie <= w.profils.Player.LowHealth
+	return !w.Over() && w.vie <= w.profils.Player.LowHealth
 }

@@ -247,11 +247,14 @@ func TestLAlerteSuitLaVieEtNonLeContact(t *testing.T) {
 	}
 }
 
-// TestLAlerteSEteintALaMort garde ce que l'écran de mort reprend.
+// TestLAlerteSEteintALaMort garde ce que l'écran de fin reprend.
 //
 // Mort, le joueur n'est plus en danger : c'est fait. Sans ce cas, une alerte
 // laissée allumée sous le voile de mort durerait jusqu'à la relance, et le seul
 // endroit qui l'aurait dit est un écran qu'aucun test ne peut regarder.
+//
+// `TestLAlerteSEteintALaSortie` garde l'autre fin, et il faut les deux : la vie
+// éteint l'alerte à la mort par elle-même, jamais sur une sortie.
 func TestLAlerteSEteintALaMort(t *testing.T) {
 	w, profils := champSansTir(t)
 	coller(t, w, indexDuProfil(t, profils, "marcheur"), 10)
@@ -267,6 +270,44 @@ func TestLAlerteSEteintALaMort(t *testing.T) {
 	}
 	if w.InDanger() {
 		t.Error("l'alerte reste allumée après la mort")
+	}
+}
+
+// TestLAlerteSEteintALaSortie est le jumeau du précédent, sur l'autre fin.
+//
+// **Les deux issues partagent leur écran**, ce que le rendu affirme. Une alerte
+// qui s'éteignait à la mort et restait allumée sur une sortie les séparait
+// pourtant : le joueur qui s'en tire sous le seuil voyait un bord rouge sur
+// l'écran qui lui annonce qu'il a gagné le lieu.
+//
+// **La vie ne pouvait pas le dire**, et c'est pourquoi ce cas manquait : elle
+// tombe à zéro dans un cas et pas dans l'autre, si bien qu'un prédicat adossé à
+// elle traite une fin sur deux. C'est `Over` qui porte les deux.
+func TestLAlerteSEteintALaSortie(t *testing.T) {
+	w, _ := salleAvecPorte(t)
+
+	// Sous le seuil avant de sortir : sinon l'alerte serait éteinte pour la
+	// raison ordinaire, et le cas passerait sur le code fautif.
+	w.vie = w.profils.Player.LowHealth
+	if !w.InDanger() {
+		t.Fatalf("l'alerte n'est pas allumée à %d points pour un seuil de %d",
+			w.Health(), w.profils.Player.LowHealth)
+	}
+
+	for range porteAbattus {
+		w.SpawnEnemy(0, FromInt(30), FromInt(30))
+		w.Enemies().At(w.Enemies().Len() - 1).Hits = 0
+		w.Step(Vec{})
+	}
+	w.Place(FromInt(porteU)+One/2, FromInt(porteV+1)+One/2)
+	w.Step(Vec{})
+
+	if !w.Escaped() {
+		t.Fatal("le joueur n'est pas sorti : le cas ne pose plus sa question")
+	}
+	if w.InDanger() {
+		t.Error("l'alerte reste allumée après la sortie : les deux fins ne " +
+			"montrent pas le même écran")
 	}
 }
 

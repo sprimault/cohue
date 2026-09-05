@@ -47,11 +47,16 @@ dégâts subis par seconde sont **plafonnés à vingt**, quel que soit leur nomb
 Autrement dit, être encerclé est très dangereux mais laisse une fenêtre pour se
 dégager — environ cinq secondes depuis la pleine vie. Traversez, ne restez pas.
 
+**Ce plafond ne couvre que le contact.** Trois choses tombent d'un seul coup et
+s'y ajoutent : la charge d'un Molosse, un tir de Buse, l'explosion d'une
+Baudruche. Les trois s'annoncent avant de porter, et c'est votre seule protection
+contre eux — à vie basse, une explosion suffit à vous tuer.
+
 **Sous trente points de vie, les bords de l'écran rougissent** et le restent
 jusqu'à ce que vous vous soigniez. C'est le seul signal que vous verrez sans
 quitter votre personnage des yeux — la jauge est en haut à gauche, et on ne la
-regarde pas en fuyant. Trente points, c'est aussi ce que rend une fiole : quand
-la vignette s'allume, en boire une ne gaspille rien.
+regarde pas en fuyant. Trente points, c'est aussi ce que rend le **Souffle** :
+quand la vignette s'allume, le prendre à la montée suivante ne gaspille rien.
 
 ## Les gemmes
 
@@ -177,26 +182,24 @@ sans rien faire.
 La résistance se compte en **touches de votre arme de base**, pas en points : une
 arme qui grossit toute la partie rendrait un chiffre absolu illisible.
 
-Aujourd'hui, le lieu de démonstration ne convoque que le **Quidam**. Les six
-autres existent et attendent ce qui les rendra reconnaissables à l'écran : une
-horde de sept sortes qu'aucune couleur ne distingue rend la difficulté illisible,
-et on ne saurait pas dire ce qui a rendu une minute plus dure.
+Elles entrent l'une après l'autre : l'Arpenteur à une minute, le Molosse et le
+Vigile à quatre, la Buse à six, la Baudruche à huit, le Secouriste à dix. À
+partir de la sixième minute, celles qui arrivent sont plus résistantes.
 
 ## L'écran
 
-En haut à gauche, la jauge de **vie** en rouge, celle d'**expérience** en bleu, et
-le niveau atteint. En haut à droite, le **temps écoulé**.
+En haut à gauche, deux jauges : la **vie** au-dessus, l'**expérience** en dessous,
+et le niveau atteint. En haut à droite, le **temps écoulé**.
 
-Le personnage est jaune et clair, la horde sombre, les projectiles clairs, les
-gemmes vertes. **Chaque créature a sa teinte** : le Quidam rouge, l'Arpenteur
-violet, le Molosse orange, le Vigile bleu, la Buse olive, la Baudruche magenta,
-le Secouriste vert. Elles restent toutes sombres — c'est ce qui garde votre
-personnage visible au milieu d'une foule.
+**Votre personnage est plus clair que tout le reste**, et c'est ce qui vous garde
+repérable au milieu d'une foule. Chaque sorte de créature se distingue des
+autres : vous pouvez dire à quoi vous avez affaire sans compter les touches.
 
-Le sol se lit à sa teinte : gris pour une case libre, **bleuté pour une case
-qui ralentit**, sombre pour un mur qu'on ne traverse pas. La **porte** est la
-case cyan : éteinte tant qu'elle est fermée, vive une fois gagnée. Les
-**caisses** sont les formes brunes posées au sol, plus larges que hautes.
+**Vos tirs et ceux de la Buse ne se ressemblent pas.** C'est la distinction qui
+compte le plus à l'écran, puisque seuls les seconds vous blessent.
+
+Le sol dit ce qu'il coûte : une case qui ralentit ne se confond ni avec une case
+libre, ni avec un mur. La **porte** change d'aspect une fois gagnée.
 
 ## Les touches
 

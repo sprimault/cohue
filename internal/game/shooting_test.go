@@ -448,6 +448,52 @@ func TestLeTirNEnjambePasSaCible(t *testing.T) {
 	}
 }
 
+// TestLeTirAtteintUneCibleCollee garde ce sur quoi repose l'exception du Vigile.
+//
+// La conception tient que son corps solide ne peut pas devenir un piège **parce
+// que** le joueur acculé lui tire nécessairement dessus : c'est le plus proche,
+// et la visée est omnidirectionnelle.
+//
+// **Six autres tests tombent sur une portée minimale ajoutée au ciblage, et
+// aucun ne garde cette propriété** : leurs cibles poursuivent le joueur, donc
+// elles finissent collées avant d'encaisser leur dernière touche. Ils
+// rencontrent le cas, ils ne le posent pas — celui qui figerait sa cible ou
+// raccourcirait sa boucle cesserait de l'attraper sans que rien ne le dise.
+//
+// **L'écart nul est le cas qui compte**, et pas seulement le contact : c'est là
+// que la visée anticipée normalise un vecteur nul, et la seule distance qu'un
+// carré nul admet. Les écarts intermédiaires l'encadrent plutôt qu'ils ne le
+// répètent — une portée minimale se poserait quelque part entre eux.
+//
+// Il ne dit rien de ce qu'on **voit** : l'éclair d'impact s'allume, et le rendu
+// le recouvre du sprite du joueur, qui passe devant ce qui partage sa
+// profondeur. Une partie jouée l'a fait prendre pour un tir qui ne part plus.
+func TestLeTirAtteintUneCibleCollee(t *testing.T) {
+	for _, ecart := range []Fixed{0, FromFloat(0.1), FromFloat(0.25)} {
+		w, profils := champDeTir(t)
+		px, py := w.Player()
+		marcheur := indexDuProfil(t, profils, "marcheur")
+
+		cible, ok := w.SpawnEnemy(marcheur, px+ecart, py)
+		if !ok {
+			t.Fatal("créature refusée")
+		}
+
+		morte := false
+		for range 5 * TPS {
+			w.Step(Vec{})
+			if !w.Enemies().Alive(cible) {
+				morte = true
+				break
+			}
+		}
+		if !morte {
+			t.Errorf("collée à %v tuile du joueur, la cible n'est pas tombée en cinq secondes",
+				ecart.Float())
+		}
+	}
+}
+
 // TestLeTirNeCoupePasUnAngle garde ce qu'une seule partie jouée a montré.
 //
 // **Le défaut demandait de raser un angle**, ce qui explique qu'il ait fallu

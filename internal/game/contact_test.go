@@ -156,6 +156,42 @@ func TestLaHordeFinitParBlesser(t *testing.T) {
 	}
 }
 
+// TestLeVigileBlesseAuContact est le cas qu'un profil solide rend possible et
+// que `TestLaHordeFinitParBlesser` ne peut pas voir : celui-là joue un Quidam,
+// que rien n'arrête avant le joueur.
+//
+// **Ce qui est gardé est que la distance où le corps arrête soit une distance où
+// le contact a lieu.** Les deux portées se posaient sur la même somme de rayons,
+// si bien que la seule position que le Vigile pouvait atteindre était celle où le
+// contact cesse : il publiait dix dégâts par seconde qu'il n'infligeait jamais,
+// et rien autour ne le disait — il bloquait, il se contournait, il mourait sous
+// les tirs.
+//
+// **Il passe donc par `Step`**, à l'inverse des cas qui appellent `subir` sur des
+// créatures posées à la main : collé de force, le Vigile blessait déjà. C'était
+// l'approche qui n'aboutissait pas.
+//
+// La perte n'est pas celle de deux secondes pleines — le joueur met quelques
+// ticks à le rejoindre —, et le rythme exact est gardé par
+// `TestLeContactRetireDeLaVieEnContinu`.
+func TestLeVigileBlesseAuContact(t *testing.T) {
+	w, profil := areneSolide(t)
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, w.profils, "bloqueur"),
+		w.playerX+One, w.playerY); !ok {
+		t.Fatal("bassin plein")
+	}
+	depart := w.Health()
+
+	for range 2 * TPS {
+		w.Step(Vec{X: One})
+	}
+
+	if perdu := depart - w.Health(); perdu < profil.ContactDamage {
+		t.Errorf("%d points perdus en deux secondes contre le Vigile, attendu au "+
+			"moins %d", perdu, profil.ContactDamage)
+	}
+}
+
 // TestLAlerteSuitLaVieEtNonLeContact garde ce que l'alerte signale.
 //
 // **Elle ne s'allume pas sous les coups**, et c'est ce que la première moitié

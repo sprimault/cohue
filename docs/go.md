@@ -795,12 +795,25 @@ partie de ce qui doit être stable : l'échange à la suppression le casse, donc
 l'empreinte se calcule sur les index, jamais sur un parcours de `map`.
 
 **Elle énumère ce qu'elle inclut, jamais ce qu'elle écarte.** Les champs
-cosmétiques en sont exclus — la teinte d'un vêtement ne décide de rien, et un
-second test l'exigera en jouant deux fois la même graine avec des teintes forcées
-différentes. **Celui-là attend son premier champ cosmétique** : aucune entité n'en
-porte et rien ne consomme le flux `Cosmetic`, si bien qu'il passerait aujourd'hui
-sans rien séparer — en donnant l'illusion que la séparation des flux est
-vérifiée, ce qui est pire que son absence. Une liste de champs à ignorer se périmerait au premier champ
+cosmétiques en sont exclus — la teinte d'un vêtement ne décide de rien —, et un
+second test l'exige : `TestLeCosmetiqueNeDecideDeRien` joue deux fois la même
+graine en **décalant le flux cosmétique**, et attend la même empreinte.
+
+**Il a attendu son premier consommateur, et ce document annonçait pourquoi.**
+Tant que rien ne puisait dans `Cosmetic`, le décaler ne changeait rien parce
+qu'il n'alimentait personne — pas parce que la séparation tenait : le test aurait
+passé sans rien séparer, donnant l'illusion d'une garantie, ce qui est pire que
+son absence. Les figurants d'un lieu en sont ce consommateur, leur cap et leurs
+changements de cap y puisant tous, et `TestLesFigurantsBougentAvecLeCosmetique`
+garde l'autre moitié — sans elle, un flux devenu inerte rendrait le premier vert
+pour la raison qu'on vient d'écarter.
+
+**La parade est un décalage de flux et non des teintes forcées**, comme ce
+document l'écrivait d'abord : forcer une teinte suppose un champ cosmétique sur
+une entité, quand décaler le flux vaut pour tout ce qui y puise, présent et à
+venir.
+
+Une liste de champs à ignorer se périmerait au premier champ
 ajouté, et le test échouerait pour une raison sans rapport avec ce qu'il garde ;
 une liste de ce qui compte laisse un champ nouveau dehors par défaut, ce qui
 affaiblit le test au lieu de le casser. Des deux erreurs possibles, c'est celle

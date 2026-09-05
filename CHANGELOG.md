@@ -40,7 +40,7 @@ de version sont ce que lit un auteur de niveau étranger avant de savoir s'il
 doit reprendre son travail. Ce préambule reste en français : il n'est jamais
 publié, et explique les conventions du dépôt à qui y contribue.
 
-## [Non publié]
+## [0.4.1] — 2026-09-05 — L'écran de fin
 
 ### Corrigé
 

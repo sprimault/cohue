@@ -178,6 +178,8 @@ Sur les lieux étirés en longueur, le champ n'est calculé que sur une **fenêt
 
 Le champ de distance sert aussi aux ennemis à distance : au lieu de descendre le gradient, ils se stabilisent sur une isodistance. Un seul champ, tous les comportements.
 
+**Sur la plus contraignante de deux bornes, et il en faut deux.** L'isodistance garde qu'un chemin existe — sans elle, six tuiles de mur suffisent à figer un profil dont tout le rôle est de blesser de loin, qui tire alors dans la paroi où son projectile meurt. La distance directe garde que ce projectile porte : le champ comptant par case, une créature arrêtée sur celle qui porte sa portée est au-delà en ligne droite, et tous ses tirs mourraient avant d'arriver. Corollaire du chemin orthogonal : une approche en diagonale s'arrête plus près qu'une approche par un axe.
+
 Reste la séparation, pour éviter que 200 monstres s'empilent sur un pixel. La méthode classique (spatial hash + voisinage) coûte cher. L'alternative, bien plus rapide : chaque ennemi incrémente sa cellule dans une grille de densité, et on soustrait le gradient de densité au vecteur du flow field. Deux passes O(n), pas de requête de voisinage.
 
 ```go

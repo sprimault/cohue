@@ -120,13 +120,57 @@ func (w *World) deplacerTirsEnnemis() {
 // et celui qui immobilise la créature pour qu'elle tire. Écrits séparément, une
 // borne stricte d'un côté et large de l'autre donneraient une Buse arrêtée à la
 // distance exacte où elle refuse de tirer — un blocage qu'on chercherait dans le
-// champ de flux.
+// champ de flux. Deux **mesures** différentes seraient pires encore : l'arrêt se
+// décide par cellule, si bien qu'une créature arrêtée à six cases peut être à
+// sept tuiles réelles, et resterait figée hors de sa propre portée.
+//
+// **Deux bornes, et chacune garde ce que l'autre ne peut pas.** La distance à
+// vol d'oiseau garde que le projectile porte — il vole la portée du profil et
+// pas une tuile de plus. Le champ garde qu'un chemin existe : à vol d'oiseau
+// seul, une Buse que six tuiles de mur séparent du joueur se croyait arrivée,
+// se figeait, et tirait dans la paroi où le projectile meurt. C'est un profil
+// dont tout le rôle est de blesser de loin, réduit à une statue par un obstacle
+// qu'il n'avait qu'à contourner. C'est l'isodistance que la conception pose au
+// chapitre 4 : le même champ pour tous les comportements, les uns descendant son
+// gradient, celui-ci se stabilisant sur une de ses courbes.
+//
+// **Le champ seul ne suffisait pas, et c'est ce qui a fixé la forme.** Il compte
+// par cellule et à quatre voisins : une créature arrêtée sur la case qui porte sa
+// portée est au-delà en ligne droite, si bien que ses tirs mouraient tous avant
+// d'arriver. Retenir la plus contraignante des deux ramène le cas ordinaire à ce
+// qu'il était et ne change que celui du détour.
+//
+// Conséquence à connaître : le chemin étant orthogonal, une approche en diagonale
+// s'arrête plus près qu'une approche par un axe. C'est ce que mesurer un chemin
+// veut dire, et le même écart fait déjà contourner ce qui ralentit.
+//
+// L'écart, lui, reste géométrique — c'est la direction du tir, et elle vise où le
+// joueur est.
 func (w *World) viseeDe(e *Enemy, profil *EnemyProfile) (Vec, bool) {
 	vers := Vec{X: w.playerX - e.X, Y: w.playerY - e.Y}
 	if profil.Range == 0 {
 		return vers, false
 	}
-	return vers, vers.carres() <= int64(profil.Range)*int64(profil.Range)
+	if vers.carres() > int64(profil.Range)*int64(profil.Range) {
+		return vers, false
+	}
+	u, v := w.flux.Cell(e.X, e.Y)
+	return vers, w.flux.Distance(u, v) <= porteeDuChamp(profil.Range)
+}
+
+// porteeDuChamp convertit une portée en tuiles vers l'unité du champ de flux.
+//
+// Une case ordinaire y coûte `Free`, donc une tuile de chemin. La troncature est
+// ce qui garde la conversion du bon côté : une portée de six et demie autorise
+// six cases et jamais sept, et une case de plus vaudrait une tuile entière
+// au-delà de ce que le projectile sait couvrir.
+//
+// Ce que le champ compte est un coût et non un nombre de cases : une flaque vaut
+// ce que le manifeste lui donne, si bien qu'une Buse s'arrête plus loin derrière
+// un sol coûteux. C'est ce que « contourner ce qui ralentit » veut dire, appliqué
+// à un profil qui ne contourne pas.
+func porteeDuChamp(portee Fixed) uint32 {
+	return uint32(portee.Floor()) * uint32(Free)
 }
 
 // auContactDu dit si un point touche le joueur.

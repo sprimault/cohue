@@ -60,6 +60,13 @@ func (s *Screen) peindreFin(ecran *ebiten.Image) {
 
 	s.hud.Font.Draw(ecran, titre, (Width-s.hud.Font.Advance(titre))/2, y,
 		s.hud.Color("texte"))
+
+	// **L'invite en pleine teinte, comme le titre.** Atténuer range un texte au
+	// second plan, ce qu'on fait d'une explication et non de la seule chose que
+	// cet écran demande. Le chapitre 2 en fait la variable la plus lourde du
+	// système : la décision de rejouer se prend en trois secondes, et « Entrée
+	// pour relancer » doit être en évidence plutôt que rangé sous le résumé.
+	// C'est le même défaut que le bandeau portait sur son niveau.
 	s.hud.Font.Draw(ecran, invite, (Width-s.hud.Font.Advance(invite))/2,
-		y+2*hauteur, s.hud.Color("texte_attenue"))
+		y+2*hauteur, s.hud.Color("texte"))
 }

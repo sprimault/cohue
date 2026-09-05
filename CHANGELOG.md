@@ -42,6 +42,26 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Ajouté
+
+- **La place de démonstration a une ruelle.** Deux corps de bâtiment séparés par
+  un passage de deux cases, percés chacun d'une brèche d'une seule et bordés de
+  porches. C'est le premier endroit du lieu où un Vigile ferme vraiment un
+  passage : les trois autres pièces sont des espaces ouverts, où il se contourne
+  sans jamais décider de rien. Elle est posée devant la porte sans être un
+  passage obligé — les blocs voisins restent ouverts.
+
+***
+
+### Added
+
+- **The demonstration square has an alley.** Two building blocks split by a
+  two-tile passage, each pierced by a single-tile gap and lined with recesses.
+  It is the first place in the level where a Vigile truly seals a way through:
+  the other three rooms are open spaces, where he is walked around without ever
+  deciding anything. It sits in front of the door without being a forced
+  passage — the neighbouring blocks stay open.
+
 ## [0.4.1] — 2026-09-05 — L'écran de fin
 
 ### Corrigé

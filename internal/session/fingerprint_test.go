@@ -9,8 +9,10 @@ package session
 import (
 	"flag"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -65,6 +67,13 @@ const enteteAttendu = "# Copyright 2026 Stéphane Primault <sprimault@users.nore
 // niveau 2 que la nouvelle run n'avait pas encore atteint. Régénérer l'attendu
 // sans rouvrir cette table aurait laissé trois phrases fausses sous des chiffres
 // justes, c'est-à-dire la pire des deux moitiés.
+//
+// **Et un instant se décrit depuis l'attendu, jamais depuis une exploration.**
+// `Fingerprint` consomme trois tirages à chacun de ces instants, si bien qu'une
+// course qui ne l'appelle pas joue une autre run : le quatrième instant y montrait
+// six Molosses en charge, et n'en porte aucun ici. La déviation est connue dans
+// l'autre sens — une exploration qui relève à chaque pas —, elle vaut aussi pour
+// celle qui ne relève jamais.
 var instantanes = []struct {
 	tick     int
 	pourquoi string
@@ -72,6 +81,8 @@ var instantanes = []struct {
 	{780, "deux projectiles en vol et deux gemmes au sol, que nul autre instant ne montre ensemble"},
 	{2700, "un aimant au sol, le niveau 2 franchi, la vie entamée et dix créatures vivantes"},
 	{3163, "quatre gemmes et une horde de onze, le plus que ces trois instants montrent"},
+	{15987, "les quatre profils que la run atteint — trois Vigiles, quatorze " +
+		"Arpenteurs et onze Molosses dans une horde de 135 —, avec le niveau 6"},
 }
 
 // jouerLaRun monte la partie livrée sur une graine et rend l'empreinte des trois
@@ -85,6 +96,12 @@ var instantanes = []struct {
 // bornait la run bien avant les paliers tardifs de la courbe : allonger les
 // instants aurait fait jouer dix minutes à un cadavre. Le tour de l'octogone ne
 // fait pas un bon joueur, il fait un joueur qui traverse la courbe.
+//
+// **Elle dit les profils qu'elle a visités**, ce que la doctrine exige d'une run
+// aléatoire : une course ne couvre que ce que sa courbe lui présente, et un
+// profil qui n'apparaît qu'au sixième palier n'est visité par aucun instant. Le
+// compte se lit dans la sortie du test plutôt que de se déduire d'un attendu de
+// deux cents lignes.
 func jouerLaRun(t *testing.T, graine uint64) string {
 	t.Helper()
 	s, err := Open(cohue.Assets, cohue.StartingCampaign, graine)
@@ -93,9 +110,18 @@ func jouerLaRun(t *testing.T, graine uint64) string {
 	}
 
 	var b strings.Builder
+	vus := map[int]bool{}
 	suivant := 0
 	for tick := 1; tick <= instantanes[len(instantanes)-1].tick; tick++ {
 		s.World.Step(Pilot(game.Tick(tick)))
+
+		// Relevé sur la horde vivante et non sur les apparitions : c'est ce que
+		// les instants peuvent voir, et donc ce que l'attendu peut garder.
+		horde := s.World.Enemies()
+		for i := range horde.Active() {
+			vus[horde.At(i).Profile] = true
+		}
+
 		if tick != instantanes[suivant].tick {
 			continue
 		}
@@ -103,6 +129,7 @@ func jouerLaRun(t *testing.T, graine uint64) string {
 			s.World.Fingerprint())
 		suivant++
 	}
+	t.Logf("profils visités par la run : %v", slices.Sorted(maps.Keys(vus)))
 	return b.String()
 }
 

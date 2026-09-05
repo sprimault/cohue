@@ -36,6 +36,8 @@ documents that carry them, and would drift from them.
   scope for v1
 - [`CHANGELOG.md`](CHANGELOG.md) — what each version brought, dated
 - [`docs/conception.md`](docs/conception.md) — the full design (French)
+- [`docs/regles-du-jeu.md`](docs/regles-du-jeu.md) — how to play, and what each
+  creature does (French)
 
 ## Assets
 

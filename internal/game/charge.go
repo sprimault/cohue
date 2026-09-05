@@ -120,8 +120,13 @@ func (w *World) arreterAuMur(e *Enemy, profil *EnemyProfile, voulu Vec) {
 // Charging dit si une créature est dans sa course, télégraphe et récupération
 // exclus.
 //
-// Le rendu la lit pour distinguer ce qu'il annonce de ce qui arrive ; ce qu'il
-// en fait — la teinte, le contour — lui appartient.
+// **Son lecteur est `subir`**, qui en tire le choc unique d'une charge aboutie et
+// clôt la course dans le même geste : c'est la fin de course qui rend le coup
+// unique, sans drapeau « a déjà frappé » à tenir.
+//
+// Le rendu, lui, ne lit que `Telegraphing` — il annonce et n'illustre pas la
+// course, décision qu'il porte à l'endroit où il peint. Cette godoc lui
+// attribuait la lecture ; c'était vrai d'une intention, jamais du code.
 func (e *Enemy) Charging() bool { return e.ChargePhase == ChargeRun }
 
 // Telegraphing dit si une créature annonce sa charge sans l'avoir commencée.

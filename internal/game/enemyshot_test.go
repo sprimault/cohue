@@ -69,9 +69,58 @@ func TestLaBuseSeStabilisePourTirer(t *testing.T) {
 	}
 	// Une tuile de marge sous la portée : elle s'arrête au tick où elle entre,
 	// pas au point exact, et exiger l'égalité serait exiger un arrondi.
+	//
+	// **L'approche est par un axe, et la marge basse en dépend.** Le chemin se
+	// compte à quatre voisins : venue en diagonale, la même Buse s'arrêterait
+	// plus près, son chemin valant la somme des deux écarts là où la ligne droite
+	// vaut leur hypoténuse.
 	if ecart < profil.Range-One {
 		t.Errorf("la Buse est à %v pour une portée de %v : elle a continué "+
 			"d'avancer au lieu de se stabiliser", ecart, profil.Range)
+	}
+
+	// **Stabilisée et muette serait pire qu'avançante**, et c'est ce que la
+	// mesure du chemin rend possible en principe : une créature arrêtée sur une
+	// case peut être plus loin en ligne droite que ce que son projectile couvre.
+	// Le même prédicat décidant des deux, le cas ne peut pas arriver — et c'est
+	// ce que cette dernière garde tient.
+	if w.Health() == w.MaxHealth() {
+		t.Error("le joueur est intact après huit secondes : la Buse s'est arrêtée " +
+			"sans jamais tirer")
+	}
+}
+
+// TestLaBuseNeSeFigePasDerriereUnMur garde ce que la conception donne au champ
+// de distance : une isodistance de chemin, jamais une distance à vol d'oiseau.
+//
+// À vol d'oiseau, une cloison ne compte pas. La Buse se croyait arrivée dès que
+// six tuiles la séparaient du joueur, mur compris : elle se figeait et tirait
+// dans la paroi, où le projectile meurt — un profil dont tout le rôle est de
+// blesser de loin, réduit à une statue par un obstacle qu'il n'avait qu'à
+// contourner.
+//
+// La cloison est longue exprès : un pilier isolé se contourne en deux cases, et
+// le chemin resterait sous la portée sans rien départager.
+func TestLaBuseNeSeFigePasDerriereUnMur(t *testing.T) {
+	w, profil, g := buse(t)
+	for v := 8; v <= 24; v++ {
+		g.Set(19, v, Blocked)
+	}
+	e := poserBuse(t, w, FromInt(6))
+	departX, departY := e.X, e.Y
+
+	if ecart := (Vec{X: e.X - w.playerX, Y: e.Y - w.playerY}).Len(); ecart > profil.Range {
+		t.Fatalf("la Buse est à %v pour une portée de %v : le cas ne pose plus sa "+
+			"question, elle est hors de portée avant même le mur", ecart, profil.Range)
+	}
+
+	for range 2 * TPS {
+		w.Step(Vec{})
+	}
+
+	if e.X == departX && e.Y == departY {
+		t.Errorf("la Buse n'a pas bougé de %v,%v : elle s'est stabilisée sur une "+
+			"distance à vol d'oiseau au lieu de contourner", departX, departY)
 	}
 }
 

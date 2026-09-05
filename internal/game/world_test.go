@@ -9,6 +9,7 @@
 package game
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/sprimault/cohue"
@@ -51,8 +52,12 @@ func mondeDEssai(t *testing.T, largeur, hauteur int) (*World, *Profiles) {
 	if err != nil {
 		t.Fatalf("armes livrées : %v", err)
 	}
+	// Les figurants et les caisses ont leur capacité ici plutôt qu'à zéro : un
+	// bassin vide se parcourt sans rien faire, si bien qu'un garde d'allocation
+	// traverserait leurs passes en croyant les mesurer.
 	return NewWorld(profils, armes, progressionLivree(t), sansVagues(), g, graineDeTest,
-		Capacities{Enemies: 300, Shots: 256, EnemyShots: 64, Blasts: 32, Gems: 512}), profils
+		Capacities{Enemies: 300, Shots: 256, EnemyShots: 64, Blasts: 32, Gems: 512,
+			Ambients: 32, Crates: 32}), profils
 }
 
 // sansVagues rend le scénario d'un lieu qui n'achète rien.
@@ -111,6 +116,66 @@ func indexDuProfil(t *testing.T, profils *Profiles, cle string) int {
 	}
 	t.Fatalf("« %s » absent de la table", cle)
 	return 0
+}
+
+// garnirLesPassesDeLEtape4 donne quelque chose à parcourir aux six boucles que
+// cette étape a ajoutées au tick.
+//
+// **Une passe qui parcourt un bassin vide ne coûte rien, donc un garde
+// d'allocation la traverse en croyant l'avoir mesurée.** `errer`, `casser`,
+// `tirerLaHorde`, `deplacerTirsEnnemis`, `soigner` et `detoner` étaient dans ce
+// cas : le monde d'essai ne posait que des Quidams, dont aucun ne tire, ne
+// soigne, n'explose ni n'erre. Une allocation par tick dans l'une des six serait
+// passée au vert.
+//
+// Les figurants et les caisses se posent près du joueur, les trois profils à
+// boucle propre juste autour de lui : ce qui compte est qu'ils soient à portée
+// de ce qu'ils font — une Buse hors de portée ne tire pas, et sa passe
+// retomberait à vide.
+//
+// **Ce que ce garnissage tient est le parcours, pas l'événement rare.** Une
+// détonation arrive une fois par souffle et se noie dans la moyenne
+// d'`AllocsPerRun`, qui arrondit à l'entier ; ce que la mesure voit d'elle est
+// la boucle qui la cherche à chaque tick. Le tir de la Buse, lui, entre bien
+// dans chaque exécution : huit d'entre elles à cadence d'une seconde et demie
+// laissent des projectiles en vol en permanence.
+func garnirLesPassesDeLEtape4(t *testing.T, w *World, profils *Profiles) {
+	t.Helper()
+	px, py := w.Player()
+
+	civil := slices.IndexFunc(profils.Ambient, func(p AmbientProfile) bool {
+		return p.Key == "civil"
+	})
+	if civil < 0 {
+		t.Fatal("« civil » absent des profils d'ambiance")
+	}
+
+	for i := range 8 {
+		if _, ok := w.SpawnAmbient(civil, px+FromInt(2+i), py+FromInt(4)); !ok {
+			t.Fatal("bassin de figurants plein")
+		}
+		if _, ok := w.SpawnCrate(px-FromInt(2+i), py+FromInt(4)); !ok {
+			t.Fatal("bassin de caisses plein")
+		}
+		if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "cracheur"),
+			px+FromInt(3+i), py+FromInt(2)); !ok {
+			t.Fatal("bassin d'ennemis plein")
+		}
+	}
+
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "soigneur"),
+		px-FromInt(3), py+FromInt(2)); !ok {
+		t.Fatal("bassin d'ennemis plein")
+	}
+
+	// La Baudruche est amorcée à la main : le souffle naît de la transition de
+	// mort, dans le code de tir, et attendre qu'une salve l'atteigne ferait
+	// dépendre le garnissage de l'équilibrage de l'arme.
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "eclateur"),
+		px+FromInt(2), py-FromInt(2)); !ok {
+		t.Fatal("bassin d'ennemis plein")
+	}
+	w.amorcer(w.ennemis.At(w.ennemis.Len() - 1))
 }
 
 // peupler pose des créatures sur toutes les cases franchissables d'une carte,
@@ -282,7 +347,8 @@ func TestLaHordeRejointVraimentLeJoueur(t *testing.T) {
 func TestLaBoucleNalloueRien(t *testing.T) {
 	w, profils := mondeDEssai(t, 64, 64)
 	w.Place(FromInt(32)+One/2, FromInt(32)+One/2)
-	peupler(t, w, indexDuProfil(t, profils, "marcheur"), 300)
+	peupler(t, w, indexDuProfil(t, profils, "marcheur"), 290)
+	garnirLesPassesDeLEtape4(t, w, profils)
 
 	// Quelques ticks de préchauffage : les seaux atteignent leur capacité au
 	// premier parcours, et c'est une allocation qu'on ne veut pas compter.

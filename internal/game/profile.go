@@ -714,8 +714,6 @@ func parTick(parSeconde float64) Fixed {
 	return FromFloat(parSeconde / TPS)
 }
 
-// liste énumère des valeurs admises pour un message de refus, ce qui vaut mieux
-// qu'un adjectif : l'auteur y lit du premier coup ce qu'il pouvait écrire.
 // listeDesEnnemis énumère les profils achetables, chaque clé suivie de son nom
 // de fiction.
 //
@@ -749,6 +747,11 @@ func listeDesFigurants(profils *Profiles) string {
 	return strings.Join(libelles, ", ")
 }
 
+// liste énumère des valeurs admises pour un message de refus, ce qui vaut mieux
+// qu'un adjectif : l'auteur y lit du premier coup ce qu'il pouvait écrire.
+//
+// Ses deux voisines apparient une clé et un nom, là où celle-ci n'a qu'une
+// valeur à rendre : ce qu'elle énumère n'a pas de nom de fiction.
 func liste[T ~string](valeurs []T) string {
 	libelles := make([]string, len(valeurs))
 	for i, v := range valeurs {

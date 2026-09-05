@@ -328,8 +328,13 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 // arbitrages : les entrées, les apparitions, le champ de flux si c'est son tick,
 // la densité, les intentions et leur projection, les dégâts de contact, l'aimant
 // et sa ruée, puis le ramassage et ce qu'il fait monter, le tir puis le vol des
-// projectiles avec ce qu'ils touchent, et les suppressions en dernier. La place
-// des apparitions se justifie dans `apparaitre`, qui la tient.
+// projectiles avec ce qu'ils touchent, puis les suppressions. La place des
+// apparitions se justifie dans `apparaitre`, qui la tient.
+//
+// **Le franchissement de la porte vient après elles**, et c'est la seule chose
+// que la conception n'énumérait pas : il lit le compte des abattus, que les
+// suppressions tiennent. Le placer avant ferait ouvrir la porte un tick après le
+// coup qui la gagne, sans que rien à l'écran ne l'explique.
 //
 // **La simulation continue de tourner après la mort**, et `subir` cesse
 // seulement d'appliquer des dégâts. Figer le monde ici serait une décision
@@ -339,9 +344,12 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 // Les intentions et la projection tiennent ici en une seule passe alors que la
 // conception les énumère séparément, ce qu'elle autorise sous la condition
 // qu'elle pose : aucune intention ne lit l'état d'une autre entité.
-// `deplacerEnnemis` ne lit que le champ et la densité, tous deux figés avant la
-// passe, si bien que rien de ce qu'une créature déplacée modifie n'est lu par les
-// suivantes.
+// `deplacerEnnemis` ne lit que le champ, la densité **et la position du
+// joueur**, tous figés avant la passe, si bien que rien de ce qu'une créature
+// déplacée modifie n'est lu par les suivantes. C'est cette troisième lecture que
+// l'étape 4 a multipliée — le rabattement, la visée d'une Buse, la direction
+// d'une charge —, et elle est aussi sûre que les deux autres tant que le joueur
+// a bougé avant.
 func (w *World) Step(voulu Vec) {
 	w.deplacerJoueur(voulu)
 	w.apparaitre()
@@ -690,7 +698,8 @@ func (w *World) dansUnCorps(x, y Fixed) bool {
 //
 // Une créature morte a cessé d'être une cible dès l'instant où sa résistance est
 // tombée, mais elle est restée en place : c'est ce qui permet aux boucles du tick
-// de garder leurs index, et c'est pourquoi les suppressions viennent en dernier.
+// de garder leurs index, et c'est pourquoi les suppressions viennent après tout
+// ce qui parcourt le bassin.
 //
 // La place libérée **est** réexaminée ici, à l'inverse de ce que fait une passe
 // de mise à jour : celle-ci ferait avancer deux fois l'entité remontée, alors que

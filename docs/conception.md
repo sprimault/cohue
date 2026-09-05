@@ -1256,7 +1256,10 @@ Il n'y a pas de bon ordre, il y a un ordre écrit une fois. Dans un tick :
 8. l'aimant : son apparition, sa ruée, sa prise ;
 9. le ramassage, et ce qu'il fait monter ;
 10. le tir — du joueur puis de la horde —, et le vol des projectiles avec ce qu'ils touchent ;
-11. les suppressions.
+11. les suppressions ;
+12. le franchissement de la porte.
+
+**Le franchissement clôt le tick parce qu'il lit ce que les suppressions tiennent** — le compte des abattus, qui décide de l'ouverture. Placé avant elles, il ouvrirait la porte un tick après le coup qui la gagne, et rien à l'écran ne le dirait.
 
 Les apparitions avant la densité, et c'est ce qui commande leur place : le champ de flux ne dépend que du joueur et des obstacles, une créature apparue après son calcul n'y perd rien. La densité, elle, dépend des ennemis — deux créatures apparues au même endroit se superposeraient exactement le temps d'une image, et personne ne retrouverait jamais l'origine de ce scintillement.
 

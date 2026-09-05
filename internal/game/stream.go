@@ -37,7 +37,13 @@ type Streams struct {
 	Waves *Stream
 	// Positions place les apparitions sur l'anneau et tout ce qui relève du lieu.
 	Positions *Stream
-	// Loot décide du contenu des caisses et de ce que lâche une créature.
+	// Loot décidera du contenu des caisses et de ce que lâche une créature.
+	//
+	// **Au futur, et rien ne l'alimente encore** : ce qu'une caisse laisse est un
+	// nombre fixe de gemmes, et une créature laisse celui de son profil. Son seul
+	// appel est le témoin que l'empreinte imprime — c'est ce qui garde le flux
+	// numéroté, donc ce qui empêche qu'une graine publiée change de sens le jour
+	// où un butin se tirera vraiment.
 	Loot *Stream
 	// Cosmetic ne décide de rien : teintes de vêtement, variantes d'éclat.
 	Cosmetic *Stream

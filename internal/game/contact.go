@@ -164,9 +164,11 @@ func (w *World) Alive() bool { return w.vie > 0 }
 //
 // **Un état lu, jamais un événement retenu.** C'est ce qui distingue ce signal
 // de celui qu'on avait d'abord écrit — un voile posé au contact —, et ce qui le
-// rend incapable de battre : la vie ne remonte que par une fiole, si bien que le
-// seuil se franchit rarement et dans un sens. Un retour attaché au contact
-// clignotait à chaque créature qui frôle, sur toute la surface de l'écran.
+// rend incapable de battre : la vie ne se régénère pas seule, elle ne remonte
+// que par la soupape de la montée de niveau, si bien que le seuil se franchit
+// dans un sens et ne se refranchit vers le haut que sur un choix du joueur. Un
+// retour attaché au contact clignotait à chaque créature qui frôle, sur toute la
+// surface de l'écran.
 //
 // **Et il porte ce que la scène ne montre pas.** Qu'une créature touche se voit
 // — elle est collée au personnage, au centre du regard ; qu'il ne reste que

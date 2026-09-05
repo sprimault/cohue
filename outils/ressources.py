@@ -28,6 +28,12 @@ from scipy import ndimage
 
 OUTILS = Path(__file__).parent
 
+# Les générateurs se lancent en sous-processus, mais la teinte réservée se lit
+# dans celui qui la déclare : la recopier ici en ferait une seconde description,
+# et c'est celle-ci qu'on oublierait de changer en retouchant le dessin.
+sys.path.insert(0, str(OUTILS))
+import objets as objets_iso  # noqa: E402  — après l'ajout au chemin, faute de paquet
+
 GENERATEURS = (
     ("décor", "decor_iso.py", "decors"),
     ("créatures", "figurines.py", "personnages"),
@@ -379,6 +385,42 @@ def objets(sortie):
     return defauts
 
 
+def teinte_reservee(sortie):
+    """Vérifie que la teinte du projectile ennemi n'existe que sur lui.
+
+    C'est le seul point du chapitre de lisibilité qu'une machine sache tenir :
+    le reste — contours foncés, créatures désaturées — se juge à l'œil. Sous
+    pression, « est-ce que ça me fait mal ? » ne se pose que sur les projectiles,
+    et deux qui se ressemblent coûtent plus cher que n'importe quelle autre
+    confusion.
+
+    **Elle porte sur la teinte déclarée et sur elle seule, jamais sur les pixels
+    d'une image.** Une matière est déclarée une fois puis ombrée : `_matiere`
+    fabrique deux assombrissements et un éclaircissement autour d'elle, et
+    assombrir converge vers les mêmes gris colorés quelle que soit la couleur de
+    départ — l'ombre du violet retenu tombe à quatre unités perceptives d'une
+    teinte du catalogue. Exiger l'unicité des dérivées reviendrait donc à
+    interdire l'ombrage, et aucune couleur ne passerait.
+
+    C'est pourquoi ce contrôle paraîtra permissif à qui le relira : l'étendre aux
+    pixels le rendrait infranchissable, et le retirer laisserait la seule règle
+    vérifiable du chapitre sans gardien.
+    """
+    reservee = tuple(objets_iso.TEINTES["venin"])
+    porteur = sortie / "objets" / "projectile_ennemi.png"
+
+    defauts = []
+    for chemin in sorted(sortie.rglob("*.png")):
+        if chemin == porteur:
+            continue
+        pixels = np.asarray(Image.open(chemin).convert("RGBA"))
+        visibles = pixels[pixels[:, :, 3] > 0][:, :3]
+        if visibles.size and (visibles == np.array(reservee)).all(axis=1).any():
+            defauts.append((chemin.relative_to(sortie),
+                            f"porte la teinte réservée au projectile ennemi {reservee}"))
+    return defauts
+
+
 def renvois_d_objets(sortie):
     """Exige que tout renvoi `objet` désigne un objet du catalogue.
 
@@ -717,6 +759,7 @@ def main():
     defauts += manifestes(options.sortie)
     defauts += profils(options.sortie)
     defauts += objets(options.sortie)
+    defauts += teinte_reservee(options.sortie)
     defauts += renvois_d_objets(options.sortie)
     defauts += formes(options.sortie)
     defauts += police(options.sortie)

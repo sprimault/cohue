@@ -42,6 +42,11 @@ func areneSolide(t *testing.T) (*World, *EnemyProfile) {
 //
 // Le joueur pousse vers lui pendant une seconde, ce qui suffirait largement à le
 // traverser : cinq tuiles par seconde contre un tiers de tuile d'écart.
+//
+// **Il ne dit rien de la distance à laquelle l'arrêt se produit**, et c'est ce
+// que `TestLeVigileBlesseAuContact` garde de l'autre bord : reculer cette
+// distance d'un rien la sort de la portée de contact, et le blocage reste juste
+// pendant que les dégâts disparaissent.
 func TestLeVigileArreteLeJoueur(t *testing.T) {
 	w, _ := areneSolide(t)
 	if _, ok := w.SpawnEnemy(indexDuProfil(t, w.profils, "bloqueur"),

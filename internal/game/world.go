@@ -484,7 +484,7 @@ func (w *World) deplacerEnnemis() {
 func (w *World) avancer(e *Enemy, pas Vec) {
 	avantX, avantY := e.X, e.Y
 	if profil := &w.profils.Enemies[e.Profile]; profil.Solid {
-		e.X, e.Y = w.glisserSolide(e.X, e.Y, pas, profil.Radius)
+		e.X, e.Y = w.glisserSolide(e.X, e.Y, pas, w.porteeBlocage(profil))
 	} else {
 		e.X, e.Y = w.glisser(e.X, e.Y, pas)
 	}
@@ -546,8 +546,8 @@ func (w *World) glisserJoueur(x, y Fixed, pas Vec) (Fixed, Fixed) {
 // C'est l'autre moitié de l'exception, et elle est ce qui la rend vraie : sans
 // elle, le Vigile entre dans le joueur et le blocage cesse au moment précis où
 // il devrait jouer.
-func (w *World) glisserSolide(x, y Fixed, pas Vec, rayon Fixed) (Fixed, Fixed) {
-	return w.projeter(x, y, pas, exclusionJoueur, rayon)
+func (w *World) glisserSolide(x, y Fixed, pas Vec, portee Fixed) (Fixed, Fixed) {
+	return w.projeter(x, y, pas, exclusionJoueur, portee)
 }
 
 // exclusion dit quels corps, en plus du décor, arrêtent le mobile qu'on projette.
@@ -576,10 +576,11 @@ const (
 // projeter est le corps commun des trois, `exclut` disant ce qui bloque en plus
 // du décor.
 //
-// `rayon` est celui du mobile projeté, et il ne sert qu'à l'exclusion par le
-// joueur : les deux autres cas mesurent depuis le joueur, dont le rayon est déjà
-// connu ici. Le porter en paramètre plutôt que de le retrouver évite à cette
-// passe de traverser la table des profils à chaque axe.
+// `portee` est celle du mobile projeté, et elle ne sert qu'à l'exclusion par le
+// joueur : les deux autres cas la retrouvent depuis le joueur. La porter en
+// paramètre plutôt que de la recalculer évite à cette passe de traverser la
+// table des profils à chaque axe — voir `porteeBlocage`, qui dit ce qu'elle
+// vaut et pourquoi elle n'est pas la portée de contact.
 //
 // **On n'empêche pas d'être dans un recouvrement, on empêche d'y entrer.**
 // Depuis l'intérieur, toutes les directions redeviennent libres ; venant de
@@ -606,13 +607,13 @@ const (
 // il avait été écrit pour libérer un joueur recouvert par un Vigile qui avance,
 // et c'est en le voyant annuler le blocage à chaque rencontre qu'on a compris
 // qu'un corps qui se rend traversable en avançant n'est plus un corps.
-func (w *World) projeter(x, y Fixed, pas Vec, exclut exclusion, rayon Fixed) (Fixed, Fixed) {
-	dedans := w.recouvert(x, y, exclut, rayon)
+func (w *World) projeter(x, y Fixed, pas Vec, exclut exclusion, portee Fixed) (Fixed, Fixed) {
+	dedans := w.recouvert(x, y, exclut, portee)
 	nx, ny := x+pas.X, y+pas.Y
-	if !w.libre(nx, y, exclut, rayon, dedans) {
+	if !w.libre(nx, y, exclut, portee, dedans) {
 		nx = x
 	}
-	if !w.libre(nx, ny, exclut, rayon, dedans) {
+	if !w.libre(nx, ny, exclut, portee, dedans) {
 		ny = y
 	}
 	return nx, ny
@@ -623,23 +624,23 @@ func (w *World) projeter(x, y Fixed, pas Vec, exclut exclusion, rayon Fixed) (Fi
 // `dedans` porte l'état du **départ** et non celui de l'arrivée : c'est lui qui
 // rend la règle asymétrique, et le passer en paramètre plutôt que de le
 // recalculer ici évite un parcours de horde par axe.
-func (w *World) libre(x, y Fixed, exclut exclusion, rayon Fixed, dedans bool) bool {
+func (w *World) libre(x, y Fixed, exclut exclusion, portee Fixed, dedans bool) bool {
 	if !w.passable(x, y) {
 		return false
 	}
-	return dedans || !w.recouvert(x, y, exclut, rayon)
+	return dedans || !w.recouvert(x, y, exclut, portee)
 }
 
 // recouvert dit si une position tombe dans ce que l'exclusion refuse.
 //
 // Le cas sans exclusion sort avant tout parcours : la horde ordinaire traverse
 // la horde, et c'est elle qui appelle cette passe trois cents fois par tick.
-func (w *World) recouvert(x, y Fixed, exclut exclusion, rayon Fixed) bool {
+func (w *World) recouvert(x, y Fixed, exclut exclusion, portee Fixed) bool {
 	switch exclut {
 	case exclusionCorps:
 		return w.dansUnCorps(x, y)
 	case exclusionJoueur:
-		return w.surLeJoueur(x, y, rayon)
+		return w.surLeJoueur(x, y, portee)
 	default:
 		return false
 	}
@@ -649,11 +650,10 @@ func (w *World) recouvert(x, y Fixed, exclut exclusion, rayon Fixed) bool {
 //
 // Mort, il ne s'oppose plus à rien : une créature figée contre un cadavre serait
 // arrêtée par ce que la partie ne montre plus.
-func (w *World) surLeJoueur(x, y, rayon Fixed) bool {
+func (w *World) surLeJoueur(x, y, portee Fixed) bool {
 	if !w.Alive() {
 		return false
 	}
-	portee := w.profils.Player.Radius + rayon
 	return (Vec{X: w.playerX - x, Y: w.playerY - y}).carres() < int64(portee)*int64(portee)
 }
 
@@ -671,7 +671,7 @@ func (w *World) dansUnCorps(x, y Fixed) bool {
 		if !profil.Solid || e.Hits <= 0 {
 			continue
 		}
-		portee := w.profils.Player.Radius + profil.Radius
+		portee := w.porteeBlocage(profil)
 		if (Vec{X: e.X - x, Y: e.Y - y}).carres() < int64(portee)*int64(portee) {
 			return true
 		}

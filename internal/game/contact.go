@@ -104,14 +104,43 @@ func (w *World) blesser(points int) {
 
 // auContact dit si une créature touche le joueur.
 //
-// Les rayons viennent des profils et jamais d'une distance choisie : ce sont eux
-// que le manifeste porte, et c'est la même mesure qui décide du contact et de la
-// séparation. La comparaison se fait sur les carrés, pour n'extraire aucune
-// racine dans la boucle.
+// La comparaison se fait sur les carrés, pour n'extraire aucune racine dans la
+// boucle.
 func (w *World) auContact(e *Enemy) bool {
-	portee := w.profils.Player.Radius + w.profils.Enemies[e.Profile].Radius
+	portee := w.porteeContact(w.profils.Enemies[e.Profile].Radius)
 	ecart := Vec{X: e.X - w.playerX, Y: e.Y - w.playerY}
 	return ecart.carres() < int64(portee)*int64(portee)
+}
+
+// porteeContact rend la distance sous laquelle une créature de ce rayon touche
+// le joueur.
+//
+// Les rayons viennent des profils et jamais d'une distance choisie : ce sont eux
+// que le manifeste porte, et c'est la même mesure qui décide du contact et de la
+// séparation.
+func (w *World) porteeContact(rayon Fixed) Fixed {
+	return w.profils.Player.Radius + rayon
+}
+
+// porteeBlocage rend la distance sous laquelle un corps solide et le joueur se
+// refusent l'un l'autre ; `surLeJoueur` et `dansUnCorps` la lisent, chacune d'un
+// bord de l'exclusion réciproque.
+//
+// **Elle se dérive de la portée de contact au lieu de se poser sur la même somme
+// de rayons, et c'est ce qui fait tenir les deux règles ensemble.** Écrite comme
+// elle, elle valait exactement la borne que le contact exige de franchir : le
+// Vigile ne pouvait approcher qu'à la distance où le contact cesse, si bien
+// qu'il publiait dix dégâts par seconde qu'il n'infligeait jamais.
+//
+// **Le retrait vaut un pas, et il se dérive plutôt qu'il ne se choisit.** La
+// projection annule un axe entier au lieu de coller le mobile à sa borne, si
+// bien qu'un arrêt tombe n'importe où dans le pas qui l'a précédé : un retrait
+// plus court rendrait le contact dépendant de l'alignement des pas, c'est-à-dire
+// vrai une fois sur deux. C'est le plus grand des deux pas, l'un ou l'autre
+// pouvant être celui qui approche — et le coût du terrain ne fait que diviser
+// une vitesse, donc aucun pas réel ne dépasse celui du profil.
+func (w *World) porteeBlocage(profil *EnemyProfile) Fixed {
+	return w.porteeContact(profil.Radius) - max(w.profils.Player.Speed, profil.Speed)
 }
 
 // Health rend les points de vie restants.

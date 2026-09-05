@@ -188,8 +188,11 @@ jobs:
 
       # Ebitengine se lie aux bibliothèques système sur Linux : sans leurs
       # en-têtes, la compilation échoue sur `X11/Xlib.h` bien avant le code du
-      # jeu. L'action ne fait rien sur les autres systèmes.
+      # jeu. L'action ne regarde que le système du runner, or deux cibles de
+      # cette matrice compilent en croisé depuis Linux sans cgo : elles ne lient
+      # rien de natif et n'ont donc rien à installer.
       - uses: ./.github/actions/dependances-ebitengine
+        if: matrix.cgo == 1
 
       - name: Construction
         env:

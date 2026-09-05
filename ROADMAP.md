@@ -77,19 +77,21 @@ des entités se fige ici — tableau de structures pleines, index plutôt que
 pointeurs, profil partagé hors de l'entité. La reprendre plus tard toucherait
 tout le code de jeu.
 
-**Dépend de la lecture d'un lieu à pièce unique, sous-ensemble de l'étape 10
-avancé ici.** Le champ de flux a besoin d'obstacles à contourner dès la première
-ligne, et son interface n'est pas un format de niveau mais une grille de coûts.
-Une carte bâtie en Go la remplirait aussi bien — mais le chargeur serait alors
-écrit neuf étapes plus tard contre un contrat que rien n'aurait exercé, et c'est
-au moment de l'écrire qu'on découvrirait que la grille attendue n'est pas celle
-qu'on sait produire.
+**Dépend de la lecture d'un lieu, sous-ensemble de l'étape 10 avancé ici.** Le
+champ de flux a besoin d'obstacles à contourner dès la première ligne, et son
+interface n'est pas un format de niveau mais une grille de coûts. Une carte
+bâtie en Go la remplirait aussi bien — mais le chargeur serait alors écrit neuf
+étapes plus tard contre un contrat que rien n'aurait exercé, et c'est au moment
+de l'écrire qu'on découvrirait que la grille attendue n'est pas celle qu'on sait
+produire.
 
-Ce qui est avancé se borne à cela : lire un fichier de lieu, le cuire en grille
-de coûts. Un lieu d'une seule pièce rend l'assemblage trivial. Les connecteurs,
-la validation topologique et la composition de plusieurs pièces restent à
-l'étape 10, où ils ont leur place — les numéros ne bougent pas, et le marqueur
-de l'étape 10 continue de désigner ce qu'il désignait.
+Ce qui est avancé : lire un fichier de lieu, l'assembler à partir de plusieurs
+pièces, le cuire en grille de coûts et refuser un pavage troué ou recouvert deux
+fois. La composition est venue avec le lieu livré, qui passe par le même chemin
+qu'un niveau tiers : une pièce unique n'aurait exercé aucun assemblage. Restent
+à l'étape 10 les connecteurs et la validation topologique — les numéros ne
+bougent pas, et le marqueur de l'étape 10 continue de désigner ce qu'il
+désignait.
 
 Livré quand 300 poursuivants convergent vers une cible mobile en contournant
 des obstacles, à budget d'allocation constant sur mille itérations.
@@ -249,6 +251,13 @@ et hauteurs dérivées des tuiles, jamais saisies.
 
 Les lieux livrés sont bâtis en pièces, comme un niveau tiers : même chemin de
 code, une seule chose à déboguer.
+
+**La lecture, l'assemblage et le contrôle de couverture sont partis à
+l'étape 1**, qui avait besoin d'obstacles pour son champ de flux. Ce que cette
+étape apporte est ce qui relie les pièces au lieu de les poser côte à côte : les
+connecteurs, dont `cotes` porte aujourd'hui la déclaration sans que rien ne la
+lise, et la validation topologique — un pavage sans trou n'est pas encore un
+lieu où l'on peut aller partout.
 
 ## 11 — L'éditeur
 

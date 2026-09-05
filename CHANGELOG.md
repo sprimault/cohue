@@ -42,6 +42,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+## [0.4.0] — 2026-09-05 — Les profils d'ennemis
+
 ### Ajouté
 
 - **Chaque créature a sa teinte.** Le Quidam reste rouge et les six autres se

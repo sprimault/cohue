@@ -37,6 +37,8 @@ côté des documents qui les portent, et elles s'en écarteraient.
   est hors périmètre v1
 - [`CHANGELOG.md`](CHANGELOG.md) — ce que chaque version a apporté, daté
 - [`docs/conception.md`](docs/conception.md) — la conception complète
+- [`docs/regles-du-jeu.md`](docs/regles-du-jeu.md) — comment on y joue, et ce que
+  fait chaque créature
 
 ## Les ressources
 

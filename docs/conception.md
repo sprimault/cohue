@@ -183,10 +183,13 @@ Le champ de distance sert aussi aux ennemis à distance : au lieu de descendre l
 Reste la séparation, pour éviter que 200 monstres s'empilent sur un pixel. La méthode classique (spatial hash + voisinage) coûte cher. L'alternative, bien plus rapide : chaque ennemi incrémente sa cellule dans une grille de densité, et on soustrait le gradient de densité au vecteur du flow field. Deux passes O(n), pas de requête de voisinage.
 
 ```go
-func (e *Enemy) desiredDirection(champ *FlowField, densite *DensityGrid) Vector {
+func (e *Enemy) desiredDirection(champ *FlowField, densite *DensityGrid, cible Vector) Vector {
     cx, cy := champ.Cell(e.X, e.Y)
 
     attirance := champ.Direction(cx, cy)
+    if ecart := cible.Sub(e.Position()); ecart.Length() < rabattement {
+        attirance = ecart.Normalize()
+    }
     repulsion := densite.Gradient(cx, cy)
 
     d := attirance.Sub(repulsion.Scale(e.profile.SeparationWeight))
@@ -198,6 +201,8 @@ func (e *Enemy) desiredDirection(champ *FlowField, densite *DensityGrid) Vector 
     return d.Normalize()
 }
 ```
+
+**L'attirance a un second régime, sous une tuile et demie du joueur.** Le champ mène de case en case et s'arrête à celle de la cible, où sa direction est nulle ; la densité, forte là où tout le monde converge, y pousse pourtant encore. Une créature qui entre dans cette cellule n'a donc plus rien qui l'attire et tout qui la repousse : la horde encercle à un demi-tuile sans jamais toucher, et le contact n'arrive que par accident. Sous une tuile et demie, l'attirance se prend donc sur l'écart au joueur — de quoi couvrir la cellule de la cible et le bord des huit voisines. Le seuil est une distance et non une case : sur la case, une créature restée dans une voisine garderait la direction tabulée jusqu'au bord, c'est-à-dire exactement la position mesurée. Plus large, il court-circuiterait le contournement d'obstacles qui est la raison d'être du champ.
 
 Le champ `Tangential` suffit à transformer un suiveur bête en flanqueur : il descend le gradient tout en dérivant sur le côté, ce qui referme progressivement le cercle autour du joueur.
 
@@ -403,9 +408,9 @@ Corollaire sur le retour : à cette cadence, un son de dégât par tick serait i
 - **le contact est intermittent**, et un retour qui le suit bat à chaque créature qui frôle. Ce défaut-là se corrige en allongeant la rémanence ;
 - **le contact est déjà à l'image.** Une créature qui touche est collée au personnage, au centre du regard : le signal redisait ce que la scène montrait. La vie basse est au contraire la seule information critique qui vive hors du regard, en haut à gauche, là où l'on ne va pas en kitant.
 
-Ce que l'écran signale est donc un **état** et non un événement : sous un seuil exprimé en points de vie, une vignette rouge cerne le bord. Elle ne peut pas battre, la vie ne remontant que par une fiole, et elle ne coûte rien à la lisibilité — c'est le second enseignement, obtenu en essayant : **un aplat plein écran teinte le sol vers la couleur de la horde**, si bien que les créatures s'en détachent moins au moment précis où il faut voir pour s'échapper. Un bord laisse le centre intact et s'adresse à la vision périphérique, qui est ce à quoi un signal permanent doit parler.
+Ce que l'écran signale est donc un **état** et non un événement : sous un seuil exprimé en points de vie, une vignette rouge cerne le bord. Elle ne bat pas : la vie ne se régénère pas seule, elle ne remonte que par la soupape de la montée de niveau — et par les fioles à l'étape 7 —, si bien que le seuil se franchit dans un sens et ne se refranchit vers le haut que sur un choix du joueur. Elle ne coûte rien non plus à la lisibilité — c'est le second enseignement, obtenu en essayant : **un aplat plein écran teinte le sol vers la couleur de la horde**, si bien que les créatures s'en détachent moins au moment précis où il faut voir pour s'échapper. Un bord laisse le centre intact et s'adresse à la vision périphérique, qui est ce à quoi un signal permanent doit parler.
 
-Le seuil vaut ce que rend une fiole. En dessous, en boire une ne gaspille rien : l'alerte annonce alors la décision qu'elle doit déclencher, au lieu d'être un chiffre choisi pour lui-même.
+Le seuil vaut ce que rend un soin — trente points, ceux de la soupape aujourd'hui comme ceux d'une fiole à l'étape 7. En dessous, en prendre un ne gaspille rien : l'alerte annonce alors la décision qu'elle doit déclencher, au lieu d'être un chiffre choisi pour lui-même.
 
 ### La vie du joueur
 
@@ -1302,6 +1307,8 @@ type Enemy struct {
     Profile int   // index dans []EnemyProfile, jamais un pointeur
     X, Y    Fixed // en tuiles, virgule fixe — voir « Les repères »
     Hits    int   // la mort est cet état, pas un événement
+    // et ce que les comportements exigent : décomptes de charge, de tir et
+    // de soin, direction figée, résistance d'apparition
 }
 
 type Pool[T any] struct {
@@ -1312,7 +1319,9 @@ type Pool[T any] struct {
 
 **Les positions sont en `Fixed` et non en flottants**, ce que « Les repères » exige quelques paragraphes plus haut : un bloc de code qui montrerait des `float32` inviterait à casser le déterminisme sans que rien ne le signale.
 
-Ce que la struct ne porte pas est aussi décidé. Pas de vitesse stockée : une créature lit le champ de flux sous ses pieds à chaque pas. Pas de génération : elle appartient au bassin, pour que rien n'incite à la lire hors du `Handle` — voir plus bas. Les champs d'animation, `Cycle` et `Frame`, viendront avec les sprites.
+Le bloc est réduit à ce que la décision porte ; la liste à jour se lit dans `internal/game/enemy.go`, et **ce qui s'y ajoute doit être exigé par un comportement.** Une créature ordinaire ne stocke pas sa vitesse : elle lit le champ de flux sous ses pieds à chaque pas. Ce qui est stocké l'est parce que rien d'autre ne le rendrait — `ChargeDir` précisément parce qu'une charge ne se recalcule plus, `Step` parce que la visée tire où la cible sera et que le pas voulu n'est pas celui qu'un mur a laissé passer.
+
+Ce que la struct ne porte pas est aussi décidé. Pas de génération : elle appartient au bassin, pour que rien n'incite à la lire hors du `Handle` — voir plus bas. Les champs d'animation, `Cycle` et `Frame`, viendront avec les sprites.
 
 Le bassin est **générique**, et c'est ce qui met le mécanisme en facteur plutôt que de le recopier pour chaque sorte d'entité. Autant de copies seraient autant d'endroits où tenir la règle, et une copie qui la manquerait ne ferait échouer aucun test : elle ferait qu'une référence périmée désigne une entité vivante.
 

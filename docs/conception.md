@@ -368,11 +368,15 @@ Chaque profil a son coût de pression. Le spawner remplit, respecte la passabili
 
 Le spawner porte donc aussi un **plafond d'effectif**, et cesse d'acheter quand il est atteint, quel que soit son budget. Le budget non dépensé pour cette raison est perdu et non reporté — sinon on retrouve le mur d'ennemis différé.
 
+**La borne ne descend jamais sous le prix de l'apparition la moins chère de la phase.** Sans ce plancher, une phase à faible pression cesse d'acheter en silence : un par seconde reporté sur trois secondes plafonne le budget à trois, c'est-à-dire au prix exact d'un Quidam — et l'arrondi de la conversion par tick le place un millième en dessous. Le budget monte alors, bute sur la borne, et ne redescend jamais. Le cas s'est présenté en réglant la courbe, et rien ne le disait : chaque tick était légitime, c'était leur suite qui ne l'était pas.
+
 **Une phase ne peut autoriser que ce qu'elle sait payer.** Le budget s'accumule jusqu'à sa borne de report et pas au-delà : un profil dont l'apparition coûte davantage est écrit dans le fichier et n'arrive jamais. Pire depuis que le spawner épargne : convoité, il arrête toute la horde au lieu d'être seulement absent, puisque le budget qu'il attend est celui que la borne lui refuse. Le refus se fait donc au chargement, et il nomme les trois nombres dont la relation est fausse : le prix, le plafond, et la pression qui le produit. C'est la seule façon pour l'auteur de savoir lequel changer.
 
 **Un profil peut aussi porter son propre plafond**, en nombre de vivants. Un coût règle une fréquence moyenne, il ne sait pas exprimer une simultanéité : le Secouriste ne vaut rien seul et double la difficulté au milieu de vingt Quidams, si bien que sa rareté ne peut pas se régler par son prix — trop bas il déséquilibre, trop haut il n'apparaît jamais et sa mécanique ne s'apprend pas. Le plafond compte les vivants et non les apparus, faute de quoi il deviendrait un quota par run et le profil disparaîtrait après le premier. Plafond atteint, le spawner achète autre chose ; s'il ne peut rien acheter, le budget est perdu.
 
-**Un scénario ne peut que restreindre les propriétés d'un profil, jamais les étendre.** Il resserre un plafond, il ne le desserre pas ; et le jour où quelqu'un voudra donner plus de résistance ou une autre vitesse à un Quidam dans son lieu, la réponse est déjà écrite et c'est non. C'est ce qui garantit qu'une créature signifie la même chose partout — les touches annoncées, le coût de pression, ce que le joueur a appris de la première salle. La règle se vérifie au chargement : un plafond de scénario supérieur à celui du profil est refusé, avec le nom du profil et les deux valeurs.
+**Un scénario ne peut que restreindre les propriétés d'un profil, jamais les étendre.** Le jour où quelqu'un voudra donner plus de résistance ou une autre vitesse à un Quidam dans son lieu, la réponse est déjà écrite et c'est non. C'est ce qui garantit qu'une créature signifie la même chose partout — les touches annoncées, le coût de pression, ce que le joueur a appris de la première salle.
+
+**Et c'est le format qui la tient, pas un contrôle.** Une phase n'écrit qu'un instant, une pression, une liste de profils, une pointe et un durcissement : rien de ce vocabulaire ne désigne une propriété de profil, donc il n'y a rien à refuser au chargement. Ce qui suit de la règle importe plus qu'elle : **ne pas ajouter au format un champ dans le seul but d'avoir quelque chose à interdire.** La capacité créée pour être refusée est un cran de plus à tenir, là où son absence ne demande rien à personne.
 
 ---
 
@@ -914,27 +918,37 @@ Un dossier de lieu se reconnaît alors sans être ouvert, et renommer un lieu se
 {
   "version_format": 1,
   "identifiant": "supermarche_nuit",
-  "jeu_pieces": "supermarche@1.2",
-  "empreinte_jeu_pieces": "a41f7c92",
+  "jeu_pieces": "supermarche",
   "pieces": [
     { "id": "entree_caisses", "u":  0, "v": 0 },
-    { "id": "rayon_long",     "u": 24, "v": 0 },
-    { "id": "carrefour",      "u": 56, "v": 0 }
+    { "id": "rayon_long",     "u": 32, "v": 0 },
+    { "id": "carrefour",      "u": 64, "v": 0 }
   ],
-  "pieces_personnalisees": [],
-  "scenario": "standard_4min",
-  "objectif_sortie": { "type": "kills", "valeur": 250 },
-  "densite_caisses": 0.4
+  "vagues": {
+    "phases": [
+      { "debut": "0:00", "pression": 2, "profils": ["marcheur"] },
+      {
+        "debut": "1:00", "pression": 3, "resistance": 1.3,
+        "profils": ["marcheur", "flanqueur"],
+        "pic": { "a": "2:10", "multiplicateur": 3, "duree_s": 25 }
+      }
+    ]
+  },
+  "ambiance": [{ "profil": "civil", "position": [45, 45] }],
+  "caisses": [{ "position": [35, 35] }],
+  "sortie": { "position": [97, 49], "abattus": 100 }
 }
 ```
 
-**Les axes sont `u` et `v`**, ceux que ce document pose plus haut et que le lieu livré emploie ; un lieu écrit avec `x` et `y` est refusé, le décodage n'admettant aucune clé inconnue. Et tout ce que montre cet exemple n'existe pas encore : la rotation reste à trancher, le scénario et l'objectif de sortie sont les étapes 4 et 8. Ce qu'un lieu porte aujourd'hui se lit dans `assets/campagnes/demonstration/place/lieu.json`.
+**Les axes sont `u` et `v`**, ceux que ce document pose plus haut ; un lieu écrit avec `x` et `y` est refusé, le décodage n'admettant aucune clé inconnue. Les quatre derniers champs sont facultatifs : un lieu sans `vagues` ne fait rien apparaître, un lieu sans `sortie` ne se gagne pas.
+
+**Ce qui manque encore à cet exemple attend son étape**, et rien de plus : `empreinte_jeu_pieces`, que l'étape 12 apporte avec le partage ; `pieces_personnalisees`, que le mode tuiles remplira à l'étape 14 ; la rotation des pièces, qui reste à trancher.
 
 **`u` et `v` sont la case d'origine de la pièce, pas son rang dans une trame.** Le lieu livré pose des blocs de trente-deux cases et une enceinte qui n'en fait qu'une d'épaisseur : des pièces de tailles différentes se composent dans un même lieu, ce qu'un rang ne saurait pas exprimer. Cette version du document portait un champ `grille` et des positions de rang, qui n'ont jamais été lus — c'est la pose de l'enceinte qui a rendu la contradiction visible.
 
 **Un lieu couvre son étendue exactement une fois, et le chargeur refuse les deux écarts.** Une case qu'aucune pièce ne pose garde le coût d'une grille neuve, celui d'un sol ordinaire : le trou se traverse, ne se dessine pas, et n'apparaît qu'au moment où une créature y flotte. Et deux pièces qui se recouvrent se départagent par l'ordre des poses, la dernière écrivant par-dessus la première — un ordre que rien n'annonce et dont aucun auteur d'éditeur n'aura idée. Les refuser rend cet ordre sans effet, ce qui vaut mieux que de l'écrire quelque part.
 
-`pieces_personnalisees` embarque les pièces peintes à la main, quand il y en a — et il reste vide tant que le mode tuiles n'est pas implémenté. C'est le seul cas où le fichier grossit ; même alors, une pièce de 16×16 tuiles compressée pèse quelques centaines d'octets.
+`pieces_personnalisees` embarquera les pièces peintes à la main, quand il y en aura — le champ n'existe pas tant que le mode tuiles n'est pas écrit, puisque rien ne saurait le remplir. C'est le seul cas où le fichier grossit ; même alors, une pièce de 16×16 tuiles compressée pèse quelques centaines d'octets.
 
 `empreinte_jeu_pieces` est une somme de contrôle du jeu de pièces, pas seulement son numéro de version. Sans elle, une pièce retouchée sans changement de numéro produit des niveaux qui **se chargent en silence avec une géométrie différente** de celle qu'a construite leur auteur. Quelques octets de plus, et le message devient explicite au lieu d'être trompeur.
 
@@ -1093,7 +1107,9 @@ Côté **décor** : taille, ancrage, élévation, catégorie, thème, et quatre 
 
 Côté **personnages** : le rendu — cycles, cadences, bouclage, directions, point d'appui, gabarit, variantes — **et les valeurs de jeu**, dans le même fichier.
 
-Un **rôle** décide d'abord, et il en a trois : le joueur porte une vie, un plafond de dégâts et la seule vitesse absolue du jeu ; un ennemi porte résistance, points, coût de pression, poids de séparation, plafond de simultanéité, dégâts de contact et nombre de gemmes ; une entité d'ambiance ne porte ni l'un ni l'autre.
+Un **rôle** décide d'abord, et il en a trois : le joueur porte une vie, un plafond de dégâts, un seuil d'alerte et la seule vitesse absolue du jeu ; un ennemi porte résistance, points, coût de pression, poids de séparation, plafond de simultanéité, dégâts de contact, nombre de gemmes, taille de groupe et solidité ; une entité d'ambiance ne porte ni l'un ni l'autre.
+
+**La solidité et la taille de groupe sont au rôle et non au comportement**, bien que le Vigile soit le seul corps qu'on ne traverse pas et le Molosse le seul à venir en meute. Elles ne décrivent pas une façon d'agir mais une propriété que n'importe quelle créature pourrait prendre, et les ranger sous le comportement de celle qui s'en sert aujourd'hui obligerait à les y recopier le jour où une autre les prend. Le critère est celui qui range déjà le reste : ce qui n'a de sens que pour un comportement va avec lui, ce qui vaut pour toutes reste au rôle.
 
 Le nombre de gemmes est un **nombre et non une valeur**, ce que le chapitre 2 impose : une gemme rapporte la même chose du début à la fin, et c'est le seuil du niveau suivant qui monte. Un profil qui doit rapporter davantage en laisse donc plusieurs, et c'est la quantité au sol qui dit au joueur ce qu'il va gagner. Un booléen n'en aurait couvert que deux, le troisième cas se lisant dans son absence — le genre de défaut par défaut qu'on ne voit pas.
 

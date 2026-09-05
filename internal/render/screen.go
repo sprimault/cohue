@@ -495,8 +495,7 @@ func (s *Screen) peindreEmprises(ecran *ebiten.Image) {
 		// L'imminence monte quand la mèche descend : le rapport rendu est ce
 		// qu'il reste, et c'est son complément qui s'affiche.
 		imminence := float32(1000-s.monde.FuseLeft(b)) / 1000
-		vif := teinteEmprise
-		vif.A = uint8(float32(teinteEmprise.A) * (emprisePlancher + (1-emprisePlancher)*imminence))
+		vif := attenuer(teinteEmprise, emprisePlancher+(1-emprisePlancher)*imminence)
 
 		u0, v0, u1, v1 := s.monde.BlastBounds(b)
 		for v := v0; v <= v1; v++ {
@@ -634,7 +633,32 @@ func eteindre(teinte color.RGBA, age, vie game.Tick) color.RGBA {
 		R: uint8(float64(teinte.R) * part),
 		G: uint8(float64(teinte.G) * part),
 		B: uint8(float64(teinte.B) * part),
+		// L'alpha ne bouge pas, et c'est ce qui la sépare d'`attenuer` : la gemme
+		// est opaque, donc l'assombrir revient bien à l'éteindre. Mettre son
+		// alpha à l'échelle la rendrait transparente au lieu de sombre, et une
+		// gemme qui s'efface sur un sol clair n'a plus de silhouette.
 		A: teinte.A,
+	}
+}
+
+// attenuer met une teinte prémultipliée à l'échelle, ses quatre canaux ensemble.
+//
+// **Les quatre, et c'est la seule façon d'atténuer une couleur prémultipliée.**
+// Toucher au seul alpha laisse les composantes à leur valeur pleine, si bien que
+// le rapport de chacune à l'alpha monte : la couleur s'affirme au lieu de
+// s'effacer. L'emprise d'une explosion faisait ainsi l'inverse de ce qu'elle
+// promet — la plus marquée quand la mèche s'allume, la plus pâle à l'instant du
+// souffle —, et l'état intermédiaire n'était même plus une couleur prémultipliée
+// valide, sa composante rouge dépassant son alpha.
+//
+// `eteindre` est sa voisine et ne s'y ramène pas : elle assombrit une teinte
+// opaque, où l'alpha n'a rien à dire.
+func attenuer(teinte color.RGBA, part float32) color.RGBA {
+	return color.RGBA{
+		R: uint8(float32(teinte.R) * part),
+		G: uint8(float32(teinte.G) * part),
+		B: uint8(float32(teinte.B) * part),
+		A: uint8(float32(teinte.A) * part),
 	}
 }
 

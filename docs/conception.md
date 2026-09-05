@@ -254,7 +254,7 @@ Le blocage ne peut pas devenir un piège, parce que le corps solide ne l'est que
 
 **L'exception tient, et le sursis n'est levé qu'à moitié.** Ce qui est éprouvé : le blocage ne piège pas et ne se lit pas comme une injustice — le joueur s'arrête, comprend qu'il doit contourner, et repart. Ce qui ne l'est pas : le cas décrit juste au-dessus, celui d'un joueur **pris entre un Vigile et un mur**, sans direction de repli. C'est lui qui déciderait, et il ne s'est pas présenté.
 
-**L'arrêt se comprend par le mouvement empêché avant de se comprendre par la vue**, ce qui est une nuance et non un détail : le joueur sait qu'il est bloqué parce qu'il n'avance plus, pas parce qu'il a reconnu la créature devant lui. Tant qu'une issue existe, cela suffit — c'est acculé que la distinction compterait, puisqu'il faudrait alors savoir qu'on tire sur ce qui retient plutôt que chercher un passage qui n'existe pas.
+**L'arrêt se comprend par la vue dès que les profils se distinguent**, et la condition est le rendu et non le mécanisme : elle retombe le jour où un profil cesse d'être distinguable dans la foule. Tant qu'une issue existe, la vue et le mouvement empêché suffisent l'un comme l'autre ; c'est acculé que la reconnaissance compterait seule, puisqu'il faudrait alors savoir qu'on tire sur ce qui retient plutôt que chercher un passage qui n'existe pas.
 
 ### Le recyclage de la traîne
 
@@ -690,6 +690,8 @@ Le rendu iso a besoin d'un tri par `Y` écran : un tri par compartiments, pas un
 **La génération n'entre pas dans la clé**, et le bassin refuse même de la rendre ici : il donne l'identifiant seul, jamais une référence complète, parce qu'une référence sortie pour un tri finirait conservée quelque part et l'invariant tomberait par la porte qu'on aurait ouverte. L'identifiant suffit à ce qu'on lui demande — ne jamais bouger, là où la place change parce qu'une *autre* entité est morte.
 
 **Le joueur passe devant tout ce qui partage sa profondeur.** C'est une exception assumée à la règle de tri : perdre son personnage sous un empilement d'ennemis est la pire chose qui puisse arriver à la lisibilité, et cela survient précisément au moment où l'on est encerclé, c'est-à-dire quand il faut voir clair.
+
+**Elle a un coût, et il tombe au contact.** Une créature collée partage exactement la profondeur du joueur, donc elle passe dessous — et avec elle l'éclair qui dit qu'elle vient d'être touchée. Le retour d'impact s'éteint là où il sert le plus, quand on est collé à se demander si l'on fait des dégâts. Le tir, lui, porte : c'est le retour qui manque, jamais le coup, et confondre les deux ferait chercher un défaut dans le ciblage, où il n'y en a pas.
 
 **Les cadavres passent sous tout ce qui est vivant**, à profondeur égale. C'est l'exception symétrique, et pour la même raison : en fin de run, un tapis de cadavres finirait par masquer la horde qui arrive.
 

@@ -307,12 +307,18 @@ func (w *World) Place(x, y Fixed) {
 //
 // L'index est celui de la table, jamais une copie de ses valeurs. Le second
 // résultat est faux quand le bassin est plein.
+//
+// La résistance de départ est écrite dans les deux champs depuis un seul appel :
+// ce qui reste à encaisser et ce qu'il y avait à encaisser partent de la même
+// valeur, et aucune écriture ne peut les faire naître différents.
 func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
+	touches := w.profils.Enemies[profil].HitsAt(w.durcissement())
 	return w.ennemis.Spawn(Enemy{
 		Profile: profil,
 		X:       x,
 		Y:       y,
-		Hits:    w.profils.Enemies[profil].HitsAt(w.durcissement()),
+		Hits:    touches,
+		MaxHits: touches,
 	})
 }
 

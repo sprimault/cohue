@@ -45,7 +45,7 @@ func (w *World) soigner() {
 		}
 
 		cible := w.ennemis.At(blessee)
-		cible.Hits = min(cible.Hits+profil.HealHits, w.profils.Enemies[cible.Profile].Hits)
+		cible.Hits = min(cible.Hits+profil.HealHits, cible.MaxHits)
 		cible.Healed = eclairSoin
 		e.Healing = eclairSoin
 		e.HealTimer = profil.HealCooldown
@@ -63,6 +63,14 @@ func (w *World) soigner() {
 // mort-vivant que le bassin ne connaît pas, et que l'explosion de la Baudruche a
 // déjà évité en vivant dans son propre bassin.
 //
+// **L'entame se mesure contre la résistance d'apparition, jamais contre celle de
+// la table.** Le durcissement d'une phase multiplie les touches à la naissance :
+// mesurée contre le manifeste, une créature née sous 1,7 paraîtrait entamée de
+// plusieurs touches sans avoir jamais été touchée, et le soin irait à la plus
+// dure de la horde plutôt qu'à la plus blessée. Le lieu livré n'ouvre le
+// Secouriste qu'à la dixième minute, c'est-à-dire dans les seules phases qui
+// durcissent.
+//
 // À manque égal, la première rencontrée l'emporte : l'ordre du bassin est stable
 // à l'intérieur d'un tick, ce qui suffit au déterminisme.
 func (w *World) plusBlessee(soigneur int, profil *EnemyProfile) int {
@@ -75,7 +83,7 @@ func (w *World) plusBlessee(soigneur int, profil *EnemyProfile) int {
 		if e.Hits <= 0 {
 			continue
 		}
-		perdu := w.profils.Enemies[e.Profile].Hits - e.Hits
+		perdu := e.MaxHits - e.Hits
 		if perdu <= manque {
 			continue
 		}

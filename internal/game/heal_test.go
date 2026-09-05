@@ -202,3 +202,47 @@ func TestUnProfilSansPorteeDeSoinNeSoignePas(t *testing.T) {
 			"aucun n'a lieu", blessee.Healed, w.Enemies().At(1).Healing)
 	}
 }
+
+// TestLeSoinMesureLEntameSurLaResistanceDApparition garde le seul régime où le
+// lieu livré convoque le Secouriste : il ouvre à la dixième minute, sous un
+// durcissement de 1,7.
+//
+// **Mesurée contre la table, l'entame d'une créature durcie est négative** — six
+// touches d'apparition contre trois au manifeste —, et `plusBlessee` n'élit que
+// ce à quoi il manque au moins une touche : aucune voisine ne paraissait donc
+// blessée, et le soin ne partait pas du tout. Les cas ci-dessus ne pouvaient pas
+// le voir, tous jouant sous un durcissement de un.
+//
+// La voisine est ramenée à la résistance que la table annonce, et c'est le seul
+// point où les deux lectures se séparent franchement : entamée de moitié, elle
+// est intacte pour l'une et à trois touches du compte pour l'autre.
+func TestLeSoinMesureLEntameSurLaResistanceDApparition(t *testing.T) {
+	w, profil := areneDeSoin(t)
+	marcheur := indexDuProfil(t, w.profils, "marcheur")
+	w.scenario = &Scenario{Phases: []Phase{
+		{Start: 0, Profiles: []int{marcheur}, Toughness: FromFloat(2.0)},
+	}}
+
+	blessee := poser(t, w, "marcheur", FromInt(10), 0)
+	poser(t, w, "soigneur", FromInt(10)+One, 0)
+
+	base := w.profils.Enemies[marcheur].Hits
+	if blessee.MaxHits != 2*base {
+		t.Fatalf("la voisine apparaît avec %d touches, attendu %d : la phase ne "+
+			"durcit pas et le cas n'a plus de sujet", blessee.MaxHits, 2*base)
+	}
+	blessee.Hits = base
+
+	for range profil.HealCooldown + 1 {
+		w.Step(Vec{})
+		if blessee.Hits > base {
+			break
+		}
+	}
+
+	if blessee.Hits != base+profil.HealHits {
+		t.Errorf("résistance %d après un soin, attendu %d : l'entame se mesure "+
+			"encore sur la table plutôt que sur la résistance d'apparition",
+			blessee.Hits, base+profil.HealHits)
+	}
+}

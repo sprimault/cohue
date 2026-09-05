@@ -82,6 +82,8 @@ type Player struct {
 	// dans la simulation ne le lise : il s'y compare, et l'en séparer le
 	// laisserait derrière le jour où la vie change de valeur.
 	LowHealth int
+	// Figure est son dessin, que la simulation ne lit pas.
+	Figure Figure
 }
 
 // EnemyProfile est ce qu'une sorte d'ennemi partage avec toutes ses instances.
@@ -228,6 +230,8 @@ type EnemyProfile struct {
 	// s'étirer sur cette durée : un télégraphe qui s'éteint avant la détonation
 	// ment, et un mécanisme qui existe pour avertir ne peut pas se le permettre.
 	Fuse Tick
+	// Figure est son dessin, que la simulation ne lit pas.
+	Figure Figure
 }
 
 // HitsAt rend la résistance de ce profil sous un durcissement donné.
@@ -282,6 +286,8 @@ type AmbientProfile struct {
 	Speed Fixed
 	// Radius est le rayon de son corps, en tuiles.
 	Radius Fixed
+	// Figure est son dessin, que la simulation ne lit pas.
+	Figure Figure
 }
 
 // Profiles est la table que la simulation indexe.
@@ -342,7 +348,7 @@ func LoadProfiles(fsys fs.FS, chemin string) (*Profiles, error) {
 		}
 		joueurs++
 		base = ou0(p.TilesPerSec)
-		table.Player = p.joueur()
+		table.Player = p.joueur(cle)
 	}
 	if joueurs != 1 {
 		dire("profils : %d de rôle « %s », il en faut exactement un", joueurs, rolePlayer)
@@ -578,6 +584,12 @@ func controler(cle string, p rawProfile, dire func(string, ...any)) {
 		}
 	}
 
+	// **Le versant dessin n'est pas contrôlé ici, et c'est délibéré.** Un
+	// contrôle vit avec son lecteur : `internal/game` porte la figure sans
+	// jamais l'ouvrir, et refuser un manifeste sur un champ qu'on ne lit pas
+	// ferait juger deux fois — une seconde règle finirait par diverger de celle
+	// du chargeur de feuilles, qui est le seul à savoir ce qu'il en attend.
+
 	// **Un coût nul n'est pas gratuit, il est impossible.** Le spawner tire le
 	// profil qu'il va acheter avec un poids inversement proportionnel à son
 	// prix : un prix de zéro y diviserait par zéro. Et le sens de jeu suit le
@@ -611,7 +623,7 @@ func controler(cle string, p rawProfile, dire func(string, ...any)) {
 // La conversion suppose le contrôle passé, mais elle s'exécute même quand il a
 // signalé quelque chose : les manquements se listent en une fois, donc rien ne
 // s'interrompt en route. Ce qu'elle produit alors n'est jamais rendu.
-func (p rawProfile) joueur() Player {
+func (p rawProfile) joueur(cle string) Player {
 	return Player{
 		Name:      p.Name,
 		Speed:     parTick(ou0(p.TilesPerSec)),
@@ -619,6 +631,7 @@ func (p rawProfile) joueur() Player {
 		Health:    ou0(p.Health),
 		DamageCap: ou0(p.DamageCap),
 		LowHealth: ou0(p.LowHealth),
+		Figure:    p.figure(cle),
 	}
 }
 
@@ -662,6 +675,7 @@ func (p rawProfile) ennemi(cle string, base float64) EnemyProfile {
 		HealRange:        FromFloat(ou0(p.HealRange)),
 		HealCooldown:     ticks(p.HealEveryMs),
 		HealHits:         ou0(p.HealHits),
+		Figure:           p.figure(cle),
 	}
 }
 
@@ -677,6 +691,7 @@ func (p rawProfile) figurant(cle string, base float64) AmbientProfile {
 		Name:   p.Name,
 		Speed:  parTick(ou0(p.RelSpeed) * base),
 		Radius: FromFloat(ou0(p.TileRadius)),
+		Figure: p.figure(cle),
 	}
 }
 

@@ -175,7 +175,7 @@ type World struct {
 
 // Capacities dit combien de places chaque bassin préalloue.
 //
-// **Une struct plutôt que des entiers de rang.** Quatre `int` consécutifs à
+// **Une struct plutôt que des entiers de rang.** Des `int` consécutifs à
 // l'appel sont une inversion silencieuse : les valeurs sont toutes plausibles,
 // le compilateur les accepte dans n'importe quel ordre, et un bassin de gemmes
 // réduit à seize places ne se manifesterait que par des gemmes qui n'apparaissent

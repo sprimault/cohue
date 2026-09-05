@@ -236,7 +236,11 @@ if err != nil {
   dernière a une frontière : [Où la règle du sans-accent
   s'arrête](#où-la-règle-du-sans-accent-sarrête).
 - Sentinelles exportées quand l'appelant doit distinguer les cas :
-  `ErrUnknownRoom`, `ErrDisconnectedLevel`.
+  `ErrUnknownRoom`, `ErrEmptyLevel`.
+
+  La seconde citait d'abord un lieu coupé en deux, sentinelle qui n'existe pas et
+  n'existera pas : les connecteurs garantissent la connexité par construction, et
+  ce qu'un chargeur peut refuser est un lieu sans aucune pièce.
 - Pas de `panic` hors de `main`, pas de `log.Fatal` dans `internal/`.
 - **Pas de `panic("à implémenter")`.** Un bout non écrit rend
   `errors.New("à implémenter : étape N")`, où N renvoie à
@@ -355,8 +359,8 @@ faut un test.
 
 Vaut pour les documents : un chiffre qui **décrit le code** s'adosse à un test
 qui lit le document, un chiffre qui **décide** est exercé par le test de
-conformité, un chiffre **mesuré** porte sa date et sa mesure rejouable — voir
-`-maj-mesures`. Un quantificateur qui n'est aucun des trois n'a rien à faire là.
+conformité, un chiffre **mesuré** porte sa date et la commande qui le rejoue. Un
+quantificateur qui n'est aucun des trois n'a rien à faire là.
 
 ## Une condition vaut mieux qu'une conclusion
 
@@ -416,11 +420,12 @@ Cousin du précédent, sur ce qu'on écrit plutôt que sur la forme de la phrase
 ne dit pas **où** poser un commentaire — cela se décide en écrivant, et une
 densité uniforme est de la cérémonie — mais **ce qu'on y met** pour qu'il tienne.
 
-Le cas vient de l'étalement d'une volée de gemmes. Quatre choses décident de la
-figure qu'elle dessine : le rayon, le nombre de gemmes, le rang zéro qui reste au
-point de la mort pendant que les autres l'entourent, et le pas de trois dans la
-table des orientations. Une seule porte un nom et un commentaire, `rayonVolee` ;
-les trois autres sont en ligne dans `lacher` et passent pour du mécanisme.
+Le cas vient de l'étalement d'une volée de gemmes. Plusieurs choses décident de
+la figure qu'elle dessine : le rayon, le nombre de gemmes, le rang zéro qui reste
+au point de la mort pendant que les autres l'entourent, le pas de trois dans la
+table des orientations, et le tour de table qui écarte les suivantes. Une seule
+porte un nom et un commentaire, `rayonVolee` ; les autres sont en ligne dans
+`lacherEn` et passent pour du mécanisme.
 
 **C'est une asymétrie de mise en forme, pas de responsabilité.** Extraire une
 constante déplace l'attention vers elle sans rien dire de ses voisines, et le
@@ -690,6 +695,13 @@ distance minimale que la géométrie autorise, et ma valeur est-elle strictement
 au-delà ?** Un rayon de contact adossé à un obstacle infranchissable hérite de la
 borne de cet obstacle, jamais de celle de l'entité qui s'en approche.
 
+Sa jumelle est [La valeur
+zéro](#la-valeur-zéro-ne-se-partage-pas-entre-labsence-et-une-valeur-légitime),
+et le renvoi va dans les deux sens parce qu'aucune ne couvre l'autre : là-bas une
+valeur légitime partage le domaine de **l'absence**, ce qu'un `*int` répare ; ici
+elle partage la **frontière du possible**, où aucun type n'aide — c'est la
+géométrie du cas qu'il faut interroger.
+
 ## Détecter et empêcher ne sont pas au même endroit
 
 **Un test qui détecte trouve l'erreur après qu'elle a été écrite ; une forme qui
@@ -702,7 +714,7 @@ compilateur peut porter la contrainte, et cinq cas en disent la portée :
 | `Spawn` par valeur | garder un pointeur dans un bassin |
 | la table par accesseur | modifier un profil du manifeste |
 | l'extinction dérivée de la valeur | désynchroniser un drapeau et son état |
-| `Capacities` plutôt que six `int` | inverser deux capacités de bassin |
+| `Capacities` plutôt qu'une suite d'`int` | inverser deux capacités de bassin |
 
 Le dernier est celui qui donne la formulation, parce qu'il a été éprouvé :
 **l'inversion était déjà détectée** — quatre tests tombaient, dont ceux du budget
@@ -711,7 +723,7 @@ déjà. Ce que la struct ajoute n'est pas la détection, c'est l'impossibilité
 d'écrire la faute.
 
 **Le critère qui choisit entre les deux n'est donc pas la sûreté** — un test qui
-tombe est une sûreté suffisante — mais **le coût du diagnostic**. Six `int`
+tombe est une sûreté suffisante — mais **le coût du diagnostic**. Des `int`
 inversés donnent des tests rouges qu'il faut relier à un appel ; une struct
 nommée donne une erreur de compilation à la ligne fautive. C'est la même
 différence qu'entre un contrôle et un type.
@@ -832,10 +844,11 @@ de flux sur une carte figée.
 Le jeu de cas couvre délibérément les dispositions pénibles — salle très ouverte,
 couloirs étroits, cul-de-sac, obstacle détruit en cours de route.
 
-Mise à jour groupée des attendus derrière `go test ./internal/game -maj-attendus`,
-jamais automatique : un attendu régénéré sans être relu ne teste plus rien. Trois
-autres artefacts suivent le même motif — `-maj-mesures`, cité plus haut à propos
-des quantificateurs, `-maj-notices` et `-maj-schemas`.
+Mise à jour des attendus derrière `go test ./internal/session -maj-attendus`,
+jamais automatique : un attendu régénéré sans être relu ne teste plus rien.
+C'est le seul drapeau de ce genre aujourd'hui ; le motif se reprendra tel quel
+pour l'artefact suivant, et le nommer d'avance ferait chercher une commande qui
+n'existe pas.
 
 ### Une planche que rien ne fabrique ne relit rien
 

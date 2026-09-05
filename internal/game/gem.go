@@ -20,7 +20,7 @@ package game
 // il est le seul de ceux qui décident de l'image à porter un nom et une
 // justification, ce qui le rend lisible, pas coupable. Le nombre de gemmes, le
 // rang zéro qui reste au centre et le pas de la table décident autant, en ligne
-// dans `lacher`.
+// dans `lacherEn`.
 const rayonVolee = One / 4
 
 // Gem est une gemme au sol.

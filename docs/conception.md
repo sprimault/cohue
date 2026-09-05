@@ -1179,7 +1179,9 @@ Un détail vaut d'être noté parce qu'il porte le moment de plaisir maximal du 
 
 Jusqu'à l'étape 5, des capsules colorées avec ombre au sol, une couleur par archétype, générées par code. On apprend davantage sur la boucle avec des formes lisibles qu'avec de jolis sprites obtenus trois semaines plus tard.
 
-**Une teinte par clé de profil, et c'est ici qu'elle est autorisée.** Le rendu tient une table qui associe une couleur à chaque clé d'archétype, et le rouge de la masse à celle qu'elle ne connaît pas — un profil ajouté sans teinte se joue au lieu de disparaître. C'est du code qui décide d'une apparence, ce que le manifeste-contrat interdit partout ailleurs : la dérogation tient à ce que ces formes n'ont aucun fichier à décrire, et elle s'éteint à l'étape 5, quand chaque profil aura sa feuille de sprites et que le manifeste dira sa teinte comme il dit le reste.
+**Une teinte par clé de profil, et c'est ici qu'elle est autorisée.** Le rendu tient une table qui associe une couleur à chaque clé d'archétype, et le rouge de la masse à celle qu'elle ne connaît pas — un profil ajouté sans teinte se joue au lieu de disparaître. C'est du code qui décide d'une apparence, ce que le manifeste-contrat interdit partout ailleurs : la dérogation tient à ce que ces formes n'ont aucun fichier à décrire, et elle s'éteint à l'étape 5, quand chaque profil aura sa feuille de sprites.
+
+**Le manifeste ne dira pas sa teinte pour autant, et la dérogation se retire sans être remplacée.** Le générateur a tranché en la mettant dans les pixels : les six variantes du Quidam sont six vêtements dessinés, pas six valeurs déclarées. Une teinte inscrite à côté d'un sprite déjà colorié serait une seconde description, et c'est celle qu'on oublierait de changer en redessinant. Ce que le rendu perd à l'étape 5, il ne le retrouve donc nulle part — il n'en a plus besoin.
 
 ### Les crédits
 

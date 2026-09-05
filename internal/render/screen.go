@@ -285,11 +285,10 @@ func (s *Screen) WithHUD(h *HUD) *Screen {
 // c'est de lui que la projection la tient.
 func NewScreen(monde *game.World, carte *game.CostGrid, tuile [2]int) *Screen {
 	s := &Screen{
-		monde: monde,
-		carte: carte,
-		cam:   nouvelleCamera(tuile, carte),
-		scene: nouvelleScene(carte, monde.Enemies().Cap(), monde.Shots().Cap(),
-			monde.Gems().Cap(), monde.Magnets().Cap(), monde.Crates().Cap()),
+		monde:    monde,
+		carte:    carte,
+		cam:      nouvelleCamera(tuile, carte),
+		scene:    nouvelleScene(carte, monde),
 		face:     face(tuile),
 		figurine: aplat(tuile[0]/4, tuile[0]*3/4),
 		eclat:    aplat(tuile[1]/8, tuile[1]/8),

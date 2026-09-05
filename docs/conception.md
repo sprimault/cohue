@@ -59,6 +59,8 @@ Le choix des trois cartes met le jeu en pause, mais **brièvement et sans céré
 
 C'est ce qui compte en fin de run, quand les niveaux s'enchaînent toutes les vingt secondes : une transition d'une seconde répétée quinze fois hache la partie, alors que deux fois cent cinquante millisecondes se traversent sans qu'on les remarque.
 
+**Le panneau apparaît aujourd'hui d'un coup, et c'est conforme.** Ces deux fois cent cinquante millisecondes sont une borne haute et non une commande : la coupure franche est le cas limite de *sans cérémonie*, pas sa violation. Ce que le chapitre interdit est la transition qu'on remarque — s'il faut un jour l'adoucir, ce sera parce qu'on aura vu la coupure en jouant, jamais parce qu'un chiffre attendait d'être atteint.
+
 La pause est réelle — la horde se fige — parce que choisir sous pression n'est pas un choix, c'est une loterie, et le document a posé que le choix compte plus que la récompense.
 
 ### Le pic de puissance

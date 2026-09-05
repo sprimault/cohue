@@ -323,11 +323,23 @@ def rivets(img, pas=8, couleur=(70, 70, 76)):
     return img
 
 
-def contour(img, force=0.45):
-    """Assombrit le pourtour de la silhouette.
+def contour(img, force=0.45, cible=(24, 24, 28)):
+    """Tire le pourtour de la silhouette vers `cible`, un presque-noir par défaut.
 
     C'est le détail qui détache le plus un objet du fond en pixel art. À ne pas
     appliquer aux tuiles de sol : il doublerait le joint au raccord.
+
+    **La cible se change pour ce qu'on doit voir arriver, et pour rien d'autre.**
+    Un pourtour clair sur une masse sombre détache l'objet de tous les fonds à la
+    fois — aucun ne peut être proche des deux —, là où un contour foncé ne le
+    détache que des fonds clairs. Mesuré sur le tir de la Buse contre les cinq
+    familles de décor : le pire cas passe de 40 à 81 de luminance d'écart.
+
+    Ce n'est pas une option esthétique offerte à toutes les formes. Un signal qui
+    vaut pour tout ne vaut plus rien : si les tirs du joueur le prenaient aussi,
+    l'écran se remplirait d'objets qui crient et le liseré cesserait de dire
+    « danger ». C'est la règle qui gouverne déjà la silhouette du rendu, qui ne
+    révèle que le joueur et ses menaces.
     """
     px = img.load()
     l, h = img.size
@@ -343,7 +355,7 @@ def contour(img, force=0.45):
                     break
     for x, y in bord:
         r, v, b, a = px[x, y]
-        px[x, y] = _melange((r, v, b), (24, 24, 28), force) + (a,)
+        px[x, y] = _melange((r, v, b), cible, force) + (a,)
     return img
 
 

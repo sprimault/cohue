@@ -38,6 +38,23 @@ TEINTES = {
     "acier": (188, 194, 204),
     "acier_sombre": (108, 114, 128),
     "feu": (232, 148, 60),
+    # Le crachat de la Buse, seule teinte du catalogue à porter une obligation :
+    # la conception veut que le projectile ennemi n'existe nulle part ailleurs,
+    # parce que « est-ce que ça me fait mal ? » est la question qu'on se pose
+    # sous pression.
+    #
+    # **Elle est ce violet-ci et pas un violet plus sage, et la raison n'est pas
+    # esthétique.** Le catalogue est fait de gris, de bruns, de verts et de bleus
+    # sourds : la seule région libre est du côté du magenta. La ramener vers le
+    # violet la rapprocherait du bleu du décor et du tir perforant, c'est-à-dire
+    # exactement des deux choses dont elle doit se détacher — le grief qui la
+    # ferait déplacer est donc le symptôme de ce qu'elle évite.
+    #
+    # Mesuré contre les deux tirs du joueur, en écart perceptif : 126 de l'or du
+    # tir de base, 69 du bleu du perforant, et 38 de son plus proche voisin dans
+    # les six cents images. Sa saturation vaut 0,57 contre 0,67 pour l'or : elle
+    # ne sera pas plus vive que ce qui est déjà à l'écran.
+    "venin": (178, 96, 224),
     "poudre": (96, 96, 104),
     "energie": (108, 178, 224),
     "or": (222, 186, 74),
@@ -53,17 +70,32 @@ TEINTES = {
 }
 
 
-def _matiere(nom, teinte):
+def _matiere(nom, teinte, contraste=1.0):
+    """Déclare une matière et ses flancs, comme le fait `figurines.py`.
+
+    `contraste` atténue l'ombrage. Il existe parce qu'un volume tire son relief
+    de trois niveaux de teinte, et qu'un objet de six pixels de large n'a pas la
+    place de les porter : l'ombrage qui donne du volume à une caisse y mange la
+    couleur, et ce qu'on voit à l'écran n'est plus la teinte choisie mais sa
+    moitié sombre.
+    """
     def melange(cible, force):
         return tuple(round(c + (t - c) * force) for c, t in zip(teinte, cible))
 
-    prim.MATIERES[nom] = (teinte, melange((0, 0, 0), 0.28), melange((0, 0, 0), 0.44),
+    prim.MATIERES[nom] = (teinte,
+                           melange((0, 0, 0), 0.28 * contraste),
+                           melange((0, 0, 0), 0.44 * contraste),
                            melange((255, 255, 255), 0.32))
     return nom
 
 
-def _bloc(largeur, hauteur, teinte, arete=True):
-    return prim.volume(elevation=hauteur, matiere=_matiere(f"_o_{teinte}", TEINTES[teinte]),
+def _bloc(largeur, hauteur, teinte, arete=True, contraste=1.0):
+    # Le contraste entre dans le nom de la matière : deux blocs de la même teinte
+    # à deux ombrages sont deux matières, et partager le nom ferait rendre au
+    # second ce que le premier a déclaré.
+    nom = f"_o_{teinte}" if contraste == 1.0 else f"_o_{teinte}_{contraste}"
+    return prim.volume(elevation=hauteur,
+                        matiere=_matiere(nom, TEINTES[teinte], contraste),
                         largeur_tuile=largeur, bandes=2, arete=arete)
 
 
@@ -81,10 +113,20 @@ def _ombre(fond, cx, cy, largeur=0.16):
 # Petits, sans ombre : ils volent. Leur lisibilité tient à la couleur, pas à la
 # forme — à cette taille une silhouette ne se distingue plus.
 
-def projectile(teinte="or", cote=8, hauteur=4):
+def projectile(teinte="or", cote=8, hauteur=4, contraste=0.45, liseré=None):
+    """Un projectile, dont l'ombrage est atténué faute de place pour le porter.
+
+    Six pixels de large ne tiennent pas trois niveaux de teinte : à l'ombrage
+    plein, la moitié sombre l'emporte et l'objet se lit plus foncé que la couleur
+    qu'on lui a donnée. Ce qui se juge ici n'est pas le relief mais le contraste
+    avec le sol qu'il traverse, puisque tout ce qu'un projectile doit faire est
+    d'être suivi des yeux.
+    """
     img = Image.new("RGBA", (cote, cote), TRANSPARENT)
-    corps = _bloc(cote - 2, hauteur, teinte)
+    corps = _bloc(cote - 2, hauteur, teinte, contraste=contraste)
     _poser(img, corps, cote / 2, cote - 1)
+    if liseré:
+        img.info["contour"] = liseré
     return img
 
 
@@ -97,7 +139,22 @@ def projectile_perforant():
 
 
 def projectile_ennemi():
-    return projectile("feu", 8, 4)
+    """Le tir de la Buse : masse sombre, pourtour clair.
+
+    **C'est le seul objet du catalogue dont le contour est inversé**, et la
+    raison est qu'il est le seul qu'on doive voir *arriver*. Les tirs du joueur,
+    on ne les esquive pas : leur donner la même saillance remplirait l'écran
+    d'objets qui crient tous, et le liseré cesserait de dire « danger » faute de
+    distinguer quoi que ce soit.
+
+    **Ne pas éclaircir le violet en croyant améliorer.** L'éclaircissement était
+    la bonne réponse tant que le contour restait foncé — il détachait le tir de
+    la horde. Le liseré inversé le rend nuisible : il rapproche la masse du sol,
+    qui est à 162 de luminance quand les créatures sont à 83, et fait retomber le
+    pire cas de 81 à 69. Les deux réglages tirent en sens contraire, et c'est
+    celui-ci qui gagne parce qu'il ne dépend d'aucun fond.
+    """
+    return projectile("venin", 8, 4, liseré=((248, 240, 255), 0.55))
 
 
 # --- Ramassables -----------------------------------------------------------
@@ -575,7 +632,11 @@ def main():
                                  " la composition l'a perdue en chemin")
             emprise = (0.25, 0.25)
 
-        img = prim.reduire(prim.contour(brut, force=0.40), couleurs=12)
+        # Le pourtour va vers un presque-noir sauf déclaration contraire : seul
+        # ce qu'on doit voir arriver porte un liseré clair, et `contour` dit
+        # pourquoi cette dérogation ne s'étend pas.
+        cible, force = brut.info.get("contour", ((24, 24, 28), 0.40))
+        img = prim.reduire(prim.contour(brut, force=force, cible=cible), couleurs=12)
         # Recadrage : le moteur pose un objet par son point d'appui, pas par le
         # coin d'une image. Des marges transparentes ne feraient que décaler la
         # position réelle sans que rien ne le signale.

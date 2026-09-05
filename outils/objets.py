@@ -113,7 +113,7 @@ def _ombre(fond, cx, cy, largeur=0.16):
 # Petits, sans ombre : ils volent. Leur lisibilité tient à la couleur, pas à la
 # forme — à cette taille une silhouette ne se distingue plus.
 
-def projectile(teinte="or", cote=8, hauteur=4, contraste=0.45):
+def projectile(teinte="or", cote=8, hauteur=4, contraste=0.45, liseré=None):
     """Un projectile, dont l'ombrage est atténué faute de place pour le porter.
 
     Six pixels de large ne tiennent pas trois niveaux de teinte : à l'ombrage
@@ -125,6 +125,8 @@ def projectile(teinte="or", cote=8, hauteur=4, contraste=0.45):
     img = Image.new("RGBA", (cote, cote), TRANSPARENT)
     corps = _bloc(cote - 2, hauteur, teinte, contraste=contraste)
     _poser(img, corps, cote / 2, cote - 1)
+    if liseré:
+        img.info["contour"] = liseré
     return img
 
 
@@ -137,7 +139,22 @@ def projectile_perforant():
 
 
 def projectile_ennemi():
-    return projectile("venin", 8, 4)
+    """Le tir de la Buse : masse sombre, pourtour clair.
+
+    **C'est le seul objet du catalogue dont le contour est inversé**, et la
+    raison est qu'il est le seul qu'on doive voir *arriver*. Les tirs du joueur,
+    on ne les esquive pas : leur donner la même saillance remplirait l'écran
+    d'objets qui crient tous, et le liseré cesserait de dire « danger » faute de
+    distinguer quoi que ce soit.
+
+    **Ne pas éclaircir le violet en croyant améliorer.** L'éclaircissement était
+    la bonne réponse tant que le contour restait foncé — il détachait le tir de
+    la horde. Le liseré inversé le rend nuisible : il rapproche la masse du sol,
+    qui est à 162 de luminance quand les créatures sont à 83, et fait retomber le
+    pire cas de 81 à 69. Les deux réglages tirent en sens contraire, et c'est
+    celui-ci qui gagne parce qu'il ne dépend d'aucun fond.
+    """
+    return projectile("venin", 8, 4, liseré=((248, 240, 255), 0.55))
 
 
 # --- Ramassables -----------------------------------------------------------
@@ -615,7 +632,11 @@ def main():
                                  " la composition l'a perdue en chemin")
             emprise = (0.25, 0.25)
 
-        img = prim.reduire(prim.contour(brut, force=0.40), couleurs=12)
+        # Le pourtour va vers un presque-noir sauf déclaration contraire : seul
+        # ce qu'on doit voir arriver porte un liseré clair, et `contour` dit
+        # pourquoi cette dérogation ne s'étend pas.
+        cible, force = brut.info.get("contour", ((24, 24, 28), 0.40))
+        img = prim.reduire(prim.contour(brut, force=force, cible=cible), couleurs=12)
         # Recadrage : le moteur pose un objet par son point d'appui, pas par le
         # coin d'une image. Des marges transparentes ne feraient que décaler la
         # position réelle sans que rien ne le signale.

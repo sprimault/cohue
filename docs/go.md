@@ -958,6 +958,8 @@ Chaque règle qui peut se contredire a son test. Sur ce jeu, la liste de départ
   rafraîchit sous ses pieds ;
 - aucune cible à portée, l'arme ne doit pas tirer ni consommer sa cadence ;
 - le joueur pris entre un Vigile et un mur, seul cas où un corps ennemi l'arrête ;
+- une cible collée au joueur, écart nul compris : c'est ce qui empêche le cas
+  précédent d'être un piège, et six tests le rencontrent sans qu'aucun le pose ;
 - sortie atteinte avant l'objectif : la porte reste fermée ;
 - bassin plein au moment d'une vague, le spawner ne doit ni allouer ni écraser ;
 - deux projectiles atteignant le même ennemi dans le même tick : une seule mort,

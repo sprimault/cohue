@@ -84,9 +84,11 @@ func TestLieuLivre(t *testing.T) {
 	}
 
 	// **Les sept profils sont convoqués, et ça ne se vérifie que d'ici.** Une run
-	// de référence ne peut pas le dire : ses instants tombent dans la première
-	// minute, et son pilote — une direction constante — meurt avant le troisième
-	// palier, après quoi le bassin sature et plus rien n'apparaît. Ce qui garantit
+	// de référence ne peut pas le dire : son pilote tourne en octogone sans lire
+	// le monde, et meurt à 4:47 — avant que la Buse, la Baudruche et le
+	// Secouriste n'ouvrent. Aller les chercher demanderait de jouer onze minutes
+	// dont les deux tiers avec un cadavre, sur un bassin saturé : une empreinte
+	// déterministe d'une situation que le jeu ne produit jamais. Ce qui garantit
 	// qu'un profil peut apparaître est le refus au chargement d'une phase qui ne
 	// peut pas le payer ; ce qui garantit qu'il est **écrit** est ce cas-ci.
 	//

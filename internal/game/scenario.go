@@ -253,7 +253,7 @@ func CompileScenario(brut WaveScenario, profils *Profiles, report Tick) (*Scenar
 // pointe.
 func payables(ou string, phase *Phase, profils *Profiles, pression int, report Tick,
 	dire func(string, ...any)) {
-	plafond := PlafondDeReport(phase.Pressure, report, phase.Cheapest)
+	plafond := plafondDeReport(phase.Pressure, report, phase.Cheapest)
 	for _, rang := range phase.Profiles {
 		profil := &profils.Enemies[rang]
 		prix := profil.PackCost()

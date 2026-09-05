@@ -757,7 +757,11 @@ Pour une pièce peinte à la main, les connecteurs sont **déduits automatiqueme
 
 ### La rotation
 
-En iso, pivoter une pièce de 90° n'est pas gratuit : chaque tuile de mur doit exister dans les quatre orientations. Deux options honnêtes — concevoir le tileset avec les quatre variantes dès le départ, la rotation devenant un simple remappage d'index ; ou interdire la rotation et dessiner plus de pièces. La première coûte une journée de tileset, la seconde coûte des pièces à vie. **À trancher avant de dessiner la moindre tuile.**
+En iso, pivoter une pièce de 90° n'est pas gratuit : chaque tuile de mur doit exister dans les quatre orientations. Deux options honnêtes — concevoir le tileset avec les quatre variantes, la rotation devenant un simple remappage d'index ; ou l'interdire et dessiner plus de pièces.
+
+**L'absence de rotation est entérinée, faute d'usage.** Les soixante et une formes livrées n'en ont pas, et rien ne les fera pivoter avant l'éditeur : les ajouter maintenant serait du travail écrit d'avance sur son besoin, ce que ce projet refuse partout ailleurs.
+
+**La question se rouvre à l'étape 11, et attendre la rend meilleure.** Le catalogue complet dira alors combien de formes en réclament vraiment — peut-être quatre murs plutôt que soixante et une tuiles. L'argument qui poussait à trancher tôt, la dette qui grossit à chaque tuile ajoutée, est précisément ce qui renseigne la décision : ce n'est pas un report, c'est le moment où la question devient répondable.
 
 ### Le retour en direct
 
@@ -858,8 +862,7 @@ Ce qu'on y perd est le commentaire, et `$comment` le rend : il est **autorisé p
   "version_format": 1,
   "atlas": {
     "fichier": "atlas.png",
-    "taille_tuile": [64, 32],
-    "variantes_rotation": true
+    "taille_tuile": [64, 32]
   },
   "palette": {
     ".": "sol",
@@ -951,7 +954,7 @@ Un dossier de lieu se reconnaît alors sans être ouvert, et renommer un lieu se
 
 **Les axes sont `u` et `v`**, ceux que ce document pose plus haut ; un lieu écrit avec `x` et `y` est refusé, le décodage n'admettant aucune clé inconnue. Les quatre derniers champs sont facultatifs : un lieu sans `vagues` ne fait rien apparaître, un lieu sans `sortie` ne se gagne pas.
 
-**Ce qui manque encore à cet exemple attend son étape**, et rien de plus : `empreinte_jeu_pieces`, que l'étape 12 apporte avec le partage ; `pieces_personnalisees`, que le mode tuiles remplira à l'étape 14 ; la rotation des pièces, qui reste à trancher.
+**Ce qui manque encore à cet exemple attend son étape**, et rien de plus : `empreinte_jeu_pieces`, que l'étape 12 apporte avec le partage ; `pieces_personnalisees`, que le mode tuiles remplira à l'étape 14. La rotation des pièces n'y manque pas : elle est entérinée absente jusqu'à l'étape 11, et un champ que rien ne lit ne reste pas dans un format qui circule.
 
 **`u` et `v` sont la case d'origine de la pièce, pas son rang dans une trame.** Le lieu livré pose des blocs de trente-deux cases et une enceinte qui n'en fait qu'une d'épaisseur : des pièces de tailles différentes se composent dans un même lieu, ce qu'un rang ne saurait pas exprimer. Cette version du document portait un champ `grille` et des positions de rang, qui n'ont jamais été lus — c'est la pose de l'enceinte qui a rendu la contradiction visible.
 
@@ -1406,7 +1409,6 @@ Note de prudence : survivor, roguelite, exploration, ressources et éditeur avec
 
 ## 17. Ce qui reste à trancher
 
-- **La rotation des pièces** : quatre variantes de mur dans le tileset, ou aucune rotation et plus de pièces à dessiner. À décider avant de dessiner la moindre tuile.
 - **La taille de la maille des pièces** : 16×16 tuiles est la base proposée, elle conditionne tout le travail d'édition.
 - **La palette définitive** : le plafond de couleurs de `MATIERES`, et les teintes réservées — celle du personnage joueur et celle des projectiles ennemis, qui ne doivent apparaître nulle part ailleurs.
 - **La portée du tir de base**, qui remplace l'angle du cône comme réglage décisif du kiting : trop courte, il faut faire face pour toucher ; trop longue, la horde meurt avant d'être une menace.
@@ -1418,6 +1420,8 @@ Note de prudence : survivor, roguelite, exploration, ressources et éditeur avec
 - **La bibliothèque d'interface pour l'éditeur** : `ebitenui` ou tout dessiner à la main. À évaluer avant le chantier de l'éditeur, pas pendant.
 
 Tranché en cours de route : aucun asset importable dans le contenu utilisateur, mode tuiles différé après la première version de l'éditeur, et l'aimant gardé — avec son emplacement propre et l'effacement des gemmes pour contre-force.
+
+Tranché faute d'usage, et daté : la rotation des pièces est absente jusqu'à l'étape 11, où l'éditeur dira combien de formes en réclament. C'est la seule décision de cette liste qu'attendre améliore, le catalogue complet étant ce qui la renseigne.
 
 Tranché avant d'écrire la première ligne d'`internal/game`, parce que ce sont les décisions que reprendre plus tard toucherait tout le code de jeu : le pas de simulation et la conversion des durées, la tuile en virgule fixe comme repère unique, les quatre flux aléatoires et leur algorithme, la visée omnidirectionnelle sans cône, la passabilité par coût plutôt que par booléen, le Vigile comme seul corps que le joueur ne traverse pas, le domicile de la table d'armes, et l'ordre de mise à jour dans une image.
 

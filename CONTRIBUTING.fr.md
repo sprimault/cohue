@@ -109,6 +109,15 @@ accompagnent chaque archive publiée :
 make notices
 ```
 
+Un quatrième dès qu'une section de `docs/go.md` est ajoutée, retirée ou
+renommée : son sommaire indexe par la question qu'on se pose et non par les
+titres, si bien qu'une ancre morte n'y produit aucune erreur — elle ne fait
+rien, et un sommaire que rien ne vérifie égare au lieu de guider.
+
+```
+make sommaire
+```
+
 `govulncheck` interroge sa base d'avis **en direct** : un job vert le matin peut
 être rouge l'après-midi sur exactement le même code. Ne pas se reposer sur
 l'intégration continue seule, qui valide une fois la branche déjà poussée.

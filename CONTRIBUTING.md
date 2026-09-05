@@ -106,6 +106,15 @@ travel with every published archive:
 make notices
 ```
 
+A fourth one as soon as a section of `docs/go.md` is added, removed or renamed:
+its table of contents indexes by the question you are asking rather than by
+titles, so a dead anchor raises no error there — it simply does nothing, and a
+table of contents nothing checks misleads instead of guiding.
+
+```
+make sommaire
+```
+
 `govulncheck` queries its advisory database **live**: a job green in the morning
 can be red in the afternoon on exactly the same code. Do not rely on CI alone,
 which validates once the branch is already pushed.

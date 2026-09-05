@@ -221,6 +221,48 @@ func TestUnPlancherNulRefuse(t *testing.T) {
 	}
 }
 
+// TestUnAimantSousLaPorteeDeRamassageRefuse garde la borne contre ce qu'elle
+// borne réellement.
+//
+// **La distance minimale se juge contre la portée de ramassage, jamais contre
+// une tuile.** Elle se comparait à `One`, ce qui était vrai tant que cette
+// portée valait une tuile — une propriété de la valeur du jour, écrite comme une
+// conclusion. Or elle se règle en jouant, et la conception en fait un couple
+// avec la durée de vie d'une gemme.
+//
+// **Le cas porte donc la portée à deux, et c'est ce qui le rend discriminant** :
+// un aimant à une tuile et demie passait l'ancienne borne tout en étant
+// ramassable sans bouger. Aux valeurs livrées, les deux formulations rendent le
+// même verdict et rien ne les sépare.
+func TestUnAimantSousLaPorteeDeRamassageRefuse(t *testing.T) {
+	fsys := fstest.MapFS{"p.json": &fstest.MapFile{Data: []byte(`{
+		"version_format": 1,
+		"progression": {
+			"niveaux": {"seuil_premier": 10, "seuil_increment": 2, "plancher_ms": 45000},
+			"gemmes": {"objet": "gemme", "experience": 1, "portee_ramassage_tuiles": 2.0,
+			           "duree_vie_ms": 6000},
+			"aimant": {"objet": "aimant", "periode_ms": 30000, "distance_min_tuiles": 1.5,
+			           "vitesse_gemme_tuiles_s": 12.0},
+			"pression": {"rayon_apparition_tuiles": 19.0, "report_ms": 3000},
+			"caisses": {"objet": "caisse", "gemmes": 4, "portee_contact_tuiles": 0.5}
+		}
+	}`)}}
+
+	_, err := LoadProgression(fsys, "p.json")
+	var invalide *manifest.Invalid
+	if !errors.As(err, &invalide) {
+		t.Fatalf("un aimant sous la portée de ramassage accepté : %v", err)
+	}
+	if !strings.Contains(err.Error(), "distance_min_tuiles") {
+		t.Errorf("le refus ne nomme pas la clé fautive : %v", err)
+	}
+	// Le refus nomme les deux chiffres, faute de quoi l'auteur du manifeste sait
+	// qu'un champ est refusé sans savoir contre quoi il l'est.
+	if !strings.Contains(err.Error(), "portée de ramassage") {
+		t.Errorf("le refus ne dit pas contre quoi il juge : %v", err)
+	}
+}
+
 // TestLeSeuilMonteAvecLeNiveau garde la forme affine de la courbe.
 //
 // Le premier niveau coûte le seuil de départ et non un seuil déjà incrémenté :

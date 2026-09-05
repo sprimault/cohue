@@ -212,11 +212,19 @@ func LoadProgression(fsys fs.FS, chemin string) (*Progression, error) {
 	}
 
 	table.MagnetMinRange = FromFloat(exige("aimant", "distance_min_tuiles", a.MinTiles, dire))
-	if a.MinTiles != nil && table.MagnetMinRange < One {
-		// Sous une tuile, l'aimant tombe dans la portée de ramassage et se prend
-		// sans qu'on ait bougé : il cesse d'être un trajet, donc une décision.
-		dire("aimant.distance_min_tuiles : %v, un aimant qu'on ramasse sans "+
-			"bouger n'est pas une decision", *a.MinTiles)
+	if a.MinTiles != nil && table.MagnetMinRange <= table.PickupRange {
+		// Dans la portée de ramassage, l'aimant se prend sans qu'on ait bougé :
+		// il cesse d'être un trajet, donc une décision.
+		//
+		// **Contre cette portée et non contre une tuile.** La borne valait `One`,
+		// ce qui était juste tant que la portée de ramassage valait une tuile —
+		// une propriété de la valeur du jour, écrite comme une conclusion. Elle
+		// se règle en jouant, et la porter à deux aurait laissé passer un aimant
+		// ramassable sur place sans que rien ne le dise. Le refus nomme donc les
+		// deux champs : celui qu'on lit et celui contre lequel il se juge.
+		dire("aimant.distance_min_tuiles : %v, sous la portée de ramassage de %v "+
+			"tuiles — un aimant qu'on prend sans bouger n'est pas une decision",
+			*a.MinTiles, table.PickupRange.Float())
 	}
 
 	table.PullSpeed = parTick(exige("aimant", "vitesse_gemme_tuiles_s", a.GemSpeed, dire))

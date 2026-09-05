@@ -80,4 +80,18 @@ type Enemy struct {
 	// une fois est la transition — l'endroit qui applique les dégâts constate
 	// qu'elle était positive et ne l'est plus.
 	Hits int
+	// MaxHits est la résistance qu'elle avait en apparaissant, dans la même
+	// unité que `Hits`.
+	//
+	// **Elle ne se retrouve pas dans la table**, et c'est toute la raison de ce
+	// champ : le durcissement d'une phase multiplie les touches à l'apparition,
+	// si bien que la valeur du manifeste cesse de dire ce que cette créature-ci
+	// a encaissé. Une entame mesurée contre elle vaudrait déjà plusieurs touches
+	// sur une créature intacte, à partir de la sixième minute du lieu livré.
+	//
+	// Le durcissement courant ne la rendrait pas davantage : il continue de
+	// monter pendant qu'elle vit, alors que sa résistance a été figée à sa
+	// naissance — c'est ce qui garde « trois touches » une unité que le joueur
+	// peut compter.
+	MaxHits int
 }

@@ -1160,7 +1160,7 @@ Sans ces fichiers, une bande de 320 pixels est indéchiffrable — 5 images de 6
 
 **Les bruitages sont générés**, par `outils/sons.py` : une enveloppe appliquée à un oscillateur, plus un peu de bruit. C'est le procédé de sfxr, et il couvre exactement le registre d'un survivor — tirs, impacts, ramassages, explosions. Seule la bibliothèque standard est employée, et chaque son a sa graine, donc les fichiers sont reproductibles au bit près — davantage que les images, dont seul le dessin l'est, la compression PNG dépendant du système.
 
-**Le tir de base est le son le plus contraint du jeu.** En tir automatique il part plusieurs fois par seconde pendant quinze minutes : au même niveau que les autres, il recouvrirait la musique et saturerait l'oreille. Il est donc très court, aigu et mat — un son bref et haut se superpose à une nappe sans occuper sa place — et son gain est le plus bas du catalogue, environ 20 % de l'échelle contre 70 % pour une explosion.
+**Le tir de base est le son le plus contraint du jeu.** En tir automatique il part plusieurs fois par seconde pendant quinze minutes : au même niveau que les autres, il recouvrirait la musique et saturerait l'oreille. Il est donc très court, aigu et mat — un son bref et haut se superpose à une nappe sans occuper sa place — et son gain est le plus bas du catalogue, loin sous celui d'une explosion.
 
 C'est une règle générale et pas un réglage : **les sons rares ont le droit d'être forts, les sons répétés doivent rester sous la nappe**. Le catalogue porte donc un gain par son, qui fixe le rapport entre eux ; le volume absolu et les réglages par catégorie restent au moteur.
 
@@ -1170,7 +1170,9 @@ Un détail vaut d'être noté parce qu'il porte le moment de plaisir maximal du 
 
 ### Les placeholders
 
-Jusqu'au jalon 3, des capsules colorées avec ombre au sol, une couleur par archétype, générées par code. On apprend davantage sur la boucle avec des formes lisibles qu'avec de jolis sprites obtenus trois semaines plus tard.
+Jusqu'à l'étape 5, des capsules colorées avec ombre au sol, une couleur par archétype, générées par code. On apprend davantage sur la boucle avec des formes lisibles qu'avec de jolis sprites obtenus trois semaines plus tard.
+
+**Une teinte par clé de profil, et c'est ici qu'elle est autorisée.** Le rendu tient une table qui associe une couleur à chaque clé d'archétype, et le rouge de la masse à celle qu'elle ne connaît pas — un profil ajouté sans teinte se joue au lieu de disparaître. C'est du code qui décide d'une apparence, ce que le manifeste-contrat interdit partout ailleurs : la dérogation tient à ce que ces formes n'ont aucun fichier à décrire, et elle s'éteint à l'étape 5, quand chaque profil aura sa feuille de sprites et que le manifeste dira sa teinte comme il dit le reste.
 
 ### Les crédits
 
@@ -1233,7 +1235,7 @@ Trois règles font tenir le procédé :
 
 Corollaire sur la normalisation : le champ de flux stocke des vecteurs **déjà normalisés**, calculés une fois par rafraîchissement et non par entité et par image. `math.Sqrt` reste utilisable ailleurs — c'est l'une des rares opérations dont l'IEEE-754 exige l'arrondi correct, donc elle est portable —, à condition d'arrondir son résultat au plus proche plutôt que de le tronquer : une troncature raccourcit toujours, et les diagonales deviendraient plus lentes que les axes.
 
-**L'invariant se vérifie, il ne se surveille pas.** Un test joue une graine sur un nombre de ticks fixé et compare l'empreinte de l'état — positions, vies, générations et état de chaque flux, parcourus dans l'ordre des index du bassin — à un attendu versionné. Il tourne sur les trois cibles natives de l'intégration continue, dont deux arm64. L'empreinte porte sur l'état et non sur un résumé : un compte d'ennemis vivants passerait au vert alors que deux trajectoires ont divergé puis se sont recroisées, ce qui est précisément le cas qu'on cherche. Sa mise à jour passe par `-maj-attendus`, jamais automatiquement.
+**L'invariant se vérifie, il ne se surveille pas.** Un test joue une graine sur un nombre de ticks fixé et compare l'empreinte de l'état — positions, vies et générations dans l'ordre des index du bassin, plus le tirage suivant de chacun des trois flux qui décident, témoin de ce qu'ils ont consommé — à un attendu versionné. Il tourne sur les trois cibles natives de l'intégration continue, dont deux arm64. L'empreinte porte sur l'état et non sur un résumé : un compte d'ennemis vivants passerait au vert alors que deux trajectoires ont divergé puis se sont recroisées, ce qui est précisément le cas qu'on cherche. Sa mise à jour passe par `-maj-attendus`, jamais automatiquement.
 
 ### L'aléatoire
 

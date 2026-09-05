@@ -28,10 +28,11 @@ type Stream struct {
 //
 // Ce qui n'a aucun effet sur la simulation est confiné dans Cosmetic. Ce qui est
 // interdit n'est donc pas le flux, mais qu'une décision lise ce qu'il alimente —
-// et cela se vérifiera plutôt que de se surveiller : deux runs sur la même
-// graine, teintes forcées différentes, rendront la même empreinte d'état. Le
-// test attend son premier champ cosmétique : rien ne consomme encore ce flux, et
-// l'écrire maintenant donnerait un vert qui ne sépare rien.
+// et cela se vérifie plutôt que de se surveiller : `TestLeCosmetiqueNeDecideDeRien`
+// joue deux fois la même graine en décalant ce flux, et attend la même empreinte
+// d'état. Son jumeau `TestLesFigurantsBougentAvecLeCosmetique` garde l'autre
+// moitié — un flux que plus personne ne consommerait rendrait le premier vert
+// sans rien séparer, ce qu'il a fait tant qu'aucune entité n'y puisait.
 type Streams struct {
 	// Waves achète les créatures dans le budget de pression.
 	Waves *Stream

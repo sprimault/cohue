@@ -256,15 +256,20 @@ def controler(sortie, pentes=False):
 # Le rôle décide d'abord, parce que les trois natures n'ont pas les mêmes
 # valeurs : le joueur a une vie et pas de points, un ennemi l'inverse, une
 # entité d'ambiance ni l'un ni l'autre.
-CHAMPS_COMMUNS = {"role", "vitesse_relative", "rayon_tuiles", "groupe",
+CHAMPS_COMMUNS = {"role", "vitesse_relative", "rayon_tuiles",
                   "gabarit", "nom", "origine", "cote", "appui", "directions",
                   "cycles", "variantes"}
 
+# `corps_bloquant` et `groupe` sont au rôle et non au comportement, bien que le
+# Vigile soit le seul solide et le Molosse le seul en meute : les deux valent
+# pour n'importe quelle créature, et les ranger sous le comportement de celle qui
+# s'en sert obligerait à les recopier le jour où une autre les prend.
 CHAMPS_PAR_ROLE = {
-    "joueur": {"vitesse_tuiles_s", "vie", "plafond_degats_s"},
+    "joueur": {"vitesse_tuiles_s", "vie", "plafond_degats_s",
+               "seuil_alerte_vie"},
     "ennemi": {"comportement", "touches", "points", "cout_pression",
                "poids_separation", "max_simultane", "degats_contact_s",
-               "gemmes"},
+               "gemmes", "groupe", "corps_bloquant"},
     "ambiance": {"comportement"},
 }
 
@@ -274,11 +279,13 @@ CHAMPS_PAR_ROLE = {
 CHAMPS_PAR_COMPORTEMENT = {
     "poursuite":   set(),
     "va_et_vient": set(),
-    "charge":      {"degats_charge"},
+    "charge":      {"degats_charge", "portee_charge_tuiles", "telegraphe_ms",
+                    "duree_charge_ms", "recuperation_ms"},
     "flanc":       {"tangentiel"},
-    "tir":         {"portee_tuiles", "degats_tir", "vitesse_projectile_tuiles_s"},
-    "explosion":   {"degats_explosion", "rayon_explosion_tuiles"},
-    "soin":        set(),
+    "tir":         {"portee_tuiles", "degats_tir", "cadence_tir_ms",
+                    "vitesse_projectile_tuiles_s"},
+    "explosion":   {"degats_explosion", "rayon_explosion_tuiles", "amorce_ms"},
+    "soin":        {"portee_soin_tuiles", "cadence_soin_ms", "soin_touches"},
 }
 
 

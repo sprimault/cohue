@@ -618,9 +618,9 @@ seconde description est vraiment nécessaire sans être dérivable, alors c'est 
 test qui tient l'accord — pas une relecture.
 
 **La question qui précède, et qui se pose avant d'écrire un champ : où vit cette
-valeur ?** Elle a la même forme que la précédente et les deux se répondent —
-une valeur sans domicile unique en a deux, et deux domiciles finissent par
-diverger.
+valeur ?** Elle a la même forme que « qu'est-ce qui garantit qu'elles restent
+d'accord », et les deux se répondent — une valeur sans domicile unique en a deux,
+et deux domiciles finissent par diverger.
 
 Elle n'est pas théorique : la portée du Cracheur vivait sur son profil **et** sur
 son projectile, à six tuiles d'un côté et sept de l'autre, dans deux fichiers que
@@ -943,8 +943,10 @@ peut la lui retirer exprès — d'où le refus explicite quand les repères manq
 Deux cas sans rapport l'un avec l'autre, et c'est ce qui distingue une règle
 d'une anecdote généralisée.
 
-C'est la même famille que ci-dessus, prise encore ailleurs : un contrôle qui
-certifie l'écart au lieu de le signaler.
+C'est la même famille que [Deux
+descriptions](#deux-descriptions-de-la-même-chose-finissent-par-diverger) dans
+son cas aggravé, prise encore ailleurs : un contrôle qui certifie l'écart au lieu
+de le signaler.
 
 ### Cas limites du jeu
 
@@ -987,8 +989,9 @@ corriger le commentaire, pas d'inventer un test.
 
 ### Un rouge que le diff ne peut pas atteindre vient de l'instrument
 
-C'est le pendant du précédent : celui-là dit qu'un vert peut ne rien prouver,
-celui-ci qu'un rouge peut n'accuser personne. Avant de chercher ce qui a changé,
+C'est le pendant d'[Un test se vérifie en le faisant
+échouer](#un-test-se-vérifie-en-le-faisant-échouer) : celui-là dit qu'un vert
+peut ne rien prouver, celui-ci qu'un rouge peut n'accuser personne. Avant de chercher ce qui a changé,
 regarder ce que le test mesure — quand le changement ne peut pas atteindre le
 code testé, l'impossibilité est elle-même le signal, et elle désigne le test
 avant qu'on l'ait ouvert.

@@ -81,7 +81,9 @@ func TestLePlafondTientQuelQueSoitLeNombreDEnnemis(t *testing.T) {
 	}
 }
 
-// TestSansContactAucunePerte est le témoin des deux tests ci-dessus.
+// TestSansContactAucunePerte est le témoin de
+// `TestLeContactRetireDeLaVieEnContinu` et de
+// `TestLePlafondTientQuelQueSoitLeNombreDEnnemis`.
 //
 // Sans lui, une implémentation qui retirerait de la vie à chaque tick sans
 // regarder les distances les ferait passer tous les deux : ils mesurent ce qu'on
@@ -130,7 +132,9 @@ func TestLaVieAZeroEstLaMort(t *testing.T) {
 
 // TestLaHordeFinitParBlesser est l'autre moitié : le contact arrive vraiment.
 //
-// Les quatre tests ci-dessus appellent `subir` sur des créatures posées à la
+// `TestLeContactRetireDeLaVieEnContinu`,
+// `TestLePlafondTientQuelQueSoitLeNombreDEnnemis`, `TestSansContactAucunePerte`
+// et `TestLaVieAZeroEstLaMort` appellent `subir` sur des créatures posées à la
 // main, donc aucun ne dirait rien si la boucle ne l'appelait jamais ou si le
 // champ de flux n'amenait personne. Celui-ci part d'une horde à distance, joue
 // des ticks entiers, et exige que la vie ait baissé — c'est le chemin complet,

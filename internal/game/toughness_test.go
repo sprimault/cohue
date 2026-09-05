@@ -14,14 +14,13 @@ import (
 
 // TestLaResistanceSArrondit garde la règle d'arrondi, qui n'a qu'un domicile.
 //
-// **Aucune donnée livrée ne l'exerce**, et c'est pourquoi ce cas la force : le
-// lieu de démonstration ne déclare aucun durcissement, si bien que le champ
-// vaudrait un partout et que la multiplication rendrait toujours la base. Un
-// mécanisme que rien n'exerce est un mécanisme qu'on croit écrit.
+// **Le lieu livré exerce le durcissement mais pas son arrondi**, et c'est ce que
+// ce cas force. Ses phases montent de 1,2 à 2,0 entre la sixième et la douzième
+// minute, donc le mécanisme tourne — ce qu'aucune d'elles ne produit est une
+// valeur qui tombe des deux côtés du demi.
 //
-// Les valeurs sont choisies pour tomber des deux côtés du demi : 4,2 arrondit
-// vers le bas, 4,5 vers le haut. Un cas qui ne verrait qu'un seul côté passerait
-// sur une troncature.
+// D'où les valeurs choisies : 4,2 arrondit vers le bas, 4,5 vers le haut. Un cas
+// qui ne verrait qu'un seul côté passerait sur une troncature.
 func TestLaResistanceSArrondit(t *testing.T) {
 	profils, err := LoadProfiles(cohue.Assets, manifestePersonnages)
 	if err != nil {

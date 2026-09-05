@@ -18,7 +18,10 @@
 
     { "id": "avenue", "u": 1, "v": 33 },
     { "id": "esplanade", "u": 33, "v": 33 },
-    { "id": "carrefour", "u": 65, "v": 33 },
+    {
+      "$comment": "La ruelle est posée devant la porte, et c'est ce qui la fait rencontrer : le joueur qui cherche la sortie traverse ce bloc. Elle n'y est pas un passage obligé pour autant — les blocs du nord et du sud restent ouverts, si bien qu'un Vigile dans un goulot arrête celui qui s'y est engagé sans jamais fermer le lieu.",
+      "id": "ruelle", "u": 65, "v": 33
+    },
 
     { "id": "esplanade", "u": 1, "v": 65 },
     { "id": "carrefour", "u": 33, "v": 65 },

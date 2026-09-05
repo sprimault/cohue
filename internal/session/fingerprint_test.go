@@ -78,11 +78,11 @@ var instantanes = []struct {
 	tick     int
 	pourquoi string
 }{
-	{780, "deux projectiles en vol et deux gemmes au sol, que nul autre instant ne montre ensemble"},
+	{780, "un projectile en vol et quatre gemmes au sol, sur une horde encore réduite à cinq"},
 	{2700, "un aimant au sol, le niveau 2 franchi, la vie entamée et dix créatures vivantes"},
-	{3163, "quatre gemmes et une horde de onze, le plus que ces trois instants montrent"},
-	{15987, "les quatre profils que la run atteint — trois Vigiles, quatorze " +
-		"Arpenteurs et onze Molosses dans une horde de 135 —, avec le niveau 6"},
+	{3163, "une horde de onze, la plus fournie de ces trois premiers instants"},
+	{15987, "les quatre profils que la run atteint — trois Vigiles, treize " +
+		"Arpenteurs et douze Molosses dans une horde de 132 —, avec le niveau 6"},
 }
 
 // jouerLaRun monte la partie livrée sur une graine et rend l'empreinte des trois

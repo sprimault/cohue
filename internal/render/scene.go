@@ -67,9 +67,12 @@ type entite struct {
 // trois cents entités sur un lieu de trente-deux tuiles de côté, cela fait cinq
 // entités par seau, qu'une insertion range sans y penser.
 //
-// Rien n'y est alloué après le montage. Ce n'est pas l'invariant du budget, qui
-// s'arrête à la simulation, mais un tri qui allouerait soixante fois par seconde
-// ferait passer le ramasse-miettes exactement là où il se verrait.
+// Rien n'y est alloué après le montage, et c'est `source` qui le rend vrai : le
+// dimensionnement était une seconde liste de bassins, plus courte que celle du
+// relevé. Ce n'est pas l'invariant du budget, qui s'arrête à la simulation, mais
+// un tri qui allouerait soixante fois par seconde ferait passer le
+// ramasse-miettes exactement là où il se verrait — et, au-delà de la capacité du
+// tampon, l'image ne se contentait pas d'allouer : elle paniquait.
 //
 // **Elle ne range que les entités, et le décor est peint avant elle.** C'est
 // juste tant que le sol est plat : une face de case n'a rien qui dépasse, donc
@@ -102,20 +105,106 @@ type scene struct {
 	// rangée. Deux tranches parce que la distribution du tri ne peut pas se
 	// faire en place, et préallouées parce qu'elle a lieu à chaque image.
 	recueil, tampon []entite
+	// sources sont les bassins que l'image dessine, montés une fois.
+	sources []source
+}
+
+// source est un bassin que l'image dessine : ce qu'il peut contenir, et de quoi
+// le relever.
+//
+// **Les deux sur la même ligne, et c'est tout l'objet de ce type.** Le
+// dimensionnement et le relevé étaient deux listes tenues à deux endroits : la
+// première comptait cinq bassins quand la seconde en parcourait sept, si bien
+// que le tampon pouvait être trop court — et le tri ne se contentait pas d'y
+// allouer, il paniquait sur une tranche trop petite. L'écart s'est produit deux
+// fois de suite, parce que rien dans la forme ne le signalait.
+//
+// Un bassin qui s'ajoute porte désormais sa capacité avec lui, et il n'y a plus
+// de seconde liste à tenir d'accord.
+type source struct {
+	capacite int
+	relever  func(s *scene)
 }
 
 // nouvelleScene dimensionne les seaux sur l'étendue d'un lieu et les bassins.
 //
 // La profondeur d'un point du lieu va de zéro, au sommet du losange, à la somme
 // de ses deux côtés, à sa pointe basse : il faut donc un seau de plus que cette
-// somme. La capacité des séquences couvre les quatre bassins pleins et le
-// joueur, c'est-à-dire le plus grand nombre d'entités qu'une image puisse porter.
-func nouvelleScene(carte *game.CostGrid, ennemis, tirs, gemmes, aimants, caisses int) *scene {
-	total := ennemis + tirs + gemmes + aimants + caisses + 1
-	return &scene{
+// somme. La capacité des séquences couvre tous les bassins pleins et le joueur,
+// c'est-à-dire le plus grand nombre d'entités qu'une image puisse porter — et
+// elle se somme sur la liste même que le relevé parcourt.
+func nouvelleScene(carte *game.CostGrid, monde *game.World) *scene {
+	s := &scene{
 		comptes: make([]int, carte.Width()+carte.Height()+1),
-		recueil: make([]entite, 0, total),
-		tampon:  make([]entite, total),
+		sources: sources(monde),
+	}
+
+	// Le joueur ne vit dans aucun bassin, d'où celui qu'on ajoute.
+	total := 1
+	for _, src := range s.sources {
+		total += src.capacite
+	}
+	s.recueil = make([]entite, 0, total)
+	s.tampon = make([]entite, total)
+	return s
+}
+
+// sources énumère les bassins qu'une image dessine, chacun avec sa capacité.
+//
+// Les bassins sont pris une fois : `World` les tient pour toute la partie, et
+// une relance monte un écran neuf.
+func sources(monde *game.World) []source {
+	ennemis := monde.Enemies()
+	ambiants := monde.Ambients()
+	tirs := monde.Shots()
+	tirsHorde := monde.EnemyShots()
+	gemmes := monde.Gems()
+	aimants := monde.Magnets()
+	caisses := monde.Crates()
+
+	return []source{
+		{ennemis.Cap(), func(s *scene) {
+			for i := range ennemis.Active() {
+				e := ennemis.At(i)
+				s.ajouter(e.X, e.Y, ennemis.IDAt(i), sorteEnnemi, i)
+			}
+		}},
+		{ambiants.Cap(), func(s *scene) {
+			for i := range ambiants.Active() {
+				a := ambiants.At(i)
+				s.ajouter(a.X, a.Y, ambiants.IDAt(i), sorteAmbiance, i)
+			}
+		}},
+		{tirs.Cap(), func(s *scene) {
+			for i := range tirs.Active() {
+				p := tirs.At(i)
+				s.ajouter(p.X, p.Y, tirs.IDAt(i), sorteTir, i)
+			}
+		}},
+		{tirsHorde.Cap(), func(s *scene) {
+			for i := range tirsHorde.Active() {
+				p := tirsHorde.At(i)
+				s.ajouter(p.X, p.Y, tirsHorde.IDAt(i), sorteTirHorde, i)
+			}
+		}},
+		{gemmes.Cap(), func(s *scene) {
+			for i := range gemmes.Active() {
+				g := gemmes.At(i)
+				s.ajouter(g.X, g.Y, gemmes.IDAt(i), sorteGemme, i)
+			}
+		}},
+		{aimants.Cap(), func(s *scene) {
+			for i := range aimants.Active() {
+				a := aimants.At(i)
+				s.ajouter(a.X, a.Y, aimants.IDAt(i), sorteAimant, i)
+			}
+		}},
+		{caisses.Cap(), func(s *scene) {
+			for i := range caisses.Active() {
+				c := caisses.At(i)
+				s.ajouter(c.X, c.Y, caisses.IDAt(i), sorteCaisse, i)
+			}
+		}},
 	}
 }
 
@@ -130,47 +219,8 @@ func (s *scene) ranger(monde *game.World) []entite {
 // recueillir relève dans les bassins ce que l'image doit porter.
 func (s *scene) recueillir(monde *game.World) {
 	s.recueil = s.recueil[:0]
-
-	ennemis := monde.Enemies()
-	for i := range ennemis.Active() {
-		e := ennemis.At(i)
-		s.ajouter(e.X, e.Y, ennemis.IDAt(i), sorteEnnemi, i)
-	}
-
-	ambiants := monde.Ambients()
-	for i := range ambiants.Active() {
-		a := ambiants.At(i)
-		s.ajouter(a.X, a.Y, ambiants.IDAt(i), sorteAmbiance, i)
-	}
-
-	tirs := monde.Shots()
-	for i := range tirs.Active() {
-		p := tirs.At(i)
-		s.ajouter(p.X, p.Y, tirs.IDAt(i), sorteTir, i)
-	}
-
-	tirsHorde := monde.EnemyShots()
-	for i := range tirsHorde.Active() {
-		p := tirsHorde.At(i)
-		s.ajouter(p.X, p.Y, tirsHorde.IDAt(i), sorteTirHorde, i)
-	}
-
-	gemmes := monde.Gems()
-	for i := range gemmes.Active() {
-		g := gemmes.At(i)
-		s.ajouter(g.X, g.Y, gemmes.IDAt(i), sorteGemme, i)
-	}
-
-	aimants := monde.Magnets()
-	for i := range aimants.Active() {
-		a := aimants.At(i)
-		s.ajouter(a.X, a.Y, aimants.IDAt(i), sorteAimant, i)
-	}
-
-	caisses := monde.Crates()
-	for i := range caisses.Active() {
-		c := caisses.At(i)
-		s.ajouter(c.X, c.Y, caisses.IDAt(i), sorteCaisse, i)
+	for _, src := range s.sources {
+		src.relever(s)
 	}
 
 	// Le joueur ne vit dans aucun bassin : il est seul, donc son identité ne

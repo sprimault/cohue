@@ -52,7 +52,7 @@ func (w *World) apparaitre() {
 	// l'accumulation ; l'empêcher d'atteindre un seul achat ne serait plus une
 	// limite mais un arrêt, et une phase à faible pression cesserait de produire
 	// quoi que ce soit sans qu'aucun refus ne le dise.
-	plafond := PlafondDeReport(accorde, w.progression.CarryOver, phase.Cheapest)
+	plafond := plafondDeReport(accorde, w.progression.CarryOver, phase.Cheapest)
 	if w.budget > plafond {
 		w.budget = plafond
 	}
@@ -150,7 +150,7 @@ func poidsDAchat(p *EnemyProfile) int {
 	return int(One) / (p.PressureCost * p.Group)
 }
 
-// PlafondDeReport rend la borne au-delà de laquelle un budget cesse de
+// plafondDeReport rend la borne au-delà de laquelle un budget cesse de
 // s'accumuler.
 //
 // **Un seul domicile pour ce calcul, parce que deux lecteurs en dépendent.** Le
@@ -162,7 +162,7 @@ func poidsDAchat(p *EnemyProfile) int {
 //
 // Le plancher est ce prix le moins cher : la borne limite l'accumulation, elle ne
 // doit pas l'empêcher d'atteindre un seul achat.
-func PlafondDeReport(parTick Fixed, report Tick, moinsCher Fixed) Fixed {
+func plafondDeReport(parTick Fixed, report Tick, moinsCher Fixed) Fixed {
 	plafond := borner(int64(parTick) * int64(report))
 	if plafond < moinsCher {
 		return moinsCher

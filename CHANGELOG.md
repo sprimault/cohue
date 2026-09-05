@@ -42,6 +42,25 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Corrigé
+
+- **Le bord rouge de vie basse s'éteint quand le lieu est gagné.** Il s'adossait
+  à la vie, qui ne tombe à zéro que dans l'une des deux fins : sortir sous le
+  seuil laissait l'alerte allumée sur l'écran qui annonce la victoire.
+- **L'invite de relance passe en pleine teinte.** Atténuée, elle se lisait comme
+  une explication de second plan, alors qu'elle est la seule chose que l'écran
+  de fin demande.
+
+***
+
+### Fixed
+
+- **The low-health border clears when the place is won.** It hung on health,
+  which only drops to zero in one of the two endings: leaving under the
+  threshold left the warning lit on the screen announcing the win.
+- **The restart prompt goes to full tint.** Dimmed, it read as a background
+  explanation, while it is the one thing the ending screen asks for.
+
 ## [0.4.0] — 2026-09-05 — Les profils d'ennemis
 
 ### Ajouté

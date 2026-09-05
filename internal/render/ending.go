@@ -1,8 +1,9 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// L'écran de mort : ce qu'il montre, et la touche qui relance. Il ne remonte
-// rien lui-même — c'est la session qui sait ce qu'une relance conserve.
+// L'écran de fin : ce qu'il montre des deux issues, et la touche qui repart. Il
+// ne remonte rien lui-même — c'est la session qui sait ce qu'une relance
+// conserve.
 
 package render
 
@@ -20,9 +21,10 @@ import "github.com/hajimehoshi/ebiten/v2"
 // le doigt n'est pas levé — et la partie repartirait à chaque image, donc jamais
 // vraiment.
 //
-// Elle ne rend vrai qu'une fois mort : pendant la partie, ces touches ne font
-// rien hors du panneau de choix, qui met la mort hors de portée puisque `Update`
-// traite l'une avant l'autre.
+// Elle ne rend vrai qu'une fois la partie finie, **morte ou sortie** : c'est
+// `Over` qu'elle lit, et les deux issues repartent par le même geste. Pendant la
+// partie, ces touches ne font rien hors du panneau de choix, qui met la fin hors
+// de portée puisque `Update` traite l'une avant l'autre.
 func (s *Screen) WantsRestart() bool {
 	return s.monde.Over() && presse(validation)
 }

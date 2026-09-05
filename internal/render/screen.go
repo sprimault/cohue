@@ -233,9 +233,9 @@ type Screen struct {
 
 	scene *scene
 
-	// Les cinq formes blanches que le dessin teinte au blit : la face d'une
-	// case, la silhouette d'un personnage, le point d'un projectile, celui d'une
-	// gemme et celui d'un aimant.
+	// Les formes blanches que le dessin teinte au blit : la face d'une case, la
+	// silhouette d'un personnage, le point d'un projectile, celui d'une gemme,
+	// celui d'un aimant et le pavé d'une caisse.
 	face     *ebiten.Image
 	figurine *ebiten.Image
 	eclat    *ebiten.Image
@@ -258,7 +258,7 @@ type Screen struct {
 	// ne pas tenir un second champ pour distinguer l'absence du début de partie.
 	finRepere game.Tick
 
-	// hud pose le bandeau de la partie et le texte de l'écran de mort. Il peut
+	// hud pose le bandeau de la partie et le texte de l'écran de fin. Il peut
 	// être nul : la planche de relecture monte des écrans sans lui, et une partie
 	// sans interface se dessine quand même — ce qu'elle perd est tout le texte du
 	// jeu.

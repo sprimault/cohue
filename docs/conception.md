@@ -1018,7 +1018,11 @@ Corollaire : la voie du rendu 3D précalculé (modèles Mixamo ou low-poly rendu
 
 À poser dès le premier asset, pénibles à corriger ensuite.
 
-**Une palette fermée.** Trente-deux couleurs, pas plus, fixées dans `MATIERES` et partagées par tous les générateurs. Tout asset entrant est recoloré dessus. C'est le seul moyen de rendre cohérents des paquets venant d'auteurs différents et ses propres tuiles.
+**Une palette bornée par image.** Vingt-six couleurs au plus dans un sprite, contour et grain compris, ce que `ressources.py` contrôle image par image. C'est ce qui garde un dessin franc à la taille où il est vu.
+
+**Ce n'est pas une palette fermée, et les deux ne gardent pas la même chose.** Une palette globale sert l'unité visuelle — elle garantit que deux sprites appartiennent au même monde. Une borne par image sert la lisibilité — elle garantit qu'un sprite reste franc. Ce ne sont pas deux degrés d'une même exigence, et ce document a longtemps énoncé la première en tenant la seconde.
+
+**L'unité est obtenue autrement, et c'est ce qui rend la palette globale inutile ici.** Tous les générateurs passent par `primitives_iso.py` : même ombrage, même projection, mêmes volumes composés. Ce n'est pas la couleur qui fait que le décor et les créatures se ressemblent. Une palette fermée par-dessus coûterait six cents images redessinées pour ce qui est déjà acquis — et elle ne servirait pas à accueillir des paquets d'auteurs différents, puisqu'aucun asset n'est importable.
 
 **Aucun filtrage à l'affichage.** Échantillonnage au plus proche voisin, et caméra déplacée en pixels entiers, jamais en flottants. Le scrolling sous-pixel fait scintiller le pixel art : c'est le défaut qui trahit immédiatement un jeu bâclé.
 
@@ -1026,7 +1030,9 @@ Corollaire : la voie du rendu 3D précalculé (modèles Mixamo ou low-poly rendu
 
 ### La lisibilité en masse
 
-Point de vigilance sans précédent à copier : les jeux rétro n'ont jamais affiché autant de sprites simultanés. Contours foncés sur les ennemis, teinte réservée au seul personnage joueur, projectiles ennemis dans une couleur qui n'existe nulle part ailleurs dans la palette. Une palette fermée rend cette discipline tenable ; des sprites rendus l'auraient rendue impossible.
+Point de vigilance sans précédent à copier : les jeux rétro n'ont jamais affiché autant de sprites simultanés. Contours foncés sur les ennemis, teinte réservée au seul personnage joueur, projectiles ennemis dans une couleur qui n'existe nulle part ailleurs dans le catalogue. Des générateurs rendent cette discipline tenable, là où des sprites dessinés à la main l'auraient rendue impossible à vérifier.
+
+**La teinte du projectile ennemi est le seul point de ce chapitre qu'une machine sait contrôler**, et c'est à ce titre qu'il se tient : le reste se juge à l'œil, celui-là se compte. Sa contrainte est double et les deux moitiés se vérifient — absente du reste du catalogue, et distincte des tirs du joueur, qui sont ce avec quoi on la confondrait sous pression.
 
 ### La lisibilité du texte
 

@@ -170,7 +170,10 @@ func (w *World) viseeDe(e *Enemy, profil *EnemyProfile) (Vec, bool) {
 // un sol coûteux. C'est ce que « contourner ce qui ralentit » veut dire, appliqué
 // à un profil qui ne contourne pas.
 func porteeDuChamp(portee Fixed) uint32 {
-	return uint32(portee.Floor()) * uint32(Free)
+	// Le chargement refuse déjà une portée négative, mais la conversion ne s'y
+	// adosse pas : non bornée, elle rendrait une portée immense là où le manifeste
+	// dit l'inverse, et la créature ne s'arrêterait plus nulle part.
+	return uint32(max(portee.Floor(), 0)) * uint32(Free) // #nosec G115 -- borné par le max
 }
 
 // auContactDu dit si un point touche le joueur.

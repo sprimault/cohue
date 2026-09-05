@@ -18,10 +18,14 @@ same configuration.
 
 ## Status
 
-**You die here, and start over.** One place, one weapon, a horde that rises: the
-window opens, you move with the keyboard, creatures close in around obstacles and
-kill whoever stands still. The gems they drop raise your level, and every level
-up offers three cards. The scenery is coloured rectangles — the images exist, but
+**You die here, or you get out — and start over.** One place, one weapon, a horde
+that rises: the window opens, you move with the keyboard, and seven kinds of
+creature enter one after another — the one that charges, the one that shoots from
+afar, the one you cannot walk through, the one that explodes, the one that heals
+the others. Bystanders come and go without attacking anyone. Gems raise your
+level, every level up offers three cards, and crates break when you walk through
+them. The door opens once you have killed what the place asks for: touching it is
+enough to leave. The scenery is coloured rectangles — the images exist, but
 nothing loads them yet.
 
 The project follows a sixteen-step roadmap, published at each one. **What is done

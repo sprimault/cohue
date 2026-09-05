@@ -19,11 +19,15 @@ moins d'une seconde, même configuration.
 
 ## État
 
-**On y meurt, et on relance.** Un lieu, une arme, une horde qui monte : la
-fenêtre s'ouvre, on s'y déplace au clavier, les créatures convergent en
-contournant les obstacles et tuent qui reste immobile. Les gemmes qu'elles
-laissent font monter de niveau, et chaque montée offre trois cartes. Le décor est
-fait de rectangles colorés — les images existent, mais rien ne les charge encore.
+**On y meurt ou on en sort, et on relance.** Un lieu, une arme, une horde qui
+monte : la fenêtre s'ouvre, on s'y déplace au clavier, et sept sortes de
+créatures y entrent l'une après l'autre — celle qui charge, celle qui tire de
+loin, celle qu'on ne traverse pas, celle qui explose, celle qui soigne les
+autres. Des passants vont et viennent sans attaquer personne. Les gemmes font
+monter de niveau, chaque montée offre trois cartes, et des caisses se cassent en
+les traversant. La porte s'ouvre une fois abattu ce que le lieu demande : venir
+contre elle suffit à partir. Le décor est fait de rectangles colorés — les images
+existent, mais rien ne les charge encore.
 
 Le projet suit une feuille de route en seize étapes, publiée à chacune. **Ce qui
 est fait et ce qui reste ne se lisent pas ici** : les deux listes vivraient à

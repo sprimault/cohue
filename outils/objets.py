@@ -60,13 +60,27 @@ TEINTES = {
     "or": (222, 186, 74),
     "platre": (206, 202, 194),
     "bois": (168, 126, 78),
-    # Le cuivre, celui d'une bobine, qui va au décor urbain sans disputer sa
-    # teinte à personne : le joueur tient le jaune, la horde le rouge, les gemmes
-    # le vert et les projectiles le blanc. Le rouge du fer à cheval classique se
-    # serait perdu au milieu de cent créatures rouges, c'est-à-dire au moment
-    # précis où l'on cherche l'aimant.
+    # Le cuivre, celui d'une bobine, qui va au décor urbain. Le rouge du fer à
+    # cheval classique se serait perdu au milieu de cent créatures rouges,
+    # c'est-à-dire au moment précis où l'on cherche l'aimant.
+    #
+    # **Il n'est pas réservé, et deux voisins le disent** : 13,4 du corps de
+    # l'Éclateur, 15,6 de la caisse. C'est assumé — la godoc d'`aimant()` dit
+    # pourquoi : la silhouette porte la lecture, et le fer à cheval est la seule
+    # forme du catalogue qu'on nomme sans légende.
     "aimant": (198, 126, 78),
     "aimant_pole": (238, 202, 156),
+    # **Un turquoise, et le choix se tient à trois écarts en même temps** — c'est
+    # ce qui l'a fait préférer au vert, qui paraissait pourtant le mieux
+    # argumenté : le vert (72, 214, 132) tombe à 10,6 de `teinteSoigneur`, soit
+    # moins que ce qui séparait le Passant du Secouriste avant qu'on le corrige.
+    # Il aurait déplacé la collision au lieu de la fermer.
+    #
+    # Mesuré : 29,0 du plus proche des quatre-vingt-quinze teintes de tête du
+    # catalogue, 28,5 de la plus proche des teintes que le rendu ajoute, et 45,6
+    # du sol livré le plus proche pour 11,5 de luminance. Aucun des trois n'est le
+    # meilleur pris seul, et c'est le seul candidat où aucun n'est mauvais.
+    "gemme": (64, 206, 178),
 }
 
 
@@ -271,7 +285,20 @@ def palette():
 
 
 def gemme():
-    return prim.volume(elevation=3, matiere="peinture", largeur_tuile=10, arete=False)
+    """Le ramassable de base, et le seul qu'on voie par centaines.
+
+    **Sa teinte est à elle et n'est empruntée à rien.** Elle a longtemps été
+    celle de la matière « peinture » des primitives, partagée avec le décor : la
+    gemme était alors identique **au byte près** à la teinte de tête de six
+    pièces livrées — comptoir, wagon, boutique, distributeur, scooter. Un tas de
+    gemmes sur un comptoir ne se voyait pas, et le chapitre 2 lui demande
+    l'inverse : « la quantité au sol dit ce qu'on va gagner ».
+
+    Plus petite que l'aimant de moitié, parce qu'on en compte un tas plutôt
+    qu'on ne repère une pièce.
+    """
+    return prim.volume(elevation=3, matiere=_matiere("_o_gemme", TEINTES["gemme"]),
+                       largeur_tuile=10, arete=False)
 
 
 def aimant():

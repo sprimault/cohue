@@ -24,6 +24,7 @@
 package render
 
 import (
+	"image"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -152,6 +153,28 @@ var (
 	teinteSoigneur = color.RGBA{R: 120, G: 226, B: 132, A: 255}
 	teinteSoigne   = color.RGBA{R: 172, G: 178, B: 108, A: 255}
 
+	// **Le contour du joueur, et sa silhouette : la même teinte.** C'est la même
+	// chose qui le détache — cernée quand on le voit, pleine quand une forme ou
+	// une foule le recouvre —, et deux couleurs pour un seul rôle donneraient
+	// deux réglages à tenir d'accord.
+	//
+	// Un blanc à peine tiède plutôt que le blanc pur : le tir du joueur est déjà
+	// un blanc bleuté, et le personnage doit s'en distinguer autant que du reste.
+	// La luminance reste au-delà de 240, ce que la mesure demande — le pixel le
+	// plus clair d'un profil monte à 162, celui d'un figurant à 175.
+	teinteContour = color.RGBA{R: 252, G: 246, B: 226, A: 255}
+
+	// **Le projectile de la horde porte une teinte qu'aucune autre ne dispute.**
+	// C'est entre projectiles que la distinction doit être maximale : « est-ce
+	// que ça me fait mal ? » ne se pose que sur eux, si bien que les confondre
+	// coûte plus cher que de confondre un projectile et une créature.
+	//
+	// Elle ne sert plus qu'à sa silhouette, le sprite portant sa propre couleur.
+	// Ce n'en est donc pas une copie : un aplat n'a pas de masse sombre ni de
+	// liseré clair, et ce qu'on lui demande est de se voir à travers ce qui le
+	// cache.
+	teinteTirHorde = color.RGBA{R: 186, G: 138, B: 232, A: 255}
+
 	// La teinte de l'aimant, qui ne sert plus qu'à la case du bandeau : au sol,
 	// c'est son sprite qu'on voit. Elle survit parce que l'objet n'a pas d'icône
 	// d'interface, et `HUD.emplacement` dit ce qu'il faudrait pour l'éteindre.
@@ -176,6 +199,13 @@ type Screen struct {
 	// rendu n'a rien à agrandir — redimensionner une image par une fraction
 	// casserait le pixel entier. Tous les autres ont cédé la place à des sprites.
 	face *ebiten.Image
+
+	// aRevoir porte, le temps d'une image, ce qu'on redessinera si quelque chose
+	// le recouvre. Réutilisée avec `[:0]` : la séquence la remplit soixante fois
+	// par seconde, et une tranche qui croîtrait ferait passer le ramasse-miettes
+	// là où il se voit.
+	aRevoir []revele
+
 	// demiTuile est l'abscisse du sommet dans l'image d'une face, ce que le
 	// manifeste appellera son ancrage quand les images viendront de lui.
 	demiTuile int
@@ -233,6 +263,10 @@ func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Ca
 		scene:     nouvelleScene(carte, monde, sol, cam),
 		face:      face(tuile),
 		demiTuile: tuile[0] / 2,
+		// Le joueur et, au pire, tous les projectiles de la horde en vol : c'est
+		// exactement ce que la conception révèle, donc le majorant est le bassin
+		// lui-même.
+		aRevoir: make([]revele, 0, 1+monde.EnemyShots().Cap()),
 	}
 	s.cam.suivre(monde.Player())
 	return s
@@ -387,7 +421,7 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 // au mur qui l'entoure. La teinte multiplie l'image au lieu de la remplacer :
 // le mur reste un mur, et il vire au cyan. Le sol n'en prend rien — ce qu'elle
 // désigne est la porte, pas la case qui la porte.
-func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme) {
+func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme) image.Rectangle {
 	x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
 	if f.nue && s.sol.sol != nil {
 		s.poser(ecran, x, y, *s.sol.sol)
@@ -404,6 +438,16 @@ func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme) {
 	s.op.GeoM.Reset()
 	s.op.GeoM.Translate(float64(x+f.dx), float64(y+f.dy))
 	ecran.DrawImage(f.image, &s.op)
+	return boiteDe(f.image, x+f.dx, y+f.dy)
+}
+
+// boiteDe rend l'étendue à l'écran d'une image posée à un coin.
+func boiteDe(img *ebiten.Image, x, y int) image.Rectangle {
+	if img == nil {
+		return image.Rectangle{}
+	}
+	taille := img.Bounds().Size()
+	return image.Rect(x, y, x+taille.X, y+taille.Y)
 }
 
 // poser pose une forme sans la teinter, au coin que son ancrage lui donne.
@@ -463,29 +507,34 @@ func (s *Screen) peindreEmprises(ecran *ebiten.Image) {
 // aurait une image de retard le jour où quelque chose bougera entre les deux.
 func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 	largeur := s.sol.carte.Width()
+	s.aRevoir = s.aRevoir[:0]
 	for _, e := range s.scene.ranger(s.monde) {
+		var boite image.Rectangle
+		var forme *ebiten.Image
 		switch e.sorte {
 		case sorteDecor:
 			u, v := e.place%largeur, e.place/largeur
 			f, _ := s.sol.formeDe(u, v)
-			s.poserCase(ecran, u, v, f)
+			boite = s.poserCase(ecran, u, v, f)
 		case sorteEnnemi:
 			c := s.monde.Enemies().At(e.place)
 			f := s.troupe.ennemis[c.Profile]
-			s.peindreCreature(ecran, f, f.poseEnnemi(c, s.regardDe(c)), c.X, c.Y, e.identite, etatDe(c))
+			boite, _ = s.peindreCreature(ecran, f, f.poseEnnemi(c, s.regardDe(c)),
+				c.X, c.Y, e.identite, etatDe(c))
 			if c.Flash > 0 {
 				s.peindreEtincelle(ecran, c.X, c.Y, c.Flash)
 			}
 		case sorteAmbiance:
 			a := s.monde.Ambients().At(e.place)
 			f := s.troupe.ambiants[a.Profile]
-			s.peindreCreature(ecran, f, f.posePersonnage(a.Step, a.Step, 0), a.X, a.Y, e.identite, nil)
+			boite, _ = s.peindreCreature(ecran, f, f.posePersonnage(a.Step, a.Step, 0),
+				a.X, a.Y, e.identite, nil)
 		case sorteTir:
 			p := s.monde.Shots().At(e.place)
-			s.peindreObjet(ecran, objetTir, p.X, p.Y, e.identite, nil)
+			boite, _ = s.peindreObjet(ecran, objetTir, p.X, p.Y, e.identite, nil)
 		case sorteTirHorde:
 			p := s.monde.EnemyShots().At(e.place)
-			s.peindreObjet(ecran, objetTirHorde, p.X, p.Y, e.identite, nil)
+			boite, forme = s.peindreObjet(ecran, objetTirHorde, p.X, p.Y, e.identite, nil)
 		case sorteGemme:
 			g := s.monde.Gems().At(e.place)
 			// **Une gemme attirée reprend sa teinte pleine.** L'extinction dit
@@ -503,20 +552,86 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 				eteinte := eteindre(intact, s.monde.GemAge(g), s.monde.GemLife())
 				voile = &eteinte
 			}
-			s.peindreObjet(ecran, objetGemme, g.X, g.Y, e.identite, voile)
+			boite, _ = s.peindreObjet(ecran, objetGemme, g.X, g.Y, e.identite, voile)
 		case sorteAimant:
 			a := s.monde.Magnets().At(e.place)
-			s.peindreObjet(ecran, objetAimant, a.X, a.Y, e.identite, nil)
+			boite, _ = s.peindreObjet(ecran, objetAimant, a.X, a.Y, e.identite, nil)
 		case sorteCaisse:
 			c := s.monde.Crates().At(e.place)
-			s.peindreObjet(ecran, objetCaisse, c.X, c.Y, e.identite, nil)
+			boite, _ = s.peindreObjet(ecran, objetCaisse, c.X, c.Y, e.identite, nil)
 		case sorteJoueur:
 			x, y := s.monde.Player()
 			f := s.troupe.joueur
 			pas := s.monde.PlayerStep()
-			s.peindreCreature(ecran, f, f.posePersonnage(pas, s.regardDuJoueur(pas), 0), x, y, 0, nil)
+			boite, forme = s.peindreCreature(ecran, f,
+				f.posePersonnage(pas, s.regardDuJoueur(pas), 0), x, y, 0, nil)
+		}
+
+		// **Le recouvrement se constate en dessinant, dans l'ordre où l'on
+		// dessine.** Ce qui masque une chose est ce qui vient après elle, et la
+		// séquence le dit déjà : il suffit de retenir les boîtes de ce qu'on
+		// révélera, puis de confronter chaque dessin suivant. C'est ce que la
+		// conception annonçait — « savoir quelle entité est masquée, c'est-à-dire
+		// ce que le tri en profondeur calcule ».
+		//
+		// Le test précède l'inscription, sans quoi une chose se masquerait
+		// elle-même.
+		for i := range s.aRevoir {
+			if !s.aRevoir[i].masque && boite.Overlaps(s.aRevoir[i].boite()) {
+				s.aRevoir[i].masque = true
+			}
+		}
+		if forme != nil {
+			s.aRevoir = append(s.aRevoir, revele{
+				forme: forme, x: boite.Min.X, y: boite.Min.Y, teinte: teinteDeLaSorte(e.sorte),
+			})
 		}
 	}
+	s.reveler(ecran)
+}
+
+// reveler redessine en aplat ce que la scène a recouvert.
+//
+// **La silhouette plutôt que la transparence, et l'argument tient en une
+// phrase** : la transparence retire de l'information au décor, la silhouette en
+// ajoute au personnage. Le chapitre 2 veut les deux — voir la horde arriver et
+// comprendre où sont les murs —, et c'est la seule des trois voies qui n'enlève
+// rien.
+//
+// **Elle ne révèle que le joueur et les projectiles de la horde**, jamais une
+// créature : voir la horde à travers un bus retirerait au décor le seul pouvoir
+// qu'il a sur le combat. Ce qui se cache derrière un camion doit rester une
+// inconnue.
+//
+// **Et elle ne dépend pas de ce que le décor déclare.** Un joueur derrière trois
+// Vigiles empilés est invisible sans qu'aucune forme ne soit en cause : une
+// transparence ne sait effacer que ce qu'un manifeste a nommé, celle-ci ne
+// regarde que ce qui est dessiné devant.
+func (s *Screen) reveler(ecran *ebiten.Image) {
+	for _, r := range s.aRevoir {
+		if !r.masque {
+			continue
+		}
+		s.op.GeoM.Reset()
+		s.op.GeoM.Translate(float64(r.x), float64(r.y))
+		s.op.ColorScale.Reset()
+		s.op.ColorScale.ScaleWithColor(r.teinte)
+		ecran.DrawImage(r.forme, &s.op)
+	}
+}
+
+// teinteDeLaSorte rend la couleur qu'une silhouette prend.
+//
+// Deux sortes, deux teintes réservées. Le joueur reprend celle de son contour :
+// c'est la même chose qui le détache, cernée quand on le voit et pleine quand on
+// ne le voit plus. Le projectile de la horde garde le violet que le chapitre 14
+// lui réserve — « une couleur qui n'existe nulle part ailleurs dans le
+// catalogue ».
+func teinteDeLaSorte(quoi sorte) color.RGBA {
+	if quoi == sorteTirHorde {
+		return teinteTirHorde
+	}
+	return teinteContour
 }
 
 // regardDuJoueur rend ce que le personnage regarde : sa cible s'il en a une, son
@@ -569,30 +684,44 @@ func (s *Screen) regardDe(e *game.Enemy) game.Vec {
 // **L'orientation et la teinte viennent de la pose**, que l'appelant a bâtie :
 // elles dépendent l'une de ce que le personnage regarde, l'autre de ce que son
 // apparition a tiré, et aucune des deux n'est une propriété de son dessin.
+// Le second retour est l'aplat de la pose posée, nul pour qui n'en a pas : seul
+// le joueur en porte, et c'est ce qui décide de son contour comme de sa
+// silhouette. L'appelant n'a donc pas à savoir lequel des personnages se révèle.
 func (s *Screen) peindreCreature(ecran *ebiten.Image, f *figure, a anim,
-	x, y game.Fixed, identite int, eclat *color.RGBA) {
+	x, y game.Fixed, identite int, eclat *color.RGBA) (image.Rectangle, *ebiten.Image) {
 	if a.nom == "" || a.direction == "" {
-		return
+		return image.Rectangle{}, nil
 	}
 
-	image := sprite.Loop(a.cycle, s.monde.Tick(), identite)
+	i := sprite.Loop(a.cycle, s.monde.Tick(), identite)
 	if !a.cycle.Loop {
-		image = sprite.Once(a.cycle, a.reste)
+		i = sprite.Once(a.cycle, a.reste)
 	}
-	img := f.image(pose{a.nom, a.direction, a.variante, image})
+	p := pose{a.nom, a.direction, a.variante, i}
+	img := f.image(p)
 	if img == nil {
-		return
+		return image.Rectangle{}, nil
 	}
 
 	ex, ey := s.cam.ecran(x, y)
+	coinX, coinY := ex-f.appui[0], ey-f.appui[1]
+
+	// Le contour vient avant le sprite, qui le recouvre en son centre : ce qui
+	// dépasse est le liseré, et il n'a pas d'autre épaisseur que ce dépassement.
+	forme := f.forme(p)
+	if forme != nil {
+		s.contour(ecran, forme, coinX, coinY, teinteContour)
+	}
+
 	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(ex-f.appui[0]), float64(ey-f.appui[1]))
+	s.op.GeoM.Translate(float64(coinX), float64(coinY))
 	s.op.ColorScale.Reset()
 	ecran.DrawImage(img, &s.op)
 
 	if eclat != nil {
 		s.eclairer(ecran, img, *eclat)
 	}
+	return boiteDe(img, coinX, coinY), forme
 }
 
 // intensiteEclair est la part de sa teinte qu'un éclair d'état ajoute au sprite.
@@ -654,10 +783,13 @@ func etatDe(e *game.Enemy) *color.RGBA {
 // Le voile multiplie l'image quand il est donné : c'est ce que veut une
 // extinction, qui retire de la lumière, et l'inverse de l'éclair d'un état, qui
 // en ajoute.
+// Le second retour est l'aplat de l'image posée, nul pour qui n'en a pas : seul
+// le projectile de la horde en porte.
 func (s *Screen) peindreObjet(ecran *ebiten.Image, nom string, x, y game.Fixed,
-	identite int, voile *color.RGBA) {
+	identite int, voile *color.RGBA) (image.Rectangle, *ebiten.Image) {
 	objet, img := s.objets.image(nom, s.monde.Tick(), identite)
-	s.poserObjet(ecran, objet, img, x, y, voile)
+	i := sprite.Loop(objet.cycle, s.monde.Tick(), identite)
+	return s.poserObjet(ecran, objet, img, x, y, voile), objet.forme(i)
 }
 
 // peindreEtincelle marque un tir qui vient de porter.
@@ -679,19 +811,21 @@ func (s *Screen) peindreEtincelle(ecran *ebiten.Image, x, y game.Fixed, reste ga
 
 // poserObjet blitte une image d'objet au décalage que son manifeste lui donne.
 func (s *Screen) poserObjet(ecran *ebiten.Image, objet prop, img *ebiten.Image,
-	x, y game.Fixed, voile *color.RGBA) {
+	x, y game.Fixed, voile *color.RGBA) image.Rectangle {
 	if img == nil {
-		return
+		return image.Rectangle{}
 	}
 
 	ex, ey := s.cam.ecran(x, y)
+	coinX, coinY := ex+objet.dx, ey+objet.dy
 	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(ex+objet.dx), float64(ey+objet.dy))
+	s.op.GeoM.Translate(float64(coinX), float64(coinY))
 	s.op.ColorScale.Reset()
 	if voile != nil {
 		s.op.ColorScale.ScaleWithColor(*voile)
 	}
 	ecran.DrawImage(img, &s.op)
+	return boiteDe(img, coinX, coinY)
 }
 
 // silhouette pose un aplat blanc dans la teinte donnée, son pied sur le point où

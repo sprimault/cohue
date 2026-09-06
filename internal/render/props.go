@@ -45,6 +45,10 @@ type prop struct {
 	images []*ebiten.Image
 	dx, dy int
 	cycle  game.Cycle
+	// formes sont les mêmes images aplaties en blanc, et seul le projectile de
+	// la horde en a : c'est le second des deux que la conception révèle quand
+	// quelque chose les cache, avec le joueur.
+	formes []*ebiten.Image
 }
 
 // NewStage résout le catalogue d'objets en images posables.
@@ -67,14 +71,19 @@ func NewStage(fsys fs.FS, racine, chemin string) (*Stage, error) {
 			return nil, fmt.Errorf("objets : « %s » n'est pas au catalogue", nom)
 		}
 		images := make([]*ebiten.Image, 0, len(objet.Images))
+		var formes []*ebiten.Image
 		for _, img := range objet.Images {
 			images = append(images, ebiten.NewImageFromImage(img))
+			if nom == objetTirHorde {
+				formes = append(formes, aplatir(img))
+			}
 		}
 		scene.objets[nom] = prop{
 			images: images,
 			dx:     objet.Offset[0],
 			dy:     objet.Offset[1],
 			cycle:  objet.Cycle,
+			formes: formes,
 		}
 	}
 	return scene, nil
@@ -107,6 +116,14 @@ func (s *Stage) effet(nom string, reste game.Tick) (prop, *ebiten.Image) {
 	return s.rendre(nom, func(objet prop) int {
 		return sprite.Once(objet.cycle, reste)
 	})
+}
+
+// forme rend l'aplat d'une image de l'objet, ou nil quand il n'en a pas.
+func (p prop) forme(i int) *ebiten.Image {
+	if i < 0 || i >= len(p.formes) {
+		return nil
+	}
+	return p.formes[i]
 }
 
 // rendre résout un objet et l'image que son cadencement désigne.

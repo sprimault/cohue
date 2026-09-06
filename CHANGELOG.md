@@ -44,6 +44,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Le personnage ne se perd plus.** Un contour clair le détache de la horde, et
+  ce qu'un mur ou une foule recouvre est redessiné par-dessus en silhouette — le
+  joueur et les tirs de la horde seulement, jamais une créature : ce qui se cache
+  derrière un camion reste une inconnue.
+
 - **Les objets s'affichent, et ceux qui se ramassent scintillent.** Gemmes,
   aimant, caisses et projectiles viennent de leurs dessins au lieu d'aplats
   colorés — dessins qui existaient depuis des mois sans que rien ne les montre.
@@ -86,6 +91,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 ***
 
 ### Added
+
+- **The character no longer gets lost.** A light outline lifts him out of the
+  horde, and whatever a wall or a crowd covers is redrawn on top as a
+  silhouette — the player and the horde's shots only, never a creature: what
+  hides behind a truck stays unknown.
 
 - **Objects are drawn, and the ones you pick up twinkle.** Gems, magnet, crates
   and projectiles come from their artwork instead of coloured blocks — artwork

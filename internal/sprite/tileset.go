@@ -37,6 +37,10 @@ type Tile struct {
 	// Covers dit que la forme remplit le losange de sa case, donc qu'il n'y a
 	// rien à peindre dessous.
 	Covers bool
+	// GroundHeight est la hauteur, en pixels d'écran, de la surface qu'on marche
+	// sur une case que cette forme occupe. C'est là que se pose un marquage au
+	// sol — l'emprise d'une explosion.
+	GroundHeight int
 }
 
 // Tileset porte les formes du décor, par nom.
@@ -80,10 +84,11 @@ func LoadTiles(fsys fs.FS, racine string, decor *level.Decor) (*Tileset, error) 
 			continue
 		}
 		jeu.tuiles[nom] = Tile{
-			Image:     img,
-			Offset:    coin(forme, decor.Tile),
-			Elevation: forme.Elevation,
-			Covers:    forme.Covers(),
+			Image:        img,
+			Offset:       coin(forme, decor.Tile),
+			Elevation:    forme.Elevation,
+			Covers:       forme.Covers(),
+			GroundHeight: hauteurSol(forme),
 		}
 	}
 	if len(manques) > 0 {
@@ -153,6 +158,26 @@ func coin(f level.Shape, tuile [2]int) [2]int {
 		int(math.Round(dx)) - f.Anchor[0],
 		int(math.Round(dy)) - 1 - f.Anchor[1],
 	}
+}
+
+// hauteurSol rend la hauteur de la surface qu'on marche sur une case, en pixels
+// d'écran.
+//
+// **L'élévation est exactement cette hauteur quand la forme couvre sa case.** Le
+// générateur la tire de `hauteur_image - hauteur_dessus`, c'est-à-dire de la part
+// de l'image qui est sous la face supérieure, et les ancrages sont au sommet bas
+// du losange : la face supérieure d'un trottoir est donc à six pixels du plan du
+// sol, celle d'un quai à dix. Ce n'est pas une approximation.
+//
+// **Une forme qui ne couvre pas sa case n'en est pas la surface.** Un rail
+// traverse le sol du thème sans le remplacer, une porte ouverte monte à
+// quarante-huit pixels et se franchit à zéro : ce qu'on y marche est le sol peint
+// dessous, et un marquage posé à leur élévation flotterait.
+func hauteurSol(f level.Shape) int {
+	if !f.Covers() {
+		return 0
+	}
+	return f.Elevation
 }
 
 // lire ouvre l'image d'une forme et la confronte à la taille annoncée.

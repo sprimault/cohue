@@ -47,6 +47,10 @@ type forme struct {
 	// catégorie « sol » ont une élévation non nulle et entrent donc dans le
 	// tri : c'est exact, et seulement coûteux.
 	elevee bool
+	// hauteurSol est la hauteur, en pixels d'écran, de la surface qu'on marche
+	// sur cette case — ce sur quoi un marquage au sol se pose. Elle vient du
+	// manifeste par `sprite`, qui porte l'arithmétique et le test.
+	hauteurSol int
 }
 
 // NewTerrain résout la carte cuite d'un lieu en images posables.
@@ -88,11 +92,12 @@ func resoudre(tuiles *sprite.Tileset, nom string) (forme, error) {
 		return forme{}, fmt.Errorf("decor : la forme %q du lieu n'est pas au catalogue", nom)
 	}
 	return forme{
-		image:  ebiten.NewImageFromImage(tuile.Image),
-		dx:     tuile.Offset[0],
-		dy:     tuile.Offset[1],
-		nue:    !tuile.Covers,
-		elevee: tuile.Elevation != 0,
+		image:      ebiten.NewImageFromImage(tuile.Image),
+		dx:         tuile.Offset[0],
+		dy:         tuile.Offset[1],
+		nue:        !tuile.Covers,
+		elevee:     tuile.Elevation != 0,
+		hauteurSol: tuile.GroundHeight,
 	}, nil
 }
 

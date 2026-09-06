@@ -8,6 +8,7 @@
 package sprite
 
 import (
+	"maps"
 	"testing"
 	"testing/fstest"
 
@@ -171,5 +172,73 @@ func TestUnAncrageHorsDeLImageEstRefuse(t *testing.T) {
 
 	if _, err := LoadTiles(fsys, "d", decorDEssai("sol", forme)); err == nil {
 		t.Fatal("ancrage d'une rangée hors de l'image accepté")
+	}
+}
+
+// TestLaHauteurDuSolSuitCeQuOnMarche garde la hauteur où se pose un marquage.
+//
+// Les quatre cas sont ceux du catalogue livré, et ils tiennent en une phrase :
+// une forme qui remplit sa case en est la surface, une forme qui la traverse ne
+// l'est pas. Le rail et la porte ouverte sont les deux contre-exemples, et la
+// porte est le plus parlant — quarante-huit pixels de hauteur pour une case
+// qu'on franchit à plat.
+func TestLaHauteurDuSolSuitCeQuOnMarche(t *testing.T) {
+	cas := []struct {
+		nom       string
+		emprise   [2]float64
+		elevation int
+		attend    int
+	}{
+		{nom: "sol", emprise: [2]float64{1, 1}, elevation: 0, attend: 0},
+		{nom: "trottoir", emprise: [2]float64{1, 1}, elevation: 6, attend: 6},
+		{nom: "quai", emprise: [2]float64{1, 1}, elevation: 10, attend: 10},
+		{nom: "rail", emprise: [2]float64{2, 0.1}, elevation: 4, attend: 0},
+		{nom: "porte_ouverte", emprise: [2]float64{1, 0.2}, elevation: 48, attend: 0},
+	}
+
+	for _, c := range cas {
+		forme := formeDEssai()
+		forme.Footprint = c.emprise
+		forme.Elevation = c.elevation
+		if got := hauteurSol(forme); got != c.attend {
+			t.Errorf("%s : hauteur de sol %d, attendu %d", c.nom, got, c.attend)
+		}
+	}
+}
+
+// TestLeCatalogueLivreNaQueDeuxSolsSurelevees épingle ce que le correctif du
+// télégraphe suppose du décor.
+//
+// Le marquage d'une explosion monte à `GroundHeight`, et cette hauteur ne vaut
+// que pour une forme couvrante. Le jour où le générateur en ajoute une
+// troisième, ou change l'élévation de l'une des deux, c'est ici qu'on l'apprend
+// plutôt que sur une capture d'écran.
+func TestLeCatalogueLivreNaQueDeuxSolsSurelevees(t *testing.T) {
+	decor, err := level.LoadDecor(cohue.Assets, decorLivre)
+	if err != nil {
+		t.Fatal(err)
+	}
+	jeu, err := LoadTiles(cohue.Assets, "assets/decors", decor)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	hauteurs := map[string]int{}
+	for nom, forme := range decor.Shapes {
+		if forme.Category != "sol" {
+			continue
+		}
+		tuile, connue := jeu.Tile(nom)
+		if !connue {
+			t.Fatalf("%s : absente du catalogue chargé", nom)
+		}
+		if tuile.GroundHeight != 0 {
+			hauteurs[nom] = tuile.GroundHeight
+		}
+	}
+
+	attendu := map[string]int{"trottoir": 6, "quai": 10}
+	if !maps.Equal(hauteurs, attendu) {
+		t.Errorf("sols surélevés %v, attendu %v", hauteurs, attendu)
 	}
 }

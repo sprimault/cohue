@@ -197,7 +197,13 @@ PROFILS = {
     "marcheur":  {"nom": "Quidam", "habit": (120, 148, 116), "peau": (128, 168, 116), "carrure": 1.0,
                   # Une foule d'un seul bleu se lit comme un bloc : les variantes
                   # cassent la répétition sans coûter une silhouette de plus.
-                  "variantes": [(120, 148, 116), (92, 116, 140), (146, 122, 96),
+                  #
+                  # **Aucune ne s'approche du bleu du joueur**, que le chapitre 14
+                  # lui réserve. La deuxième était à 210 degrés de teinte pour 213
+                  # au joueur, soit trois degrés : une variante sur six portait sa
+                  # couleur. Le critère est la teinte et non la valeur — c'est par
+                  # elle qu'on reconnaît son propre personnage dans la mêlée.
+                  "variantes": [(120, 148, 116), (112, 104, 96), (146, 122, 96),
                                 (132, 108, 120), (104, 132, 128), (150, 140, 108)],
                   "cycles": {"repos": 1, "marche": 5, "attaque": 3, "degat": 1, "mort": 3}},
     "sprinteur": {"nom": "Molosse", "habit": (112, 88, 72),   "peau": (150, 118, 88),  "carrure": 1.0,
@@ -222,7 +228,15 @@ PROFILS = {
                   "cycles": {"repos": 1, "attaque": 1, "marche": 4, "mort": 2}},
     # Pas de cycle d'attaque : il n'en a pas, et lui en donner un serait la
     # première marche vers un profil de combat.
-    "civil":     {"nom": "Passant", "habit": (176, 160, 142), "peau": (214, 170, 132), "carrure": 0.95,
+    #
+    # **Il est sombre parce que le Secouriste est clair.** Les deux ont la même
+    # silhouette au pixel près — même carrure, mêmes cycles, même gabarit — et
+    # rien d'autre que la valeur ne peut les séparer. Or le Secouriste est le
+    # seul profil qui crée une priorité de cible, et le Passant le seul qu'on ne
+    # doit pas viser : les confondre est la plus coûteuse méprise du catalogue,
+    # et 4,4 de ΔE la laissait passer. L'habit seul plafonnait à 9,1, la peau
+    # étant commune aux deux, d'où les deux teintes.
+    "civil":     {"nom": "Passant", "habit": (112, 100, 84), "peau": (150, 108, 78), "carrure": 0.95,
                   "cycles": {"repos": 1, "marche": 4, "mort": 2}},
 }
 

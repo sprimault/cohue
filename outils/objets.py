@@ -484,13 +484,23 @@ def souffle():
 
     Non bouclée, cinq images. Un dégradé lissé virerait à la tache brune une
     fois quantifié — même écueil que pour le télégraphe de sa mort.
+
+    **L'épaisseur croît avec le rayon**, et c'est une contrainte de tracé et non
+    un choix : un anneau d'épaisseur constante se troue quand son périmètre
+    s'allonge, parce que le nombre de pixels qui le composent ne suit pas. Le
+    dernier — le seul que l'œil lit comme la portée — était continu à 73,9 % sur
+    sept cent vingt directions, et l'aplatissement isométrique le rompait en haut
+    et en bas, c'est-à-dire là où l'on cherche la limite.
+
+    Pas d'alpha dégressif : `prim.reduire` le binarise à 128, si bien qu'un
+    dégradé écrit ici ressortirait plein. Ce qui s'éteint est la teinte.
     """
     images, cote = 5, 48
     planche = Image.new("RGBA", (cote * images, cote), TRANSPARENT)
     centre = cote // 2
     for i in range(images):
         rayon = 4 + i * 4
-        epaisseur = max(1, 3 - i // 2)
+        epaisseur = 3 + i
         teinte = ((255, 226, 150), (250, 190, 96), (232, 148, 60),
                   (188, 104, 48), (128, 72, 44))[i]
         for y in range(cote):
@@ -499,7 +509,7 @@ def souffle():
                 dy = (y - centre) * 2          # l'onde s'étale dans le plan du sol
                 distance = math.hypot(dx, dy)
                 if rayon - epaisseur <= distance <= rayon:
-                    planche.putpixel((i * cote + x, y), teinte + (255 - i * 30,))
+                    planche.putpixel((i * cote + x, y), teinte + (255,))
     return planche
 
 

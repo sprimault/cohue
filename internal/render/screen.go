@@ -115,28 +115,12 @@ var (
 	porteFermee  = color.RGBA{R: 48, G: 132, B: 152, A: 255}
 	porteOuverte = color.RGBA{R: 120, G: 232, B: 248, A: 255}
 
-	// Le joueur en clair et les créatures en sombre : le chapitre de la
-	// lisibilité veut que le personnage reste distinguable à cent ennemis à
-	// l'écran, ce qui se joue d'abord sur la valeur et non sur la teinte.
-	//
-	// **Elle est dans les pixels depuis que les créatures ont leurs bandes**, et
-	// c'est ce que la conception annonçait : la dérogation qui laissait le code
-	// décider d'une apparence s'éteint sans être remplacée par un champ de
-	// manifeste. Ce qui reste ici ne dit plus qui est quoi mais ce qui vient de
-	// se passer.
-	teinteTir = color.RGBA{R: 226, G: 232, B: 238, A: 255}
-	// **Le projectile de la horde porte une teinte qu'aucune autre ne dispute**,
-	// et c'est entre projectiles que la distinction doit être maximale : « est-ce
-	// que ça me fait mal ? » ne se pose que sur eux, si bien que les confondre
-	// coûte plus cher que de confondre un projectile et une créature.
-	//
-	// Le violet plutôt que le cyan pour cette raison : le cyan voisinerait le
-	// blanc bleuté ci-dessus. **L'Arpenteur porte désormais un violet sourd**, et
-	// les deux ne se disputent pas — un projectile est clair et vif, une créature
-	// sombre, ce qui est la même séparation par la valeur que partout ailleurs.
-	// L'arbitrage se rejugera à l'étape 5, entre deux teintes qui seront enfin
-	// celles du jeu.
-	teinteTirHorde = color.RGBA{R: 186, G: 138, B: 232, A: 255}
+	// intact est l'élément neutre de la multiplication qu'Ebitengine applique :
+	// une image posée sous cette échelle sort telle qu'elle est dessinée. C'est
+	// de quoi partir quand on veut retirer de la lumière à un sprite sans avoir
+	// à en connaître les couleurs.
+	intact = color.RGBA{R: 255, G: 255, B: 255, A: 255}
+
 	// L'emprise d'une explosion se pose sur le sol et doit rester lisible sous
 	// les corps qui la traversent : une teinte chaude que ni la horde ni le
 	// joueur ne portent, et translucide **prémultipliée par son alpha** — écrite
@@ -168,24 +152,10 @@ var (
 	teinteSoigneur = color.RGBA{R: 120, G: 226, B: 132, A: 255}
 	teinteSoigne   = color.RGBA{R: 172, G: 178, B: 108, A: 255}
 
-	// Une gemme est minuscule et posée sur un sol gris : elle a besoin d'une
-	// teinte saturée que rien d'autre ne porte, sans quoi un tas au sol
-	// disparaît sous la horde au moment où l'on cherche à l'estimer.
-	teinteGemme = color.RGBA{R: 96, G: 214, B: 168, A: 255}
-	// L'aimant doit se voir de loin, puisque tout son intérêt est qu'on décide
-	// d'aller le chercher. Le cuivre d'une bobine, qui ne dispute sa teinte à
-	// personne — le joueur tient le jaune, la horde le rouge, les gemmes le vert,
-	// les projectiles le blanc.
-	//
-	// C'est la teinte du sprite de `assets/objets/`, recopiée ici le temps que le
-	// rendu lise les images. Deux descriptions de la même couleur, donc, et elles
-	// cesseront de l'être à l'étape 5 : c'est l'aplat qui disparaîtra.
+	// La teinte de l'aimant, qui ne sert plus qu'à la case du bandeau : au sol,
+	// c'est son sprite qu'on voit. Elle survit parce que l'objet n'a pas d'icône
+	// d'interface, et `HUD.emplacement` dit ce qu'il faudrait pour l'éteindre.
 	teinteAimant = color.RGBA{R: 198, G: 126, B: 78, A: 255}
-	// **La caisse est du décor jusqu'à ce qu'on la touche**, et sa teinte le
-	// dit : un bois sourd, moins saturé que l'aimant qu'elle voisine en teinte.
-	// Ce qui doit rester distinct est l'objet qu'on va chercher — l'aimant — de
-	// celui qu'on casse en passant.
-	teinteCaisse = color.RGBA{R: 142, G: 108, B: 72, A: 255}
 )
 
 // Screen est le jeu tel qu'Ebitengine le voit.
@@ -194,23 +164,18 @@ type Screen struct {
 	carte  *game.CostGrid
 	sol    *Terrain
 	troupe *Cast
+	objets *Stage
 	cam    *camera
 
 	scene *scene
 
-	// Les formes blanches que le dessin teinte au blit : la face d'une case, le
-	// point d'un projectile, celui d'une gemme, celui d'un aimant et le pavé
-	// d'une caisse.
+	// face est le losange blanc que le dessin teinte au blit.
 	//
-	// La face n'est plus celle du sol, que le décor dessine : elle ne sert plus
-	// qu'à marquer l'emprise d'une explosion, où un losange à l'échelle exacte
-	// de la case est ce qu'il faut. Et la silhouette d'un personnage n'y est
-	// plus du tout — les créatures ont leurs bandes.
-	face   *ebiten.Image
-	eclat  *ebiten.Image
-	gemme  *ebiten.Image
-	aimant *ebiten.Image
-	caisse *ebiten.Image
+	// **C'est le dernier aplat, et il ne disparaîtra pas** : il marque l'emprise
+	// d'une explosion, et le télégraphe s'y peint en cases pleines parce que le
+	// rendu n'a rien à agrandir — redimensionner une image par une fraction
+	// casserait le pixel entier. Tous les autres ont cédé la place à des sprites.
+	face *ebiten.Image
 	// demiTuile est l'abscisse du sommet dans l'image d'une face, ce que le
 	// manifeste appellera son ancrage quand les images viendront de lui.
 	demiTuile int
@@ -254,30 +219,19 @@ func (s *Screen) WithHUD(h *HUD) *Screen {
 // constante : le chargeur en exige le rapport de deux pour un, et c'est de lui
 // que la projection la tient. La recevoir à part du terrain qui la porte aurait
 // laissé deux appelants la prendre à deux endroits.
-func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Cast) *Screen {
+func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Cast,
+	objets *Stage) *Screen {
 	tuile := sol.TileSize()
 	cam := nouvelleCamera(tuile, carte)
 	s := &Screen{
-		monde:  monde,
-		carte:  carte,
-		sol:    sol,
-		troupe: troupe,
-		cam:    cam,
-		scene:  nouvelleScene(carte, monde, sol, cam),
-		face:   face(tuile),
-		eclat:  aplat(tuile[1]/8, tuile[1]/8),
-		// Deux fois l'éclat : assez pour qu'un tas se compte d'un coup d'œil,
-		// assez peu pour qu'une gemme ne masque pas ce qui la piétine.
-		gemme: aplat(tuile[1]/4, tuile[1]/4),
-		// Deux fois la gemme : il ne s'agit pas d'estimer un tas mais de
-		// repérer un objet unique à l'autre bout de la salle, et c'est la
-		// taille qui porte ça avant la teinte.
-		aimant: aplat(tuile[1]/2, tuile[1]/2),
-		// Plus large que haute, à l'inverse d'une créature : ce qui doit se lire
-		// est un objet posé au sol qu'on va casser, pas quelqu'un qu'on
-		// affronte. La confusion coûterait un détour ou une salve, et elle
-		// tient tant que la caisse est un aplat au milieu de sprites.
-		caisse:    aplat(tuile[0]/3, tuile[1]/2),
+		monde:     monde,
+		carte:     carte,
+		sol:       sol,
+		troupe:    troupe,
+		objets:    objets,
+		cam:       cam,
+		scene:     nouvelleScene(carte, monde, sol, cam),
+		face:      face(tuile),
 		demiTuile: tuile[0] / 2,
 	}
 	s.cam.suivre(monde.Player())
@@ -519,16 +473,19 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 			c := s.monde.Enemies().At(e.place)
 			f := s.troupe.ennemis[c.Profile]
 			s.peindreCreature(ecran, f, f.poseEnnemi(c, s.regardDe(c)), c.X, c.Y, e.identite, etatDe(c))
+			if c.Flash > 0 {
+				s.peindreEtincelle(ecran, c.X, c.Y, c.Flash)
+			}
 		case sorteAmbiance:
 			a := s.monde.Ambients().At(e.place)
 			f := s.troupe.ambiants[a.Profile]
 			s.peindreCreature(ecran, f, f.posePersonnage(a.Step, a.Step, 0), a.X, a.Y, e.identite, nil)
 		case sorteTir:
 			p := s.monde.Shots().At(e.place)
-			s.silhouette(ecran, s.eclat, p.X, p.Y, teinteTir)
+			s.peindreObjet(ecran, objetTir, p.X, p.Y, e.identite, nil)
 		case sorteTirHorde:
 			p := s.monde.EnemyShots().At(e.place)
-			s.silhouette(ecran, s.eclat, p.X, p.Y, teinteTirHorde)
+			s.peindreObjet(ecran, objetTirHorde, p.X, p.Y, e.identite, nil)
 		case sorteGemme:
 			g := s.monde.Gems().At(e.place)
 			// **Une gemme attirée reprend sa teinte pleine.** L'extinction dit
@@ -537,17 +494,22 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 			// information fausse. Accessoirement, une ruée de gemmes anciennes
 			// serait un feu d'artifice en gris — l'inverse de ce que la
 			// conception appelle le moment de plaisir maximal du genre.
-			teinte := teinteGemme
+			//
+			// **Sur un dessin, l'extinction multiplie**, et c'est ici le bon
+			// sens : ce qu'elle dit est que la gemme s'efface, donc qu'elle perd
+			// de sa lumière. C'est l'inverse d'un éclair d'état, qui ajoute.
+			var voile *color.RGBA
 			if !g.Pulled {
-				teinte = eteindre(teinte, s.monde.GemAge(g), s.monde.GemLife())
+				eteinte := eteindre(intact, s.monde.GemAge(g), s.monde.GemLife())
+				voile = &eteinte
 			}
-			s.silhouette(ecran, s.gemme, g.X, g.Y, teinte)
+			s.peindreObjet(ecran, objetGemme, g.X, g.Y, e.identite, voile)
 		case sorteAimant:
 			a := s.monde.Magnets().At(e.place)
-			s.silhouette(ecran, s.aimant, a.X, a.Y, teinteAimant)
+			s.peindreObjet(ecran, objetAimant, a.X, a.Y, e.identite, nil)
 		case sorteCaisse:
 			c := s.monde.Crates().At(e.place)
-			s.silhouette(ecran, s.caisse, c.X, c.Y, teinteCaisse)
+			s.peindreObjet(ecran, objetCaisse, c.X, c.Y, e.identite, nil)
 		case sorteJoueur:
 			x, y := s.monde.Player()
 			f := s.troupe.joueur
@@ -684,6 +646,52 @@ func etatDe(e *game.Enemy) *color.RGBA {
 		return &teinteAnnonce
 	}
 	return nil
+}
+
+// peindreObjet pose un objet du catalogue, son ancrage sur le point où le monde
+// le situe.
+//
+// Le voile multiplie l'image quand il est donné : c'est ce que veut une
+// extinction, qui retire de la lumière, et l'inverse de l'éclair d'un état, qui
+// en ajoute.
+func (s *Screen) peindreObjet(ecran *ebiten.Image, nom string, x, y game.Fixed,
+	identite int, voile *color.RGBA) {
+	objet, img := s.objets.image(nom, s.monde.Tick(), identite)
+	s.poserObjet(ecran, objet, img, x, y, voile)
+}
+
+// peindreEtincelle marque un tir qui vient de porter.
+//
+// **Elle dit que le coup est parti et qu'il a touché**, là où l'éclair de la
+// créature dit laquelle a été touchée : deux retours pour un même événement,
+// mais qui n'apprennent pas la même chose — c'est le partage qui vaut déjà pour
+// le soigneur et la soignée. Sur une créature collée au joueur, l'éclair passe
+// sous le personnage et l'étincelle non, ce qui la rend d'autant plus utile là
+// où la conception dit que le retour manque le plus.
+//
+// Une méthode pour un seul effet, et non une machinerie pour la famille : le
+// souffle d'une déflagration est le second, il vient avec son bassin, et c'est
+// alors qu'on saura ce que les deux partagent.
+func (s *Screen) peindreEtincelle(ecran *ebiten.Image, x, y game.Fixed, reste game.Tick) {
+	objet, img := s.objets.effet(objetEtincelle, reste)
+	s.poserObjet(ecran, objet, img, x, y, nil)
+}
+
+// poserObjet blitte une image d'objet au décalage que son manifeste lui donne.
+func (s *Screen) poserObjet(ecran *ebiten.Image, objet prop, img *ebiten.Image,
+	x, y game.Fixed, voile *color.RGBA) {
+	if img == nil {
+		return
+	}
+
+	ex, ey := s.cam.ecran(x, y)
+	s.op.GeoM.Reset()
+	s.op.GeoM.Translate(float64(ex+objet.dx), float64(ey+objet.dy))
+	s.op.ColorScale.Reset()
+	if voile != nil {
+		s.op.ColorScale.ScaleWithColor(*voile)
+	}
+	ecran.DrawImage(img, &s.op)
 }
 
 // silhouette pose un aplat blanc dans la teinte donnée, son pied sur le point où

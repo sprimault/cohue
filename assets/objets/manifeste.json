@@ -90,6 +90,7 @@
       "famille_sons": "gemme",
       "scintillement": {
         "images": 4,
+        "amplitude": 2,
         "duree_ms": 140,
         "boucle": true
       }
@@ -354,6 +355,7 @@
       "son": "soin",
       "scintillement": {
         "images": 4,
+        "amplitude": 2,
         "duree_ms": 140,
         "boucle": true
       }
@@ -379,44 +381,60 @@
       "son": "aimant",
       "scintillement": {
         "images": 4,
+        "amplitude": 2,
         "duree_ms": 140,
         "boucle": true
       }
     },
     "eclats_bois": {
+      "$comment": "trajectoire calculée par le moteur",
       "formes": 3,
-      "cote": 8,
+      "cote": [
+        8,
+        8
+      ],
       "famille": "particule",
-      "bloquant": false,
-      "note": "trajectoire calculée par le moteur"
+      "bloquant": false
     },
     "eclats_verre": {
+      "$comment": "trajectoire calculée par le moteur",
       "formes": 3,
-      "cote": 8,
+      "cote": [
+        8,
+        8
+      ],
       "famille": "particule",
-      "bloquant": false,
-      "note": "trajectoire calculée par le moteur"
+      "bloquant": false
     },
     "eclats_platre": {
+      "$comment": "trajectoire calculée par le moteur",
       "formes": 3,
-      "cote": 8,
+      "cote": [
+        8,
+        8
+      ],
       "famille": "particule",
-      "bloquant": false,
-      "note": "trajectoire calculée par le moteur"
+      "bloquant": false
     },
     "eclats_metal": {
+      "$comment": "trajectoire calculée par le moteur",
       "formes": 3,
-      "cote": 8,
+      "cote": [
+        8,
+        8
+      ],
       "famille": "particule",
-      "bloquant": false,
-      "note": "trajectoire calculée par le moteur"
+      "bloquant": false
     },
     "eclats_chair": {
+      "$comment": "trajectoire calculée par le moteur",
       "formes": 3,
-      "cote": 8,
+      "cote": [
+        8,
+        8
+      ],
       "famille": "particule",
-      "bloquant": false,
-      "note": "trajectoire calculée par le moteur"
+      "bloquant": false
     },
     "etincelle": {
       "images": 3,
@@ -448,7 +466,7 @@
       ],
       "duree_ms": 110,
       "boucle": true,
-      "famille": "monde",
+      "famille": "cycle",
       "bloquant": false
     },
     "caisse_rupture": {
@@ -459,7 +477,7 @@
       ],
       "duree_ms": 90,
       "boucle": false,
-      "famille": "monde",
+      "famille": "cycle",
       "bloquant": false
     },
     "fusil": {

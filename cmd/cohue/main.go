@@ -73,6 +73,7 @@ type boucle struct {
 	// fois : ni l'un ni l'autre ne dépend de la partie, que la relance remplace.
 	sol    *render.Terrain
 	troupe *render.Cast
+	objets *render.Stage
 }
 
 // Update avance la partie, ou en monte une neuve si le joueur relance.
@@ -97,7 +98,8 @@ func (b *boucle) Layout(largeur, hauteur int) (int, int) { return b.ecran.Layout
 // réutiliser laisserait la caméra là où la partie précédente s'est terminée, et
 // la relance montrerait un premier instant décadré.
 func (b *boucle) monter() {
-	b.ecran = render.NewScreen(b.partie.World, b.partie.Grid, b.sol, b.troupe).WithHUD(b.hud)
+	b.ecran = render.NewScreen(b.partie.World, b.partie.Grid, b.sol, b.troupe, b.objets).
+		WithHUD(b.hud)
 }
 
 // run monte le jeu et le fait tourner jusqu'à ce que le joueur quitte.
@@ -123,7 +125,12 @@ func run() error {
 		return err
 	}
 
-	jeu := &boucle{partie: partie, hud: hud, sol: sol, troupe: troupe}
+	objets, err := render.NewStage(cohue.Assets, cohue.ObjectDir, cohue.ObjectManifest)
+	if err != nil {
+		return err
+	}
+
+	jeu := &boucle{partie: partie, hud: hud, sol: sol, troupe: troupe, objets: objets}
 	jeu.monter()
 
 	icones, err := ui.LoadIcons(cohue.Assets, cohue.InterfaceManifest)

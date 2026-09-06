@@ -163,11 +163,17 @@ func (h *HUD) emplacement(dst *ebiten.Image, x, y int, chargee bool) {
 		return
 	}
 
-	// Un aplat centré tient lieu d'icône, dans **la teinte de l'objet au sol** et
-	// non dans une couleur du thème : sans elle, rien ne dirait que la case et ce
-	// qu'on vient de ramasser sont la même chose. C'est la seule chose que le
-	// bandeau emprunte au monde plutôt qu'au manifeste d'interface, et ça cessera
-	// quand l'icône de l'aimant existera.
+	// Un aplat centré tient lieu d'icône, dans la teinte de l'objet au sol : sans
+	// elle, rien ne dirait que la case et ce qu'on vient de ramasser sont la même
+	// chose.
+	//
+	// **Il devait tomber avec les sprites, et il reste — parce que l'aimant n'a
+	// pas d'icône.** Le sprite du monde ne peut pas en tenir lieu : une icône
+	// d'emplacement se dessine de face, quand celui-là est en isométrie et porte
+	// son ombre au sol. Ce qui manque est donc un dessin, `aimant_icone` de vingt
+	// pixels comme ceux des armes, et il vient du générateur. Jusque-là cette
+	// teinte est une seconde description de la couleur du sprite, tenue à la
+	// main, et c'est ce que la ligne suivante coûte.
 	bord := (cote - contenuEmplacement) / 2
 	h.Rect(dst, x+bord, y+bord, contenuEmplacement, contenuEmplacement, teinteAimant)
 }

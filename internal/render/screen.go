@@ -501,8 +501,16 @@ func (s *Screen) poser(ecran *ebiten.Image, x, y int, f forme) {
 // se dessine pas, et la caméra ne peut pas montrer une case sans que l'image où
 // elle entre l'ait effacée d'abord.
 func (s *Screen) releverEmprises() {
-	largeur := s.sol.carte.Width()
+	largeur, hauteur := s.sol.carte.Width(), s.sol.carte.Height()
+
+	// **La fenêtre visible déborde de la carte, et c'est voulu** : elle est
+	// l'englobant d'un losange, plus une case de marge. Ses bornes se ramènent
+	// donc à la carte avant de servir d'indices — les autres consommateurs le
+	// font par `formeDe`, qui refuse une case hors carte ; ici l'indice est
+	// calculé, et un `u0` négatif ouvrait une tranche à début négatif.
 	u0, v0, u1, v1 := s.cam.casesVisibles()
+	u0, u1 = max(u0, 0), min(u1, largeur-1)
+	v0, v1 = max(v0, 0), min(v1, hauteur-1)
 	for v := v0; v <= v1; v++ {
 		clear(s.emprises[v*largeur+u0 : v*largeur+u1+1])
 	}

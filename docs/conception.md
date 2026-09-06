@@ -539,7 +539,13 @@ L'intérêt de jeu est le prix : casser un rideau de fer coûte des secondes pen
 
 Un objet qui se détruit projette des **éclats de sa matière** : bois, verre, plâtre, métal, chair. Une explosion générique serait une erreur — c'est la matière qui dit au joueur ce qu'il vient d'ouvrir, et une vitrine qui se casse en poussière de plâtre ne se lit pas.
 
-Ce ne sont pas des animations mais des **particules** : trois formes par matière, minuscules, que le moteur émet en nombre et déplace sur une parabole avec sa propre rotation et sa propre durée. Le principe est celui déjà retenu pour l'objet qui jaillit d'une caisse — la trajectoire appartient au moteur, le générateur ne fournit que les formes.
+Ce ne sont pas des animations mais des **particules** : trois formes par matière, minuscules, envoyées sur une parabole. Le principe est celui déjà retenu pour l'objet qui jaillit d'une caisse — la trajectoire appartient au moteur, le générateur ne fournit que les formes.
+
+**Ce que la simulation retient d'une volée est un point et un décompte.** Ce document annonçait une particule par éclat, chacune avec sa rotation et sa durée ; ce serait huit entités là où une caisse cède, et huit champs de trajectoire à faire vivre dans une boucle dont le budget d'allocation est un invariant. La direction d'un éclat, sa distance et sa hauteur se dérivent en revanche de son rang dans la volée et de l'âge commun — exactement comme l'image d'un cycle se dérive du tick.
+
+Deux conséquences assumées. Les éclats d'une même volée **retombent ensemble**, là où des durées propres les auraient échelonnés : à un tiers de seconde et huit fragments de huit pixels, l'œil ne fait pas la différence. Et **aucun ne tourne sur lui-même** : la rotation demanderait de dessiner chaque forme sous plusieurs angles ou de la faire pivoter au rendu, ce qui casse le pixel entier. Ce que les trois formes par matière apportent tient déjà lieu de variété.
+
+**Le bassin est le premier entièrement cosmétique**, celui que le chapitre 15 décrit pour les cadavres : il n'entre dans aucune empreinte, ne consomme aucun tirage, et une run simulée sans rendu peut ne pas l'alimenter. Ce qu'il enregistre est un fait de jeu — une caisse a cédé ici, une déflagration est partie là —, jamais une matière : celle-ci se lit dans le manifeste des objets, que le rendu est seul à ouvrir.
 
 Deux effets font exception et sont bien des animations, parce qu'ils ont une géométrie propre. L'**étincelle** d'impact, trois images très courtes, qui ne dit pas ce qui a été touché mais que le tir a porté : c'est le retour qui manque le plus quand on tire sans le voir. Et le **souffle** de la Baudruche, cinq images d'anneaux qui s'élargissent et s'étalent dans le plan du sol — francs, jamais dégradés, un fondu lissé virerait à la tache brune une fois quantifié.
 

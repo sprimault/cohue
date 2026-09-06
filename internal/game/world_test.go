@@ -104,6 +104,7 @@ const graineDeTest uint64 = 1
 // d'ici, pour la raison qui vaut déjà pour la graine.
 var capacitesDeTest = Capacities{
 	Enemies: 16, Shots: 64, EnemyShots: 16, Blasts: 8, Ambients: 16, Gems: 32,
+	Fx: 8,
 }
 
 // indexDuProfil rend la place d'un profil dans la table, ou arrête le test.

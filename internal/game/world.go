@@ -89,6 +89,10 @@ type World struct {
 	// qu'elles laissent : elles ne s'attirent pas, ne s'éteignent pas, et ne se
 	// ramassent pas — elles se cassent.
 	caisses *Pool[Crate]
+	// effets porte ce qui reste à l'écran d'une chose qui n'existe plus : les
+	// éclats d'une caisse, l'onde d'une déflagration. Entièrement cosmétique,
+	// donc hors de l'empreinte — et le seul bassin dont rien ne dépend.
+	effets *Pool[Fx]
 	// aimants tient au plus un objet, la règle du lot étant qu'un seul soit au
 	// sol à la fois. Un bassin quand même : le rendu parcourt les bassins, et une
 	// entité rangée autrement y serait un cas particulier.
@@ -223,6 +227,9 @@ type Capacities struct {
 	Gems int
 	// Crates est le nombre de caisses qu'un lieu peut porter.
 	Crates int
+	// Fx est le nombre d'effets brefs qui vivent à la fois. Le seul bassin
+	// entièrement cosmétique de la partie.
+	Fx int
 }
 
 // NewWorld monte une partie sur une carte et les tables du manifeste.
@@ -258,6 +265,7 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scena
 		ambiants:    NewPool[Ambient](capacites.Ambients),
 		gemmes:      NewPool[Gem](capacites.Gems),
 		caisses:     NewPool[Crate](capacites.Crates),
+		effets:      NewPool[Fx](capacites.Fx),
 		aimants:     NewPool[Magnet](1),
 		hasard:      NewStreams(graine),
 		cartes:      make([]Card, 0, Choices),
@@ -406,6 +414,9 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 // d'une charge —, et elle est aussi sûre que les deux autres tant que le joueur
 // a bougé avant.
 func (w *World) Step(voulu Vec) {
+	// Les effets d'abord, avant tout ce qui peut en poser : un éclat émis ce
+	// tick-ci doit se montrer entier, pas déjà vieux d'un pas.
+	w.vieillirEffets()
 	w.deplacerJoueur(voulu)
 	w.apparaitre()
 

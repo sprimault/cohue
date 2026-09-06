@@ -29,6 +29,14 @@ const (
 	objetTir       = "projectile_base"
 	objetTirHorde  = "projectile_ennemi"
 	objetEtincelle = "etincelle"
+	objetSouffle   = "souffle"
+	// La matière d'une caisse. **C'est le rendu qui la sait**, parce que c'est
+	// lui qui lit le manifeste où elle est déclarée : la simulation dit qu'une
+	// caisse a cédé, ce qui est un fait de jeu, et s'arrête là.
+	objetEclatsCaisse = "eclats_bois"
+	// La matière d'une déflagration : rien ne vole d'une Baudruche qui explose,
+	// l'onde suffit. Le jour où elle laissera des éclats de chair, c'est ici que
+	// leur nom s'écrira.
 )
 
 // Stage porte les objets d'une partie, convertis une fois.
@@ -64,7 +72,8 @@ func NewStage(fsys fs.FS, racine, chemin string) (*Stage, error) {
 
 	scene := &Stage{objets: map[string]prop{}}
 	for _, nom := range []string{
-		objetGemme, objetAimant, objetCaisse, objetTir, objetTirHorde, objetEtincelle,
+		objetGemme, objetAimant, objetCaisse, objetTir, objetTirHorde,
+		objetEtincelle, objetSouffle, objetEclatsCaisse,
 	} {
 		objet, connu := catalogue.Prop(nom)
 		if !connu {

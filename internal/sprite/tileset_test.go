@@ -242,3 +242,50 @@ func TestLeCatalogueLivreNaQueDeuxSolsSurelevees(t *testing.T) {
 		t.Errorf("sols surélevés %v, attendu %v", hauteurs, attendu)
 	}
 }
+
+// TestSeulesLesFormesHautesCachentUnPersonnage épingle ce qui déclenche une
+// silhouette.
+//
+// **Le seuil est celui du générateur, vingt-quatre pixels**, et il vaut d'être
+// gardé ici parce qu'il est la frontière entre un décor de bordure et un
+// obstacle à contourner. Un trottoir de six pixels recouvre la case d'à côté
+// sans cacher qui que ce soit ; le révéler faisait clignoter le personnage en
+// blanc à chaque bordure.
+func TestSeulesLesFormesHautesCachentUnPersonnage(t *testing.T) {
+	decor, err := level.LoadDecor(cohue.Assets, decorLivre)
+	if err != nil {
+		t.Fatal(err)
+	}
+	jeu, err := LoadTiles(cohue.Assets, "assets/decors", decor)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	plafond, plancher := 0, 1<<30
+	for nom, forme := range decor.Shapes {
+		tuile, connue := jeu.Tile(nom)
+		if !connue {
+			t.Fatalf("%s : absente du catalogue chargé", nom)
+		}
+		if tuile.Masking != forme.Masking {
+			t.Errorf("%s : masquant %v au catalogue, %v au manifeste",
+				nom, tuile.Masking, forme.Masking)
+		}
+		if tuile.Masking {
+			plancher = min(plancher, forme.Elevation)
+		} else {
+			plafond = max(plafond, forme.Elevation)
+		}
+	}
+
+	t.Logf("la plus haute forme non masquante : %d px ; la plus basse masquante : %d px",
+		plafond, plancher)
+	if plafond >= plancher {
+		t.Errorf("une forme de %d px ne cache pas quand une de %d px cache : le seuil "+
+			"n'en est plus un", plafond, plancher)
+	}
+	if plancher > 24+1 {
+		t.Errorf("la plus basse forme masquante est à %d px, le générateur annonce 24",
+			plancher)
+	}
+}

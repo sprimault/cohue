@@ -35,6 +35,17 @@ func aplatir(src image.Image) *ebiten.Image {
 type trace struct {
 	x, y   int
 	masque *sprite.Mask
+	// cache dit que ce dessin peut dissimuler un personnage, donc qu'il déclenche
+	// une silhouette. Il vient du manifeste pour le décor et les objets, et vaut
+	// toujours pour une créature.
+	//
+	// **Un trottoir ne cache personne, et pourtant il recouvre.** Son image
+	// dépasse de six pixels vers le haut et mord sur les pieds de qui se tient
+	// une case derrière : le recouvrement est réel, mais le personnage reste
+	// entièrement visible. Le révéler le faisait clignoter en blanc à chaque
+	// bordure de trottoir, ce qui est exactement l'inverse de ce que la
+	// silhouette existe pour donner.
+	cache bool
 	// forme est l'aplat blanc, non nul pour les deux seules sortes que la
 	// conception révèle : le joueur et le projectile de la horde.
 	forme *ebiten.Image
@@ -67,8 +78,12 @@ type revele struct {
 //
 // **Les deux côtés doivent porter un masque.** Serrer la boîte du seul révélé
 // laisse celle de ce qui recouvre, et le faux déclenchement revient par là.
+//
+// **Et recouvrir ne suffit pas : il faut cacher.** Le manifeste distingue les
+// deux — une forme sous vingt-quatre pixels d'élévation est un décor de bordure,
+// et son image mord sur la case d'à côté sans jamais dissimuler quiconque.
 func (r revele) recouvertPar(t trace) bool {
-	return r.masque.Overlaps(r.x, r.y, t.masque, t.x, t.y)
+	return t.cache && r.masque.Overlaps(r.x, r.y, t.masque, t.x, t.y)
 }
 
 // Les huit décalages d'un contour d'un pixel.

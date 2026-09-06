@@ -54,8 +54,11 @@ type prop struct {
 	// masques sont les formes des mêmes images, un bit par pixel, et tous les
 	// objets en ont : une gemme ne se révèle pas, mais elle recouvre.
 	masques []*sprite.Mask
-	dx, dy  int
-	cycle   game.Cycle
+	// cache dit que l'objet dépasse la hauteur d'un personnage. Une vitrine et un
+	// rideau de fer le déclarent au manifeste, une caisse de seize pixels non.
+	cache  bool
+	dx, dy int
+	cycle  game.Cycle
 	// formes sont les mêmes images aplaties en blanc, et seul le projectile de
 	// la horde en a : c'est le second des deux que la conception révèle quand
 	// quelque chose les cache, avec le joueur.
@@ -95,6 +98,7 @@ func NewStage(fsys fs.FS, racine, chemin string) (*Stage, error) {
 		scene.objets[nom] = prop{
 			images:  images,
 			masques: masques,
+			cache:   objet.Masking,
 			dx:      objet.Offset[0],
 			dy:      objet.Offset[1],
 			cycle:   objet.Cycle,

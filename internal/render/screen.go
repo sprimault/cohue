@@ -467,7 +467,7 @@ func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme) trace {
 	if !f.nue {
 		s.marquerEmprise(ecran, u, v, f)
 	}
-	return trace{x: x + f.dx, y: y + f.dy, masque: f.masque}
+	return trace{x: x + f.dx, y: y + f.dy, masque: f.masque, cache: f.cache}
 }
 
 // poser pose une forme sans la teinter, au coin que son ancrage lui donne.
@@ -781,7 +781,10 @@ func (s *Screen) peindreCreature(ecran *ebiten.Image, f *figure, a anim,
 	if eclat != nil {
 		s.eclairer(ecran, img, *eclat)
 	}
-	return trace{x: coinX, y: coinY, masque: f.masque(p), forme: forme}
+	// **Une créature cache toujours, sans que le manifeste ait à le dire.** Elle
+	// fait la taille d'un personnage par définition, et le chapitre 2 nomme
+	// précisément ce cas : « ce qu'un mur ou une foule recouvre ».
+	return trace{x: coinX, y: coinY, masque: f.masque(p), cache: true, forme: forme}
 }
 
 // intensiteEclair est la part de sa teinte qu'un éclair d'état ajoute au sprite.
@@ -850,7 +853,7 @@ func (s *Screen) peindreObjet(ecran *ebiten.Image, nom string, x, y game.Fixed,
 	objet, img := s.objets.image(nom, s.monde.Tick(), identite)
 	i := sprite.Loop(objet.cycle, s.monde.Tick(), identite)
 	t := s.poserObjet(ecran, objet, img, x, y, voile)
-	t.masque, t.forme = objet.masque(i), objet.forme(i)
+	t.masque, t.forme, t.cache = objet.masque(i), objet.forme(i), objet.cache
 	return t
 }
 

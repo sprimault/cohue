@@ -148,6 +148,10 @@ type Prop struct {
 	Offset [2]int
 	// Cycle est la cadence de la bande, nulle pour une image unique.
 	Cycle game.Cycle
+	// Masking dit que l'objet dépasse la hauteur d'un personnage, donc qu'il
+	// peut en cacher un. Une vitrine et un rideau de fer le déclarent, une
+	// caisse de seize pixels non.
+	Masking bool
 }
 
 // Props porte les objets du catalogue, par nom.
@@ -216,8 +220,9 @@ func (p *Props) charger(fsys fs.FS, racine, nom string, objet Item) error {
 			return err
 		}
 		p.objets[nom] = Prop{
-			Images: []image.Image{img},
-			Offset: [2]int{-objet.Anchor[0], -objet.Anchor[1]},
+			Images:  []image.Image{img},
+			Offset:  [2]int{-objet.Anchor[0], -objet.Anchor[1]},
+			Masking: objet.Masking,
 		}
 		if objet.Twinkle != nil {
 			return p.chargerScintillement(fsys, racine, nom, objet)
@@ -268,9 +273,10 @@ func (p *Props) chargerScintillement(fsys fs.FS, racine, nom string, objet Item)
 	}
 	duree, _ := game.TicksFromMs(s.Duration)
 	p.objets[nom] = Prop{
-		Images: images,
-		Offset: [2]int{-objet.Anchor[0], -(objet.Anchor[1] + s.Amplitude)},
-		Cycle:  game.Cycle{Frames: s.Frames, Duration: duree, Loop: s.Loop},
+		Images:  images,
+		Offset:  [2]int{-objet.Anchor[0], -(objet.Anchor[1] + s.Amplitude)},
+		Cycle:   game.Cycle{Frames: s.Frames, Duration: duree, Loop: s.Loop},
+		Masking: objet.Masking,
 	}
 	return nil
 }

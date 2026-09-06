@@ -41,6 +41,10 @@ type Tile struct {
 	// sur une case que cette forme occupe. C'est là que se pose un marquage au
 	// sol — l'emprise d'une explosion.
 	GroundHeight int
+	// Masking dit que la forme dépasse la hauteur d'un personnage, donc qu'elle
+	// peut en cacher un. Le générateur la déclare au-delà de vingt-quatre pixels
+	// d'élévation, en dessous desquels un obstacle est un décor de bordure.
+	Masking bool
 }
 
 // Tileset porte les formes du décor, par nom.
@@ -89,6 +93,7 @@ func LoadTiles(fsys fs.FS, racine string, decor *level.Decor) (*Tileset, error) 
 			Elevation:    forme.Elevation,
 			Covers:       forme.Covers(),
 			GroundHeight: hauteurSol(forme),
+			Masking:      forme.Masking,
 		}
 	}
 	if len(manques) > 0 {

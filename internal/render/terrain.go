@@ -51,9 +51,18 @@ type forme struct {
 	// sur cette case — ce sur quoi un marquage au sol se pose. Elle vient du
 	// manifeste par `sprite`, qui porte l'arithmétique et le test.
 	hauteurSol int
-	// masque est la forme de l'image, ce qui décide si elle cache un personnage.
-	// Un mur remplit sa boîte, un pilier n'en occupe qu'une bande étroite.
+	// masque est la forme de l'image, ce qui décide si elle recouvre un
+	// personnage. Un mur remplit sa boîte, un pilier n'en occupe qu'une bande
+	// étroite.
 	masque *sprite.Mask
+	// cache dit que la forme dépasse la hauteur d'un personnage, donc qu'elle en
+	// dissimule un au lieu de simplement empiéter sur sa case.
+	//
+	// **Le manifeste le déclare et le rendu en décide**, ce que sa godoc annonce
+	// depuis l'étape 5 sans que rien ne le lise : le champ constate qu'une forme
+	// peut cacher, la silhouette est la réponse qu'on y apporte. Vingt-sept
+	// formes le portent, aucune sous vingt-cinq pixels d'élévation.
+	cache bool
 }
 
 // NewTerrain résout la carte cuite d'un lieu en images posables.
@@ -102,6 +111,7 @@ func resoudre(tuiles *sprite.Tileset, nom string) (forme, error) {
 		elevee:     tuile.Elevation != 0,
 		hauteurSol: tuile.GroundHeight,
 		masque:     sprite.NewMask(tuile.Image),
+		cache:      tuile.Masking,
 	}, nil
 }
 

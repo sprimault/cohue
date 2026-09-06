@@ -25,6 +25,21 @@ func aplatir(src image.Image) *ebiten.Image {
 	return ebiten.NewImageFromImage(sprite.Flatten(src))
 }
 
+// trace est ce qu'un dessin laisse à la séquence : le coin où il s'est posé, sa
+// forme, et son aplat quand il est de ceux qu'on révèle.
+//
+// Elle remplace la boîte que les fonctions de dessin rendaient. Une boîte
+// suffisait tant que le recouvrement se jugeait dessus ; du jour où il se juge
+// au pixel, ce qu'il faut transporter est la forme, et la porter à côté de la
+// boîte aurait laissé deux descriptions du même dessin.
+type trace struct {
+	x, y   int
+	masque *sprite.Mask
+	// forme est l'aplat blanc, non nul pour les deux seules sortes que la
+	// conception révèle : le joueur et le projectile de la horde.
+	forme *ebiten.Image
+}
+
 // revele est une chose posée qu'on redessinera si quelque chose la recouvre.
 //
 // Elle porte l'aplat et son coin plutôt que l'entité d'où elle vient : au moment
@@ -33,15 +48,27 @@ func aplatir(src image.Image) *ebiten.Image {
 // nombres, pas une référence.
 type revele struct {
 	forme  *ebiten.Image
+	masque *sprite.Mask
 	x, y   int
 	teinte color.RGBA
-	masque bool
+	// couvert dit qu'au moins un pixel de la forme a disparu sous ce qui a été
+	// posé après elle. C'est la condition, et la seule, pour la redessiner.
+	couvert bool
 }
 
-// boite rend l'étendue à l'écran de ce qui sera révélé.
-func (r revele) boite() image.Rectangle {
-	taille := r.forme.Bounds().Size()
-	return image.Rect(r.x, r.y, r.x+taille.X, r.y+taille.Y)
+// recouvertPar dit si un dessin posé après celui-ci en cache un pixel.
+//
+// **La boîte ne suffit pas, et c'est tout le sujet.** Une bande de personnage
+// fait soixante-quatre pixels de côté quand le joueur en occupe dix-neuf sur
+// quarante-cinq : quatre croisements de boîtes sur cinq ne touchent aucun pixel
+// de lui. Le test portait sur les boîtes, si bien qu'à cent ennemis le
+// personnage était remplacé par son aplat blanc quatre images sur cinq — ce qui
+// lui retirait l'orientation que sa bande venait de lui donner.
+//
+// **Les deux côtés doivent porter un masque.** Serrer la boîte du seul révélé
+// laisse celle de ce qui recouvre, et le faux déclenchement revient par là.
+func (r revele) recouvertPar(t trace) bool {
+	return r.masque.Overlaps(r.x, r.y, t.masque, t.x, t.y)
 }
 
 // Les huit décalages d'un contour d'un pixel.

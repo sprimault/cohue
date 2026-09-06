@@ -49,6 +49,13 @@ type figure struct {
 	directions []string
 	cycles     map[string]game.Cycle
 	images     map[pose]*ebiten.Image
+	// masques sont les formes des mêmes images, un bit par pixel.
+	//
+	// **Toutes les figures en ont, là où seul le joueur a des aplats.** Un aplat
+	// se pose et coûte une texture ; un masque se lit et coûte cinq cents octets.
+	// Et ce qu'on teste n'est pas seulement le personnage révélé mais tout ce qui
+	// le recouvre — c'est-à-dire la horde entière.
+	masques map[pose]*sprite.Mask
 	// formes sont les mêmes images aplaties en blanc, et seul le joueur en a.
 	//
 	// **Elles servent son contour et sa silhouette, et à personne d'autre** : la
@@ -118,6 +125,7 @@ func charger(fsys fs.FS, racine string, f game.Figure, aplati bool) (*figure, er
 		directions: f.Directions,
 		cycles:     f.Cycles,
 		images:     map[pose]*ebiten.Image{},
+		masques:    map[pose]*sprite.Mask{},
 	}
 	if aplati {
 		dessin.formes = map[pose]*ebiten.Image{}
@@ -132,6 +140,7 @@ func charger(fsys fs.FS, racine string, f game.Figure, aplati bool) (*figure, er
 					}
 					p := pose{nom, direction, variante, image}
 					dessin.images[p] = ebiten.NewImageFromImage(img)
+					dessin.masques[p] = sprite.NewMask(img)
 					if aplati {
 						dessin.formes[p] = aplatir(img)
 					}
@@ -147,6 +156,9 @@ func (f *figure) image(p pose) *ebiten.Image { return f.images[p] }
 
 // forme rend la même pose aplatie en blanc, ou nil quand la figure n'en a pas.
 func (f *figure) forme(p pose) *ebiten.Image { return f.formes[p] }
+
+// masque rend la forme d'une pose, ou nil quand la figure ne la porte pas.
+func (f *figure) masque(p pose) *sprite.Mask { return f.masques[p] }
 
 // anim est le cycle qu'un état demande, et ce qui le cadence.
 //

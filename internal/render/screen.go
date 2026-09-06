@@ -24,7 +24,6 @@
 package render
 
 import (
-	"image"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -443,7 +442,7 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 // qui ne la remplit pas la traverse, et c'est le sol du thème, sous elle, qu'on
 // marche. La passe unique qu'il remplaçait tombait sous le trottoir et le quai,
 // qui ont une élévation et se trient donc.
-func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme) image.Rectangle {
+func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme) trace {
 	x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
 	if f.nue {
 		if s.sol.sol != nil {
@@ -467,16 +466,7 @@ func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme) image.Rectang
 	if !f.nue {
 		s.marquerEmprise(ecran, u, v, f)
 	}
-	return boiteDe(f.image, x+f.dx, y+f.dy)
-}
-
-// boiteDe rend l'étendue à l'écran d'une image posée à un coin.
-func boiteDe(img *ebiten.Image, x, y int) image.Rectangle {
-	if img == nil {
-		return image.Rectangle{}
-	}
-	taille := img.Bounds().Size()
-	return image.Rect(x, y, x+taille.X, y+taille.Y)
+	return trace{x: x + f.dx, y: y + f.dy, masque: f.masque}
 }
 
 // poser pose une forme sans la teinter, au coin que son ancrage lui donne.
@@ -570,17 +560,16 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 	largeur := s.sol.carte.Width()
 	s.aRevoir = s.aRevoir[:0]
 	for _, e := range s.scene.ranger(s.monde) {
-		var boite image.Rectangle
-		var forme *ebiten.Image
+		var t trace
 		switch e.sorte {
 		case sorteDecor:
 			u, v := e.place%largeur, e.place/largeur
 			f, _ := s.sol.formeDe(u, v)
-			boite = s.poserCase(ecran, u, v, f)
+			t = s.poserCase(ecran, u, v, f)
 		case sorteEnnemi:
 			c := s.monde.Enemies().At(e.place)
 			f := s.troupe.ennemis[c.Profile]
-			boite, _ = s.peindreCreature(ecran, f, f.poseEnnemi(c, s.regardDe(c)),
+			t = s.peindreCreature(ecran, f, f.poseEnnemi(c, s.regardDe(c)),
 				c.X, c.Y, e.identite, etatDe(c))
 			if c.Flash > 0 {
 				s.peindreEtincelle(ecran, c.X, c.Y, c.Flash)
@@ -588,14 +577,14 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteAmbiance:
 			a := s.monde.Ambients().At(e.place)
 			f := s.troupe.ambiants[a.Profile]
-			boite, _ = s.peindreCreature(ecran, f, f.posePersonnage(a.Step, a.Step, 0),
+			t = s.peindreCreature(ecran, f, f.posePersonnage(a.Step, a.Step, 0),
 				a.X, a.Y, e.identite, nil)
 		case sorteTir:
 			p := s.monde.Shots().At(e.place)
-			boite, _ = s.peindreObjet(ecran, objetTir, p.X, p.Y, e.identite, nil)
+			t = s.peindreObjet(ecran, objetTir, p.X, p.Y, e.identite, nil)
 		case sorteTirHorde:
 			p := s.monde.EnemyShots().At(e.place)
-			boite, forme = s.peindreObjet(ecran, objetTirHorde, p.X, p.Y, e.identite, nil)
+			t = s.peindreObjet(ecran, objetTirHorde, p.X, p.Y, e.identite, nil)
 		case sorteGemme:
 			g := s.monde.Gems().At(e.place)
 			// **Une gemme attirée reprend sa teinte pleine.** L'extinction dit
@@ -613,24 +602,24 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 				eteinte := eteindre(intact, s.monde.GemAge(g), s.monde.GemLife())
 				voile = &eteinte
 			}
-			boite, _ = s.peindreObjet(ecran, objetGemme, g.X, g.Y, e.identite, voile)
+			t = s.peindreObjet(ecran, objetGemme, g.X, g.Y, e.identite, voile)
 		case sorteAimant:
 			a := s.monde.Magnets().At(e.place)
-			boite, _ = s.peindreObjet(ecran, objetAimant, a.X, a.Y, e.identite, nil)
+			t = s.peindreObjet(ecran, objetAimant, a.X, a.Y, e.identite, nil)
 		case sorteCaisse:
 			c := s.monde.Crates().At(e.place)
-			boite, _ = s.peindreObjet(ecran, objetCaisse, c.X, c.Y, e.identite, nil)
+			t = s.peindreObjet(ecran, objetCaisse, c.X, c.Y, e.identite, nil)
 		case sorteJoueur:
 			x, y := s.monde.Player()
 			f := s.troupe.joueur
 			pas := s.monde.PlayerStep()
-			boite, forme = s.peindreCreature(ecran, f,
+			t = s.peindreCreature(ecran, f,
 				f.posePersonnage(pas, s.regardDuJoueur(pas), 0), x, y, 0, nil)
 		}
 
 		// **Le recouvrement se constate en dessinant, dans l'ordre où l'on
 		// dessine.** Ce qui masque une chose est ce qui vient après elle, et la
-		// séquence le dit déjà : il suffit de retenir les boîtes de ce qu'on
+		// séquence le dit déjà : il suffit de retenir la forme de ce qu'on
 		// révélera, puis de confronter chaque dessin suivant. C'est ce que la
 		// conception annonçait — « savoir quelle entité est masquée, c'est-à-dire
 		// ce que le tri en profondeur calcule ».
@@ -638,13 +627,14 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		// Le test précède l'inscription, sans quoi une chose se masquerait
 		// elle-même.
 		for i := range s.aRevoir {
-			if !s.aRevoir[i].masque && boite.Overlaps(s.aRevoir[i].boite()) {
-				s.aRevoir[i].masque = true
+			if !s.aRevoir[i].couvert && s.aRevoir[i].recouvertPar(t) {
+				s.aRevoir[i].couvert = true
 			}
 		}
-		if forme != nil {
+		if t.forme != nil {
 			s.aRevoir = append(s.aRevoir, revele{
-				forme: forme, x: boite.Min.X, y: boite.Min.Y, teinte: teinteDeLaSorte(e.sorte),
+				forme: t.forme, masque: t.masque, x: t.x, y: t.y,
+				teinte: teinteDeLaSorte(e.sorte),
 			})
 		}
 	}
@@ -670,7 +660,7 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 // regarde que ce qui est dessiné devant.
 func (s *Screen) reveler(ecran *ebiten.Image) {
 	for _, r := range s.aRevoir {
-		if !r.masque {
+		if !r.couvert {
 			continue
 		}
 		s.op.GeoM.Reset()
@@ -749,9 +739,9 @@ func (s *Screen) regardDe(e *game.Enemy) game.Vec {
 // le joueur en porte, et c'est ce qui décide de son contour comme de sa
 // silhouette. L'appelant n'a donc pas à savoir lequel des personnages se révèle.
 func (s *Screen) peindreCreature(ecran *ebiten.Image, f *figure, a anim,
-	x, y game.Fixed, identite int, eclat *color.RGBA) (image.Rectangle, *ebiten.Image) {
+	x, y game.Fixed, identite int, eclat *color.RGBA) trace {
 	if a.nom == "" || a.direction == "" {
-		return image.Rectangle{}, nil
+		return trace{}
 	}
 
 	i := sprite.Loop(a.cycle, s.monde.Tick(), identite)
@@ -761,7 +751,7 @@ func (s *Screen) peindreCreature(ecran *ebiten.Image, f *figure, a anim,
 	p := pose{a.nom, a.direction, a.variante, i}
 	img := f.image(p)
 	if img == nil {
-		return image.Rectangle{}, nil
+		return trace{}
 	}
 
 	ex, ey := s.cam.ecran(x, y)
@@ -782,7 +772,7 @@ func (s *Screen) peindreCreature(ecran *ebiten.Image, f *figure, a anim,
 	if eclat != nil {
 		s.eclairer(ecran, img, *eclat)
 	}
-	return boiteDe(img, coinX, coinY), forme
+	return trace{x: coinX, y: coinY, masque: f.masque(p), forme: forme}
 }
 
 // intensiteEclair est la part de sa teinte qu'un éclair d'état ajoute au sprite.
@@ -847,10 +837,12 @@ func etatDe(e *game.Enemy) *color.RGBA {
 // Le second retour est l'aplat de l'image posée, nul pour qui n'en a pas : seul
 // le projectile de la horde en porte.
 func (s *Screen) peindreObjet(ecran *ebiten.Image, nom string, x, y game.Fixed,
-	identite int, voile *color.RGBA) (image.Rectangle, *ebiten.Image) {
+	identite int, voile *color.RGBA) trace {
 	objet, img := s.objets.image(nom, s.monde.Tick(), identite)
 	i := sprite.Loop(objet.cycle, s.monde.Tick(), identite)
-	return s.poserObjet(ecran, objet, img, x, y, voile), objet.forme(i)
+	t := s.poserObjet(ecran, objet, img, x, y, voile)
+	t.masque, t.forme = objet.masque(i), objet.forme(i)
+	return t
 }
 
 // peindreEffets pose ce qui reste d'une chose qui n'existe plus.
@@ -922,9 +914,9 @@ func (s *Screen) peindreEtincelle(ecran *ebiten.Image, x, y game.Fixed, reste ga
 
 // poserObjet blitte une image d'objet au décalage que son manifeste lui donne.
 func (s *Screen) poserObjet(ecran *ebiten.Image, objet prop, img *ebiten.Image,
-	x, y game.Fixed, voile *color.RGBA) image.Rectangle {
+	x, y game.Fixed, voile *color.RGBA) trace {
 	if img == nil {
-		return image.Rectangle{}
+		return trace{}
 	}
 
 	ex, ey := s.cam.ecran(x, y)
@@ -936,7 +928,7 @@ func (s *Screen) poserObjet(ecran *ebiten.Image, objet prop, img *ebiten.Image,
 		s.op.ColorScale.ScaleWithColor(*voile)
 	}
 	ecran.DrawImage(img, &s.op)
-	return boiteDe(img, coinX, coinY)
+	return trace{x: coinX, y: coinY}
 }
 
 // silhouette pose un aplat blanc dans la teinte donnée, son pied sur le point où

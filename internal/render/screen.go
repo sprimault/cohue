@@ -597,7 +597,7 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 			t = s.peindreCreature(ecran, f, f.poseEnnemi(c, s.regardDe(c)),
 				c.X, c.Y, e.identite, etatDe(c))
 			if c.Flash > 0 {
-				s.peindreEtincelle(ecran, c.X, c.Y, c.Flash)
+				s.peindreEtincelle(ecran, t, c.Flash)
 			}
 		case sorteAmbiance:
 			a := s.monde.Ambients().At(e.place)
@@ -932,12 +932,29 @@ func (s *Screen) peindreVolee(ecran *ebiten.Image, nom string, x, y game.Fixed,
 // sous le personnage et l'étincelle non, ce qui la rend d'autant plus utile là
 // où la conception dit que le retour manque le plus.
 //
+// **Elle se pose au milieu du dessin de la créature, et non à ses pieds.** Une
+// position du monde est un point au sol : centrée dessus, la gerbe s'affichait
+// sous une créature de quarante-cinq pixels, là où l'œil ne suit ni le tir ni
+// la cible. Le milieu se prend sur la forme réellement dessinée plutôt que sur
+// la bande, dont les trois quarts sont transparents.
+//
 // Une méthode pour un seul effet, et non une machinerie pour la famille : le
 // souffle d'une déflagration est le second, il vient avec son bassin, et c'est
 // alors qu'on saura ce que les deux partagent.
-func (s *Screen) peindreEtincelle(ecran *ebiten.Image, x, y game.Fixed, reste game.Tick) {
-	objet, img := s.objets.effet(objetEtincelle, reste)
-	s.poserObjet(ecran, objet, img, x, y, nil)
+func (s *Screen) peindreEtincelle(ecran *ebiten.Image, sur trace, reste game.Tick) {
+	_, img := s.objets.effet(objetEtincelle, reste)
+	if img == nil || sur.masque == nil {
+		return
+	}
+
+	corps := sur.masque.Bounds()
+	taille := img.Bounds().Size()
+	s.op.GeoM.Reset()
+	s.op.GeoM.Translate(
+		float64(sur.x+corps.Min.X+corps.Dx()/2-taille.X/2),
+		float64(sur.y+corps.Min.Y+corps.Dy()/2-taille.Y/2))
+	s.op.ColorScale.Reset()
+	ecran.DrawImage(img, &s.op)
 }
 
 // poserObjet blitte une image d'objet au décalage que son manifeste lui donne.

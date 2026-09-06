@@ -413,7 +413,7 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 	u0, v0, u1, v1 := s.cam.casesVisibles()
 	for v := v0; v <= v1; v++ {
 		for u := u0; u <= u1; u++ {
-			if f, posee := s.sol.formeDe(u, v); posee && !f.elevee {
+			if f, posee := s.sol.formeDe(u, v); posee && !f.triee {
 				s.poserCase(ecran, u, v, f)
 			}
 		}
@@ -470,6 +470,22 @@ func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme) trace {
 	return trace{x: x + f.dx, y: y + f.dy, masque: f.masque, cache: f.cache}
 }
 
+// ecranAuSol projette une position du monde en la posant sur la surface qu'on y
+// foule, et non sur le plan du sol.
+//
+// **Un trottoir a une marche, et ce qui marche dessus est six pixels plus haut.**
+// La projection seule ignore l'élévation — elle ne connaît que deux axes —, si
+// bien qu'un personnage sur une bordure était dessiné à l'intérieur : le décor
+// perdait sa matière, il n'arrêtait rien et ne portait rien.
+//
+// **Le passage d'un niveau à l'autre saute, il ne s'interpole pas.** Une montée
+// progressive ferait gravir une pente invisible là où le dessin montre une
+// marche franche ; six pixels d'un coup sont ce qu'un pas sur un trottoir fait.
+func (s *Screen) ecranAuSol(x, y game.Fixed) (int, int) {
+	ex, ey := s.cam.ecran(x, y)
+	return ex, ey - s.sol.hauteurSolEn(x, y)
+}
+
 // poser pose une forme sans la teinter, au coin que son ancrage lui donne.
 func (s *Screen) poser(ecran *ebiten.Image, x, y int, f forme) {
 	s.op.GeoM.Reset()
@@ -507,7 +523,7 @@ func (s *Screen) releverEmprises() {
 	// l'englobant d'un losange, plus une case de marge. Ses bornes se ramènent
 	// donc à la carte avant de servir d'indices — les autres consommateurs le
 	// font par `formeDe`, qui refuse une case hors carte ; ici l'indice est
-	// calculé, et un `u0` négatif ouvrait une tranche à début négatif.
+	// calculé, et un `u0` négatif faisait un début de tranche négatif.
 	u0, v0, u1, v1 := s.cam.casesVisibles()
 	u0, u1 = max(u0, 0), min(u1, largeur-1)
 	v0, v1 = max(v0, 0), min(v1, hauteur-1)
@@ -763,7 +779,7 @@ func (s *Screen) peindreCreature(ecran *ebiten.Image, f *figure, a anim,
 		return trace{}
 	}
 
-	ex, ey := s.cam.ecran(x, y)
+	ex, ey := s.ecranAuSol(x, y)
 	coinX, coinY := ex-f.appui[0], ey-f.appui[1]
 
 	// Le contour vient avant le sprite, qui le recouvre en son centre : ce qui
@@ -899,7 +915,7 @@ func (s *Screen) peindreVolee(ecran *ebiten.Image, nom string, x, y game.Fixed,
 
 	for rang := range sprite.Shards {
 		ecart, hauteur := sprite.Shard(rang, age, total)
-		ex, ey := s.cam.ecran(x+ecart.X, y+ecart.Y)
+		ex, ey := s.ecranAuSol(x+ecart.X, y+ecart.Y)
 		s.op.GeoM.Reset()
 		s.op.GeoM.Translate(float64(ex+objet.dx), float64(ey+objet.dy-hauteur))
 		s.op.ColorScale.Reset()
@@ -931,7 +947,7 @@ func (s *Screen) poserObjet(ecran *ebiten.Image, objet prop, img *ebiten.Image,
 		return trace{}
 	}
 
-	ex, ey := s.cam.ecran(x, y)
+	ex, ey := s.ecranAuSol(x, y)
 	coinX, coinY := ex+objet.dx, ey+objet.dy
 	s.op.GeoM.Reset()
 	s.op.GeoM.Translate(float64(coinX), float64(coinY))
@@ -956,7 +972,7 @@ func (s *Screen) poserObjet(ecran *ebiten.Image, objet prop, img *ebiten.Image,
 // L'appui est au milieu du bas : c'est le point qui touche le sol, et le seul
 // qui puisse coïncider avec une position du monde.
 func (s *Screen) silhouette(ecran, forme *ebiten.Image, x, y game.Fixed, teinte color.RGBA) {
-	ex, ey := s.cam.ecran(x, y)
+	ex, ey := s.ecranAuSol(x, y)
 	taille := forme.Bounds()
 	s.op.GeoM.Reset()
 	s.op.GeoM.Translate(float64(ex-taille.Dx()/2), float64(ey-taille.Dy()))

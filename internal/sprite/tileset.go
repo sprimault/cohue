@@ -45,6 +45,9 @@ type Tile struct {
 	// peut en cacher un. Le générateur la déclare au-delà de vingt-quatre pixels
 	// d'élévation, en dessous desquels un obstacle est un décor de bordure.
 	Masking bool
+	// Occludes dit que la forme peut passer devant ce qui se tient sur le sol,
+	// donc qu'elle dispute sa profondeur au lieu d'appartenir au sol.
+	Occludes bool
 }
 
 // Tileset porte les formes du décor, par nom.
@@ -94,6 +97,7 @@ func LoadTiles(fsys fs.FS, racine string, decor *level.Decor) (*Tileset, error) 
 			Covers:       forme.Covers(),
 			GroundHeight: hauteurSol(forme),
 			Masking:      forme.Masking,
+			Occludes:     occulte(forme),
 		}
 	}
 	if len(manques) > 0 {
@@ -183,6 +187,27 @@ func hauteurSol(f level.Shape) int {
 		return 0
 	}
 	return f.Elevation
+}
+
+// occulte dit si une forme peut passer devant ce qui se tient sur le sol.
+//
+// **Ce n'est pas l'élévation, et l'avoir cru a coûté deux défauts.** Le premier
+// critère était « son élévation n'est pas nulle », ce qui envoyait le trottoir,
+// le quai et le rail disputer leur profondeur à des créatures qui *marchent
+// dessus* : le télégraphe d'une explosion passait dessous, et un personnage se
+// retrouvait moitié dans la bordure, moitié dessus, selon l'endroit de la case
+// où il se tenait.
+//
+// **Un sol surélevé reste du sol.** Ce qui recouvre est ce qui cache — le
+// manifeste le déclare au-delà de vingt-quatre pixels — ou ce qui arrête, un
+// muret de vingt-deux masquant les jambes de qui passe derrière. La porte
+// ouverte est le seul cas où les deux se séparent : elle se franchit et culmine
+// à quarante-huit pixels, donc elle se trie sans bloquer.
+//
+// L'élévation ne disparaît pas pour autant : elle dit à quelle hauteur se pose
+// ce qui marche sur la forme.
+func occulte(f level.Shape) bool {
+	return f.Masking || f.Blocking
 }
 
 // lire ouvre l'image d'une forme et la confronte à la taille annoncée.

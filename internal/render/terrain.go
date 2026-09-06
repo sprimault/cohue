@@ -11,6 +11,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 
+	"github.com/sprimault/cohue/internal/game"
 	"github.com/sprimault/cohue/internal/level"
 	"github.com/sprimault/cohue/internal/sprite"
 )
@@ -37,16 +38,14 @@ type forme struct {
 	// nue dit que la forme ne remplit pas le losange de sa case, donc qu'il faut
 	// peindre le sol du thème avant elle.
 	nue bool
-	// elevee dit que la forme dépasse du sol, donc qu'elle entre dans le tri en
-	// profondeur au lieu d'être peinte en passe préalable.
+	// triee dit que la forme dispute sa profondeur à ce qui se tient sur le sol,
+	// au lieu d'être peinte dans la passe préalable.
 	//
-	// **Le critère se dérive de l'élévation plutôt que de se déclarer.** Un
-	// champ « triable » dans le manifeste serait une seconde description de ce
-	// que l'élévation dit déjà, et l'aplatir à zéro pour épargner un tri ferait
-	// dire au générateur qu'un trottoir n'a pas de relief. Quatre formes de
-	// catégorie « sol » ont une élévation non nulle et entrent donc dans le
-	// tri : c'est exact, et seulement coûteux.
-	elevee bool
+	// **Le critère se dérive du manifeste plutôt que de se déclarer.** Un champ
+	// « triable » serait une seconde description de ce que « masquant » et
+	// « bloquant » disent déjà — voir `sprite.occulte`, qui porte l'arbitrage et
+	// le test.
+	triee bool
 	// hauteurSol est la hauteur, en pixels d'écran, de la surface qu'on marche
 	// sur cette case — ce sur quoi un marquage au sol se pose. Elle vient du
 	// manifeste par `sprite`, qui porte l'arithmétique et le test.
@@ -108,7 +107,7 @@ func resoudre(tuiles *sprite.Tileset, nom string) (forme, error) {
 		dx:         tuile.Offset[0],
 		dy:         tuile.Offset[1],
 		nue:        !tuile.Covers,
-		elevee:     tuile.Elevation != 0,
+		triee:      tuile.Occludes,
 		hauteurSol: tuile.GroundHeight,
 		masque:     sprite.NewMask(tuile.Image),
 		cache:      tuile.Masking,
@@ -117,6 +116,16 @@ func resoudre(tuiles *sprite.Tileset, nom string) (forme, error) {
 
 // TileSize rend la taille de tuile du décor, celle dont la projection dépend.
 func (t *Terrain) TileSize() [2]int { return t.taille }
+
+// hauteurSolEn rend la hauteur, en pixels d'écran, de la surface qu'on foule à
+// une position du monde. Zéro hors de la carte, comme sur un sol plat.
+func (t *Terrain) hauteurSolEn(x, y game.Fixed) int {
+	f, posee := t.formeDe(x.Floor(), y.Floor())
+	if !posee {
+		return 0
+	}
+	return f.hauteurSol
+}
 
 // formeDe rend ce qu'une case donne à peindre, et dit qu'il n'y a rien hors de
 // la carte.

@@ -187,7 +187,7 @@ func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 			for v := v0; v <= v1; v++ {
 				for u := u0; u <= u1; u++ {
 					f, posee := sol.formeDe(u, v)
-					if !posee || !f.elevee {
+					if !posee || !f.triee {
 						continue
 					}
 					// Le centre de la case, comme une créature se tient au

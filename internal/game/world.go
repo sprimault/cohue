@@ -102,6 +102,20 @@ type World struct {
 	scenario *Scenario
 
 	playerX, playerY Fixed
+	// playerStep est le déplacement que le tick vient d'appliquer au joueur, en
+	// tuiles.
+	//
+	// **Le pas appliqué et non la direction voulue**, comme pour une créature :
+	// un joueur qui pousse contre un mur ne marche pas, et le montrer en train
+	// de marcher sur place est le genre de détail qui fait croire à un blocage
+	// plutôt qu'à un mur.
+	//
+	// Rien dans la simulation ne le lit — ce qui le distingue de `Enemy.Step`,
+	// que la visée consulte. Il est ici parce que personne d'autre ne peut le
+	// rendre : le rendu ne connaît que deux positions successives, et les
+	// comparer lui demanderait de garder la précédente, c'est-à-dire d'avoir un
+	// état de simulation hors de la simulation.
+	playerStep Vec
 	// vie est ce qu'il reste au joueur, en points. À zéro, il est mort — la
 	// valeur est l'état, comme la résistance d'une créature.
 	vie int
@@ -293,6 +307,12 @@ func (w *World) Streams() *Streams { return w.hasard }
 // Player rend la position du joueur.
 func (w *World) Player() (Fixed, Fixed) { return w.playerX, w.playerY }
 
+// PlayerStep rend le déplacement que le dernier tick a appliqué au joueur.
+//
+// Nul quand rien n'a été demandé, et nul aussi quand un mur a tout retenu : ce
+// qu'il dit est que le personnage avance, pas qu'on le pousse.
+func (w *World) PlayerStep() Vec { return w.playerStep }
+
 // Place pose le joueur, au montage du lieu.
 //
 // Sans projection ni contrôle de passabilité : c'est au chargeur de savoir où
@@ -394,12 +414,19 @@ func (w *World) Step(voulu Vec) {
 func (w *World) Tick() Tick { return w.tick }
 
 // deplacerJoueur applique la direction voulue, à la vitesse de son profil.
+//
+// Le pas retenu est celui que le glissement a laissé passer, et il se remet à
+// zéro quand rien n'est demandé : c'est lui qui dit au rendu si le personnage
+// marche, et un joueur qui pousse contre un mur ne marche pas.
 func (w *World) deplacerJoueur(voulu Vec) {
 	if voulu == (Vec{}) {
+		w.playerStep = Vec{}
 		return
 	}
 	pas := voulu.Direction(0).Scale(w.vitesse(w.profils.Player.Speed, w.playerX, w.playerY))
-	w.playerX, w.playerY = w.glisserJoueur(w.playerX, w.playerY, pas)
+	avantX, avantY := w.playerX, w.playerY
+	w.playerX, w.playerY = w.glisserJoueur(avantX, avantY, pas)
+	w.playerStep = Vec{X: w.playerX - avantX, Y: w.playerY - avantY}
 }
 
 // compterDensite refait le comptage des ennemis, cellule par cellule.

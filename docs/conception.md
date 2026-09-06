@@ -1215,7 +1215,9 @@ Un détail vaut d'être noté parce qu'il porte le moment de plaisir maximal du 
 
 Jusqu'à l'étape 5, des capsules colorées avec ombre au sol, une couleur par archétype, générées par code. On apprend davantage sur la boucle avec des formes lisibles qu'avec de jolis sprites obtenus trois semaines plus tard.
 
-**Une teinte par clé de profil, et c'est ici qu'elle est autorisée.** Le rendu tient une table qui associe une couleur à chaque clé d'archétype, et le rouge de la masse à celle qu'elle ne connaît pas — un profil ajouté sans teinte se joue au lieu de disparaître. C'est du code qui décide d'une apparence, ce que le manifeste-contrat interdit partout ailleurs : la dérogation tient à ce que ces formes n'ont aucun fichier à décrire, et elle s'éteint à l'étape 5, quand chaque profil aura sa feuille de sprites.
+**Une teinte par clé de profil était autorisée ici, et elle est éteinte.** Le rendu tenait une table associant une couleur à chaque clé d'archétype, ce qui est du code décidant d'une apparence — ce que le manifeste-contrat interdit partout ailleurs. La dérogation tenait à ce que ces formes n'avaient aucun fichier à décrire ; elle est tombée avec les feuilles de sprites, où chaque profil a son dessin.
+
+**Ce qui lui survit n'est pas de même nature.** Les éclairs d'état — l'impact, le soigneur qui s'allume, l'annonce qui bat — disent ce qui vient de se passer et non qui est quoi, et aucune pose ne le dirait à cent créatures à l'écran. Ils s'**ajoutent** au sprite au lieu de le multiplier : sur un aplat blanc, multiplier était colorer ; sur un dessin, multiplier par un rose presque blanc ne change rien, et l'éclair disparaît là où il sert le plus.
 
 **Le manifeste ne dira pas sa teinte pour autant, et la dérogation se retire sans être remplacée.** Le générateur a tranché en la mettant dans les pixels : les six variantes du Quidam sont six vêtements dessinés, pas six valeurs déclarées. Une teinte inscrite à côté d'un sprite déjà colorié serait une seconde description, et c'est celle qu'on oublierait de changer en redessinant. Ce que le rendu perd à l'étape 5, il ne le retrouve donc nulle part — il n'en a plus besoin.
 
@@ -1368,7 +1370,13 @@ type Pool[T any] struct {
 
 Le bloc est réduit à ce que la décision porte ; la liste à jour se lit dans `internal/game/enemy.go`, et **ce qui s'y ajoute doit être exigé par un comportement.** Une créature ordinaire ne stocke pas sa vitesse : elle lit le champ de flux sous ses pieds à chaque pas. Ce qui est stocké l'est parce que rien d'autre ne le rendrait — `ChargeDir` précisément parce qu'une charge ne se recalcule plus, `Step` parce que la visée tire où la cible sera et que le pas voulu n'est pas celui qu'un mur a laissé passer.
 
-Ce que la struct ne porte pas est aussi décidé. Pas de génération : elle appartient au bassin, pour que rien n'incite à la lire hors du `Handle` — voir plus bas. Les champs d'animation, `Cycle` et `Frame`, viendront avec les sprites.
+Ce que la struct ne porte pas est aussi décidé. Pas de génération : elle appartient au bassin, pour que rien n'incite à la lire hors du `Handle` — voir plus bas.
+
+**Et pas de champ d'animation, contrairement à ce que ce document annonçait.** Un compteur d'images posait deux questions dont aucune n'avait de bonne réponse : entre-t-il dans l'empreinte d'une run, lui qui est cosmétique ? et qui l'avance, la simulation qui n'en a que faire ou le rendu qui n'a nulle part où le ranger, les places d'un bassin changeant à chaque mort ?
+
+Il n'y en a pas, et les deux questions disparaissent au lieu d'être tranchées. **Un cycle qui boucle se dérive du tick**, décalé par l'identifiant de l'entité dans son bassin — le troisième emploi de cet identifiant comme source de variation déterministe, et il évite qu'une horde entière marche au pas cadencé. **Un cycle qui s'achève se dérive du décompte de l'état qui le porte** : la simulation tient déjà `Flash`, `ChargeTimer` et `Healing`, et ce sont des décomptes, non des dates.
+
+Ancrer sur la fin d'un état plutôt que sur son début n'est pas une préférence : au premier tick, tout ce qu'on lit est le décompte entier, et rien n'y distingue un état long qui commence d'un état court. L'autre ancrage exigerait la durée totale, que le rendu n'a pas. Un état écourté montre donc la fin de son animation plutôt que son début, ce qui est le sens même d'un décompte interrompu.
 
 Le bassin est **générique**, et c'est ce qui met le mécanisme en facteur plutôt que de le recopier pour chaque sorte d'entité. Autant de copies seraient autant d'endroits où tenir la règle, et une copie qui la manquerait ne ferait échouer aucun test : elle ferait qu'une référence périmée désigne une entité vivante.
 

@@ -61,9 +61,12 @@ func TestPartieLivreeSeMonte(t *testing.T) {
 		t.Error("aucune créature après dix secondes de jeu sur le lieu livré")
 	}
 
-	if partie.Tile != [2]int{64, 32} {
+	if partie.Decor.Tile != [2]int{64, 32} {
 		t.Errorf("tuile %v, attendu [64 32] — la taille du manifeste ne voyage pas",
-			partie.Tile)
+			partie.Decor.Tile)
+	}
+	if u, v := 0, 0; partie.Tiles.At(u, v) < 0 {
+		t.Errorf("la case (%d, %d) ne porte aucune forme — la carte des tuiles ne voyage pas", u, v)
 	}
 
 	x, y := partie.World.Player()
@@ -96,7 +99,7 @@ func TestLaRelanceNeConserveRienDeLaPartie(t *testing.T) {
 		t.Fatalf("montage de la partie livrée : %v", err)
 	}
 
-	monde, grille, tuile := partie.World, partie.Grid, partie.Tile
+	monde, grille, tuiles := partie.World, partie.Grid, partie.Tiles
 	vie := monde.Health()
 	semis := monde.Enemies().Len()
 
@@ -129,10 +132,10 @@ func TestLaRelanceNeConserveRienDeLaPartie(t *testing.T) {
 		t.Errorf("%d projectiles encore en vol après la relance", got)
 	}
 
-	// Le lieu et sa taille de tuile traversent, parce que la partie ne les a pas
-	// touchés : les recuire rendrait les mêmes octets pour le prix d'un
+	// Le lieu cuit traverse, dans ses deux moitiés, parce que la partie ne les a
+	// pas touchées : les recuire rendrait les mêmes octets pour le prix d'un
 	// décodage complet.
-	if partie.Grid != grille || partie.Tile != tuile {
+	if partie.Grid != grille || partie.Tiles != tuiles {
 		t.Error("la relance recharge le lieu, qu'aucune partie ne modifie")
 	}
 }

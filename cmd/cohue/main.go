@@ -20,6 +20,7 @@ import (
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/render"
 	"github.com/sprimault/cohue/internal/session"
+	"github.com/sprimault/cohue/internal/sprite"
 	"github.com/sprimault/cohue/internal/ui"
 )
 
@@ -68,6 +69,9 @@ type boucle struct {
 	partie *session.Session
 	ecran  *render.Screen
 	hud    *render.HUD
+	// sol est le décor du lieu, résolu en images une fois : il ne dépend que du
+	// lieu, que la relance ne rejoue pas.
+	sol *render.Terrain
 }
 
 // Update avance la partie, ou en monte une neuve si le joueur relance.
@@ -92,7 +96,7 @@ func (b *boucle) Layout(largeur, hauteur int) (int, int) { return b.ecran.Layout
 // réutiliser laisserait la caméra là où la partie précédente s'est terminée, et
 // la relance montrerait un premier instant décadré.
 func (b *boucle) monter() {
-	b.ecran = render.NewScreen(b.partie.World, b.partie.Grid, b.partie.Tile).WithHUD(b.hud)
+	b.ecran = render.NewScreen(b.partie.World, b.partie.Grid, b.sol).WithHUD(b.hud)
 }
 
 // run monte le jeu et le fait tourner jusqu'à ce que le joueur quitte.
@@ -105,8 +109,16 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	tuiles, err := sprite.LoadTiles(cohue.Assets, cohue.DecorDir, partie.Decor)
+	if err != nil {
+		return err
+	}
+	sol, err := render.NewTerrain(partie.Tiles, tuiles)
+	if err != nil {
+		return err
+	}
 
-	jeu := &boucle{partie: partie, hud: hud}
+	jeu := &boucle{partie: partie, hud: hud, sol: sol}
 	jeu.monter()
 
 	icones, err := ui.LoadIcons(cohue.Assets, cohue.InterfaceManifest)

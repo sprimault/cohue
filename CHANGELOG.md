@@ -44,6 +44,18 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Le décor s'affiche.** Sols, murs, murets, trottoirs, flaques et piliers sont
+  dessinés à partir de leurs images plutôt qu'en aplats colorés, et ce qui
+  dépasse du sol masque désormais ce qui passe derrière. La porte de sortie reste
+  reconnaissable : elle teinte le mur qui la porte au lieu de le remplacer.
+- **Un jeu de pièces déclare son sol**, sous la clé `sol`. C'est ce qui se peint
+  sous une case dont la forme ne remplit pas son losange — un pilier n'en occupe
+  qu'un quart. Le chargement l'exige dès qu'une palette emploie une telle forme,
+  et refuse un sol qui ne remplirait pas sa case.
+- **Une palette qui cite une forme absente du décor est refusée**, en la nommant.
+  Elle valait un mur en silence, si bien qu'une faute de frappe dans un nom de
+  tuile posait une enceinte que rien n'expliquait.
+
 - **La place de démonstration a une ruelle.** Deux corps de bâtiment séparés par
   un passage de deux cases, percés chacun d'une brèche d'une seule et bordés de
   porches. C'est le premier endroit du lieu où un Vigile ferme vraiment un
@@ -54,6 +66,18 @@ publié, et explique les conventions du dépôt à qui y contribue.
 ***
 
 ### Added
+
+- **The decor is drawn.** Floors, walls, low walls, kerbs, puddles and pillars
+  come from their images instead of coloured blocks, and anything standing above
+  the ground now hides what passes behind it. The exit door stays recognisable:
+  it tints the wall carrying it rather than replacing it.
+- **A tile set declares its ground**, under the `sol` key. That is what gets
+  painted beneath a cell whose shape does not fill its diamond — a pillar takes
+  up a quarter of its own. Loading requires it as soon as a palette uses such a
+  shape, and rejects a ground that would not fill its cell.
+- **A palette naming a shape the decor does not have is rejected**, by name. It
+  used to silently count as a wall, so a typo in a tile name raised an enclosure
+  nothing explained.
 
 - **The demonstration square has an alley.** Two building blocks split by a
   two-tile passage, each pierced by a single-tile gap and lined with recesses.

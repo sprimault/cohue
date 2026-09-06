@@ -97,13 +97,19 @@ const CrateCapacity = 32
 
 // Session est une partie montée, prête à tourner.
 //
-// La taille de tuile voyage avec le monde parce qu'elle vient du même
-// chargement : elle est dans le manifeste de décor, que le rendu ne lit pas
-// lui-même — il ne connaît que des profils et des cycles, et une taille reçue.
+// **Le manifeste de décor et la carte des formes voyagent avec le monde** parce
+// qu'ils viennent du même chargement, et que ce paquet est le seul endroit où
+// l'ordre de ces lectures est écrit. Ce qu'un afficheur en fait ne le regarde
+// pas : il ne charge aucune image ici, et le test de déterminisme monte une
+// partie sans en décoder une seule.
 type Session struct {
 	World *game.World
 	Grid  *game.CostGrid
-	Tile  [2]int
+	// Decor est le manifeste des formes : leurs tailles, leurs ancrages, et la
+	// taille de tuile dont la projection dépend.
+	Decor *level.Decor
+	// Tiles dit quelle forme occupe chaque case du lieu.
+	Tiles *level.Tilemap
 
 	// Seed est la graine de la run en cours, et le seul état de jeu qui traverse
 	// une relance — sous une forme changée, puisque chaque run dérive la
@@ -205,7 +211,7 @@ func (s *Session) monter() {
 // deux copies de la même valeur. La planche de relecture en exige une fixe par
 // nature ; le jeu n'en a une fixe que faute d'écran pour la choisir.
 func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
-	decor, couts, err := level.LoadDecor(fsys, cohue.DecorManifest)
+	decor, err := level.LoadDecor(fsys, cohue.DecorManifest)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +238,7 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		return nil, err
 	}
 
-	charge, err := level.NewLoader(fsys, couts, profils, progression.CarryOver).Load(lieu)
+	charge, err := level.NewLoader(fsys, decor, profils, progression.CarryOver).Load(lieu)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +256,8 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 
 	partie := &Session{
 		Grid:        grille,
-		Tile:        decor.Tile,
+		Decor:       decor,
+		Tiles:       charge.Tiles,
 		Seed:        graine,
 		profils:     profils,
 		armes:       armes,

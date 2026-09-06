@@ -7,14 +7,19 @@
 
 package level
 
-import "fmt"
+import (
+	"fmt"
+	"maps"
+	"slices"
+	"strings"
+)
 
 // valider rend tout ce qui empêche un lieu de se charger.
 //
 // Un lieu invalide fait échouer son chargement entier plutôt que d'être chargé à
 // moitié : une pièce manquante laisserait un trou dans la carte, et le champ de
 // flux y enverrait les ennemis tourner en rond.
-func valider(nom string, lieu *Level, jeu *Set, pieces []*Room) []string {
+func valider(nom string, lieu *Level, jeu *Set, pieces []*Room, decor *Decor) []string {
 	var manques []string
 	dire := func(format string, args ...any) {
 		manques = append(manques, fmt.Sprintf(format, args...))
@@ -43,6 +48,7 @@ func valider(nom string, lieu *Level, jeu *Set, pieces []*Room) []string {
 	if len(jeu.Palette) == 0 {
 		dire("%s.palette : le jeu de pièces n'associe aucun caractère à une tuile", jeu.ID)
 	}
+	manques = append(manques, validerPalette(jeu, decor)...)
 
 	// Les poses ne sont comptées que si toutes tiennent sur l'assiette qu'elles
 	// annoncent : une taille nulle ou une origine négative ferait sortir le
@@ -70,6 +76,56 @@ func valider(nom string, lieu *Level, jeu *Set, pieces []*Room) []string {
 	}
 	if assiettes {
 		manques = append(manques, validerCouverture(lieu, pieces)...)
+	}
+	return manques
+}
+
+// validerPalette confronte le vocabulaire d'un thème au catalogue du décor, et
+// exige un sol quand ce vocabulaire en réclame un.
+//
+// **Trois refus, dont le dernier porte sur une combinaison et non sur une
+// valeur.** Un nom inconnu était muet — l'assemblage le traitait en mur, si bien
+// qu'une faute de frappe posait une enceinte que rien n'expliquait. Un sol qui
+// ne remplit pas sa case laisserait le trou qu'il existe pour combler, et le
+// refuser vaut mieux qu'une récursion. Et un thème qui emploie une forme non
+// couvrante **sans déclarer de sol** est le cas qui rouvrirait la question en
+// silence : le mécanisme serait correct et simplement pas employé.
+//
+// C'est le même geste que le refus d'un profil qu'une phase autorise sans
+// pouvoir le payer — ni le profil ni la pression ne sont invalides, leur
+// rapprochement l'est.
+//
+// Le message nomme la forme et son emprise, parce qu'il s'adresse à un auteur de
+// thème : « sol manquant » l'enverrait chercher laquelle de ses tuiles l'exige.
+func validerPalette(jeu *Set, decor *Decor) []string {
+	var manques []string
+	dire := func(format string, args ...any) {
+		manques = append(manques, fmt.Sprintf(format, args...))
+	}
+
+	var nues []string
+	for _, cle := range slices.Sorted(maps.Keys(jeu.Palette)) {
+		nom := jeu.Palette[cle]
+		forme, connue := decor.Shapes[nom]
+		switch {
+		case !connue:
+			dire("%s.palette[« %s »] : « %s », forme absente du décor", jeu.ID, cle, nom)
+		case !forme.Covers():
+			nues = append(nues, fmt.Sprintf("« %s » (emprise %g×%g)",
+				nom, forme.Footprint[0], forme.Footprint[1]))
+		}
+	}
+
+	switch sol, connu := decor.Shapes[jeu.Ground]; {
+	case jeu.Ground == "" && len(nues) > 0:
+		dire("%s.sol : le thème n'en déclare pas, alors que sa palette emploie %s, "+
+			"qui ne remplit pas sa case", jeu.ID, strings.Join(nues, ", "))
+	case jeu.Ground == "":
+	case !connu:
+		dire("%s.sol : « %s », forme absente du décor", jeu.ID, jeu.Ground)
+	case !sol.Covers():
+		dire("%s.sol : « %s » a une emprise de %g×%g et ne remplit pas sa case, "+
+			"ce qu'un sol doit faire", jeu.ID, jeu.Ground, sol.Footprint[0], sol.Footprint[1])
 	}
 	return manques
 }

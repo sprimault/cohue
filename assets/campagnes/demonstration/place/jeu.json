@@ -1,8 +1,9 @@
 {
-  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · tenu à la main, aucun générateur ne l'écrit",
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · tenu à la main, aucun générateur ne l'écrit · « sol » est ce qui se peint sous une case dont la forme ne remplit pas son losange, ici le pilier qui n'en occupe qu'un quart. Il appartient au thème et non à la forme : le même pilier se pose sur du carrelage dans un supermarché, et le dessiner sur son sol demanderait deux piliers.",
   "version_format": 1,
   "identifiant": "quartier",
   "nom": "Quartier",
+  "sol": "sol",
   "palette": {
     ".": "sol",
     ",": "trottoir",

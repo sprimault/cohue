@@ -102,8 +102,9 @@ var (
 	// **Une seule teinte, éteinte puis vive**, plutôt que deux couleurs : c'est
 	// le même objet dans deux états, et l'écart de valeur se voit en périphérie
 	// là où un changement de teinte demande de regarder. Un cyan, parce que le
-	// vert est deux fois pris — la gemme et le Secouriste — et qu'ouvrir une
-	// porte n'a rien à voir avec l'un ni avec l'autre.
+	// vert appartient à l'éclair de soin et qu'ouvrir une porte n'a rien à voir
+	// avec lui — le voisin le plus proche est la gemme, à 28,5, et elle est au
+	// sol quand la porte est sur un mur.
 	//
 	// **Deux écarts de valeur à tenir, et le premier jet n'en a tenu qu'un.**
 	// L'écart entre les deux états était bon ; celui entre la porte fermée et le

@@ -9,6 +9,7 @@ package render
 
 import (
 	"io/fs"
+	"slices"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -139,6 +140,9 @@ type anim struct {
 	// reste est le décompte qui cadence un cycle non bouclé, nul pour un cycle
 	// qui boucle — auquel cas c'est le tick qui le cadence.
 	reste game.Tick
+	// direction est la bande à poser, et variante la teinte de vêtement.
+	direction string
+	variante  int
 }
 
 // cycleTenu rend le premier des cycles proposés que la figure porte.
@@ -169,34 +173,54 @@ func (f *figure) cycleTenu(choix ...string) (string, game.Cycle) {
 // qui bat et non à une pose : c'est le repli que `Sheet.Frame` annonçait en
 // rendant un second retour, et le rendu est le seul à savoir par quoi remplacer
 // une pose absente.
-func (f *figure) cycleEnnemi(e *game.Enemy) anim {
+func (f *figure) poseEnnemi(e *game.Enemy, regard game.Vec) anim {
+	a := f.posePersonnage(e.Step, regard, e.Variant)
 	switch {
 	case e.Healing > 0:
 		if nom, c := f.cycleTenu(cycleAttaque); nom != "" {
-			return anim{nom, c, e.Healing}
+			a.nom, a.cycle, a.reste = nom, c, e.Healing
 		}
 	case e.Flash > 0:
 		if nom, c := f.cycleTenu(cycleDegat); nom != "" {
-			return anim{nom, c, e.Flash}
+			a.nom, a.cycle, a.reste = nom, c, e.Flash
 		}
 	case e.Telegraphing():
 		if nom, c := f.cycleTenu(cycleAttaque); nom != "" {
-			return anim{nom, c, e.ChargeTimer}
+			a.nom, a.cycle, a.reste = nom, c, e.ChargeTimer
 		}
 	}
-	return f.deplacement(e.Step)
+	return a
 }
 
-// deplacement rend le cycle d'un personnage selon qu'il avance ou non.
+// posePersonnage rend la pose d'un personnage qui n'a que son déplacement à
+// dire : le joueur et les figurants, et le fond de ce qu'une créature demande.
 //
-// Les deux cycles se replient l'un sur l'autre : un profil qui n'a que `marche`
-// s'anime à l'arrêt plutôt que de disparaître, et c'est moins faux qu'une
-// créature absente.
-func (f *figure) deplacement(pas game.Vec) anim {
-	if pas != (game.Vec{}) {
-		nom, c := f.cycleTenu(cycleMarche, cycleRepos)
-		return anim{nom: nom, cycle: c}
-	}
+// Les deux cycles de déplacement se replient l'un sur l'autre : un profil qui
+// n'a que `marche` s'anime à l'arrêt plutôt que de disparaître, et c'est moins
+// faux qu'une créature absente.
+func (f *figure) posePersonnage(pas, regard game.Vec, variante int) anim {
 	nom, c := f.cycleTenu(cycleRepos, cycleMarche)
-	return anim{nom: nom, cycle: c}
+	if pas != (game.Vec{}) {
+		nom, c = f.cycleTenu(cycleMarche, cycleRepos)
+	}
+	return anim{nom: nom, cycle: c, direction: f.regarder(regard), variante: variante}
+}
+
+// regarder rend la bande vers laquelle un vecteur regarde, repliée sur la
+// première que la figure déclare.
+//
+// **Le repli couvre deux cas d'un coup** : un vecteur nul, qui n'a pas de
+// direction et ne doit pas s'en inventer une chez `Facing`, et une figure qui ne
+// dessinerait pas les huit. Aucun des deux n'existe dans le catalogue livré —
+// tous les profils ont leurs huit bandes —, et c'est bien pour ça qu'il faut un
+// repli plutôt qu'un refus : ce qui n'arrive pas ne doit pas faire disparaître
+// un personnage.
+func (f *figure) regarder(v game.Vec) string {
+	if nom := sprite.Facing(v); slices.Contains(f.directions, nom) {
+		return nom
+	}
+	if len(f.directions) == 0 {
+		return ""
+	}
+	return f.directions[0]
 }

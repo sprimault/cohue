@@ -313,6 +313,31 @@ func (w *World) Player() (Fixed, Fixed) { return w.playerX, w.playerY }
 // qu'il dit est que le personnage avance, pas qu'on le pousse.
 func (w *World) PlayerStep() Vec { return w.playerStep }
 
+// PlayerAim rend le vecteur qui va du joueur à la créature qu'il vise, et dit
+// s'il y en a une.
+//
+// **Elle recalcule au lieu de conserver ce que le dernier tir a visé.** La
+// cadence est plus lente que l'image : un vecteur gardé ferait regarder le
+// personnage vers une créature morte depuis un quart de seconde, ou vers l'
+// endroit où se tenait la précédente. Ce que le sprite doit montrer est où l'on
+// tire maintenant, pas où l'on a tiré.
+//
+// **Vers la cible et non vers l'interception.** Le projectile part où la
+// créature sera ; le regard, lui, se pose sur elle. L'écart est d'une fraction
+// de tuile et le second se lit mieux — un personnage qui viserait devant sa
+// cible aurait l'air de regarder à côté.
+//
+// C'est une lecture, elle ne consomme rien et ne modifie rien : le rendu peut
+// l'appeler à chaque image sans déplacer d'un pixel ce que la simulation fait.
+func (w *World) PlayerAim() (Vec, bool) {
+	cible, trouvee := w.plusProche()
+	if !trouvee {
+		return Vec{}, false
+	}
+	e := w.ennemis.At(cible)
+	return Vec{X: e.X - w.playerX, Y: e.Y - w.playerY}, true
+}
+
 // Place pose le joueur, au montage du lieu.
 //
 // Sans projection ni contrôle de passabilité : c'est au chargeur de savoir où
@@ -331,6 +356,15 @@ func (w *World) Place(x, y Fixed) {
 // La résistance de départ est écrite dans les deux champs depuis un seul appel :
 // ce qui reste à encaisser et ce qu'il y avait à encaisser partent de la même
 // valeur, et aucune écriture ne peut les faire naître différents.
+//
+// **La teinte de vêtement se tire ici**, dans le flux cosmétique et nulle part
+// ailleurs. À l'apparition parce qu'elle doit tenir toute la vie de la créature :
+// la retirer au dessin lui changerait d'habit à chaque image. Depuis la graine
+// parce que la conception l'exige — une teinte prise à l'horloge ferait diverger
+// à l'œil deux rejeux de la même graine.
+//
+// C'est le seul endroit où ce paquet lit quelque chose de `Figure`, et il n'en
+// lit que le nombre de teintes : le dessin lui-même ne le regarde pas.
 func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 	touches := w.profils.Enemies[profil].HitsAt(w.durcissement())
 	return w.ennemis.Spawn(Enemy{
@@ -339,6 +373,7 @@ func (w *World) SpawnEnemy(profil int, x, y Fixed) (Handle, bool) {
 		Y:       y,
 		Hits:    touches,
 		MaxHits: touches,
+		Variant: w.hasard.Cosmetic.Pick(w.profils.Enemies[profil].Figure.Variants),
 	})
 }
 

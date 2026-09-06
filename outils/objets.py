@@ -462,20 +462,31 @@ def etincelle():
 
     Elle ne dit pas ce qui a été touché, seulement que le tir a porté — c'est
     ce retour-là qui manque le plus quand on tire sans le voir.
+
+    **La gerbe part de deux et non de un**, parce qu'un rayon d'un pixel ne
+    survit pas à l'aplatissement isométrique : la moitié verticale vaut alors un
+    demi-pixel, l'arrondi la ramène à zéro, et les huit directions retombent sur
+    trois pixels alignés. La première image montrait un tiret de trois pixels
+    là où elle doit montrer une gerbe.
+
+    Pas d'alpha dégressif : `prim.reduire` le binarise à 128, si bien que la
+    troisième image, écrite à 115, sortait **entièrement vide** — trois images
+    déclarées, deux dessinées. Ce qui s'éteint est la teinte.
     """
     images, cote = 3, 10
     planche = Image.new("RGBA", (cote * images, cote), TRANSPARENT)
+    # Du plus vif au plus éteint : la gerbe s'élargit en refroidissant.
+    teintes = ((255, 248, 214), (250, 226, 150), (214, 178, 108))
     for i in range(images):
-        rayon = 1 + i
-        alpha = 255 - i * 70
+        rayon = 2 + i
         for angle in range(0, 360, 45):
             dx = round(rayon * math.cos(math.radians(angle)))
             dy = round(rayon * math.sin(math.radians(angle)) * 0.5)
             x = i * cote + cote // 2 + dx
             y = cote // 2 + dy
             if 0 <= x - i * cote < cote and 0 <= y < cote:
-                planche.putpixel((x, y), (250, 226, 150, alpha))
-        planche.putpixel((i * cote + cote // 2, cote // 2), (255, 248, 214, alpha))
+                planche.putpixel((x, y), teintes[i] + (255,))
+        planche.putpixel((i * cote + cote // 2, cote // 2), (255, 248, 214, 255))
     return planche
 
 

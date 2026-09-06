@@ -21,7 +21,12 @@ type sorte uint8
 // et non par son rang, et n'en compare deux que pour départager ce que deux
 // bassins ont numéroté chacun de son côté.
 const (
-	sorteEnnemi sorte = iota
+	// sorteDecor est une case du décor qui dépasse du sol. Elle vient en tête
+	// pour ce que la comparaison en fait à égalité exacte : une créature posée
+	// pile au centre de la case qu'elle foule se peint alors devant elle, ce qui
+	// est le bon sens d'un trottoir sous des pieds.
+	sorteDecor sorte = iota
+	sorteEnnemi
 	// sorteAmbiance est le décor mouvant. Il est trié avec le reste et non peint
 	// à part : un figurant passe devant et derrière les créatures comme
 	// n'importe quel corps posé au sol, et l'exclure du tri le mettrait toujours
@@ -74,11 +79,17 @@ type entite struct {
 // ramasse-miettes exactement là où il se verrait — et, au-delà de la capacité du
 // tampon, l'image ne se contentait pas d'allouer : elle paniquait.
 //
-// **Elle ne range que les entités, et le décor est peint avant elle.** C'est
-// juste tant que le sol est plat : une face de case n'a rien qui dépasse, donc
-// rien à disputer. Le jour où les formes du décor auront leur volume, un muret
-// devra entrer dans la même séquence — sans quoi une créature derrière lui se
-// dessinera par-dessus.
+// **Le décor y entre pour ce qui dépasse du sol, et pour cela seulement.** Une
+// forme d'élévation nulle est toujours dessous : elle se peint en passe
+// préalable, où l'ordre ne décide de rien. Un muret, lui, dispute sa profondeur
+// à ce qui passe derrière, et le lui refuser ferait dessiner une créature
+// par-dessus le mur qui la cache.
+//
+// **Seul le décor visible est relevé**, là où les bassins le sont en entier. La
+// différence n'est pas un traitement de faveur : une carte de neuf mille cases
+// en a quelques centaines à l'écran, quand trois cents créatures y sont presque
+// toutes. Ce qui borne le relevé est donc la fenêtre et non la carte, et c'est
+// ce qui rend le coût indépendant de la taille du lieu.
 //
 // **Les gemmes en sont, bien qu'elles soient au sol**, et la raison n'est pas
 // statique : posées, elles pourraient être peintes avec le décor, puisqu'un
@@ -133,10 +144,10 @@ type source struct {
 // somme. La capacité des séquences couvre tous les bassins pleins et le joueur,
 // c'est-à-dire le plus grand nombre d'entités qu'une image puisse porter — et
 // elle se somme sur la liste même que le relevé parcourt.
-func nouvelleScene(carte *game.CostGrid, monde *game.World) *scene {
+func nouvelleScene(carte *game.CostGrid, monde *game.World, sol *Terrain, cam *camera) *scene {
 	s := &scene{
 		comptes: make([]int, carte.Width()+carte.Height()+1),
-		sources: sources(monde),
+		sources: sources(monde, sol, cam),
 	}
 
 	// Le joueur ne vit dans aucun bassin, d'où celui qu'on ajoute.
@@ -149,11 +160,16 @@ func nouvelleScene(carte *game.CostGrid, monde *game.World) *scene {
 	return s
 }
 
-// sources énumère les bassins qu'une image dessine, chacun avec sa capacité.
+// sources énumère ce qu'une image dessine, chacun avec sa capacité.
 //
 // Les bassins sont pris une fois : `World` les tient pour toute la partie, et
 // une relance monte un écran neuf.
-func sources(monde *game.World) []source {
+//
+// Le décor ouvre la liste et n'est pas un bassin : sa capacité est celle de la
+// fenêtre, bornée par la carte quand celle-ci est plus petite. Un lieu de neuf
+// mille cases n'en montre jamais plus d'un millier ; un lieu d'une pièce n'en a
+// pas mille à montrer.
+func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 	ennemis := monde.Enemies()
 	ambiants := monde.Ambients()
 	tirs := monde.Shots()
@@ -162,7 +178,28 @@ func sources(monde *game.World) []source {
 	aimants := monde.Magnets()
 	caisses := monde.Crates()
 
+	largeur := sol.carte.Width()
+	fenetre := min(cam.casesMax(), largeur*sol.carte.Height())
+
 	return []source{
+		{fenetre, func(s *scene) {
+			u0, v0, u1, v1 := cam.casesVisibles()
+			for v := v0; v <= v1; v++ {
+				for u := u0; u <= u1; u++ {
+					f, posee := sol.formeDe(u, v)
+					if !posee || !f.elevee {
+						continue
+					}
+					// Le centre de la case, comme une créature se tient au
+					// centre de la sienne : c'est ce qui met les deux sur le
+					// même point de comparaison. Le sommet bas de l'emprise,
+					// qui est pourtant le point où l'image se pose, mettrait un
+					// mur et la créature qui le longe à égalité.
+					s.ajouter(game.FromInt(u)+game.One/2, game.FromInt(v)+game.One/2,
+						v*largeur+u, sorteDecor, v*largeur+u)
+				}
+			}
+		}},
 		{ennemis.Cap(), func(s *scene) {
 			for i := range ennemis.Active() {
 				e := ennemis.At(i)
@@ -321,26 +358,36 @@ func insertion(s []entite) {
 // qu'un ennemi et un projectile peuvent porter le même identifiant sans avoir
 // rien de commun.
 //
-// **Quatre de ces critères ne sont pas encore éprouvés, et il faut le savoir.**
-// La profondeur exacte, l'abscisse, la sorte et l'identifiant ne s'atteignent que si deux
-// entités ont exactement la même profondeur en virgule fixe, ce que rien ne
-// produit aujourd'hui : un seau fait une tuile, soit seize pixels d'ordonnée,
-// alors que deux entités d'un même seau sont le plus souvent très écartées en
-// abscisse — celles qui se chevauchent à l'écran appartiennent à des seaux
-// différents, et c'est le premier critère qui les range. Ce qui les atteindrait
-// est deux entités posées exactement au même point du monde : l'anneau
-// d'apparition peut le produire, et rien ne dit qu'il l'ait déjà fait. Le seau
-// et l'exception du joueur, eux, sont éprouvés : les inverser change la planche.
+// **Le décor a fermé la moitié d'une dette.** La profondeur exacte et l'abscisse
+// s'atteignaient jusqu'ici si peu qu'on ne pouvait rien dire d'elles : deux
+// entités ne partagent une profondeur en virgule fixe qu'en étant posées
+// exactement au même point du monde, ce que seul l'anneau d'apparition pourrait
+// produire. Les cases, elles, tombent sur des profondeurs entières, et celles
+// d'une même diagonale se départagent par l'abscisse à chaque image — sans
+// conséquence visible, deux cases voisines ne se recouvrant pas, mais le critère
+// est exercé au lieu d'être supposé.
 //
-// **Les gemmes ne les atteignent pas non plus**, contrairement à ce qu'on
-// pourrait croire d'un tas : deux créatures meurent à des positions distinctes,
-// donc leurs gemmes le sont aussi, et une volée est écartée exprès pour ne pas
-// se superposer. La dette reste donc entière.
+// **La sorte et l'identifiant restent hors d'atteinte.** Il y faudrait deux
+// entités au même point, ou une créature dont la position tombe exactement au
+// centre d'une case — le premier des deux départage alors une case et ce qui la
+// foule, dans le sens que dit `sorteDecor`. Le seau et l'exception du joueur,
+// eux, sont éprouvés : les inverser change la planche.
+//
+// **Les gemmes n'y changent rien**, contrairement à ce qu'on pourrait croire
+// d'un tas : deux créatures meurent à des positions distinctes, donc leurs
+// gemmes le sont aussi, et une volée est écartée exprès pour ne pas se
+// superposer.
 //
 // **Le joueur passe devant ce qui partage sa profondeur**, exception que la
 // conception assume : perdre son personnage sous un empilement est ce qui peut
 // arriver de pire à la lisibilité, et cela survient précisément quand on est
 // encerclé, c'est-à-dire quand il faut voir clair.
+//
+// **Elle vaut aussi contre le décor depuis qu'il entre dans la séquence**, et
+// c'est assumé plutôt que subi : un mur du même seau ne mord sur le joueur que
+// de quelques pixels, et le montrer par-dessus est ce que la silhouette fera de
+// toute façon — elle redessine le personnage sur ce qui le cache. Ce que
+// l'exception anticipe ici, elle le rendra alors exact.
 //
 // Le grain de l'exception est le **seau**, une bande d'une tuile d'épaisseur, et
 // non l'égalité exacte des profondeurs. Deux positions en virgule fixe ne sont

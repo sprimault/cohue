@@ -24,10 +24,11 @@ import (
 // mode est resté inerte des mois parce que le test posait lui-même la clé que
 // le manifeste livré ne portait pas.
 func TestManifesteLivreDonneLeCatalogue(t *testing.T) {
-	_, couts, err := LoadDecor(cohue.Assets, "assets/decors/manifeste.json")
+	decor, err := LoadDecor(cohue.Assets, "assets/decors/manifeste.json")
 	if err != nil {
-		t.Fatalf("catalogue de coûts : %v", err)
+		t.Fatalf("manifeste de décor : %v", err)
 	}
+	couts := decor.Costs()
 
 	// Trois formes, trois natures : ce qui se marche, ce qui ralentit, ce qui
 	// arrête. Une seule d'entre elles suffirait à passer si le catalogue était
@@ -53,9 +54,9 @@ func TestManifesteLivreDonneLeCatalogue(t *testing.T) {
 // monte profils, armes et joueur, mais ne regarde aucune case. Le supprimer au
 // motif que l'autre monte davantage laisserait la cuisson sans épreuve.
 func TestLieuLivre(t *testing.T) {
-	_, couts, err := LoadDecor(cohue.Assets, "assets/decors/manifeste.json")
+	decor, err := LoadDecor(cohue.Assets, "assets/decors/manifeste.json")
 	if err != nil {
-		t.Fatalf("catalogue de coûts : %v", err)
+		t.Fatalf("manifeste de décor : %v", err)
 	}
 	profils, err := game.LoadProfiles(cohue.Assets, "assets/personnages/manifeste.json")
 	if err != nil {
@@ -68,7 +69,7 @@ func TestLieuLivre(t *testing.T) {
 	if err != nil {
 		t.Fatalf("progression livrée : %v", err)
 	}
-	charge, err := NewLoader(cohue.Assets, couts, profils, progression.CarryOver).
+	charge, err := NewLoader(cohue.Assets, decor, profils, progression.CarryOver).
 		Load("assets/campagnes/demonstration/place")
 	if err != nil {
 		t.Fatalf("chargement du lieu : %v", err)

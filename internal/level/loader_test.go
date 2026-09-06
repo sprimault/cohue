@@ -20,12 +20,29 @@ import (
 	"github.com/sprimault/cohue/internal/manifest"
 )
 
-// couts est le catalogue que le manifeste du décor fournira ; les tests en
+// prix rend un coût de traversée sous la forme que le manifeste emploie.
+//
+// Un pointeur, parce que l'absence du champ et un coût nul ne se confondent pas :
+// c'est la présence même qui doit s'accorder avec `bloquant`.
+func prix(pas int) *int { return &pas }
+
+// decorDeTest est le manifeste que les cas du chargeur emploient ; les tests en
 // donnent la part dont ils ont besoin.
-var couts = map[string]game.Cost{
-	"sol":    game.Free,
-	"mur":    game.Blocked,
-	"pilier": game.Blocked,
+//
+// Trois formes, trois natures : un sol qui remplit sa case, un mur qui la
+// remplit aussi, et un pilier qui n'en occupe qu'un quart — celui-là seul exige
+// qu'un thème déclare son sol, et c'est ce qui garde ce refus exercé par les cas
+// ordinaires plutôt que par un seul.
+var decorDeTest = &Decor{
+	Tile: [2]int{64, 32},
+	Shapes: map[string]Shape{
+		"sol": {Theme: "commun", Size: [2]int{64, 32}, Anchor: [2]int{32, 31},
+			Footprint: [2]float64{1, 1}, Cost: prix(int(game.Free))},
+		"mur": {Theme: "commun", Size: [2]int{64, 96}, Anchor: [2]int{32, 95},
+			Elevation: 64, Footprint: [2]float64{1, 1}, Blocking: true},
+		"pilier": {Theme: "commun", Size: [2]int{32, 80}, Anchor: [2]int{16, 79},
+			Elevation: 64, Footprint: [2]float64{0.5, 0.5}, Blocking: true},
+	},
 }
 
 // profils est la table de créatures que les scénarios de vagues citent.
@@ -43,7 +60,7 @@ var profils = &game.Profiles{Enemies: []game.EnemyProfile{{Key: "marcheur"}}}
 const reportDeTest = 3 * game.TPS
 
 // chargeur monte un chargeur de test sur un système de fichiers.
-func chargeur(fsys fs.FS) *Loader { return NewLoader(fsys, couts, profils, reportDeTest) }
+func chargeur(fsys fs.FS) *Loader { return NewLoader(fsys, decorDeTest, profils, reportDeTest) }
 
 // chargeurDeTest monte un chargeur sur les fichiers de testdata.
 //
@@ -253,13 +270,19 @@ func TestPieceInconnue(t *testing.T) {
 	}
 }
 
-// TestTuileHorsCatalogueBloque vérifie qu'une forme que le manifeste ne connaît
-// pas devient un mur.
+// TestTuileHorsCatalogueRefusee vérifie qu'une palette citant une forme
+// inconnue fait échouer le chargement.
 //
-// Le chargeur ne code aucun nom de tuile en dur : il lit un catalogue. Une forme
-// qu'il n'y trouve pas ne peut pas être supposée franchissable — un trou dans la
-// carte se traverse en silence, un mur se voit.
-func TestTuileHorsCatalogueBloque(t *testing.T) {
+// **Ce test gardait le repli, et le repli était le défaut.** Une forme absente
+// du catalogue devenait un mur : le lieu se chargeait, une faute de frappe dans
+// un nom de forme posait une enceinte, et rien ne disait à son auteur ce qu'il
+// avait écrit de travers. Le mur reste ce que l'assemblage met dans la grille —
+// il tourne avant la validation et doit bien mettre quelque chose —, mais il
+// n'arrive plus jusqu'à une partie.
+//
+// Le refus nomme la clé de palette et la forme, les deux seules choses que son
+// auteur peut corriger.
+func TestTuileHorsCatalogueRefusee(t *testing.T) {
 	fsys := fstest.MapFS{
 		"x/lieu.json": &fstest.MapFile{Data: []byte(`{
 			"version_format": 1, "identifiant": "x", "jeu_pieces": "commun",
@@ -273,12 +296,12 @@ func TestTuileHorsCatalogueBloque(t *testing.T) {
 			"taille": [1, 1], "grille": ["?"]
 		}`)},
 	}
-	charge, err := chargeur(fsys).Load("x")
-	if err != nil {
-		t.Fatalf("chargement : %v", err)
+	_, err := chargeur(fsys).Load("x")
+	if err == nil {
+		t.Fatal("une palette citant une forme inconnue se charge")
 	}
-	if charge.Grid.Passable(0, 0) {
-		t.Error("une forme hors catalogue se dit franchissable")
+	if !strings.Contains(err.Error(), "forme_inventee") {
+		t.Errorf("le refus ne nomme pas la forme fautive : %v", err)
 	}
 }
 

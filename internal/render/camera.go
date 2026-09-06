@@ -90,6 +90,24 @@ func (c *camera) casesVisibles() (u0, v0, u1, v1 int) {
 	return u0 - 1, v0 - 1, u1 + 1, v1 + 1
 }
 
+// casesMax borne le nombre de cases que `casesVisibles` peut rendre, quelle que
+// soit la position de la caméra.
+//
+// Elle sert à dimensionner ce qui relève le décor visible : une tranche qui
+// n'alloue pas a besoin d'un majorant, et celui-ci ne dépend que du tampon et de
+// la taille de tuile — deux choses fixes pour toute la partie.
+//
+// Le losange que le tampon découpe s'étend, sur chacun des deux axes du monde,
+// de la largeur rapportée à une tuile plus la hauteur rapportée à une demi-tuile.
+// Un intervalle de cette longueur rencontre au plus sa partie entière plus deux
+// bornes de case ; les deux cases de marge que `casesVisibles` ajoute complètent
+// le compte.
+func (c *camera) casesMax() int {
+	etendue := Width/(2*c.proj.demiLargeur) + Height/(2*c.proj.demiHauteur)
+	cote := int(etendue) + 4
+	return cote * cote
+}
+
 // cadrer rend le décalage d'un axe : la cible au milieu du tampon, ramenée dans
 // ce que le lieu laisse voir.
 //

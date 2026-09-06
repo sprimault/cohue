@@ -59,8 +59,18 @@ const (
 // une voie rapide pour le contenu livré ne serait exercée qu'à moitié.
 type Loader struct {
 	fsys fs.FS
-	// couts dit ce que coûte la traversée d'une forme de décor. Il vient du
-	// manifeste : le chargeur ne connaît aucun nom de tuile en dur.
+	// decor est le manifeste des formes. Le chargeur ne connaît aucun nom de
+	// tuile en dur : il y lit ce que coûte une traversée, et si une forme
+	// remplit sa case.
+	//
+	// **Le manifeste entier et non le seul catalogue de coûts**, depuis qu'un
+	// thème doit déclarer un sol quand sa palette emploie une forme qui laisse
+	// du losange nu. Les deux dérivent du même fichier ; en recevoir un et
+	// dériver l'autre aurait fait entrer deux descriptions par la porte du
+	// paramètre.
+	decor *Decor
+	// couts est dérivé de `decor`, une fois, parce que la cuisson le consulte
+	// par case.
 	couts map[string]game.Cost
 	// profils sert à résoudre les profils qu'un scénario de vagues autorise.
 	//
@@ -80,10 +90,15 @@ type Loader struct {
 }
 
 // NewLoader monte un chargeur sur un système de fichiers et les deux catalogues
-// qu'un lieu cite : les coûts de traversée et les profils de créatures.
-func NewLoader(fsys fs.FS, couts map[string]game.Cost, profils *game.Profiles,
-	report game.Tick) *Loader {
-	return &Loader{fsys: fsys, couts: couts, profils: profils, report: report}
+// qu'un lieu cite : les formes du décor et les profils de créatures.
+func NewLoader(fsys fs.FS, decor *Decor, profils *game.Profiles, report game.Tick) *Loader {
+	return &Loader{
+		fsys:    fsys,
+		decor:   decor,
+		couts:   decor.Costs(),
+		profils: profils,
+		report:  report,
+	}
 }
 
 // Load lit le lieu que porte un dossier, ses pièces et son jeu, puis les cuit
@@ -143,13 +158,14 @@ func (l *Loader) Load(dossier string) (*Loaded, error) {
 	// placements qu'elle recopie —, si bien que la faire tôt ne coûte rien et
 	// donne aux positions de figurants la seule chose qui permette de les
 	// refuser : une carte où lire la passabilité.
-	grille := cuire(lieu, jeu, pieces, l.couts)
+	tuiles := cuire(lieu, pieces, jeu)
+	grille := tuiles.couts(l.couts)
 
 	scenario, ecarts := game.CompileScenario(lieu.Waves, l.profils, l.report)
 	ambiance, ecartsAmbiance := game.CompileAmbient(lieu.Ambient, l.profils, grille)
 	sortie, ecartsSortie := game.CompileExit(lieu.Exit, grille)
 	caisses, ecartsCaisses := game.CompileCrates(lieu.Crates, grille)
-	manques := append(valider(nom, lieu, jeu, pieces), ecarts...)
+	manques := append(valider(nom, lieu, jeu, pieces, l.decor), ecarts...)
 	manques = append(manques, ecartsAmbiance...)
 	manques = append(manques, ecartsSortie...)
 	manques = append(manques, ecartsCaisses...)
@@ -157,7 +173,7 @@ func (l *Loader) Load(dossier string) (*Loaded, error) {
 		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
 	return &Loaded{
-		Grid: grille, Scenario: scenario, Ambient: ambiance,
+		Grid: grille, Tiles: tuiles, Scenario: scenario, Ambient: ambiance,
 		Exit: sortie, Crates: caisses,
 	}, nil
 }
@@ -174,8 +190,11 @@ func (l *Loader) Load(dossier string) (*Loaded, error) {
 // invitation permanente à devenir un fourre-tout, et ce qui l'en garde est ce
 // critère plutôt que la vigilance.
 type Loaded struct {
-	// Grid est la carte assemblée, où le champ de flux tourne.
+	// Grid est la carte assemblée, où le champ de flux tourne. Elle descend de
+	// `Tiles`, et c'est ce qui interdit au dessin et au coût de se contredire.
 	Grid *game.CostGrid
+	// Tiles est la forme de décor de chaque case, ce que le rendu pose.
+	Tiles *Tilemap
 	// Scenario est la courbe de pression compilée.
 	Scenario *game.Scenario
 	// Ambient est le peuplement de figurants, résolu en index de profils.
@@ -186,29 +205,29 @@ type Loaded struct {
 	Crates []game.CratePlacement
 }
 
-// cuire assemble les pièces posées en une seule grille de coûts.
+// cuire assemble les pièces posées en une seule carte de formes.
 //
 // Après quoi le moteur ne sait plus que le lieu était modulaire : le parcours du
-// champ de flux tourne sur une grille ordinaire.
-func cuire(lieu *Level, jeu *Set, pieces []*Room, couts map[string]game.Cost) *game.CostGrid {
+// champ de flux tourne sur une grille ordinaire, dérivée de cette carte.
+func cuire(lieu *Level, pieces []*Room, jeu *Set) *Tilemap {
 	var largeur, hauteur int
 	for i, pose := range lieu.Placements {
 		largeur = max(largeur, pose.U+pieces[i].Size[0])
 		hauteur = max(hauteur, pose.V+pieces[i].Size[1])
 	}
 
-	grille := game.NewCostGrid(largeur, hauteur)
+	tuiles := newTilemap(largeur, hauteur)
+	tuiles.sol = jeu.Ground
 	for i, pose := range lieu.Placements {
 		for v, ligne := range pieces[i].Rows {
-			for u, jeton := range ligne {
-				forme := jeu.Palette[string(jeton)]
-				cout, connu := couts[forme]
-				if !connu {
-					cout = game.Blocked
-				}
-				grille.Set(pose.U+u, pose.V+v, cout)
+			// Les runes et non les octets, comme le fait le contrôle de la
+			// grille : un caractère de palette hors de l'ASCII décalerait
+			// autrement toute la fin de sa ligne, sur une pièce que la
+			// validation vient d'accepter.
+			for u, jeton := range []rune(ligne) {
+				tuiles.set(pose.U+u, pose.V+v, jeu.Palette[string(jeton)])
 			}
 		}
 	}
-	return grille
+	return tuiles
 }

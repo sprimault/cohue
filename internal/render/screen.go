@@ -76,12 +76,13 @@ const poulsAnnonce = 6
 // tard. Ce qui monte ensuite est le temps qui manque, pas l'existence du danger.
 const emprisePlancher = 0.45
 
-// Les teintes du rendu provisoire, qui tiendront jusqu'à ce que l'atlas entre.
+// Les teintes du rendu provisoire, qui tiendront jusqu'à ce que les créatures
+// aient leurs sprites.
 //
-// Elles ne cherchent pas à ressembler à un lieu : ce sont des états de la grille
-// de coûts et des rôles de créature, choisis pour se distinguer et pour rien
-// d'autre. La palette fermée du jeu vaut pour les images du décor, qui sortent
-// des générateurs, et non pour ces aplats qui disparaîtront avec eux.
+// Elles ne cherchent pas à ressembler à un lieu : ce sont des rôles de créature,
+// choisis pour se distinguer et pour rien d'autre. La borne de couleurs vaut
+// pour les images, qui sortent des générateurs, et non pour ces aplats qui
+// disparaîtront avec elles.
 //
 // **Deux axes, et ils ne servent pas la même question.** La valeur sépare ce
 // qu'on est de ce qu'on affronte — le joueur clair, la horde sombre —, et c'est
@@ -90,15 +91,12 @@ const emprisePlancher = 0.45
 // confondre donnerait un profil plus visible que les autres, décision de
 // conception que personne n'a prise.
 var (
-	fond      = color.RGBA{R: 24, G: 24, B: 28, A: 255}
-	solBloque = color.RGBA{R: 58, G: 58, B: 66, A: 255}
-	solLibre  = color.RGBA{R: 96, G: 98, B: 104, A: 255}
-	solLent   = color.RGBA{R: 74, G: 96, B: 120, A: 255}
+	fond = color.RGBA{R: 24, G: 24, B: 28, A: 255}
 
-	// La porte, dans ses deux états. Elle est peinte à part de la grille parce
-	// qu'elle n'y change rien : fermée elle est un mur comme un autre, ouverte
-	// elle l'est encore. Ce que ces deux teintes disent est ce qu'aucun coût ne
-	// porte — le lieu est gagné, et la sortie est là.
+	// La porte, dans ses deux états. Elle teinte le décor de sa case au lieu de
+	// le remplacer, parce qu'elle n'y change rien : fermée elle est un mur comme
+	// un autre, ouverte elle l'est encore. Ce que ces deux teintes disent est ce
+	// qu'aucune forme ne porte — le lieu est gagné, et la sortie est là.
 	//
 	// **Une seule teinte, éteinte puis vive**, plutôt que deux couleurs : c'est
 	// le même objet dans deux états, et l'écart de valeur se voit en périphérie
@@ -111,7 +109,8 @@ var (
 	// mur qui l'entoure ne l'était pas, si bien qu'une partie jouée n'a pas
 	// trouvé la porte en faisant les quatre coins de la salle. Une teinte ne se
 	// choisit pas contre l'autre état du même objet, elle se choisit **aussi**
-	// contre ce qui l'entoure — ici `solBloque`, qui occupe toute l'enceinte.
+	// contre ce qui l'entoure — ici le mur de l'enceinte, sur lequel la porte
+	// est posée et que ces deux teintes multiplient.
 	porteFermee  = color.RGBA{R: 48, G: 132, B: 152, A: 255}
 	porteOuverte = color.RGBA{R: 120, G: 232, B: 248, A: 255}
 
@@ -229,6 +228,7 @@ var (
 type Screen struct {
 	monde *game.World
 	carte *game.CostGrid
+	sol   *Terrain
 	cam   *camera
 
 	scene *scene
@@ -236,6 +236,10 @@ type Screen struct {
 	// Les formes blanches que le dessin teinte au blit : la face d'une case, la
 	// silhouette d'un personnage, le point d'un projectile, celui d'une gemme,
 	// celui d'un aimant et le pavé d'une caisse.
+	//
+	// La face n'est plus celle du sol, que le décor dessine : elle ne sert plus
+	// qu'à marquer l'emprise d'une explosion, où un losange à l'échelle exacte
+	// de la case est ce qu'il faut.
 	face     *ebiten.Image
 	figurine *ebiten.Image
 	eclat    *ebiten.Image
@@ -281,15 +285,19 @@ func (s *Screen) WithHUD(h *HUD) *Screen {
 
 // NewScreen monte le rendu sur une partie et le lieu qu'elle joue.
 //
-// La taille de tuile est celle du manifeste de décor et jamais une constante :
-// le manifeste la porte, le chargeur en exige le rapport de deux pour un, et
-// c'est de lui que la projection la tient.
-func NewScreen(monde *game.World, carte *game.CostGrid, tuile [2]int) *Screen {
+// Le décor apporte sa taille de tuile, celle du manifeste et jamais une
+// constante : le chargeur en exige le rapport de deux pour un, et c'est de lui
+// que la projection la tient. La recevoir à part du terrain qui la porte aurait
+// laissé deux appelants la prendre à deux endroits.
+func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain) *Screen {
+	tuile := sol.TileSize()
+	cam := nouvelleCamera(tuile, carte)
 	s := &Screen{
 		monde:    monde,
 		carte:    carte,
-		cam:      nouvelleCamera(tuile, carte),
-		scene:    nouvelleScene(carte, monde),
+		sol:      sol,
+		cam:      cam,
+		scene:    nouvelleScene(carte, monde, sol, cam),
 		face:     face(tuile),
 		figurine: aplat(tuile[0]/4, tuile[0]*3/4),
 		eclat:    aplat(tuile[1]/8, tuile[1]/8),
@@ -422,29 +430,69 @@ func (s *Screen) peindreDanger(ecran *ebiten.Image) {
 	}
 }
 
-// peindreSol pose la face de chaque case visible, teintée par son coût.
+// peindreSol pose le décor de chaque case visible qui ne dépasse pas du sol.
 //
-// Ce que ce sol montre n'est pas le décor mais la grille de coûts, c'est-à-dire
-// ce que le champ de flux lit : franchissable, coûteux, ou mur. Tant qu'aucun
-// atlas n'est chargé, c'est l'information la plus utile qu'une case puisse
-// porter — un lieu se relit alors comme la simulation le voit, et un écart entre
-// les deux se verrait ici avant de se deviner ailleurs.
+// **Ce qui dépasse n'est pas ici mais dans la séquence**, où il dispute sa
+// profondeur au reste. Un sol, lui, est toujours dessous : l'ordre entre deux
+// cases plates ne décide de rien, puisqu'elles pavent sans se recouvrir, et le
+// balayage par rangées suffit.
+//
+// **Le tri par coût que ce sol montrait a disparu avec l'aplat**, et rien ne
+// s'est perdu à le retirer : la grille descend désormais de la même carte de
+// formes que ces images, si bien qu'un écart entre ce qu'on voit et ce que le
+// champ de flux lit n'est plus exprimable.
 func (s *Screen) peindreSol(ecran *ebiten.Image) {
 	u0, v0, u1, v1 := s.cam.casesVisibles()
 	for v := v0; v <= v1; v++ {
 		for u := u0; u <= u1; u++ {
-			if !s.carte.InBounds(u, v) {
-				continue
+			if f, posee := s.sol.formeDe(u, v); posee && !f.elevee {
+				s.poserCase(ecran, u, v, f)
 			}
-			x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
-			s.op.GeoM.Reset()
-			s.op.GeoM.Translate(float64(x-s.demiTuile), float64(y))
-			s.op.ColorScale.Reset()
-			s.op.ColorScale.ScaleWithColor(s.teinteCase(u, v))
-			ecran.DrawImage(s.face, &s.op)
 		}
 	}
 	s.peindreEmprises(ecran)
+}
+
+// poserCase pose l'image d'une case, à l'ancrage que son manifeste lui donne, et
+// le sol du thème sous ce qui ne remplit pas son losange.
+//
+// **Le sol vient juste avant la forme et non dans une passe à part.** Un pilier
+// se trie, un rail ne se trie pas, et ce qui les comble doit suivre chacun dans
+// sa passe : une passe de sol posée d'un bloc peindrait par-dessus les cases
+// déjà triées de la même image.
+//
+// **La porte garde ses deux teintes, appliquées à ce que le décor y dessine.**
+// Aucune forme du lieu ne dit qu'une case est la sortie — l'ouverture est un
+// état de partie, et le décor n'en sait rien —, or une partie jouée a montré
+// qu'on fait les quatre coins d'une salle sans trouver une porte qui ressemble
+// au mur qui l'entoure. La teinte multiplie l'image au lieu de la remplacer :
+// le mur reste un mur, et il vire au cyan. Le sol n'en prend rien — ce qu'elle
+// désigne est la porte, pas la case qui la porte.
+func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme) {
+	x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
+	if f.nue && s.sol.sol != nil {
+		s.poser(ecran, x, y, *s.sol.sol)
+	}
+
+	s.op.ColorScale.Reset()
+	if sortie := s.monde.Exit(); sortie != nil && sortie.U == u && sortie.V == v {
+		if s.monde.DoorOpen() {
+			s.op.ColorScale.ScaleWithColor(porteOuverte)
+		} else {
+			s.op.ColorScale.ScaleWithColor(porteFermee)
+		}
+	}
+	s.op.GeoM.Reset()
+	s.op.GeoM.Translate(float64(x+f.dx), float64(y+f.dy))
+	ecran.DrawImage(f.image, &s.op)
+}
+
+// poser pose une forme sans la teinter, au coin que son ancrage lui donne.
+func (s *Screen) poser(ecran *ebiten.Image, x, y int, f forme) {
+	s.op.GeoM.Reset()
+	s.op.GeoM.Translate(float64(x+f.dx), float64(y+f.dy))
+	s.op.ColorScale.Reset()
+	ecran.DrawImage(f.image, &s.op)
 }
 
 // teinteDuProfil rend la couleur d'une créature, le rouge de la masse pour une
@@ -454,23 +502,6 @@ func teinteDuProfil(cle string) color.RGBA {
 		return teinte
 	}
 	return teinteHordeParDefaut
-}
-
-// teinteCase rend la couleur d'une case : celle de la porte si c'en est une,
-// celle de son coût sinon.
-//
-// **La porte prime sur le coût**, sans quoi elle se peindrait en mur et le
-// joueur n'aurait aucun moyen de la trouver — c'est la seule case du lieu dont
-// la grille ne dit pas ce qu'il faut en savoir.
-func (s *Screen) teinteCase(u, v int) color.RGBA {
-	sortie := s.monde.Exit()
-	if sortie != nil && sortie.U == u && sortie.V == v {
-		if s.monde.DoorOpen() {
-			return porteOuverte
-		}
-		return porteFermee
-	}
-	return teinte(s.carte.At(u, v))
 }
 
 // peindreEmprises marque au sol ce qu'une explosion amorcée va couvrir.
@@ -521,8 +552,13 @@ func (s *Screen) peindreEmprises(ecran *ebiten.Image) {
 // tri range des rangs, pas des coordonnées, et une copie faite au moment du tri
 // aurait une image de retard le jour où quelque chose bougera entre les deux.
 func (s *Screen) peindreEntites(ecran *ebiten.Image) {
+	largeur := s.sol.carte.Width()
 	for _, e := range s.scene.ranger(s.monde) {
 		switch e.sorte {
+		case sorteDecor:
+			u, v := e.place%largeur, e.place/largeur
+			f, _ := s.sol.formeDe(u, v)
+			s.poserCase(ecran, u, v, f)
 		case sorteEnnemi:
 			c := s.monde.Enemies().At(e.place)
 			teinte := teinteDuProfil(s.monde.EnemyKey(c.Profile))
@@ -660,17 +696,6 @@ func attenuer(teinte color.RGBA, part float32) color.RGBA {
 		B: uint8(float32(teinte.B) * part),
 		A: uint8(float32(teinte.A) * part),
 	}
-}
-
-// teinte dit de quelle couleur une case se peint, selon ce qu'elle coûte.
-func teinte(cout game.Cost) color.RGBA {
-	switch {
-	case cout == game.Blocked:
-		return solBloque
-	case cout > game.Free:
-		return solLent
-	}
-	return solLibre
 }
 
 // voulu lit les touches et rend la direction demandée, dans le repère du monde.

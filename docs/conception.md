@@ -864,6 +864,7 @@ Ce qu'on y perd est le commentaire, et `$comment` le rend : il est **autorisé p
     "fichier": "atlas.png",
     "taille_tuile": [64, 32]
   },
+  "sol": "sol_carrele",
   "palette": {
     ".": "sol",
     "#": "mur",
@@ -876,6 +877,33 @@ Ce qu'on y perd est le commentaire, et `$comment` le rend : il est **autorisé p
   }
 }
 ```
+
+**Le thème déclare son sol, et c'est ce qui rend une forme plus petite qu'une
+case posable.** Une case porte une forme et une seule ; trente-huit du catalogue
+ne remplissent pas son losange — un pilier en occupe un quart, une cloison mince
+un cinquième, un banc moins encore. Sans rien dessous, ce qui reste nu laisse
+voir le fond, ce que le rendu en aplats masquait en peignant toujours un losange
+plein.
+
+**Le sol appartient au lieu et non à la forme.** Le même banc se pose sur du
+carrelage dans un supermarché et sur du bitume dans un parking : le dessiner sur
+son sol demanderait deux bancs, et le thème cesserait de décider de son propre
+décor. Il tient donc à côté de la palette, qui est déjà son vocabulaire partagé.
+
+**Un sol par thème et non par pièce.** Le thème est l'unité qui porte la
+cohérence visuelle, et ce qui rendrait ce choix insuffisant se nomme plutôt que
+se prévoit : une pièce dont un pilier serait sur moquette quand ses voisins sont
+sur carrelage. Ce jour-là il faudra une surcharge par pièce, pas une refonte.
+
+Trois refus l'accompagnent, et **le troisième porte sur une combinaison plutôt
+que sur une valeur** — c'est le même geste que le refus d'un profil qu'une phase
+autorise sans pouvoir le payer. Un sol nommé doit exister au catalogue ; il doit
+remplir sa case, faute de quoi combler n'aurait pas de fin ; et **un thème qui
+emploie une forme non couvrante sans déclarer de sol est refusé**. Sans ce
+dernier, le mécanisme serait correct et un thème pourrait simplement ne pas
+l'employer : le trou reviendrait, aussi silencieux qu'avant. Le message nomme la
+forme fautive et son emprise, parce qu'il s'adresse à un auteur de thème — « sol
+manquant » l'enverrait ouvrir les soixante et une formes du catalogue.
 
 ### Une campagne
 
@@ -977,6 +1005,8 @@ Un niveau qui ne référence que des pièces officielles ne contient donc que de
 Un lieu invalide est rejeté avec un message clair, il ne fait pas planter la run :
 
 - identifiants de pièces tous connus, sinon refus propre ;
+- palette dont chaque forme existe au catalogue du décor, et sol du thème
+  déclaré dès qu'une de ces formes ne remplit pas sa case ;
 - empreinte du jeu de pièces conforme, sinon avertissement explicite plutôt qu'un chargement silencieux ;
 - zone jouable connexe (garantie par les connecteurs, revérifiée) ;
 - sortie atteignable depuis l'entrée, au moins une boucle sur le trajet ;

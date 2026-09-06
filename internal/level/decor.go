@@ -56,12 +56,12 @@ type Shape struct {
 	Category string `json:"categorie"`
 	// Footprint est l'emprise au sol en tuiles.
 	//
-	// **Aucune pièce ne doit poser une forme de plus d'une tuile tant que rien
-	// ne lit ce champ**, et c'est pourquoi le lieu livré n'en emploie aucune :
-	// le chargeur l'ignore, si bien qu'une gondole de deux tuiles n'en
-	// bloquerait qu'une, et que le lieu mentirait sans qu'aucun contrôle ne le
-	// dise. Le champ est déclaré parce que le décodage refuse les clés
-	// inconnues ; le retirer ferait échouer le chargement du manifeste livré.
+	// **Le rendu la lit, le chargeur pas encore.** Elle dit où poser l'image sur
+	// sa case et si la forme couvre le losange ; ce qui bloque reste la seule
+	// case d'ancrage, si bien qu'une gondole de deux tuiles n'en bloquerait
+	// qu'une. **Aucune pièce ne doit donc poser une forme de plus d'une tuile**
+	// tant que la passabilité l'ignore, et c'est pourquoi le lieu livré n'en
+	// emploie aucune.
 	Footprint [2]float64 `json:"emprise"`
 	// Blocking dit si la forme arrête ce qui s'y présente.
 	Blocking bool `json:"bloquant"`
@@ -85,7 +85,8 @@ type Shape struct {
 	Masking bool `json:"masquant"`
 }
 
-// LoadDecor lit le manifeste de décor et en dérive le catalogue de coûts.
+// LoadDecor lit le manifeste de décor et refuse une forme dont le rôle se
+// contredit.
 //
 // C'est ce qui fait du manifeste le contrat qu'il prétend être : aucun nom de
 // forme n'est écrit dans le code, et ajouter une flaque au générateur suffit à
@@ -95,13 +96,13 @@ type Shape struct {
 // absente vaut un couple nul, qu'aucun consommateur ne saurait distinguer d'un
 // réglage, et un refus qui s'arrêterait à elle cacherait ce que le fichier a
 // d'autre à corriger.
-func LoadDecor(fsys fs.FS, chemin string) (*Decor, map[string]game.Cost, error) {
+func LoadDecor(fsys fs.FS, chemin string) (*Decor, error) {
 	decor, err := manifest.Decode[Decor](fsys, chemin)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	if decor.Format != FormatDecor {
-		return nil, nil, fmt.Errorf("%s: %w : %d, ce binaire lit la %d",
+		return nil, fmt.Errorf("%s: %w : %d, ce binaire lit la %d",
 			chemin, manifest.ErrUnsupportedFormat, decor.Format, FormatDecor)
 	}
 
@@ -112,21 +113,45 @@ func LoadDecor(fsys fs.FS, chemin string) (*Decor, map[string]game.Cost, error) 
 			largeur, hauteur))
 	}
 
-	couts := make(map[string]game.Cost, len(decor.Shapes))
 	for _, nom := range noms(decor.Shapes) {
-		forme := decor.Shapes[nom]
+		if _, defaut := decor.Shapes[nom].cout(); defaut != "" {
+			manques = append(manques, nom+" : "+defaut)
+		}
+	}
+	if len(manques) > 0 {
+		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
+	}
+	return decor, nil
+}
+
+// Costs dérive le catalogue de coûts que le chargeur de lieux consulte.
+//
+// **Il se dérive au lieu d'être rendu par la lecture**, parce que le manifeste
+// est désormais lu pour deux choses — les coûts et les images — et qu'un couple
+// rendu à tous ferait porter à chaque appelant ce dont il n'a pas l'usage. Une
+// forme dont le rôle se contredit vaut un mur ici ; c'est `LoadDecor` qui la
+// refuse, et personne n'atteint ce cas sur un manifeste qu'il a lu.
+func (d *Decor) Costs() map[string]game.Cost {
+	couts := make(map[string]game.Cost, len(d.Shapes))
+	for nom, forme := range d.Shapes {
 		cout, defaut := forme.cout()
 		if defaut != "" {
-			manques = append(manques, nom+" : "+defaut)
-			continue
+			cout = game.Blocked
 		}
 		couts[nom] = cout
 	}
-	if len(manques) > 0 {
-		return nil, nil, &manifest.Invalid{Path: chemin, Missing: manques}
-	}
-	return decor, couts, nil
+	return couts
 }
+
+// Covers dit si la forme remplit le losange de sa case.
+//
+// **C'est la question que le sol d'un thème existe pour résoudre.** Trente-huit
+// formes sur soixante et une n'y répondent pas — un pilier, une cloison mince,
+// un banc —, et ce qu'elles laissent nu appartient au lieu et non à l'image :
+// le même banc se pose sur du carrelage dans un supermarché et sur du bitume
+// dans un parking. Le prédicat vit ici plutôt qu'aux deux endroits qui le
+// posent, le chargeur pour refuser et le rendu pour combler.
+func (s Shape) Covers() bool { return s.Footprint[0] >= 1 && s.Footprint[1] >= 1 }
 
 // cout rend le prix de traversée de la forme, ou ce qui l'empêche de l'avoir.
 //

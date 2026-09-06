@@ -3,6 +3,7 @@
   "version_format": 1,
   "identifiant": "commun",
   "nom": "Commun",
+  "sol": "sol",
   "palette": {
     ".": "sol",
     "#": "mur",

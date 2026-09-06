@@ -33,7 +33,12 @@ var Assets embed.FS
 // fait, plutôt que dans un `cmd/` qu'on ne pense pas à rouvrir. Deux programmes
 // les lisent, et deux copies d'un chemin ne restent d'accord que par vigilance.
 const (
-	DecorManifest     = "assets/decors/manifeste.json"
+	DecorManifest = "assets/decors/manifeste.json"
+
+	// DecorDir est le dossier des thèmes, sous lequel chaque forme vit dans le
+	// sien. C'est le manifeste qui dit lequel, jamais une table de chemins.
+	DecorDir = "assets/decors"
+
 	CharacterManifest = "assets/personnages/manifeste.json"
 	WeaponManifest    = "assets/armes/manifeste.json"
 	InterfaceManifest = "assets/interface/manifeste.json"

@@ -39,8 +39,10 @@ import (
 
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/game"
+	"github.com/sprimault/cohue/internal/level"
 	"github.com/sprimault/cohue/internal/render"
 	"github.com/sprimault/cohue/internal/session"
+	"github.com/sprimault/cohue/internal/sprite"
 )
 
 // sortie est le dossier des planches.
@@ -90,6 +92,11 @@ const (
 	ouest
 	est
 	sud
+	// porte pose le joueur devant la sortie. Elle se résout sur le lieu comme
+	// les autres, et pour la même raison : la porte est écrite dans le fichier
+	// du lieu, et l'écrire ici en ferait une seconde description qui mentirait
+	// au premier déplacement.
+	porte
 )
 
 // margeDuCoin est la distance au bord à laquelle un repère de coin se pose.
@@ -98,8 +105,12 @@ const (
 // posé sur du sol quel que soit le bloc qui touche le coin.
 const margeDuCoin = 2
 
-// cases résout un repère sur une grille.
-func (r repere) cases(g *game.CostGrid) (int, int) {
+// cases résout un repère sur une grille et la sortie du lieu.
+//
+// La porte est murée — le chargement l'exige —, donc le joueur se pose sur la
+// case franchissable qui la touche. La chercher plutôt que l'écrire est ce qui
+// permet à un lieu de poser sa sortie sur n'importe lequel de ses quatre bords.
+func (r repere) cases(g *game.CostGrid, sortie *game.Exit) (int, int) {
 	loinU, loinV := g.Width()-1-margeDuCoin, g.Height()-1-margeDuCoin
 	switch r {
 	case nord:
@@ -110,6 +121,13 @@ func (r repere) cases(g *game.CostGrid) (int, int) {
 		return loinU, margeDuCoin
 	case sud:
 		return loinU, loinV
+	case porte:
+		for _, pas := range [4][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
+			if u, v := sortie.U+pas[0], sortie.V+pas[1]; g.Passable(u, v) {
+				return u, v
+			}
+		}
+		return sortie.U, sortie.V
 	default:
 		return g.Width() / 2, g.Height() / 2
 	}
@@ -214,6 +232,14 @@ var vues = []vue{
 	{nom: "ouest", ou: ouest},
 	{nom: "est", ou: est},
 	{nom: "sud", ou: sud},
+
+	// **La porte fermée est le cas qu'une partie jouée a raté.** Elle est une
+	// case de l'enceinte, teintée plutôt que remplacée : ce que cette vue juge
+	// est l'écart entre elle et le mur qui l'entoure, sur toute la longueur du
+	// bord. L'état ouvert demanderait cent créatures abattues, et c'est le
+	// fermé qui décide — une porte qu'on ne trouve pas ne s'ouvre jamais.
+	{nom: "porte", ou: porte},
+
 	{nom: "melee", ticks: 300 * game.TPS, jusquAuxDegats: true},
 
 	// La vignette de danger, qui ne se juge que sur ce qu'elle laisse voir : la
@@ -311,7 +337,11 @@ type planche struct {
 	// agrandi porte le tampon multiplié par `echelle`, et c'est lui qu'on écrit.
 	agrandi *ebiten.Image
 	hud     *render.HUD
-	ecrit   bool
+	// tuiles est le catalogue des formes du décor, lu une fois : il ne dépend
+	// que du manifeste, là où le terrain d'une vue dépend du lieu qu'elle monte.
+	// Le décoder par vue coûterait soixante et une images onze fois.
+	tuiles *sprite.Tileset
+	ecrit  bool
 }
 
 // Update écrit les vues, puis rend la fin de partie.
@@ -347,7 +377,7 @@ func (p *planche) vue(v vue) error {
 	if err != nil {
 		return err
 	}
-	pu, pv := v.ou.cases(partie.Grid)
+	pu, pv := v.ou.cases(partie.Grid, partie.World.Exit())
 	partie.World.Place(game.FromInt(pu)+game.One/2, game.FromInt(pv)+game.One/2)
 	// **La mort arrête les pas dès qu'une vue en dépend.** `World.Step` continue
 	// de tourner après elle — c'est l'écran qui fige, et la planche l'appelle
@@ -404,7 +434,11 @@ func (p *planche) vue(v vue) error {
 		}
 	}
 
-	render.NewScreen(partie.World, partie.Grid, partie.Tile).WithHUD(p.hud).Draw(p.tampon)
+	sol, err := render.NewTerrain(partie.Tiles, p.tuiles)
+	if err != nil {
+		return err
+	}
+	render.NewScreen(partie.World, partie.Grid, sol).WithHUD(p.hud).Draw(p.tampon)
 	if v.texte {
 		p.poser()
 	}
@@ -540,12 +574,25 @@ func run() error {
 		return err
 	}
 
+	// Le manifeste de décor est relu ici plutôt que pris sur une partie : le
+	// catalogue de formes n'en dépend pas, et en monter une pour l'obtenir
+	// laisserait le terrain de toutes les vues accroché à un lieu qu'on jette.
+	decor, err := level.LoadDecor(cohue.Assets, cohue.DecorManifest)
+	if err != nil {
+		return err
+	}
+	tuiles, err := sprite.LoadTiles(cohue.Assets, cohue.DecorDir, decor)
+	if err != nil {
+		return err
+	}
+
 	ebiten.SetWindowTitle("Cohue — planche")
 	ebiten.SetWindowSize(render.Width, render.Height)
 	return ebiten.RunGame(&planche{
 		tampon:  ebiten.NewImage(render.Width, render.Height),
 		agrandi: ebiten.NewImage(render.Width*echelle, render.Height*echelle),
 		hud:     hud,
+		tuiles:  tuiles,
 	})
 }
 

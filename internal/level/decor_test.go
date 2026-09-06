@@ -50,7 +50,7 @@ func TestDecorRefuseLesCoutsContradictoires(t *testing.T) {
 		"sol": ` + forme("false", "") + `,
 		"flaque": ` + forme("false", "2"))
 
-	_, _, err := LoadDecor(fsys, "decor.json")
+	_, err := LoadDecor(fsys, "decor.json")
 	if err == nil {
 		t.Fatal("manifeste contradictoire accepté")
 	}
@@ -79,7 +79,7 @@ func TestDecorRefuseLesCoutsContradictoires(t *testing.T) {
 // croit être un ralentissement.
 func TestDecorRefuseUnCoutHorsBornes(t *testing.T) {
 	for _, cout := range []string{"0", "-1", "65535"} {
-		_, _, err := LoadDecor(manifesteDecor(`"sol": `+forme("false", cout)), "decor.json")
+		_, err := LoadDecor(manifesteDecor(`"sol": `+forme("false", cout)), "decor.json")
 		if err == nil {
 			t.Errorf("cout_traversee de %s accepté", cout)
 		}
@@ -102,7 +102,7 @@ func TestDecorRefuseUneTuileHorsDuDeuxPourUn(t *testing.T) {
 	} {
 		fsys := fstest.MapFS{"decor.json": &fstest.MapFile{
 			Data: []byte(`{` + entete + `, "formes": {}}`)}}
-		if _, _, err := LoadDecor(fsys, "decor.json"); err == nil {
+		if _, err := LoadDecor(fsys, "decor.json"); err == nil {
 			t.Errorf("en-tête accepté : {%s}", entete)
 		}
 	}
@@ -112,7 +112,7 @@ func TestDecorRefuseUneTuileHorsDuDeuxPourUn(t *testing.T) {
 func TestDecorRefuseUneAutreVersion(t *testing.T) {
 	fsys := fstest.MapFS{"decor.json": &fstest.MapFile{
 		Data: []byte(`{"version_format": 99, "tuile": [64, 32], "formes": {}}`)}}
-	if _, _, err := LoadDecor(fsys, "decor.json"); err == nil {
+	if _, err := LoadDecor(fsys, "decor.json"); err == nil {
 		t.Fatal("version 99 acceptée")
 	}
 }

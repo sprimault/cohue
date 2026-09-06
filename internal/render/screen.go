@@ -200,6 +200,18 @@ type Screen struct {
 	// casserait le pixel entier. Tous les autres ont cédé la place à des sprites.
 	face *ebiten.Image
 
+	// emprises porte, par case et le temps d'une image, la teinte du télégraphe
+	// qui s'y peint — l'alpha nul disant qu'aucune explosion ne la couvre.
+	//
+	// **Un relevé par case plutôt qu'une passe par explosion**, parce que le
+	// marquage appartient à la case et doit suivre sa forme dans la passe qui la
+	// dessine. Peint d'un bloc à la fin du sol, il passait sous le trottoir et le
+	// quai, qui se trient et se peignent après lui.
+	//
+	// Longue de la carte, allouée au montage : la fenêtre visible s'efface au
+	// début de chaque image, et rien hors d'elle ne se dessine.
+	emprises []color.RGBA
+
 	// aRevoir porte, le temps d'une image, ce qu'on redessinera si quelque chose
 	// le recouvre. Réutilisée avec `[:0]` : la séquence la remplit soixante fois
 	// par seconde, et une tranche qui croîtrait ferait passer le ramasse-miettes
@@ -266,7 +278,8 @@ func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Ca
 		// Le joueur et, au pire, tous les projectiles de la horde en vol : c'est
 		// exactement ce que la conception révèle, donc le majorant est le bassin
 		// lui-même.
-		aRevoir: make([]revele, 0, 1+monde.EnemyShots().Cap()),
+		aRevoir:  make([]revele, 0, 1+monde.EnemyShots().Cap()),
+		emprises: make([]color.RGBA, carte.Width()*carte.Height()),
 	}
 	s.cam.suivre(monde.Player())
 	return s
@@ -326,6 +339,7 @@ func (s *Screen) Update() error {
 // l'interface par-dessus.
 func (s *Screen) Draw(ecran *ebiten.Image) {
 	ecran.Fill(fond)
+	s.releverEmprises()
 	s.peindreSol(ecran)
 	s.peindreEntites(ecran)
 	s.peindreEffets(ecran)
@@ -404,11 +418,11 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 			}
 		}
 	}
-	s.peindreEmprises(ecran)
 }
 
-// poserCase pose l'image d'une case, à l'ancrage que son manifeste lui donne, et
-// le sol du thème sous ce qui ne remplit pas son losange.
+// poserCase pose l'image d'une case, à l'ancrage que son manifeste lui donne, le
+// sol du thème sous ce qui ne remplit pas son losange, et le télégraphe d'une
+// explosion par-dessus.
 //
 // **Le sol vient juste avant la forme et non dans une passe à part.** Un pilier
 // se trie, un rail ne se trie pas, et ce qui les comble doit suivre chacun dans
@@ -422,10 +436,20 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 // au mur qui l'entoure. La teinte multiplie l'image au lieu de la remplacer :
 // le mur reste un mur, et il vire au cyan. Le sol n'en prend rien — ce qu'elle
 // désigne est la porte, pas la case qui la porte.
+//
+// **Le télégraphe d'une explosion suit la surface qu'il marque**, donc il
+// s'intercale et ne se peint pas d'un bloc. Une forme qui remplit son losange
+// *est* la surface, et le marquage se pose dessus, à son élévation ; une forme
+// qui ne la remplit pas la traverse, et c'est le sol du thème, sous elle, qu'on
+// marche. La passe unique qu'il remplaçait tombait sous le trottoir et le quai,
+// qui ont une élévation et se trient donc.
 func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme) image.Rectangle {
 	x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
-	if f.nue && s.sol.sol != nil {
-		s.poser(ecran, x, y, *s.sol.sol)
+	if f.nue {
+		if s.sol.sol != nil {
+			s.poser(ecran, x, y, *s.sol.sol)
+		}
+		s.marquerEmprise(ecran, u, v, f)
 	}
 
 	s.op.ColorScale.Reset()
@@ -439,6 +463,10 @@ func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme) image.Rectang
 	s.op.GeoM.Reset()
 	s.op.GeoM.Translate(float64(x+f.dx), float64(y+f.dy))
 	ecran.DrawImage(f.image, &s.op)
+
+	if !f.nue {
+		s.marquerEmprise(ecran, u, v, f)
+	}
 	return boiteDe(f.image, x+f.dx, y+f.dy)
 }
 
@@ -459,7 +487,7 @@ func (s *Screen) poser(ecran *ebiten.Image, x, y int, f forme) {
 	ecran.DrawImage(f.image, &s.op)
 }
 
-// peindreEmprises marque au sol ce qu'une explosion amorcée va couvrir.
+// releverEmprises note, case par case, ce qu'une explosion amorcée va couvrir.
 //
 // **Le télégraphe se peint en cases pleines, et cette forme n'est pas un
 // pis-aller.** Le rendu ne lit aucune image : il n'a rien à agrandir, et
@@ -473,7 +501,21 @@ func (s *Screen) poser(ecran *ebiten.Image, x, y int, f forme) {
 // exactement le mensonge qu'un avertissement ne peut pas se permettre. Ce qui
 // croît est l'intensité, qui dit le temps restant sans rien dire de faux sur
 // l'espace.
-func (s *Screen) peindreEmprises(ecran *ebiten.Image) {
+//
+// **Deux explosions qui se recouvrent laissent la dernière relevée**, comme la
+// passe qu'elle remplace laissait le dernier blit. Les intensités ne s'ajoutent
+// pas : ce que le marquage dit est « ici », pas « combien ».
+//
+// Seule la fenêtre visible est effacée puis remplie. Ce qui est hors d'elle ne
+// se dessine pas, et la caméra ne peut pas montrer une case sans que l'image où
+// elle entre l'ait effacée d'abord.
+func (s *Screen) releverEmprises() {
+	largeur := s.sol.carte.Width()
+	u0, v0, u1, v1 := s.cam.casesVisibles()
+	for v := v0; v <= v1; v++ {
+		clear(s.emprises[v*largeur+u0 : v*largeur+u1+1])
+	}
+
 	souffles := s.monde.Blasts()
 	for i := range souffles.Active() {
 		b := souffles.At(i)
@@ -483,21 +525,39 @@ func (s *Screen) peindreEmprises(ecran *ebiten.Image) {
 		imminence := float32(1000-s.monde.FuseLeft(b)) / 1000
 		vif := attenuer(teinteEmprise, emprisePlancher+(1-emprisePlancher)*imminence)
 
-		u0, v0, u1, v1 := s.monde.BlastBounds(b)
-		for v := v0; v <= v1; v++ {
-			for u := u0; u <= u1; u++ {
+		bu0, bv0, bu1, bv1 := s.monde.BlastBounds(b)
+		for v := max(bv0, v0); v <= min(bv1, v1); v++ {
+			for u := max(bu0, u0); u <= min(bu1, u1); u++ {
 				if !s.carte.InBounds(u, v) || !s.monde.BlastCovers(b, u, v) {
 					continue
 				}
-				x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
-				s.op.GeoM.Reset()
-				s.op.GeoM.Translate(float64(x-s.demiTuile), float64(y))
-				s.op.ColorScale.Reset()
-				s.op.ColorScale.ScaleWithColor(vif)
-				ecran.DrawImage(s.face, &s.op)
+				s.emprises[v*largeur+u] = vif
 			}
 		}
 	}
+}
+
+// marquerEmprise pose sur une case le télégraphe qu'une explosion y a relevé.
+//
+// **Le marquage monte à la hauteur de ce qu'on marche.** Sur un trottoir ou un
+// quai, la face supérieure est la surface, et le losange s'y superpose au pixel
+// près — l'élévation que le générateur écrit *est* la distance entre le plan du
+// sol et cette face. Posé à plat, il s'afficherait au pied de la marche.
+//
+// Sur un rail ou une porte ouverte, `hauteurSol` vaut zéro : ce qu'on y marche
+// est le sol du thème, et l'appelant peint alors le marquage avant la forme,
+// qui doit continuer de passer devant.
+func (s *Screen) marquerEmprise(ecran *ebiten.Image, u, v int, f forme) {
+	vif := s.emprises[v*s.sol.carte.Width()+u]
+	if vif.A == 0 {
+		return
+	}
+	x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
+	s.op.GeoM.Reset()
+	s.op.GeoM.Translate(float64(x-s.demiTuile), float64(y-f.hauteurSol))
+	s.op.ColorScale.Reset()
+	s.op.ColorScale.ScaleWithColor(vif)
+	ecran.DrawImage(s.face, &s.op)
 }
 
 // peindreEntites pose ce qui se tient sur le sol, du plus lointain au plus

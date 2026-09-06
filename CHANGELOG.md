@@ -44,6 +44,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Les personnages se tournent, et la foule cesse de se ressembler.** Le joueur
+  regarde ce qu'il vise et non où il va — reculer en tirant vers l'avant se lit
+  enfin —, les créatures regardent où elles vont, et celle qui s'arrête pour
+  tirer regarde le joueur. Une charge de Molosse garde le cap qu'elle a pris.
+  Chaque Quidam tire son vêtement parmi six à son apparition, depuis la graine
+  de la partie : deux runs de la même graine habillent la horde à l'identique.
+
 - **Les personnages s'affichent et s'animent.** Le joueur, les sept créatures et
   les figurants sont dessinés à partir de leurs feuilles au lieu d'aplats
   colorés, et leur cycle suit ce qu'ils font : ils marchent quand ils avancent,
@@ -73,6 +80,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
 ***
 
 ### Added
+
+- **Characters turn, and the crowd stops looking alike.** The player faces what
+  he aims at rather than where he goes — backing away while firing forward
+  finally reads —, creatures face where they go, and one that stops to shoot
+  faces the player. A Molosse charge keeps the heading it took. Each Quidam
+  draws its clothing from six at spawn, from the run's seed: two runs of the
+  same seed dress the horde identically.
 
 - **Characters are drawn and animated.** The player, the seven creatures and the
   passers-by come from their sheets instead of coloured blocks, and their cycle

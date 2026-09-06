@@ -10,9 +10,14 @@ package game
 //
 // **Elle vit ici parce que le manifeste des personnages décrit les deux à la
 // fois**, le rendu et les valeurs de jeu, et qu'un second décodeur du même
-// fichier en serait une seconde description. `internal/game` la porte donc sans
-// jamais la lire — elle ne contient que des entiers et des chaînes, et rien de
-// ce paquet ne dépend d'elle.
+// fichier en serait une seconde description. Elle ne contient que des entiers et
+// des chaînes, et aucune décision de ce paquet n'en dépend.
+//
+// **Une seule chose y est lue, et la condition vaut mieux que l'affirmation qui
+// la précédait** : `SpawnEnemy` prend `Variants` pour tirer la teinte de vêtement
+// d'une créature. C'est un tirage cosmétique, dans le flux dont rien ne dépend ;
+// tant qu'aucune autre lecture ne s'ajoute, ce paquet continue de ne rien savoir
+// du dessin.
 //
 // Ce qui la remplit est déclaré depuis l'étape 4, avec un commentaire annonçant
 // que le rendu le lirait à l'étape 5 : le décodage refusant toute clé inconnue,

@@ -518,11 +518,11 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteEnnemi:
 			c := s.monde.Enemies().At(e.place)
 			f := s.troupe.ennemis[c.Profile]
-			s.peindreCreature(ecran, f, f.cycleEnnemi(c), c.X, c.Y, e.identite, etatDe(c))
+			s.peindreCreature(ecran, f, f.poseEnnemi(c, s.regardDe(c)), c.X, c.Y, e.identite, etatDe(c))
 		case sorteAmbiance:
 			a := s.monde.Ambients().At(e.place)
 			f := s.troupe.ambiants[a.Profile]
-			s.peindreCreature(ecran, f, f.deplacement(a.Step), a.X, a.Y, e.identite, nil)
+			s.peindreCreature(ecran, f, f.posePersonnage(a.Step, a.Step, 0), a.X, a.Y, e.identite, nil)
 		case sorteTir:
 			p := s.monde.Shots().At(e.place)
 			s.silhouette(ecran, s.eclat, p.X, p.Y, teinteTir)
@@ -551,9 +551,48 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteJoueur:
 			x, y := s.monde.Player()
 			f := s.troupe.joueur
-			s.peindreCreature(ecran, f, f.deplacement(s.monde.PlayerStep()), x, y, 0, nil)
+			pas := s.monde.PlayerStep()
+			s.peindreCreature(ecran, f, f.posePersonnage(pas, s.regardDuJoueur(pas), 0), x, y, 0, nil)
 		}
 	}
+}
+
+// regardDuJoueur rend ce que le personnage regarde : sa cible s'il en a une, son
+// déplacement sinon.
+//
+// **La cible passe avant le pas, et c'est toute la décision.** Le chapitre 9
+// pose que le sprite s'oriente sur la visée et non sur le déplacement : reculer
+// en tirant vers l'avant est ce que le joueur fait tout le temps, et c'est ce
+// qui doit se lire. Un cône de visée avait été écarté ; ce qu'il apportait de
+// visuel se garde ainsi, sans lui.
+//
+// Sans cible, le déplacement — parce qu'un personnage figé dans une direction
+// morte se lirait comme un défaut. Et sans l'un ni l'autre, `regarder` retombe
+// sur la première bande du manifeste : le joueur à l'arrêt devant une salle vide
+// fait face à l'écran, ce qui est la pose de repos.
+func (s *Screen) regardDuJoueur(pas game.Vec) game.Vec {
+	if vers, vise := s.monde.PlayerAim(); vise {
+		return vers
+	}
+	return pas
+}
+
+// regardDe rend ce qu'une créature regarde.
+//
+// **Trois cas, et le dernier est celui qui compte.** Une charge regarde où elle
+// va et non où le joueur est parti, ce qui est tout son comportement — elle ne
+// corrige plus. Une créature qui avance regarde son pas. Et une créature à
+// l'arrêt regarde le joueur : c'est le cas de la Buse, qui s'immobilise à sa
+// portée pour tirer, et le sien seul rendrait un profil tourné au hasard.
+func (s *Screen) regardDe(e *game.Enemy) game.Vec {
+	if e.Charging() {
+		return e.ChargeDir
+	}
+	if e.Step != (game.Vec{}) {
+		return e.Step
+	}
+	x, y := s.monde.Player()
+	return game.Vec{X: x - e.X, Y: y - e.Y}
 }
 
 // peindreCreature pose l'image d'un personnage, son appui sur le point où le
@@ -565,15 +604,12 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 // porte. Aucune des deux ne demande de compteur, donc aucune ne pose la question
 // de savoir qui l'avance ni s'il entre dans l'empreinte d'une run.
 //
-// **L'orientation attend son lot.** Toutes les figures déclarent leurs huit
-// directions, et c'est la première du manifeste qui se pose ici : ce qui manque
-// n'est pas l'image mais la direction de visée, que le monde n'expose pas
-// encore. Prendre `Directions[0]` plutôt que d'écrire « S » garde le nom hors du
-// code, et une figure qui n'en déclarerait aucune ne se dessine pas plutôt que
-// de faire tomber l'image.
+// **L'orientation et la teinte viennent de la pose**, que l'appelant a bâtie :
+// elles dépendent l'une de ce que le personnage regarde, l'autre de ce que son
+// apparition a tiré, et aucune des deux n'est une propriété de son dessin.
 func (s *Screen) peindreCreature(ecran *ebiten.Image, f *figure, a anim,
 	x, y game.Fixed, identite int, eclat *color.RGBA) {
-	if a.nom == "" || len(f.directions) == 0 {
+	if a.nom == "" || a.direction == "" {
 		return
 	}
 
@@ -581,7 +617,7 @@ func (s *Screen) peindreCreature(ecran *ebiten.Image, f *figure, a anim,
 	if !a.cycle.Loop {
 		image = sprite.Once(a.cycle, a.reste)
 	}
-	img := f.image(pose{a.nom, f.directions[0], 0, image})
+	img := f.image(pose{a.nom, a.direction, a.variante, image})
 	if img == nil {
 		return
 	}

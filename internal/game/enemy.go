@@ -80,6 +80,19 @@ type Enemy struct {
 	// une fois est la transition — l'endroit qui applique les dégâts constate
 	// qu'elle était positive et ne l'est plus.
 	Hits int
+	// Variant est sa teinte de vêtement, tirée à l'apparition.
+	//
+	// **Le seul champ que la simulation n'utilise pas**, et il est là parce que
+	// rien d'autre ne peut le rendre : le tirage a lieu une fois, à l'apparition,
+	// et le rejouer au dessin donnerait une créature qui change d'habit à chaque
+	// image. C'est ce que la conception exige — la variante vient de la graine de
+	// la run et jamais de l'horloge, sans quoi deux rejeux de la même graine
+	// divergeraient à l'œil.
+	//
+	// Il puise dans le flux cosmétique, celui dont rien ne dépend, et **n'entre
+	// pas dans l'empreinte d'état** : deux runs de la même graine dont les
+	// vêtements diffèrent restent la même run. C'est même ce qu'un test exige.
+	Variant int
 	// MaxHits est la résistance qu'elle avait en apparaissant, dans la même
 	// unité que `Hits`.
 	//

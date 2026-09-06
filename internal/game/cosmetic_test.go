@@ -8,6 +8,7 @@
 package game
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/sprimault/cohue"
@@ -122,5 +123,64 @@ func TestLesFigurantsBougentAvecLeCosmetique(t *testing.T) {
 	if len(sans) == len(avec) && sans[0] == avec[0] {
 		t.Error("le décalage du flux cosmétique ne déplace aucun figurant : " +
 			"l'autre cas passerait sans rien garder")
+	}
+}
+
+// TestLesTeintesDeVetementViennentDeLaGraine garde le second consommateur du
+// flux cosmétique.
+//
+// **Deux moitiés, et la première est celle qu'on oublie.** Que la même graine
+// rende les mêmes habits est ce que la conception exige — sans quoi deux rejeux
+// divergeraient à l'œil. Mais un tirage qui rendrait toujours zéro le tiendrait
+// aussi : il faut donc montrer d'abord que le Quidam, seul profil à six teintes,
+// n'apparaît pas six fois vêtu pareil.
+//
+// Le compte de variantes distinctes se lit dans la sortie plutôt que d'être
+// exigé au chiffre près : ce qu'on garde est qu'il y en ait plusieurs, pas
+// qu'un tirage donne telle suite.
+func TestLesTeintesDeVetementViennentDeLaGraine(t *testing.T) {
+	teintes := func(graine uint64) []int {
+		profils, err := LoadProfiles(cohue.Assets, manifestePersonnages)
+		if err != nil {
+			t.Fatalf("profils livrés : %v", err)
+		}
+		marcheur := indexDuProfil(t, profils, "marcheur")
+		if v := profils.Enemies[marcheur].Figure.Variants; v < 2 {
+			t.Fatalf("le marcheur déclare %d teinte(s) : le cas ne peut rien séparer", v)
+		}
+
+		g := NewCostGrid(32, 32)
+		w := NewWorld(profils, armesInertes(t), progressionLivree(t),
+			vagueUnique(6, marcheur), g, graine, capacitesDeTest)
+		w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
+
+		for range 20 * TPS {
+			w.Step(Vec{})
+		}
+		var vus []int
+		for i := range w.Enemies().Active() {
+			vus = append(vus, w.Enemies().At(i).Variant)
+		}
+		return vus
+	}
+
+	premiere := teintes(graineDeTest)
+	if len(premiere) < 4 {
+		t.Fatalf("%d créature(s) après vingt secondes : trop peu pour dire quoi que ce soit",
+			len(premiere))
+	}
+
+	distinctes := map[int]bool{}
+	for _, v := range premiere {
+		distinctes[v] = true
+	}
+	if len(distinctes) < 2 {
+		t.Errorf("%d créature(s) et une seule teinte : le tirage ne tire rien", len(premiere))
+	}
+	t.Logf("%d créatures, %d teintes distinctes", len(premiere), len(distinctes))
+
+	if seconde := teintes(graineDeTest); !slices.Equal(premiere, seconde) {
+		t.Errorf("deux runs de la graine %d n'habillent pas pareil :\n%v\n%v",
+			graineDeTest, premiere, seconde)
 	}
 }

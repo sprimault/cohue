@@ -40,6 +40,11 @@ const (
 	DecorDir = "assets/decors"
 
 	CharacterManifest = "assets/personnages/manifeste.json"
+
+	// CharacterDir est le dossier des profils, sous lequel chacun range ses
+	// bandes — et ses sous-dossiers de teinte quand il en a plusieurs.
+	CharacterDir = "assets/personnages"
+
 	WeaponManifest    = "assets/armes/manifeste.json"
 	InterfaceManifest = "assets/interface/manifeste.json"
 

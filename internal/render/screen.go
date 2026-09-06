@@ -29,6 +29,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"github.com/sprimault/cohue/internal/game"
+	"github.com/sprimault/cohue/internal/sprite"
 )
 
 // Les dimensions du tampon interne, fixes.
@@ -117,8 +118,13 @@ var (
 	// Le joueur en clair et les créatures en sombre : le chapitre de la
 	// lisibilité veut que le personnage reste distinguable à cent ennemis à
 	// l'écran, ce qui se joue d'abord sur la valeur et non sur la teinte.
-	teinteJoueur = color.RGBA{R: 236, G: 214, B: 120, A: 255}
-	teinteTir    = color.RGBA{R: 226, G: 232, B: 238, A: 255}
+	//
+	// **Elle est dans les pixels depuis que les créatures ont leurs bandes**, et
+	// c'est ce que la conception annonçait : la dérogation qui laissait le code
+	// décider d'une apparence s'éteint sans être remplacée par un champ de
+	// manifeste. Ce qui reste ici ne dit plus qui est quoi mais ce qui vient de
+	// se passer.
+	teinteTir = color.RGBA{R: 226, G: 232, B: 238, A: 255}
 	// **Le projectile de la horde porte une teinte qu'aucune autre ne dispute**,
 	// et c'est entre projectiles que la distinction doit être maximale : « est-ce
 	// que ça me fait mal ? » ne se pose que sur eux, si bien que les confondre
@@ -161,12 +167,6 @@ var (
 	// qui les sépare du fond de la horde.
 	teinteSoigneur = color.RGBA{R: 120, G: 226, B: 132, A: 255}
 	teinteSoigne   = color.RGBA{R: 172, G: 178, B: 108, A: 255}
-	// **Le figurant se lit comme du décor, pas comme une menace.** Il ne blesse
-	// pas, ne se vise pas et ne compte nulle part : lui donner la teinte de la
-	// horde ferait tirer le joueur dessus par réflexe, et lui en donner une vive
-	// le rendrait plus important que ce qui le tue. Un gris à peine teinté, plus
-	// clair que le sol pour se détacher, plus terne que tout le reste.
-	teinteAmbiance = color.RGBA{R: 132, G: 130, B: 138, A: 255}
 
 	// Une gemme est minuscule et posée sur un sol gris : elle a besoin d'une
 	// teinte saturée que rien d'autre ne porte, sans quoi un tas au sol
@@ -186,66 +186,31 @@ var (
 	// Ce qui doit rester distinct est l'objet qu'on va chercher — l'aimant — de
 	// celui qu'on casse en passant.
 	teinteCaisse = color.RGBA{R: 142, G: 108, B: 72, A: 255}
-
-	// La horde, une teinte par profil.
-	//
-	// **Toutes sombres, et c'est la contrainte qui commande.** Le chapitre de la
-	// lisibilité veut que le joueur reste distinguable à cent ennemis à l'écran,
-	// ce qui se joue sur la valeur et non sur la teinte : la horde occupe donc la
-	// moitié sombre, et le joueur seul la moitié claire. Ces sept-là se séparent
-	// entre elles par la teinte, jamais par la valeur — l'inverse aurait rendu un
-	// profil plus visible que les autres, ce qui est un choix de conception que
-	// personne n'a fait.
-	//
-	// **Elles sont provisoires et le resteront jusqu'à l'atlas**, où chaque
-	// créature aura son apparence. Ce qu'elles servent n'est pas l'apparence mais
-	// une question de jeu : reconnaître un Vigile, un Secouriste ou une Baudruche
-	// dans une foule décide de ce qu'on fait, et une horde d'une seule teinte
-	// rend cette décision impossible à juger.
-	//
-	// **Rangées par clé de manifeste et non par index**, et le premier jet a
-	// montré pourquoi : la table des profils est triée alphabétiquement, si bien
-	// qu'un tableau indexé par position donnait le rouge du Quidam au Vigile et
-	// l'olive du Vigile au Quidam. Rien ne pouvait le dire — les deux indices
-	// sont valides, une couleur fausse ne casse aucun test, et il a fallu
-	// demander « quelle couleur, le Vigile ? » pour que ça se voie.
-	//
-	// Une clé absente de cette table prend le rouge de la masse : un profil de
-	// plus doit se peindre, pas faire tomber le rendu.
-	teintesHorde = map[string]color.RGBA{
-		"marcheur":  {R: 150, G: 78, B: 74, A: 255},  // le Quidam garde le rouge de la masse
-		"flanqueur": {R: 122, G: 82, B: 150, A: 255}, // l'Arpenteur, violet sourd
-		"sprinteur": {R: 168, G: 96, B: 52, A: 255},  // le Molosse, orange terreux
-		"bloqueur":  {R: 84, G: 96, B: 140, A: 255},  // le Vigile, bleu d'uniforme
-		"cracheur":  {R: 110, G: 124, B: 62, A: 255}, // la Buse, olive
-		"eclateur":  {R: 162, G: 72, B: 116, A: 255}, // la Baudruche, magenta sourd
-		"soigneur":  {R: 74, G: 128, B: 102, A: 255}, // le Secouriste, vert de son éclair
-	}
-	teinteHordeParDefaut = color.RGBA{R: 150, G: 78, B: 74, A: 255}
 )
 
 // Screen est le jeu tel qu'Ebitengine le voit.
 type Screen struct {
-	monde *game.World
-	carte *game.CostGrid
-	sol   *Terrain
-	cam   *camera
+	monde  *game.World
+	carte  *game.CostGrid
+	sol    *Terrain
+	troupe *Cast
+	cam    *camera
 
 	scene *scene
 
-	// Les formes blanches que le dessin teinte au blit : la face d'une case, la
-	// silhouette d'un personnage, le point d'un projectile, celui d'une gemme,
-	// celui d'un aimant et le pavé d'une caisse.
+	// Les formes blanches que le dessin teinte au blit : la face d'une case, le
+	// point d'un projectile, celui d'une gemme, celui d'un aimant et le pavé
+	// d'une caisse.
 	//
 	// La face n'est plus celle du sol, que le décor dessine : elle ne sert plus
 	// qu'à marquer l'emprise d'une explosion, où un losange à l'échelle exacte
-	// de la case est ce qu'il faut.
-	face     *ebiten.Image
-	figurine *ebiten.Image
-	eclat    *ebiten.Image
-	gemme    *ebiten.Image
-	aimant   *ebiten.Image
-	caisse   *ebiten.Image
+	// de la case est ce qu'il faut. Et la silhouette d'un personnage n'y est
+	// plus du tout — les créatures ont leurs bandes.
+	face   *ebiten.Image
+	eclat  *ebiten.Image
+	gemme  *ebiten.Image
+	aimant *ebiten.Image
+	caisse *ebiten.Image
 	// demiTuile est l'abscisse du sommet dans l'image d'une face, ce que le
 	// manifeste appellera son ancrage quand les images viendront de lui.
 	demiTuile int
@@ -289,18 +254,18 @@ func (s *Screen) WithHUD(h *HUD) *Screen {
 // constante : le chargeur en exige le rapport de deux pour un, et c'est de lui
 // que la projection la tient. La recevoir à part du terrain qui la porte aurait
 // laissé deux appelants la prendre à deux endroits.
-func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain) *Screen {
+func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Cast) *Screen {
 	tuile := sol.TileSize()
 	cam := nouvelleCamera(tuile, carte)
 	s := &Screen{
-		monde:    monde,
-		carte:    carte,
-		sol:      sol,
-		cam:      cam,
-		scene:    nouvelleScene(carte, monde, sol, cam),
-		face:     face(tuile),
-		figurine: aplat(tuile[0]/4, tuile[0]*3/4),
-		eclat:    aplat(tuile[1]/8, tuile[1]/8),
+		monde:  monde,
+		carte:  carte,
+		sol:    sol,
+		troupe: troupe,
+		cam:    cam,
+		scene:  nouvelleScene(carte, monde, sol, cam),
+		face:   face(tuile),
+		eclat:  aplat(tuile[1]/8, tuile[1]/8),
 		// Deux fois l'éclat : assez pour qu'un tas se compte d'un coup d'œil,
 		// assez peu pour qu'une gemme ne masque pas ce qui la piétine.
 		gemme: aplat(tuile[1]/4, tuile[1]/4),
@@ -308,10 +273,10 @@ func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain) *Screen {
 		// repérer un objet unique à l'autre bout de la salle, et c'est la
 		// taille qui porte ça avant la teinte.
 		aimant: aplat(tuile[1]/2, tuile[1]/2),
-		// Plus large que haute, à l'inverse d'une figurine : ce qui doit se lire
-		// est un objet posé au sol qu'on va casser, pas une créature qu'on
-		// affronte. La confusion coûterait un détour ou une salve, et elle est
-		// facile à faire tant que tout est un aplat.
+		// Plus large que haute, à l'inverse d'une créature : ce qui doit se lire
+		// est un objet posé au sol qu'on va casser, pas quelqu'un qu'on
+		// affronte. La confusion coûterait un détour ou une salve, et elle
+		// tient tant que la caisse est un aplat au milieu de sprites.
 		caisse:    aplat(tuile[0]/3, tuile[1]/2),
 		demiTuile: tuile[0] / 2,
 	}
@@ -495,15 +460,6 @@ func (s *Screen) poser(ecran *ebiten.Image, x, y int, f forme) {
 	ecran.DrawImage(f.image, &s.op)
 }
 
-// teinteDuProfil rend la couleur d'une créature, le rouge de la masse pour une
-// clé que la table ne connaît pas.
-func teinteDuProfil(cle string) color.RGBA {
-	if teinte, connue := teintesHorde[cle]; connue {
-		return teinte
-	}
-	return teinteHordeParDefaut
-}
-
 // peindreEmprises marque au sol ce qu'une explosion amorcée va couvrir.
 //
 // **Le télégraphe se peint en cases pleines, et cette forme n'est pas un
@@ -561,27 +517,12 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 			s.poserCase(ecran, u, v, f)
 		case sorteEnnemi:
 			c := s.monde.Enemies().At(e.place)
-			teinte := teinteDuProfil(s.monde.EnemyKey(c.Profile))
-			// **Le soigneur passe avant l'impact, la soignée après.** Ce qui
-			// change la conduite du joueur est de repérer d'où vient le soin :
-			// la visée prend le plus proche, donc abattre un Secouriste demande
-			// d'abord de savoir lequel c'est. Une créature soignée qu'on est en
-			// train de toucher, elle, porte les deux informations — et celle qui
-			// compte alors est le coup qui vient de partir.
-			switch {
-			case c.Healing > 0:
-				teinte = teinteSoigneur
-			case c.Flash > 0:
-				teinte = teinteImpact
-			case c.Healed > 0:
-				teinte = teinteSoigne
-			case c.Telegraphing() && (c.ChargeTimer/poulsAnnonce)%2 == 0:
-				teinte = teinteAnnonce
-			}
-			s.silhouette(ecran, s.figurine, c.X, c.Y, teinte)
+			f := s.troupe.ennemis[c.Profile]
+			s.peindreCreature(ecran, f, f.cycleEnnemi(c), c.X, c.Y, e.identite, etatDe(c))
 		case sorteAmbiance:
 			a := s.monde.Ambients().At(e.place)
-			s.silhouette(ecran, s.figurine, a.X, a.Y, teinteAmbiance)
+			f := s.troupe.ambiants[a.Profile]
+			s.peindreCreature(ecran, f, f.deplacement(a.Step), a.X, a.Y, e.identite, nil)
 		case sorteTir:
 			p := s.monde.Shots().At(e.place)
 			s.silhouette(ecran, s.eclat, p.X, p.Y, teinteTir)
@@ -609,15 +550,117 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 			s.silhouette(ecran, s.caisse, c.X, c.Y, teinteCaisse)
 		case sorteJoueur:
 			x, y := s.monde.Player()
-			s.silhouette(ecran, s.figurine, x, y, teinteJoueur)
+			f := s.troupe.joueur
+			s.peindreCreature(ecran, f, f.deplacement(s.monde.PlayerStep()), x, y, 0, nil)
 		}
 	}
 }
 
-// silhouette pose une forme teintée, son pied sur le point où le monde la situe.
+// peindreCreature pose l'image d'un personnage, son appui sur le point où le
+// monde le situe.
 //
-// L'appui est au milieu du bas, ce que sera l'ancrage d'un sprite de personnage
-// quand le manifeste en fournira : c'est le point qui touche le sol, et le seul
+// **L'image se dérive, elle ne se stocke pas.** Un cycle qui boucle se cadence
+// sur le tick, décalé par l'identifiant de l'entité pour qu'une horde ne marche
+// pas au pas ; un cycle qui s'achève se cadence sur le décompte de l'état qui le
+// porte. Aucune des deux ne demande de compteur, donc aucune ne pose la question
+// de savoir qui l'avance ni s'il entre dans l'empreinte d'une run.
+//
+// **L'orientation attend son lot.** Toutes les figures déclarent leurs huit
+// directions, et c'est la première du manifeste qui se pose ici : ce qui manque
+// n'est pas l'image mais la direction de visée, que le monde n'expose pas
+// encore. Prendre `Directions[0]` plutôt que d'écrire « S » garde le nom hors du
+// code, et une figure qui n'en déclarerait aucune ne se dessine pas plutôt que
+// de faire tomber l'image.
+func (s *Screen) peindreCreature(ecran *ebiten.Image, f *figure, a anim,
+	x, y game.Fixed, identite int, eclat *color.RGBA) {
+	if a.nom == "" || len(f.directions) == 0 {
+		return
+	}
+
+	image := sprite.Loop(a.cycle, s.monde.Tick(), identite)
+	if !a.cycle.Loop {
+		image = sprite.Once(a.cycle, a.reste)
+	}
+	img := f.image(pose{a.nom, f.directions[0], 0, image})
+	if img == nil {
+		return
+	}
+
+	ex, ey := s.cam.ecran(x, y)
+	s.op.GeoM.Reset()
+	s.op.GeoM.Translate(float64(ex-f.appui[0]), float64(ey-f.appui[1]))
+	s.op.ColorScale.Reset()
+	ecran.DrawImage(img, &s.op)
+
+	if eclat != nil {
+		s.eclairer(ecran, img, *eclat)
+	}
+}
+
+// intensiteEclair est la part de sa teinte qu'un éclair d'état ajoute au sprite.
+//
+// **Une valeur à juger à l'œil, et le premier chiffre est bas exprès.** Ce que
+// l'éclair doit dire est « celle-ci vient d'être atteinte », pas « celle-ci est
+// blanche » : au-delà, une mêlée dense devient une nappe claire où les
+// silhouettes se perdent, ce qui coûte la lisibilité qu'on cherchait.
+const intensiteEclair = 0.45
+
+// eclairer rajoute la teinte d'un état par-dessus le sprite déjà posé.
+//
+// **Une passe additive et non une teinte multipliée**, et c'est ce que les
+// sprites ont changé. Sur un aplat blanc, multiplier *était* colorer ; sur un
+// dessin, multiplier par un rose presque blanc ne change à peu près rien, et
+// l'éclair d'impact — le retour qui manque le plus quand on tire sans le voir —
+// avait disparu sans qu'aucun test ne puisse le dire.
+//
+// La géométrie est celle de la passe précédente, laissée en place : ce qui
+// s'ajoute doit se superposer au pixel près, et la recalculer ouvrirait la
+// possibilité qu'elle diverge.
+//
+// Le mélange revient à sa valeur nulle en sortant, qui est l'alpha ordinaire :
+// l'option est réutilisée d'un blit à l'autre, et un mélange laissé additif
+// éclaircirait tout ce que l'image dessine ensuite.
+func (s *Screen) eclairer(ecran, forme *ebiten.Image, teinte color.RGBA) {
+	s.op.Blend = ebiten.BlendLighter
+	s.op.ColorScale.Reset()
+	s.op.ColorScale.ScaleWithColor(teinte)
+	s.op.ColorScale.ScaleAlpha(intensiteEclair)
+	ecran.DrawImage(forme, &s.op)
+	s.op.Blend = ebiten.Blend{}
+}
+
+// etatDe rend la teinte que l'état d'une créature ajoute, ou rien.
+//
+// **Les éclairs d'état survivent aux sprites, la table par profil non.** Une
+// couleur par profil disait qui était quoi, ce que le dessin dit désormais
+// mieux ; un impact ou un soigneur qui s'allume disent ce qui vient de se
+// passer, et aucune pose ne le dirait à cent créatures à l'écran. Les premiers
+// s'éteignent donc avec la dérogation, les seconds restent.
+func etatDe(e *game.Enemy) *color.RGBA {
+	switch {
+	case e.Healing > 0:
+		return &teinteSoigneur
+	case e.Flash > 0:
+		return &teinteImpact
+	case e.Healed > 0:
+		return &teinteSoigne
+	case e.Telegraphing() && (e.ChargeTimer/poulsAnnonce)%2 == 0:
+		return &teinteAnnonce
+	}
+	return nil
+}
+
+// silhouette pose un aplat blanc dans la teinte donnée, son pied sur le point où
+// le monde le situe.
+//
+// **Un aplat blanc, et la précision n'est pas une redondance.** La teinte
+// multiplie l'image : sur du blanc, multiplier *est* colorer, et la fonction fait
+// ce que son nom promet. Passez-lui un dessin et elle ne le teinte plus, elle
+// l'assombrit — c'est exactement ce qui a fait disparaître l'éclair d'impact le
+// jour où les créatures ont eu leurs bandes, sans qu'une ligne d'ici ne bouge.
+// Ce qui s'ajoute à un dessin passe par `eclairer`, en mélange additif.
+//
+// L'appui est au milieu du bas : c'est le point qui touche le sol, et le seul
 // qui puisse coïncider avec une position du monde.
 func (s *Screen) silhouette(ecran, forme *ebiten.Image, x, y game.Fixed, teinte color.RGBA) {
 	ex, ey := s.cam.ecran(x, y)

@@ -390,7 +390,7 @@ donne le test et le cas.
 ligne bouge**, parce que ce qui a changé est l'usage qu'on en fait. Ni une
 relecture ni un test ne le trouvent : il n'y a rien à trouver.
 
-Deux cas, de deux natures :
+Trois cas, de trois natures :
 
 - **Une godoc.** `Fingerprint` consomme trois tirages, ce que sa documentation
   annonçait « sans conséquence ». C'était vrai : un seul instant final était
@@ -400,12 +400,32 @@ Deux cas, de deux natures :
 - **Un instrument.** Une planche de mêlée était juste tant qu'on lui demandait de
   montrer une horde ; elle est devenue fausse le jour où on a voulu y juger un
   contact qu'elle n'avait jamais eu à montrer.
+- **Du code.** Une créature touchée s'éclairait par une teinte multipliée à son
+  aplat blanc, où multiplier *est* colorer. Le jour où l'aplat est devenu un
+  sprite, la même multiplication par un rose presque blanc a cessé de rien
+  changer : l'éclair d'impact avait disparu, et pas une ligne n'avait bougé.
+
+**Le troisième est d'une autre nature que les deux premiers, et c'est ce qui le
+rend instructif.** Ceux-là montrent une *description* qui vieillit, ce qu'on
+finit par soupçonner ; celui-ci montre du *code* qui vieillit sans changer. Il
+n'y a donc aucun diff où le chercher, et c'est le seul des trois qu'une relecture
+du changement ne pourrait pas attraper — il n'est dans aucun changement.
+
+Ce qui l'a trouvé est une planche, et rien d'autre ne le pouvait : aucune mesure
+ne dit qu'un multiplicateur devenu neutre est un défaut, puisqu'il fait
+exactement ce qu'il annonce.
 
 **La parade n'est pas de prévoir les usages futurs**, ce qui serait de
 l'anticipation et se tromperait. Elle est plus modeste : quand une justification
 s'appuie sur une propriété de l'usage courant, **l'écrire comme condition**.
 « Sans conséquence » aurait dû être « sans conséquence tant qu'un seul instant est
 relevé », et la phrase se serait signalée d'elle-même au deuxième.
+
+Elle vaut aussi pour le code, et c'est là qu'elle se voit le mieux. La fonction
+qui posait cet éclair annonçait « pose une forme teintée » — ce qu'elle fait, en
+toutes circonstances, donc une conclusion. « Teinte une forme blanche » dit à
+quelle condition elle le fait, et cette condition-là se serait signalée le jour
+où on lui a passé un dessin.
 
 C'est [Une condition vaut mieux qu'une
 conclusion](#une-condition-vaut-mieux-quune-conclusion) transposée, et le renvoi

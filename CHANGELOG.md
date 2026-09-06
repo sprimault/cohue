@@ -44,6 +44,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Les personnages s'affichent et s'animent.** Le joueur, les sept créatures et
+  les figurants sont dessinés à partir de leurs feuilles au lieu d'aplats
+  colorés, et leur cycle suit ce qu'ils font : ils marchent quand ils avancent,
+  se reposent à l'arrêt, encaissent quand un coup porte. L'éclair d'impact, le
+  soigneur qui s'allume et l'annonce d'une charge s'ajoutent désormais au dessin
+  au lieu de le teinter, ce qui les rend de nouveau visibles.
+
 - **Le décor s'affiche.** Sols, murs, murets, trottoirs, flaques et piliers sont
   dessinés à partir de leurs images plutôt qu'en aplats colorés, et ce qui
   dépasse du sol masque désormais ce qui passe derrière. La porte de sortie reste
@@ -66,6 +73,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
 ***
 
 ### Added
+
+- **Characters are drawn and animated.** The player, the seven creatures and the
+  passers-by come from their sheets instead of coloured blocks, and their cycle
+  follows what they do: they walk when moving, rest when still, flinch when a
+  shot lands. The impact flash, the healer lighting up and a charge being
+  announced now add to the drawing instead of tinting it, which makes them
+  visible again.
 
 - **The decor is drawn.** Floors, walls, low walls, kerbs, puddles and pillars
   come from their images instead of coloured blocks, and anything standing above

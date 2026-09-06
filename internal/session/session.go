@@ -110,6 +110,10 @@ type Session struct {
 	Decor *level.Decor
 	// Tiles dit quelle forme occupe chaque case du lieu.
 	Tiles *level.Tilemap
+	// Profiles est la table des personnages. Elle voyage pour son versant
+	// dessin : la simulation la tient déjà, et un afficheur qui la relirait
+	// décoderait une seconde fois le fichier que ce montage vient de lire.
+	Profiles *game.Profiles
 
 	// Seed est la graine de la run en cours, et le seul état de jeu qui traverse
 	// une relance — sous une forme changée, puisque chaque run dérive la
@@ -258,6 +262,7 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		Grid:        grille,
 		Decor:       decor,
 		Tiles:       charge.Tiles,
+		Profiles:    profils,
 		Seed:        graine,
 		profils:     profils,
 		armes:       armes,

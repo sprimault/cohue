@@ -51,8 +51,11 @@ type Stage struct {
 // prop est ce qu'un objet donne à peindre.
 type prop struct {
 	images []*ebiten.Image
-	dx, dy int
-	cycle  game.Cycle
+	// masques sont les formes des mêmes images, un bit par pixel, et tous les
+	// objets en ont : une gemme ne se révèle pas, mais elle recouvre.
+	masques []*sprite.Mask
+	dx, dy  int
+	cycle   game.Cycle
 	// formes sont les mêmes images aplaties en blanc, et seul le projectile de
 	// la horde en a : c'est le second des deux que la conception révèle quand
 	// quelque chose les cache, avec le joueur.
@@ -80,19 +83,22 @@ func NewStage(fsys fs.FS, racine, chemin string) (*Stage, error) {
 			return nil, fmt.Errorf("objets : « %s » n'est pas au catalogue", nom)
 		}
 		images := make([]*ebiten.Image, 0, len(objet.Images))
+		masques := make([]*sprite.Mask, 0, len(objet.Images))
 		var formes []*ebiten.Image
 		for _, img := range objet.Images {
 			images = append(images, ebiten.NewImageFromImage(img))
+			masques = append(masques, sprite.NewMask(img))
 			if nom == objetTirHorde {
 				formes = append(formes, aplatir(img))
 			}
 		}
 		scene.objets[nom] = prop{
-			images: images,
-			dx:     objet.Offset[0],
-			dy:     objet.Offset[1],
-			cycle:  objet.Cycle,
-			formes: formes,
+			images:  images,
+			masques: masques,
+			dx:      objet.Offset[0],
+			dy:      objet.Offset[1],
+			cycle:   objet.Cycle,
+			formes:  formes,
 		}
 	}
 	return scene, nil
@@ -133,6 +139,14 @@ func (p prop) forme(i int) *ebiten.Image {
 		return nil
 	}
 	return p.formes[i]
+}
+
+// masque rend la forme d'une image de l'objet, ou nil quand le rang n'en a pas.
+func (p prop) masque(i int) *sprite.Mask {
+	if i < 0 || i >= len(p.masques) {
+		return nil
+	}
+	return p.masques[i]
 }
 
 // rendre résout un objet et l'image que son cadencement désigne.

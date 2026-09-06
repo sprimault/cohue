@@ -51,6 +51,9 @@ type forme struct {
 	// sur cette case — ce sur quoi un marquage au sol se pose. Elle vient du
 	// manifeste par `sprite`, qui porte l'arithmétique et le test.
 	hauteurSol int
+	// masque est la forme de l'image, ce qui décide si elle cache un personnage.
+	// Un mur remplit sa boîte, un pilier n'en occupe qu'une bande étroite.
+	masque *sprite.Mask
 }
 
 // NewTerrain résout la carte cuite d'un lieu en images posables.
@@ -98,6 +101,7 @@ func resoudre(tuiles *sprite.Tileset, nom string) (forme, error) {
 		nue:        !tuile.Covers,
 		elevee:     tuile.Elevation != 0,
 		hauteurSol: tuile.GroundHeight,
+		masque:     sprite.NewMask(tuile.Image),
 	}, nil
 }
 

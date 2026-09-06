@@ -49,6 +49,14 @@ type figure struct {
 	directions []string
 	cycles     map[string]game.Cycle
 	images     map[pose]*ebiten.Image
+	// formes sont les mêmes images aplaties en blanc, et seul le joueur en a.
+	//
+	// **Elles servent son contour et sa silhouette, et à personne d'autre** : la
+	// conception ne révèle jamais une créature, parce que voir la horde à travers
+	// un bus retirerait au décor le seul pouvoir qu'il a sur le combat. Les
+	// construire pour tous coûterait douze cents textures dont aucune ne se
+	// poserait.
+	formes map[pose]*ebiten.Image
 }
 
 // pose désigne une image dans une figure.
@@ -68,21 +76,24 @@ func NewCast(fsys fs.FS, racine string, profils *game.Profiles) (*Cast, error) {
 		ambiants: make([]*figure, len(profils.Ambient)),
 	}
 
-	joueur, err := charger(fsys, racine, profils.Player.Figure)
+	// Le joueur seul reçoit ses formes aplaties : c'est le seul personnage que la
+	// conception révèle quand quelque chose le cache, et le seul qu'un contour
+	// détache.
+	joueur, err := charger(fsys, racine, profils.Player.Figure, true)
 	if err != nil {
 		return nil, err
 	}
 	troupe.joueur = joueur
 
 	for i, p := range profils.Enemies {
-		f, err := charger(fsys, racine, p.Figure)
+		f, err := charger(fsys, racine, p.Figure, false)
 		if err != nil {
 			return nil, err
 		}
 		troupe.ennemis[i] = f
 	}
 	for i, p := range profils.Ambient {
-		f, err := charger(fsys, racine, p.Figure)
+		f, err := charger(fsys, racine, p.Figure, false)
 		if err != nil {
 			return nil, err
 		}
@@ -96,7 +107,7 @@ func NewCast(fsys fs.FS, racine string, profils *game.Profiles) (*Cast, error) {
 // La conversion est exhaustive et non paresseuse : une image créée au premier
 // usage se paierait pendant une partie, et c'est précisément ce que le montage
 // existe pour éviter.
-func charger(fsys fs.FS, racine string, f game.Figure) (*figure, error) {
+func charger(fsys fs.FS, racine string, f game.Figure, aplati bool) (*figure, error) {
 	feuille, err := sprite.Load(fsys, racine, f)
 	if err != nil {
 		return nil, err
@@ -108,6 +119,9 @@ func charger(fsys fs.FS, racine string, f game.Figure) (*figure, error) {
 		cycles:     f.Cycles,
 		images:     map[pose]*ebiten.Image{},
 	}
+	if aplati {
+		dessin.formes = map[pose]*ebiten.Image{}
+	}
 	for nom, c := range f.Cycles {
 		for _, direction := range f.Directions {
 			for variante := range f.Variants {
@@ -116,8 +130,11 @@ func charger(fsys fs.FS, racine string, f game.Figure) (*figure, error) {
 					if !ok {
 						continue
 					}
-					dessin.images[pose{nom, direction, variante, image}] =
-						ebiten.NewImageFromImage(img)
+					p := pose{nom, direction, variante, image}
+					dessin.images[p] = ebiten.NewImageFromImage(img)
+					if aplati {
+						dessin.formes[p] = aplatir(img)
+					}
 				}
 			}
 		}
@@ -127,6 +144,9 @@ func charger(fsys fs.FS, racine string, f game.Figure) (*figure, error) {
 
 // image rend la texture d'une pose, ou nil quand la figure ne la porte pas.
 func (f *figure) image(p pose) *ebiten.Image { return f.images[p] }
+
+// forme rend la même pose aplatie en blanc, ou nil quand la figure n'en a pas.
+func (f *figure) forme(p pose) *ebiten.Image { return f.formes[p] }
 
 // anim est le cycle qu'un état demande, et ce qui le cadence.
 //

@@ -9,6 +9,7 @@ package sprite
 
 import (
 	"maps"
+	"slices"
 	"testing"
 	"testing/fstest"
 
@@ -287,5 +288,72 @@ func TestSeulesLesFormesHautesCachentUnPersonnage(t *testing.T) {
 	if plancher > 24+1 {
 		t.Errorf("la plus basse forme masquante est à %d px, le générateur annonce 24",
 			plancher)
+	}
+}
+
+// TestUnSolSureleveResteDuSol garde ce qui entre dans le tri en profondeur.
+//
+// **Le critère a été faux deux fois, et de la même façon** : « son élévation
+// n'est pas nulle » envoyait le trottoir, le quai et le rail disputer leur
+// profondeur à ce qui marche dessus. La porte ouverte est le seul cas où les
+// deux règles se séparent — elle se franchit et culmine à quarante-huit pixels,
+// donc elle se trie sans bloquer.
+func TestUnSolSureleveResteDuSol(t *testing.T) {
+	cas := []struct {
+		nom      string
+		bloquant bool
+		masquant bool
+		attend   bool
+	}{
+		{nom: "sol", attend: false},
+		{nom: "trottoir", attend: false},
+		{nom: "quai", attend: false},
+		{nom: "rail", attend: false},
+		{nom: "porte_ouverte", masquant: true, attend: true},
+		{nom: "muret", bloquant: true, attend: true},
+		{nom: "mur", bloquant: true, masquant: true, attend: true},
+	}
+
+	for _, c := range cas {
+		forme := formeDEssai()
+		forme.Blocking, forme.Masking = c.bloquant, c.masquant
+		if got := occulte(forme); got != c.attend {
+			t.Errorf("%s : occulte %v, attendu %v", c.nom, got, c.attend)
+		}
+	}
+}
+
+// TestLeCatalogueLivreNeTriePasSesTrottoirs confronte le prédicat au décor réel.
+//
+// Le test au-dessus garde la règle, celui-ci garde ce à quoi elle s'applique :
+// le jour où le générateur rend un trottoir bloquant, ou déclare masquant un
+// quai, la passe de sol se vide sans que rien d'autre ne le dise.
+func TestLeCatalogueLivreNeTriePasSesTrottoirs(t *testing.T) {
+	decor, err := level.LoadDecor(cohue.Assets, decorLivre)
+	if err != nil {
+		t.Fatal(err)
+	}
+	jeu, err := LoadTiles(cohue.Assets, "assets/decors", decor)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var triees []string
+	sols := 0
+	for nom, forme := range decor.Shapes {
+		if forme.Category != "sol" {
+			continue
+		}
+		sols++
+		tuile, _ := jeu.Tile(nom)
+		if tuile.Occludes {
+			triees = append(triees, nom)
+		}
+	}
+
+	slices.Sort(triees)
+	t.Logf("%d formes marchables, %d triées : %v", sols, len(triees), triees)
+	if !slices.Equal(triees, []string{"porte_ouverte"}) {
+		t.Errorf("formes marchables triées %v, attendu [porte_ouverte]", triees)
 	}
 }

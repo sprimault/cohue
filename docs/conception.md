@@ -689,6 +689,10 @@ Le rendu, lui, ne lit pas cette catégorie : il a l'élévation et le drapeau qu
 
 Le rendu iso a besoin d'un tri par `Y` écran : un tri par compartiments, pas un `sort.Slice` général à chaque frame.
 
+**Ce qui entre dans le tri est ce qui peut passer devant quelqu'un**, c'est-à-dire ce que le manifeste déclare masquant ou bloquant. Le reste appartient au sol et se peint avant, par rangées. Le critère n'est donc pas l'élévation, et l'avoir cru a coûté deux défauts de la même famille : un trottoir, un quai et un rail dépassent du sol et **se marchent**, si bien qu'à les trier ils se peignaient par-dessus l'emprise d'une explosion qu'ils étaient censés porter, puis par-dessus les jambes du personnage qui se tenait dessus. La porte ouverte est le seul cas où les deux règles se séparent : elle se franchit et culmine à quarante-huit pixels, donc elle se trie sans bloquer.
+
+**Ce qui se tient sur une case surélevée se dessine à sa hauteur.** L'élévation ne participe à aucun calcul de simulation, mais elle est ce qui distingue un trottoir d'un aplat : sans elle, le personnage est dessiné dans la bordure au lieu d'être dessus, et le décor perd sa matière. Le passage d'un niveau à l'autre **saute** — une marche est franche, et une interpolation ferait gravir une pente que rien ne dessine.
+
 **À égalité, la clé doit être totale et stable.** Le tri range par seau de profondeur ; deux entités d'un même seau sont départagées par leur profondeur exacte, puis par leur abscisse écran, puis par leur sorte, et enfin par leur identifiant. Sans ces derniers critères, l'ordre dépend du parcours du bassin, qui change à chaque suppression par échange : deux sprites superposés se relaieraient au premier plan d'une image à l'autre, et le scintillement se voit immédiatement.
 
 **La sorte est un critère et non une décoration** : chaque bassin numérote ses entités pour lui seul, si bien qu'un ennemi et un projectile peuvent porter le même identifiant sans avoir rien de commun.

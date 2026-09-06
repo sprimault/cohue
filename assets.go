@@ -45,6 +45,11 @@ const (
 	// bandes — et ses sous-dossiers de teinte quand il en a plusieurs.
 	CharacterDir = "assets/personnages"
 
+	// ObjectManifest décrit ce qui se ramasse, se tire et se casse, et
+	// ObjectDir est le dossier où ses images vivent, toutes à plat.
+	ObjectManifest = "assets/objets/manifeste.json"
+	ObjectDir      = "assets/objets"
+
 	WeaponManifest    = "assets/armes/manifeste.json"
 	InterfaceManifest = "assets/interface/manifeste.json"
 

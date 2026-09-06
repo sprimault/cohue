@@ -161,7 +161,12 @@ def projectile_ennemi():
 # Posés au sol, donc ombre et point d'appui. Le scintillement est une boucle de
 # quatre images : c'est ce qui les distingue du décor, qui ne bouge jamais.
 
-def _scintillement(base, images=4, amplitude=2):
+SCINTILLEMENT_IMAGES = 4
+SCINTILLEMENT_AMPLITUDE = 2
+
+
+def _scintillement(base, images=SCINTILLEMENT_IMAGES,
+                   amplitude=SCINTILLEMENT_AMPLITUDE):
     planche = Image.new("RGBA", (base.width * images, base.height + amplitude), TRANSPARENT)
     for i in range(images):
         hauteur = round(amplitude * (1 - math.cos(i / images * 2 * math.pi)) / 2)
@@ -671,7 +676,15 @@ def main():
         if nom in ("fiole", "gemme", "aimant"):
             bande = _scintillement(img)
             bande.save(o.sortie / f"{nom}_scintille.png")
-            manifeste[nom]["scintillement"] = {"images": 4, "duree_ms": 140,
+            # L'amplitude est déclarée parce qu'elle est la seule chose que la
+            # bande ne dit pas. Sa cellule fait la largeur de l'objet sur sa
+            # hauteur plus le bombement, et son point d'appui descend d'autant :
+            # sans ce nombre, une bande de 40 sur 10 pour un objet de 10 sur 8
+            # ne se découpe qu'en devinant, ce que le manifeste-contrat existe
+            # pour éviter.
+            manifeste[nom]["scintillement"] = {"images": SCINTILLEMENT_IMAGES,
+                                               "amplitude": SCINTILLEMENT_AMPLITUDE,
+                                               "duree_ms": 140,
                                                "boucle": True}
         print(f"{nom:22} {img.size}")
 
@@ -679,9 +692,14 @@ def main():
         planche = prim.reduire(eclats(matiere), couleurs=8)
         planche.save(o.sortie / f"eclats_{matiere}.png")
         cote = planche.width // 3
-        manifeste[f"eclats_{matiere}"] = {"formes": 3, "cote": cote,
-                                          "famille": "particule", "bloquant": False,
-                                          "note": "trajectoire calculée par le moteur"}
+        # `cote` est une paire comme partout ailleurs, et non l'entier d'un
+        # carré : un même nom qui porte deux formes selon la famille ne se lit
+        # pas d'un seul type, et c'est son lecteur qui l'a montré. Le mot sur la
+        # trajectoire est un commentaire, donc il en prend la clé — déclaré en
+        # donnée, il obligeait à un champ que personne ne lirait jamais.
+        manifeste[f"eclats_{matiere}"] = {"$comment": "trajectoire calculée par le moteur",
+                                          "formes": 3, "cote": [cote, cote],
+                                          "famille": "particule", "bloquant": False}
         print(f"{'eclats_' + matiere:22} 3 formes de {cote} px")
 
     for nom, fabrique, duree, boucle in (("etincelle", etincelle, 40, False),
@@ -695,9 +713,15 @@ def main():
             planche, largeur, hauteur = rendu, rendu.height, rendu.height
         planche = prim.reduire(planche, couleurs=14)
         planche.save(o.sortie / f"{nom}.png")
+        # **« cycle » et non « monde » pour les deux bandes de la caisse.** Une
+        # entrée du monde porte une taille, un ancrage et une emprise ; celles-ci
+        # n'en ont aucun, et les ranger là donnait une famille dont les entrées
+        # n'avaient pas la même forme — ce que leur lecteur a refusé. Un cycle
+        # appartient à l'objet qui le cite, dont il prend l'ancrage ; un effet se
+        # centre sur ce qu'il marque et n'appartient à personne.
         manifeste[nom] = {"images": planche.width // largeur, "cote": [largeur, hauteur],
                           "duree_ms": duree, "boucle": boucle,
-                          "famille": "effet" if nom in ("etincelle", "souffle") else "monde",
+                          "famille": "effet" if nom in ("etincelle", "souffle") else "cycle",
                           "bloquant": False}
         print(f"{nom:22} {planche.width // largeur} images de {largeur}x{hauteur}")
 

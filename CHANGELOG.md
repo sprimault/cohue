@@ -44,6 +44,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Les objets s'affichent, et ceux qui se ramassent scintillent.** Gemmes,
+  aimant, caisses et projectiles viennent de leurs dessins au lieu d'aplats
+  colorés — dessins qui existaient depuis des mois sans que rien ne les montre.
+  Une gemme s'éteint toujours en vieillissant, mais en perdant sa lumière plutôt
+  que sa couleur. Un tir qui porte allume une étincelle sur ce qu'il touche.
+
 - **Les personnages se tournent, et la foule cesse de se ressembler.** Le joueur
   regarde ce qu'il vise et non où il va — reculer en tirant vers l'avant se lit
   enfin —, les créatures regardent où elles vont, et celle qui s'arrête pour
@@ -80,6 +86,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 ***
 
 ### Added
+
+- **Objects are drawn, and the ones you pick up twinkle.** Gems, magnet, crates
+  and projectiles come from their artwork instead of coloured blocks — artwork
+  that had existed for months with nothing to show it. A gem still fades as it
+  ages, but by losing its light rather than its colour. A shot that lands sparks
+  on what it hits.
 
 - **Characters turn, and the crowd stops looking alike.** The player faces what
   he aims at rather than where he goes — backing away while firing forward

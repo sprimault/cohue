@@ -344,6 +344,9 @@ type planche struct {
 	// troupe est celle de toutes les vues : les bandes ne dépendent que du
 	// manifeste des personnages, là où la partie d'une vue lui est propre.
 	troupe *render.Cast
+	// objets est le catalogue des ramassables et des projectiles, lu une fois
+	// pour la même raison que la troupe : il ne dépend que de son manifeste.
+	objets *render.Stage
 	ecrit  bool
 }
 
@@ -441,7 +444,8 @@ func (p *planche) vue(v vue) error {
 	if err != nil {
 		return err
 	}
-	render.NewScreen(partie.World, partie.Grid, sol, p.troupe).WithHUD(p.hud).Draw(p.tampon)
+	render.NewScreen(partie.World, partie.Grid, sol, p.troupe, p.objets).
+		WithHUD(p.hud).Draw(p.tampon)
 	if v.texte {
 		p.poser()
 	}
@@ -596,6 +600,10 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	objets, err := render.NewStage(cohue.Assets, cohue.ObjectDir, cohue.ObjectManifest)
+	if err != nil {
+		return err
+	}
 
 	ebiten.SetWindowTitle("Cohue — planche")
 	ebiten.SetWindowSize(render.Width, render.Height)
@@ -605,6 +613,7 @@ func run() error {
 		hud:     hud,
 		tuiles:  tuiles,
 		troupe:  troupe,
+		objets:  objets,
 	})
 }
 

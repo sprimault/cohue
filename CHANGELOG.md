@@ -44,6 +44,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Ce qui casse laisse quelque chose.** Une caisse crache une gerbe d'éclats de
+  bois, une Baudruche une onde qui s'étale au sol : deux choses brèves qui
+  survivent à ce qui les a produites, et qu'on voyait disparaître sans un mot.
+
 - **Le personnage ne se perd plus.** Un contour clair le détache de la horde, et
   ce qu'un mur ou une foule recouvre est redessiné par-dessus en silhouette — le
   joueur et les tirs de la horde seulement, jamais une créature : ce qui se cache
@@ -91,6 +95,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 ***
 
 ### Added
+
+- **What breaks leaves something behind.** A crate throws out a spray of wood
+  shards, a Baudruche a wave spreading across the ground: two brief things that
+  outlive what produced them, and that used to vanish without a word.
 
 - **The character no longer gets lost.** A light outline lifts him out of the
   horde, and whatever a wall or a crowd covers is redrawn on top as a

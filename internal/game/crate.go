@@ -138,10 +138,11 @@ func (w *World) casser() {
 			continue
 		}
 
-		// Les gemmes se posent avant la suppression : après, la caisse a quitté
-		// le bassin et sa position vient d'une copie qu'on aurait gardée pour
-		// rien.
+		// Les gemmes et les éclats se posent avant la suppression : après, la
+		// caisse a quitté le bassin et sa position vient d'une copie qu'on aurait
+		// gardée pour rien.
 		w.lacherEn(c.X, c.Y, w.progression.CrateGems)
+		w.emettre(c.X, c.Y, FxCrate)
 		w.caisses.RemoveAt(i)
 	}
 }

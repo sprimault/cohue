@@ -31,6 +31,11 @@ const (
 	// familleEffet est une animation brève et centrée sur ce qu'elle marque :
 	// l'étincelle d'un impact, le souffle d'une déflagration.
 	familleEffet = "effet"
+	// familleParticule est un jeu de formes qu'on tire, et non une bande qu'on
+	// déroule : trois éclats par matière, que le rendu envoie sur des
+	// trajectoires qu'il calcule. Ce qui la sépare d'un effet est qu'elle n'a pas
+	// d'ordre — la deuxième forme ne suit pas la première, elle en diffère.
+	familleParticule = "particule"
 )
 
 // Objects est le manifeste que `outils/objets.py` écrit.
@@ -193,13 +198,12 @@ func (p *Props) Prop(nom string) (Prop, bool) {
 
 // charger découpe ce qu'une entrée déclare, et rien de plus.
 //
-// **Les familles que le rendu ne pose pas encore ne se chargent pas.** Trois
+// **Les familles que le rendu ne pose pas encore ne se chargent pas.** Deux
 // restent dehors, et chacune attend un mécanisme plutôt qu'une décision :
-// « arme » attend les armes lourdes de l'étape 6, « particule » attend le bassin
-// qui émettra des éclats, et « cycle » — les deux bandes d'une caisse qui cède —
-// attend que l'étape 7 donne à la caisse son délai de contact. Les découper
-// d'avance serait charger ce que rien n'exerce, dans un paquet dont le seul
-// lecteur n'a pas de test.
+// « arme » attend les armes lourdes de l'étape 6, et « cycle » — les deux bandes
+// d'une caisse qui cède — attend que l'étape 7 donne à la caisse son délai de
+// contact. Les découper d'avance serait charger ce que rien n'exerce, dans un
+// paquet dont le seul lecteur n'a pas de test.
 //
 // Un cycle se distingue d'un effet par son ancrage : il appartient à l'objet qui
 // le cite et prend le sien, quand un effet se centre sur le point qu'il marque.
@@ -231,6 +235,19 @@ func (p *Props) charger(fsys fs.FS, racine, nom string, objet Item) error {
 			Images: images,
 			Offset: [2]int{-objet.Cell[0] / 2, -objet.Cell[1] / 2},
 			Cycle:  game.Cycle{Frames: objet.Frames, Duration: duree, Loop: objet.Loop},
+		}
+	case familleParticule:
+		formes, err := decouperLarge(fsys, path.Join(racine, nom+".png"),
+			objet.Cell, objet.Shapes)
+		if err != nil {
+			return err
+		}
+		p.objets[nom] = Prop{
+			// Pas de cadence : ces formes ne se suivent pas, on en choisit une.
+			// Un éclat se centre sur sa position comme un effet — il vole, il ne
+			// repose sur rien.
+			Images: formes,
+			Offset: [2]int{-objet.Cell[0] / 2, -objet.Cell[1] / 2},
 		}
 	}
 	return nil
@@ -284,6 +301,11 @@ func controlerObjet(nom string, objet Item) string {
 		if objet.Frames < 1 || objet.Cell[0] < 1 || objet.Cell[1] < 1 {
 			return fmt.Sprintf("%s : %d image(s) de %v, un effet a une bande",
 				nom, objet.Frames, objet.Cell)
+		}
+	case familleParticule:
+		if objet.Shapes < 1 || objet.Cell[0] < 1 || objet.Cell[1] < 1 {
+			return fmt.Sprintf("%s : %d forme(s) de %v, une particule en a au moins une",
+				nom, objet.Shapes, objet.Cell)
 		}
 	}
 	return ""

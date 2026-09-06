@@ -95,6 +95,18 @@ const GemCapacity = 512
 // devenir le sol.
 const CrateCapacity = 32
 
+// FxCapacity plafonne le bassin des effets brefs.
+//
+// **Il compte des événements et non des éclats** : une caisse qui cède est une
+// entrée, quelle que soit la volée qu'on en dessine. Ce qui tient à la fois est
+// donc le nombre de choses détruites en moins d'une demi-seconde — quelques
+// Baudruches fauchées d'un coup, une caisse ou deux traversées dans la foulée.
+//
+// Trente-deux est large devant cela, et le dépassement ne coûte qu'un peu de
+// décor : un effet perdu ne change rien à la partie, ce qui est le sens du mot
+// cosmétique.
+const FxCapacity = 32
+
 // Session est une partie montée, prête à tourner.
 //
 // **Le manifeste de décor et la carte des formes voyagent avec le monde** parce
@@ -180,6 +192,7 @@ func (s *Session) monter() {
 			Blasts:     BlastCapacity,
 			Gems:       GemCapacity,
 			Crates:     CrateCapacity,
+			Fx:         FxCapacity,
 			Ambients:   AmbientCapacity,
 		})
 	placer(s.World, s.Grid)

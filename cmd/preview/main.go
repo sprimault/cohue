@@ -30,6 +30,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"image/png"
 	"os"
@@ -170,6 +171,13 @@ type vue struct {
 	// chargeLAimant donne une charge sans la dépenser, pour que l'emplacement du
 	// bandeau se juge plein.
 	chargeLAimant bool
+	// surUneCaisse pose le joueur sur la première caisse du lieu, qu'il casse
+	// alors au premier contact.
+	surUneCaisse bool
+	// poseUneBaudruche en fait apparaître une au pied du joueur, que son arme
+	// abat aussitôt : c'est le seul chemin qui produise une déflagration sans
+	// forger un état que la partie ne connaît pas.
+	poseUneBaudruche bool
 	// declencheLAimant lance la ruée après les pas joués, et dessine l'image en
 	// plein vol.
 	//
@@ -194,6 +202,13 @@ type vue struct {
 	// première touche serait trop tôt : ce que la mêlée juge est le personnage
 	// entouré, pas le premier contact.
 	jusquAuxDegats bool
+	// jusquAlEffet s'arrête au premier effet bref d'une sorte donnée.
+	//
+	// **Un effet dure une fraction de seconde et rien ne le rejoue** : une vue
+	// qui s'arrêterait à un compte de pas ne l'attraperait qu'avec de la chance,
+	// et cesserait de l'attraper au premier réglage de durée. C'est le cas type
+	// de l'artefact qui doit attendre son événement.
+	jusquAlEffet *game.FxKind
 	// jusquAuDanger s'arrête au franchissement du seuil d'alerte.
 	//
 	// Ni la mêlée ni la mort ne montrent la vignette : la première s'arrête à
@@ -275,6 +290,26 @@ var vues = []vue{
 	// gemmes qui traverseraient une salle vide ne diraient rien.
 	{nom: "ruee", ticks: 300 * game.TPS, jusquAuxDegats: true,
 		semeDesGemmes: true, declencheLAimant: true},
+
+	// **Les deux effets brefs s'attendent, ils ne se posent pas.** Une caisse
+	// cassée crache ses éclats sur un demi-tick et une déflagration son onde sur
+	// trois dixièmes : les poser à la main donnerait un état qu'aucune partie ne
+	// produit, et les attendre à un compte de pas relirait le réglage du jour.
+	//
+	// La volée s'obtient en posant le joueur sur une caisse, qui cède au premier
+	// contact. L'onde demande une Baudruche, que la vue fait apparaître au pied du
+	// joueur : l'arme la prend pour cible la plus proche, la mèche brûle, et
+	// l'explosion part. La horde est retirée dans les deux cas — ce qui est jugé
+	// est un effet, pas ce qui l'entoure.
+	{nom: "eclats", ticks: 30 * game.TPS, videLaHorde: true,
+		surUneCaisse: true, jusquAlEffet: &effetCaisse},
+	// **Celle-ci ne vide pas la horde**, contrairement à sa voisine : le
+	// dégagement tourne à chaque pas, et il emportait la Baudruche avant que
+	// l'arme ait eu le temps de l'abattre. Les premières secondes de la courbe
+	// n'achètent presque rien, si bien que la posée reste la cible la plus
+	// proche sans qu'on ait à retirer quoi que ce soit.
+	{nom: "souffle", ticks: 30 * game.TPS,
+		poseUneBaudruche: true, jusquAlEffet: &effetSouffle},
 
 	// La mort ne se pose pas, elle s'obtient : le joueur reste immobile au milieu
 	// du lieu et la horde finit par l'avoir. Dix minutes de plafond, parce que la
@@ -385,6 +420,19 @@ func (p *planche) vue(v vue) error {
 	}
 	pu, pv := v.ou.cases(partie.Grid, partie.World.Exit())
 	partie.World.Place(game.FromInt(pu)+game.One/2, game.FromInt(pv)+game.One/2)
+	if v.surUneCaisse {
+		caisses := partie.World.Crates()
+		if caisses.Len() == 0 {
+			return fmt.Errorf("vue %s : le lieu ne pose aucune caisse", v.nom)
+		}
+		c := caisses.At(0)
+		partie.World.Place(c.X, c.Y)
+	}
+	if v.poseUneBaudruche {
+		if err := poserUneBaudruche(partie); err != nil {
+			return err
+		}
+	}
 	// **La mort arrête les pas dès qu'une vue en dépend.** `World.Step` continue
 	// de tourner après elle — c'est l'écran qui fige, et la planche l'appelle
 	// directement —, si bien qu'un cadavre continue de tirer et de ramasser. La
@@ -617,6 +665,36 @@ func run() error {
 	})
 }
 
+// Les deux sortes d'effet que les vues attendent, prises en variables parce
+// qu'une table d'entrées ne peut pas prendre l'adresse d'une constante.
+var (
+	effetCaisse  = game.FxCrate
+	effetSouffle = game.FxBlast
+)
+
+// poserUneBaudruche en fait apparaître une à deux tuiles du joueur.
+//
+// **À deux tuiles et non collée** : l'arme vise la plus proche à portée, donc il
+// suffit qu'elle soit là pour qu'elle tombe, et l'écarter un peu laisse voir
+// l'onde entière plutôt qu'à moitié sous le personnage. La vue attend ensuite
+// l'explosion, qui vient quand la mèche a fini de brûler.
+func poserUneBaudruche(partie *session.Session) error {
+	profil := -1
+	for i, p := range partie.Profiles.Enemies {
+		if p.Key == "eclateur" {
+			profil = i
+		}
+	}
+	if profil < 0 {
+		return errors.New("vue souffle : aucun profil « eclateur » au manifeste")
+	}
+	x, y := partie.World.Player()
+	if _, pose := partie.World.SpawnEnemy(profil, x+2*game.One, y); !pose {
+		return errors.New("vue souffle : le bassin refuse la Baudruche")
+	}
+	return nil
+}
+
 // semerDesAges pose une rangée de gemmes échelonnées sur toute leur durée de vie.
 //
 // Hors de portée du joueur, sinon la première passe de ramassage les retirerait
@@ -677,6 +755,18 @@ func (v vue) arrive(monde *game.World) bool {
 		return monde.Health() <= monde.MaxHealth()*3/4
 	case v.jusquAuDanger:
 		return monde.InDanger()
+	case v.jusquAlEffet != nil:
+		// **À mi-vie et non à l'émission.** Au premier tick, les huit éclats sont
+		// encore au point de départ et l'onde à sa première image : la vue
+		// montrerait l'instant où l'effet commence, c'est-à-dire rien. Ce qu'elle
+		// doit donner à relire est la gerbe ouverte, et c'est un état de l'effet
+		// — pas un compte de pas depuis sa naissance.
+		effets := monde.Fxs()
+		for i := range effets.Active() {
+			if e := effets.At(i); e.Kind == *v.jusquAlEffet && e.Life*2 <= e.Total {
+				return true
+			}
+		}
 	}
 	return false
 }

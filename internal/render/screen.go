@@ -328,6 +328,7 @@ func (s *Screen) Draw(ecran *ebiten.Image) {
 	ecran.Fill(fond)
 	s.peindreSol(ecran)
 	s.peindreEntites(ecran)
+	s.peindreEffets(ecran)
 	s.peindreDanger(ecran)
 	s.peindreBandeau(ecran)
 	if s.monde.Over() {
@@ -790,6 +791,56 @@ func (s *Screen) peindreObjet(ecran *ebiten.Image, nom string, x, y game.Fixed,
 	objet, img := s.objets.image(nom, s.monde.Tick(), identite)
 	i := sprite.Loop(objet.cycle, s.monde.Tick(), identite)
 	return s.poserObjet(ecran, objet, img, x, y, voile), objet.forme(i)
+}
+
+// peindreEffets pose ce qui reste d'une chose qui n'existe plus.
+//
+// **Après la séquence et sans y entrer.** Un éclat vole au-dessus du sol et ne
+// dispute sa profondeur à personne : le trier lui vaudrait de passer sous la
+// créature qui piétine la caisse, ce qui est exactement l'inverse de ce qu'il
+// doit montrer. Il en va de même de l'onde d'une déflagration, qui recouvre par
+// définition ce qu'elle emporte.
+//
+// **Le bassin ne porte qu'un point et un décompte** ; la volée, ses directions
+// et sa parabole se dérivent du rang de chaque éclat. C'est ce qui permet à
+// huit éclats de ne rien coûter à la simulation, et de changer d'apparence sans
+// qu'elle bouge.
+func (s *Screen) peindreEffets(ecran *ebiten.Image) {
+	effets := s.monde.Fxs()
+	for i := range effets.Active() {
+		e := effets.At(i)
+		age := e.Total - e.Life
+		switch e.Kind {
+		case game.FxBlast:
+			objet, img := s.objets.effet(objetSouffle, e.Life)
+			s.poserObjet(ecran, objet, img, e.X, e.Y, nil)
+		case game.FxCrate:
+			s.peindreVolee(ecran, objetEclatsCaisse, e.X, e.Y, age, e.Total)
+		}
+	}
+}
+
+// peindreVolee ouvre une gerbe d'éclats depuis le point où quelque chose a cédé.
+//
+// La hauteur se retranche à l'ordonnée d'écran : monter est aller vers le haut,
+// et c'est la seule endroit du rendu où l'élévation d'une chose se calcule au
+// lieu de venir d'un manifeste — un éclat n'a pas d'ancrage, il a une
+// trajectoire.
+func (s *Screen) peindreVolee(ecran *ebiten.Image, nom string, x, y game.Fixed,
+	age, total game.Tick) {
+	objet, connu := s.objets.objets[nom]
+	if !connu || len(objet.images) == 0 {
+		return
+	}
+
+	for rang := range sprite.Shards {
+		ecart, hauteur := sprite.Shard(rang, age, total)
+		ex, ey := s.cam.ecran(x+ecart.X, y+ecart.Y)
+		s.op.GeoM.Reset()
+		s.op.GeoM.Translate(float64(ex+objet.dx), float64(ey+objet.dy-hauteur))
+		s.op.ColorScale.Reset()
+		ecran.DrawImage(objet.images[rang%len(objet.images)], &s.op)
+	}
 }
 
 // peindreEtincelle marque un tir qui vient de porter.

@@ -67,6 +67,10 @@ func (w *World) detoner() {
 		if w.Alive() && ecart.carres() <= int64(profil.BurstRadius)*int64(profil.BurstRadius) {
 			w.blesser(profil.BurstDamage)
 		}
+		// L'onde survit à ce qui la produit, et c'est toute la raison d'un bassin
+		// à part : l'explosion quitte le sien à cet instant précis, si bien que
+		// rien de ce qui reste ne pourrait dire qu'elle a eu lieu.
+		w.emettre(b.X, b.Y, FxBlast)
 		w.souffles.RemoveAt(i)
 	}
 }

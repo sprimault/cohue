@@ -43,3 +43,31 @@ const segmentPilote game.Tick = 90
 func Pilot(tick game.Tick) game.Vec {
 	return game.Heading(int(tick / segmentPilote))
 }
+
+// PilotChoice rend la place que le pilote prend à sa n-ième montée.
+//
+// **Le pilote ne prenait aucune carte, et c'était l'angle mort du test qui vend
+// le projet** : les montées s'ouvraient, s'accumulaient, et l'arme restait à son
+// premier palier du premier au dernier tick. L'empreinte gardait donc le
+// déterminisme d'une partie que personne ne joue — sans axes, sans synergies,
+// sans la bascule de puissance que la conception met au cœur de la boucle.
+//
+// **La rotation porte sur les places et non sur les axes**, et c'est ce qui la
+// rend sans exception. Cinq axes pour trois places : un axe visé ne serait pas
+// toujours offert, il faudrait un repli, et le repli deviendrait la politique
+// réelle sans qu'aucune ligne ne le dise. Une place est toujours là. Le tirage
+// remplissant les places, la rotation couvre les axes sans avoir à les nommer.
+//
+// **Elle ne consomme aucun tirage**, à la différence d'un choix au hasard : le
+// flux `Cards` reste alimenté par la seule offre, donc le témoin de l'empreinte
+// continue de garder ce qu'il gardait.
+//
+// **Ce que la sonde garde est le déterminisme du mécanisme, jamais la justesse
+// de l'équilibrage.** Aucune politique arbitraire ne joue comme un humain :
+// celle-ci répartit ses prises pour visiter la table, là où un joueur suivrait
+// une intention. Un chiffre tiré d'une run pilotée — le temps de survie, le
+// niveau atteint — décrit donc cette politique et pas le jeu, et les confondre
+// ferait croire qu'une run mesurée dit quelque chose de la courbe.
+func PilotChoice(montees int) int {
+	return montees % game.Choices
+}

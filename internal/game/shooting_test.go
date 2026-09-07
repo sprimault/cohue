@@ -247,6 +247,223 @@ func TestLeFrontGardeSaLargeurQuandLeNombreMonte(t *testing.T) {
 	}
 }
 
+// restantDe rend la résistance d'une créature, ou zéro si elle est morte.
+//
+// Par le `Handle` et non par la place : celle-ci change à chaque suppression par
+// échange, et c'est précisément ce que les cas de perforation produisent.
+func restantDe(w *World, h Handle) int {
+	place, vivante := w.Enemies().Slot(h)
+	if !vivante {
+		return 0
+	}
+	return w.Enemies().At(place).Hits
+}
+
+// TestLaPerforationTraverseEtPoursuit garde ce que l'axe apporte, et ce qu'il
+// n'apporte pas sans palier.
+//
+// Deux cas, et le second est ce qui rend le premier concluant : sans perforation
+// le tir s'arrête sur la première créature, si bien qu'un test qui ne montrerait
+// que le cas perforant passerait aussi sur un code qui traverse toujours.
+func TestLaPerforationTraverseEtPoursuit(t *testing.T) {
+	for _, cas := range []struct {
+		quoi     string
+		pierce   int
+		derriere bool
+	}{
+		{"sans palier, le tir s'arrête sur la première", 0, false},
+		{"avec un palier, il traverse et touche la suivante", 1, true},
+	} {
+		t.Run(cas.quoi, func(t *testing.T) {
+			w, profils := champDeTir(t)
+			px, py := w.Player()
+			marcheur := indexDuProfil(t, profils, "marcheur")
+
+			devant, ok := w.SpawnEnemy(marcheur, px+FromInt(2), py)
+			if !ok {
+				t.Fatal("créature refusée")
+			}
+			derriere, ok := w.SpawnEnemy(marcheur, px+FromInt(2)+One/4, py)
+			if !ok {
+				t.Fatal("créature refusée")
+			}
+			plein := restantDe(w, derriere)
+
+			// Le segment couvre les deux : ce qu'on éprouve est le sort du
+			// projectile après la première, jamais la portée de son pas.
+			tir := Projectile{
+				X: px + FromInt(2) - One/16, Y: py,
+				Step:      Vec{X: One/2 + One/4},
+				Remaining: FromInt(6),
+				Hits:      1,
+				Pierce:    cas.pierce,
+			}
+			consomme := w.toucher(Vec{tir.X, tir.Y}, &tir)
+
+			if restantDe(w, devant) >= plein {
+				t.Error("la première est intacte : le cas ne teste rien")
+			}
+			if consomme == cas.derriere {
+				t.Errorf("projectile consommé = %t avec %d perforation(s)",
+					consomme, cas.pierce)
+			}
+			// Une seule passe : ce que la perforation change est le sort du
+			// projectile, et la seconde créature est touchée au segment suivant.
+			if reste := tir.Pierce; cas.derriere && reste != 0 {
+				t.Errorf("perforations restantes : %d, attendu 0", reste)
+			}
+		})
+	}
+}
+
+// TestUnTirNeRetouchePasCeQuIlVientDeTraverser garde la parade à la double
+// touche.
+//
+// **Le cas n'existait pas avant la perforation** : un projectile mourait sur ce
+// qu'il frappait, donc il ne repassait jamais. Celui qui survit reste dans le
+// segment d'une créature qui a survécu elle aussi — trois touches contre une —,
+// et la reprendrait à chaque tick sans la référence qu'il garde.
+func TestUnTirNeRetouchePasCeQuIlVientDeTraverser(t *testing.T) {
+	w, profils := champDeTir(t)
+	px, py := w.Player()
+
+	cible, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), px+FromInt(2), py)
+	if !ok {
+		t.Fatal("créature refusée")
+	}
+	plein := restantDe(w, cible)
+
+	tir := Projectile{
+		X: px + FromInt(2) - One/16, Y: py,
+		Step:      Vec{X: One / 16},
+		Remaining: FromInt(6),
+		Hits:      1,
+		Pierce:    3,
+	}
+	// Quatre passes sur place : sans la référence, chacune reprendrait la même
+	// créature, et le pas est trop court pour la faire sortir du segment.
+	for range 4 {
+		w.toucher(Vec{tir.X, tir.Y}, &tir)
+		tir.X += tir.Step.X
+	}
+
+	if perdu := plein - restantDe(w, cible); perdu != 1 {
+		t.Errorf("%d touche(s) encaissée(s), attendu 1", perdu)
+	}
+}
+
+// TestLeRicochetRepartVersUneAutreCible garde les trois décisions de l'axe.
+func TestLeRicochetRepartVersUneAutreCible(t *testing.T) {
+	w, profils := champDeTir(t)
+	px, py := w.Player()
+	marcheur := indexDuProfil(t, profils, "marcheur")
+
+	frappee, ok := w.SpawnEnemy(marcheur, px+FromInt(2), py)
+	if !ok {
+		t.Fatal("créature refusée")
+	}
+	// Hors du segment, sinon elle serait touchée par la course plutôt que par le
+	// rebond, et le test passerait sans rien départager.
+	voisine, ok := w.SpawnEnemy(marcheur, px+FromInt(2), py+One)
+	if !ok {
+		t.Fatal("créature refusée")
+	}
+	plein := restantDe(w, voisine)
+
+	tir := Projectile{
+		X: px + FromInt(2) - One/16, Y: py,
+		Step:      Vec{X: One / 8},
+		Remaining: FromInt(6),
+		Hits:      1,
+		Bounces:   1,
+	}
+	if w.toucher(Vec{tir.X, tir.Y}, &tir) {
+		t.Fatal("le projectile est consommé : il n'a pas rebondi")
+	}
+	if restantDe(w, frappee) == 0 {
+		t.Fatal("la première n'a rien encaissé : le cas ne teste rien")
+	}
+	if tir.Bounces != 0 {
+		t.Errorf("rebonds restants : %d, attendu 0", tir.Bounces)
+	}
+	if tir.Step.Y <= 0 {
+		t.Errorf("le pas ne s'est pas tourné vers la voisine : %v", tir.Step)
+	}
+	if plein == 0 {
+		t.Fatal("la voisine part morte")
+	}
+}
+
+// TestLeRebondNeRechargePasLaPortee garde ce que l'axe ne donne pas.
+//
+// Une cible au-delà de la portée restante n'est pas un rebond possible : le
+// projectile meurt là où il a frappé. Sans cette borne il repartirait
+// indéfiniment, chaque créature en amenant une autre.
+func TestLeRebondNeRechargePasLaPortee(t *testing.T) {
+	w, profils := champDeTir(t)
+	px, py := w.Player()
+	marcheur := indexDuProfil(t, profils, "marcheur")
+
+	if _, ok := w.SpawnEnemy(marcheur, px+FromInt(2), py); !ok {
+		t.Fatal("créature refusée")
+	}
+	if _, ok := w.SpawnEnemy(marcheur, px+FromInt(2), py+FromInt(5)); !ok {
+		t.Fatal("créature refusée")
+	}
+
+	tir := Projectile{
+		X: px + FromInt(2) - One/16, Y: py,
+		Step:      Vec{X: One / 8},
+		Remaining: FromInt(1), // moins que l'écart entre les deux créatures
+		Hits:      1,
+		Bounces:   1,
+	}
+	if !w.toucher(Vec{tir.X, tir.Y}, &tir) {
+		t.Error("le projectile a rebondi vers une cible hors de sa portée restante")
+	}
+}
+
+// TestLaPerforationPasseAvantLeRicochet garde l'ordre des deux axes.
+//
+// **L'ordre inverse rendrait le perforant inutile chez qui a les deux** : le
+// projectile repartirait vers une autre cible au lieu de traverser, donc il ne
+// traverserait jamais. Éprouvé par ce que le projectile devient — il poursuit sa
+// course sans avoir dépensé son rebond.
+func TestLaPerforationPasseAvantLeRicochet(t *testing.T) {
+	w, profils := champDeTir(t)
+	px, py := w.Player()
+	marcheur := indexDuProfil(t, profils, "marcheur")
+
+	if _, ok := w.SpawnEnemy(marcheur, px+FromInt(2), py); !ok {
+		t.Fatal("créature refusée")
+	}
+	if _, ok := w.SpawnEnemy(marcheur, px+FromInt(2), py+One); !ok {
+		t.Fatal("créature refusée")
+	}
+
+	tir := Projectile{
+		X: px + FromInt(2) - One/16, Y: py,
+		Step:      Vec{X: One / 8},
+		Remaining: FromInt(6),
+		Hits:      1,
+		Pierce:    1,
+		Bounces:   1,
+	}
+	avant := tir.Step
+	if w.toucher(Vec{tir.X, tir.Y}, &tir) {
+		t.Fatal("le projectile est consommé : ni traversée ni rebond")
+	}
+	if tir.Pierce != 0 {
+		t.Errorf("perforations restantes : %d, attendu 0", tir.Pierce)
+	}
+	if tir.Bounces != 1 {
+		t.Errorf("rebonds dépensés avant la perforation : %d restant(s)", tir.Bounces)
+	}
+	if tir.Step != avant {
+		t.Errorf("la course a été redirigée : %v, attendu %v", tir.Step, avant)
+	}
+}
+
 func TestLeTirTueEtLaCreatureQuitteLeBassin(t *testing.T) {
 	w, profils := champDeTir(t)
 	px, py := w.Player()

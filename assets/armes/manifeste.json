@@ -11,6 +11,8 @@
       "degats_touches": 1,
       "projectiles": 1,
       "front_tuiles": 1.0,
+      "perforations": 0,
+      "rebonds": 0,
       "vitesse_projectile_tuiles_s": 12.0
     }
   },
@@ -37,6 +39,20 @@
         "phrase": "L'arme tire en front.",
         "paliers": 6,
         "pas_projectiles": 1
+      },
+      "perforant": {
+        "$comment": "Une créature traversée de plus par palier, soit sept sur l'axe entier. Il prolonge la course d'un tir : celui-ci poursuit tout droit après avoir frappé, au lieu de mourir sur ce qu'il touche. C'est l'axe qui paie contre une file d'ennemis alignés, là où le front paie contre une ligne. || Un projectile ne retouche pas la créature qu'il vient de traverser : il retient la dernière frappée, ce qui suffit tant que la horde converge vers le joueur au lieu de contourner ce qui la traverse. La godoc de Projectile.LastHit dit ce que ce choix laisse ouvert.",
+        "nom": "Perforant",
+        "phrase": "Les tirs traversent.",
+        "paliers": 6,
+        "pas_perforations": 1
+      },
+      "ricochet": {
+        "$comment": "Un rebond de plus par palier. Il redirige la fin d'une course : le tir repart vers la créature vivante la plus proche de son impact, celle qu'il vient de frapper exceptée. || Aucun réglage propre, et c'est délibéré : le rayon de recherche est la portée restante, qui continue de descendre. Un projectile ne rebondit donc que vers ce qu'il pouvait déjà atteindre, et un rebond qui rechargerait la portée le rendrait perpétuel dans une foule — chaque créature en amenant une autre. || Quand les deux axes sont pris, la perforation passe d'abord : elle prolonge la course, le rebond la termine, et l'ordre inverse rendrait le perforant inutile chez qui a les deux.",
+        "nom": "Ricochet",
+        "phrase": "Les tirs repartent.",
+        "paliers": 6,
+        "pas_rebonds": 1
       }
     },
     "soupape": {

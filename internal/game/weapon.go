@@ -82,6 +82,15 @@ type Weapon struct {
 	// Un front nul n'est pas une absence légitime : il superposerait les
 	// projectiles, c'est-à-dire la salve confondue que ce champ remplace.
 	Front Fixed
+	// Pierce est le nombre de créatures qu'un tir traverse au-delà de la
+	// première, et Bounces le nombre de fois qu'il repart vers une autre cible.
+	//
+	// Zéro pour l'arme de base, et c'est une valeur et non une absence : un tir
+	// qui s'arrête sur ce qu'il touche est le comportement ordinaire. Les deux
+	// champs restent exigés du fichier pour cette raison même — omis, ils
+	// vaudraient zéro sans qu'on sache si c'était voulu.
+	Pierce  int
+	Bounces int
 	// ProjectileSpeed est la vitesse d'un projectile, en tuiles par tick.
 	ProjectileSpeed Fixed
 }
@@ -186,6 +195,9 @@ type rawWeapon struct {
 	Projectiles *int `json:"projectiles"`
 	// FrontTuiles est la largeur sur laquelle une salve se répartit.
 	FrontTuiles *float64 `json:"front_tuiles"`
+	// Pierce et Bounces sont ce qu'un tir traverse et ce vers quoi il repart.
+	Pierce  *int `json:"perforations"`
+	Bounces *int `json:"rebonds"`
 	// Speed est la vitesse d'un projectile, en tuiles par seconde.
 	Speed *float64 `json:"vitesse_projectile_tuiles_s"`
 }
@@ -206,6 +218,8 @@ func (a rawWeapon) arme(cle string, dire func(string, ...any)) Weapon {
 		Hits:            exige(cle, "degats_touches", a.Hits, dire),
 		Projectiles:     exige(cle, "projectiles", a.Projectiles, dire),
 		Front:           FromFloat(exige(cle, "front_tuiles", a.FrontTuiles, dire)),
+		Pierce:          exige(cle, "perforations", a.Pierce, dire),
+		Bounces:         exige(cle, "rebonds", a.Bounces, dire),
 		ProjectileSpeed: parTick(exige(cle, "vitesse_projectile_tuiles_s", a.Speed, dire)),
 	}
 

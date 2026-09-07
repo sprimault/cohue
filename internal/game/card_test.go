@@ -64,87 +64,96 @@ func TestUneMonteeOuvreTroisPlaces(t *testing.T) {
 	}
 }
 
-// TestLeMenuEstLesTroisAxesSansSoupape écrit ce que la table offre désormais.
+// TestLaTableLivreeTireTroisAxesSurCinq écrit ce que la table offre désormais.
 //
-// **La soupape a quitté le menu ordinaire, et c'est le vrai gain du troisième
-// axe.** Trois axes remplissent exactement les trois places, si bien qu'elle ne
-// reparaît qu'à l'épuisement de l'un d'eux — ce que la conception attend d'elle,
-// et ce que deux axes lui interdisaient : elle occupait alors une place sur trois
-// du début à la fin d'une run.
+// **Le menu est devenu un tirage**, et ce test a porté trois états successifs de
+// la table : deux axes plus la soupape, puis trois axes qui la chassaient, puis
+// cinq axes dont trois sont tirés. Chaque passage l'a fait tomber, ce qui est son
+// emploi — il est l'endroit où le changement d'offre devient visible.
 //
-// **Aucun tirage n'a lieu pour autant**, et la version précédente de ce test
-// annonçait le contraire pour ce jour-ci. Le pool ne dépasse les trois places
-// qu'au quatrième axe, et c'est alors qu'un flux aléatoire prendra son numéro. Ce
-// test tombera une seconde fois ce jour-là, ce qui est son second emploi.
-func TestLeMenuEstLesTroisAxesSansSoupape(t *testing.T) {
+// Ce qui est gardé n'est pas quels axes sortent, qui dépend de la graine, mais
+// que trois places distinctes soient remplies par des axes et jamais par la
+// soupape tant qu'aucun n'est épuisé.
+func TestLaTableLivreeTireTroisAxesSurCinq(t *testing.T) {
 	w, profils := champDeCartes(t, monteeSimple())
-	semer(t, w, profils, 1)
-	w.Step(Vec{})
+	cartes := offresDe(t, w, profils)
 
-	cartes := w.Pending()
-	if cartes[0].Name != "Cadence" || cartes[1].Name != "Portée" ||
-		cartes[2].Name != "Projectiles" {
-		t.Errorf("les trois places : %q, %q et %q",
-			cartes[0].Name, cartes[1].Name, cartes[2].Name)
+	if len(cartes) != Choices {
+		t.Fatalf("%d carte(s) offertes, attendu %d", len(cartes), Choices)
+	}
+	vus := map[string]bool{}
+	for _, nom := range cartes {
+		if nom == w.passifs.Relief.Name {
+			t.Errorf("la soupape est offerte alors qu'aucun axe n'est épuisé : %v", cartes)
+		}
+		if vus[nom] {
+			t.Errorf("« %s » offert deux fois : %v", nom, cartes)
+		}
+		vus[nom] = true
 	}
 	// Le rang sur la borne, et non la grandeur du gain : c'est ce que le joueur
 	// ne peut pas déduire autrement, l'épuisement d'un axe étant un moment de jeu.
-	if cartes[0].Effect != "Palier 1 sur 6" {
-		t.Errorf("effet de la première carte : %q", cartes[0].Effect)
+	if effet := w.Pending()[0].Effect; effet != "Palier 1 sur 6" {
+		t.Errorf("effet de la première carte : %q", effet)
 	}
 }
 
 // TestChoisirAppliqueLePalier vérifie que la carte agit sur l'arme de la partie.
 func TestChoisirAppliqueLePalier(t *testing.T) {
-	w, profils := champDeCartes(t, monteeSimple())
+	// Trois axes pour trois places : tous sont offerts, donc le premier rang est
+	// bien celui qu'on prend. Ce que ce test garde est le chemin de la carte à
+	// l'arme, jamais le pas du fichier livré — c'est
+	// `TestManifesteLivreDonneLesPassifs` qui tient celui-là.
+	w, profils := champAvec(t, tableDe(t, "A", "B", "C"), graineDeTest)
 	avant := w.arme.Cooldown
 
 	semer(t, w, profils, 1)
 	w.Step(Vec{})
 	w.Choose(0)
 
-	// Deux ticks, ce que le manifeste déclare comme pas de cadence.
-	if w.arme.Cooldown != avant-2 {
-		t.Errorf("cadence : %d ticks, attendu %d", w.arme.Cooldown, avant-2)
+	if w.arme.Cooldown != avant-1 {
+		t.Errorf("cadence : %d ticks, attendu %d", w.arme.Cooldown, avant-1)
 	}
 	if w.Choosing() {
 		t.Error("le choix reste ouvert après avoir été pris")
 	}
 }
 
-// tableLarge bâtit une table de passifs plus large que le nombre de places.
+// tableDe bâtit une table de passifs portant un axe par nom donné.
 //
 // **Elle est bâtie en Go et non décodée d'un manifeste, et c'est une nécessité
-// plutôt qu'une entorse** : la liste des axes admis est close dans
-// `passive.go`, si bien qu'aucun fichier ne peut en déclarer un quatrième tant
-// que le code n'en connaît pas un quatrième. Ce qu'on isole ici est la
-// sélection, jamais le décodage — celui-ci reste gardé par les tests qui
-// chargent le manifeste livré.
+// plutôt qu'une entorse** : la liste des axes admis est close dans `passive.go`,
+// si bien qu'aucun fichier ne peut porter un axe que le code ne connaît pas, ni
+// deux fois le même. Ce qu'on isole ici est la sélection et la borne, jamais le
+// décodage — celui-ci reste gardé par les tests qui chargent le manifeste livré.
 //
-// Les axes reprennent les clés existantes : ce que le tirage manipule est une
-// place dans la tranche, et leurs effets ne sont pas ce qu'on mesure.
-func tableLarge(t *testing.T) *Weapons {
+// Tous les axes portent la clé de la cadence : ce que le tirage manipule est une
+// place dans la tranche, et leurs effets ne sont pas ce qu'on mesure. Le nombre
+// de noms est ce qui compte — au-dessus des trois places on éprouve le tirage,
+// en dessous la soupape qui comble.
+func tableDe(t *testing.T, noms ...string) *Weapons {
 	t.Helper()
 	armes, err := LoadWeapons(cohue.Assets, manifesteArmes)
 	if err != nil {
 		t.Fatalf("armes livrées : %v", err)
 	}
 
-	large := *armes.Passives
-	large.Axes = make([]Passive, 0, 5)
-	for _, nom := range []string{"A", "B", "C", "D", "E"} {
-		large.Axes = append(large.Axes, Passive{
+	table := *armes.Passives
+	table.Axes = make([]Passive, 0, len(noms))
+	for _, nom := range noms {
+		table.Axes = append(table.Axes, Passive{
 			Axis: AxisCadence, Name: nom, Phrase: "Essai.", Tiers: 6,
-			Effects: []string{"1", "2", "3", "4", "5", "6"},
+			Effects:      []string{"1", "2", "3", "4", "5", "6"},
+			CooldownStep: 1,
 		})
 	}
 	copie := *armes
-	copie.Passives = &large
+	copie.Passives = &table
 	return &copie
 }
 
-// offresDe joue une montée sur la table donnée et rend les noms offerts.
-func offresDe(t *testing.T, armes *Weapons, graine uint64) []string {
+// champAvec monte une salle vide sur la table et la graine données.
+func champAvec(t *testing.T, armes *Weapons, graine uint64) (*World, *Profiles) {
 	t.Helper()
 	profils, err := LoadProfiles(cohue.Assets, manifestePersonnages)
 	if err != nil {
@@ -153,7 +162,12 @@ func offresDe(t *testing.T, armes *Weapons, graine uint64) []string {
 	w := NewWorld(profils, armes, monteeSimple(), sansVagues(), NewCostGrid(32, 32),
 		graine, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
+	return w, profils
+}
 
+// offresDe joue une montée et rend les noms offerts.
+func offresDe(t *testing.T, w *World, profils *Profiles) []string {
+	t.Helper()
 	semer(t, w, profils, 1)
 	w.Step(Vec{})
 
@@ -164,23 +178,27 @@ func offresDe(t *testing.T, armes *Weapons, graine uint64) []string {
 	return noms
 }
 
-// TestLeTirageNeSeConsommePasSansChoix garde ce que la table livrée ne fait pas.
+// TestLeTirageNeSeConsommePasSansChoix garde une propriété du mécanisme, que la
+// table livrée n'exerce plus.
 //
-// **Trois axes pour trois places ne laissent rien à choisir**, et le flux ne doit
+// **Autant d'axes que de places ne laisse rien à choisir**, et le flux ne doit
 // alors pas être touché : un tirage inconditionnel le décalerait sans qu'aucune
 // décision en dépende, et l'attendu d'empreinte bougerait pour une raison qui
 // n'est pas une règle de jeu.
 //
-// C'est aussi ce qui donne son statut au lot qui a introduit `Cards` : le
-// mécanisme est en place, et aucune donnée livrée ne le consomme encore.
+// La table livrée a porté ce cas jusqu'au perforant et au ricochet, qui l'ont
+// fait passer à cinq axes. La propriété, elle, ne dépend pas du fichier : elle
+// vaut de nouveau le jour où deux axes s'épuisent, et c'est pour cela qu'elle est
+// gardée sur une table bâtie ici plutôt que retirée avec le cas qui l'exerçait.
 func TestLeTirageNeSeConsommePasSansChoix(t *testing.T) {
-	w, profils := champDeCartes(t, monteeSimple())
-	semer(t, w, profils, 1)
-	w.Step(Vec{})
-
-	if len(w.Pending()) != Choices {
-		t.Fatalf("%d carte(s) offertes", len(w.Pending()))
+	// Trois axes pour trois places. La table livrée en portait autant jusqu'au
+	// perforant et au ricochet ; depuis, seule une table bâtie ici pose encore la
+	// question, et c'est la propriété qui compte, pas le fichier qui la produit.
+	w, profils := champAvec(t, tableDe(t, "A", "B", "C"), graineDeTest)
+	if cartes := offresDe(t, w, profils); len(cartes) != Choices {
+		t.Fatalf("%d carte(s) offertes", len(cartes))
 	}
+
 	// Un flux neuf de la même graine : si l'ouverture avait tiré, celui de la
 	// partie aurait pris de l'avance et les deux rendraient des valeurs
 	// différentes.
@@ -197,9 +215,10 @@ func TestLeTirageNeSeConsommePasSansChoix(t *testing.T) {
 // axes, et deux graines qui n'offrent pas la même chose. Sans elle, un tirage
 // qui rendrait toujours les trois premiers passerait la première.
 func TestPlusDAxesQueDePlacesFaitTirer(t *testing.T) {
-	armes := tableLarge(t)
+	armes := tableDe(t, "A", "B", "C", "D", "E")
 
-	offres := offresDe(t, armes, graineDeTest)
+	w, profils := champAvec(t, armes, graineDeTest)
+	offres := offresDe(t, w, profils)
 	if len(offres) != Choices {
 		t.Fatalf("%d carte(s) offertes, attendu %d", len(offres), Choices)
 	}
@@ -211,11 +230,12 @@ func TestPlusDAxesQueDePlacesFaitTirer(t *testing.T) {
 		vus[nom] = true
 	}
 
-	// Les graines sont choisies distinctes ; deux tirages de trois parmi cinq
-	// peuvent coïncider, donc on en compare plusieurs plutôt qu'une paire.
+	// Deux tirages de trois parmi cinq peuvent coïncider, donc on en compare
+	// plusieurs plutôt qu'une paire.
 	distinctes := map[string]bool{}
 	for _, graine := range []uint64{1, 2, 3, 4, 5} {
-		distinctes[fmt.Sprint(offresDe(t, armes, graine))] = true
+		autre, autresProfils := champAvec(t, armes, graine)
+		distinctes[fmt.Sprint(offresDe(t, autre, autresProfils))] = true
 	}
 	if len(distinctes) < 2 {
 		t.Errorf("cinq graines offrent toutes la même chose : %v", distinctes)
@@ -229,20 +249,38 @@ func TestPlusDAxesQueDePlacesFaitTirer(t *testing.T) {
 // l'accroisse réellement. Sans lui, l'axe pourrait n'être qu'une entrée de table
 // que rien ne branche, et les deux autres tests passeraient quand même.
 func TestChoisirAppliqueLePalierDeProjectiles(t *testing.T) {
-	w, profils := champDeCartes(t, monteeSimple())
-	avant := w.arme.Projectiles
+	for _, cas := range []struct {
+		carte string
+		lire  func(*World) int
+	}{
+		{"Projectiles", func(w *World) int { return w.arme.Projectiles }},
+		{"Perforant", func(w *World) int { return w.arme.Pierce }},
+		{"Ricochet", func(w *World) int { return w.arme.Bounces }},
+	} {
+		t.Run(cas.carte, func(t *testing.T) {
+			w, profils := champDeCartes(t, monteeSimple())
 
-	semer(t, w, profils, 1)
-	w.Step(Vec{})
-
-	rang := slices.IndexFunc(w.Pending(), func(c Card) bool { return c.Name == "Projectiles" })
-	if rang < 0 {
-		t.Fatal("la carte des projectiles n'est pas offerte")
-	}
-	w.Choose(rang)
-
-	if w.arme.Projectiles != avant+1 {
-		t.Errorf("projectiles : %d, attendu %d", w.arme.Projectiles, avant+1)
+			// Relevé au moment de la prise : le chemin jusqu'à la carte voulue en
+			// prend d'autres, et un relevé fait au départ mesurerait leurs effets.
+			var avant int
+			for range 20 {
+				semer(t, w, profils, 1)
+				w.Step(Vec{})
+				rang := slices.IndexFunc(w.Pending(),
+					func(c Card) bool { return c.Name == cas.carte })
+				if rang < 0 {
+					w.Choose(0)
+					continue
+				}
+				avant = cas.lire(w)
+				w.Choose(rang)
+				if apres := cas.lire(w); apres != avant+1 {
+					t.Errorf("%s : %d, attendu %d", cas.carte, apres, avant+1)
+				}
+				return
+			}
+			t.Fatalf("« %s » n'a pas été offert en vingt montées", cas.carte)
+		})
 	}
 }
 
@@ -286,7 +324,11 @@ func TestLesPaliersSIndexentCommeLesAxes(t *testing.T) {
 // trois axes remplissent les trois places : un axe épuisé libère une place, et
 // c'est elle qu'elle vient prendre.
 func TestUnAxeEpuiseSortDuMenu(t *testing.T) {
-	w, profils := champDeCartes(t, monteeSimple())
+	// Trois axes pour trois places : aucun tirage, donc l'épuisement du premier
+	// libère une place qu'on peut nommer. Sur la table livrée il faudrait en
+	// épuiser trois pour voir la soupape, et le tirage rendrait la manœuvre
+	// illisible pour ce qu'elle garde — la borne, et ce qui comble.
+	w, profils := champAvec(t, tableDe(t, "A", "B", "C"), graineDeTest)
 
 	for range 6 {
 		semer(t, w, profils, 1)
@@ -294,18 +336,15 @@ func TestUnAxeEpuiseSortDuMenu(t *testing.T) {
 		w.Choose(0)
 	}
 
-	semer(t, w, profils, 1)
-	w.Step(Vec{})
-
-	cartes := w.Pending()
+	cartes := offresDe(t, w, profils)
 	if len(cartes) != Choices {
 		t.Fatalf("%d place(s) après épuisement, attendu %d", len(cartes), Choices)
 	}
-	if cartes[0].Name != "Portée" || cartes[1].Name != "Projectiles" {
-		t.Errorf("les deux axes restants : %q et %q", cartes[0].Name, cartes[1].Name)
+	if cartes[0] != "B" || cartes[1] != "C" {
+		t.Errorf("les deux axes restants : %q et %q", cartes[0], cartes[1])
 	}
-	if soupape := w.passifs.Relief.Name; cartes[2].Name != soupape {
-		t.Errorf("place libérée : %q, attendu la soupape", cartes[2].Name)
+	if soupape := w.passifs.Relief.Name; cartes[2] != soupape {
+		t.Errorf("place libérée : %q, attendu la soupape", cartes[2])
 	}
 }
 

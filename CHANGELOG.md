@@ -44,6 +44,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Deux cartes changent ce que devient un tir.** Le perforant le fait traverser
+  ce qu'il frappe et poursuivre sa route ; le ricochet le fait repartir vers la
+  créature la plus proche, sans jamais lui rendre de portée. Un palier de plus
+  par carte, jusqu'à sept.
+- **Le choix des cartes est enfin un tirage.** Cinq axes pour trois places : ce
+  qu'on se voit proposer change d'une montée à l'autre, et deux runs d'une même
+  graine offrent la même chose.
 - **Une carte fait tirer en front.** Le troisième axe d'amélioration ajoute un
   projectile par palier, jusqu'à sept : ils partent côte à côte, sur la même
   course, et couvrent une largeur qui ne change pas — la salve se resserre à
@@ -65,6 +72,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **Two cards change what a shot becomes.** Piercing makes it go through what it
+  hits and carry on; ricochet makes it leave again for the nearest creature,
+  without ever giving it back any range. One tier each, up to seven.
+- **The card choice is a draw at last.** Five axes for three slots: what you are
+  offered changes from one level to the next, and two runs of the same seed offer
+  the same thing.
 - **A card makes the weapon fire in a line.** The third upgrade axis adds one
   projectile per tier, up to seven: they leave side by side, on the same course,
   and span a width that never changes — the volley tightens as it grows instead

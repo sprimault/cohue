@@ -10,11 +10,12 @@
       "portee_tuiles": 6,
       "degats_touches": 1,
       "projectiles": 1,
+      "front_tuiles": 1.0,
       "vitesse_projectile_tuiles_s": 12.0
     }
   },
   "passifs": {
-    "$comment": "Ce que la montée de niveau propose : des variantes de l'arme unique, prises palier par palier. La table complète — six axes, synergies, recettes de fusion — appartient à l'étape 6 ; ce qui est ici est le minimum dont le choix ternaire a besoin pour être jugé. || Deux axes seulement, et c'est une limite assumée : le perforant, le ricochet et l'éventail demandent du travail dans le tir, et le nombre de projectiles est laissé de côté parce que le mécanisme existant ne fait pas ce que la conception décrit. || Conséquence à connaître : deux axes plus la soupape font exactement trois cartes, donc l'offre ne varie pas. Le jalon n'exerce pas « la bonne carte est celle qui fait hésiter ». || nom et phrase sont du français dans un manifeste, ce que la règle des libellés n'aime pas ; ils suivront le dictionnaire de traduction quand il existera, comme le nom de fiction de l'arme.",
+    "$comment": "Ce que la montée de niveau propose : des variantes de l'arme unique, prises palier par palier. Trois axes sur les six que la conception veut : le perforant, le ricochet et l'éventail demandent dans le tir un travail que l'étape 6 n'a pas encore écrit. Les synergies et les recettes de fusion les suivront, puisqu'elles combinent ce qui n'existe pas encore. || Trois axes font exactement trois places, donc toujours aucun tirage : c'est un quatrième axe qui en ouvrira un. Ce qui change est ailleurs et compte davantage — la soupape sort du menu ordinaire et ne revient qu'à l'épuisement d'un axe, comme la conception le veut, là où elle occupait une place sur trois pendant toute la run. Le joueur arbitre désormais entre trois améliorations d'arme au lieu de deux et d'un soin. || nom et phrase sont du français dans un manifeste, ce que la règle des libellés n'aime pas ; ils suivront le dictionnaire de traduction quand il existera, comme le nom de fiction de l'arme.",
     "axes": {
       "cadence": {
         "$comment": "Deux ticks retirés par palier, soit trente-trois millisecondes. L'axe entier fait passer la cadence de vingt-quatre ticks à douze : l'arme tire deux fois plus vite au bout du chemin, et pas davantage — en deçà de douze ticks, ce n'est plus la cadence qui limite le joueur mais le nombre de cibles à portée.",
@@ -29,10 +30,17 @@
         "phrase": "Les tirs vont plus loin.",
         "paliers": 6,
         "pas_tuiles": 0.5
+      },
+      "projectiles": {
+        "$comment": "Un projectile de plus par palier, soit un à sept sur l'axe entier. Sept n'est pas excessif : c'est le prix d'un spécialiste, qui a dépensé six choix sur un seul axe et renoncé à tout le reste — la cadence, la portée, et les trois axes que l'étape 6 apportera. Une build engagée doit rapporter. || Ils partent en front parallèle, sur la largeur que l'arme déclare sous front_tuiles. C'est la largeur qui se règle et l'écartement qui s'en dérive, si bien que la salve se densifie en montant au lieu de s'élargir : un écartement fixe aurait fait passer les extrêmes d'une salve de sept à plusieurs tuiles de la visée, et le dernier palier aurait tiré de plus en plus à côté. || Conséquence à connaître, écrite dans la godoc de Weapon.Projectiles : à cible unique l'axe ne vaut d'abord rien de plus, puis se met à valoir en fin de course, quand la densité devient telle qu'une même créature prend deux ou trois projectiles. L'axe change de nature en montant, et c'est voulu.",
+        "nom": "Projectiles",
+        "phrase": "L'arme tire en front.",
+        "paliers": 6,
+        "pas_projectiles": 1
       }
     },
     "soupape": {
-      "$comment": "La carte qui remplit une place quand aucun palier n'est disponible. La conception en fait un cas rare ; ici elle porte la moitié d'une run, faute d'axes, et c'est assumé plutôt que subi. Elle est répétable dans un même tirage, sans quoi l'écran de montée se viderait — le pire défaut possible à cet endroit, puisqu'il tombe sur le moment de récompense. || Trente points sur cent, ce qui achète une seconde et demie de contact tant que le plafond de dégâts du joueur reste à vingt par seconde — il vit dans le manifeste des personnages, et c'est lui qui décide si ce chiffre veut encore dire quelque chose. Précieux quand on est bas, ignorable quand on est haut, ce que la conception exige de lui.",
+      "$comment": "La carte qui remplit une place quand aucun palier n'est disponible. La conception en fait un cas rare, et elle l'est redevenue : à trois axes pour trois places, elle ne paraît qu'une fois un axe épuisé, là où deux axes la mettaient à l'écran toute la partie. Elle est répétable dans un même tirage, sans quoi l'écran de montée se viderait — le pire défaut possible à cet endroit, puisqu'il tombe sur le moment de récompense. || Trente points sur cent, ce qui achète une seconde et demie de contact tant que le plafond de dégâts du joueur reste à vingt par seconde — il vit dans le manifeste des personnages, et c'est lui qui décide si ce chiffre veut encore dire quelque chose. Précieux quand on est bas, ignorable quand on est haut, ce que la conception exige de lui.",
       "nom": "Souffle",
       "phrase": "Le Survivant reprend des forces.",
       "soin": 30

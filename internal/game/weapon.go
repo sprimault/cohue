@@ -45,21 +45,43 @@ type Weapon struct {
 	Hits int
 	// Projectiles est le nombre de projectiles par tir.
 	//
-	// **Ce chemin n'a jamais été parcouru : le manifeste livré en déclare un.**
-	// `tirer` engendre les copies au même point, dans la même direction et au
-	// même pas — elles sont rigoureusement confondues à l'écran, et `toucher`
-	// écartant ce qui n'a plus de résistance, la seconde va chercher derrière la
-	// première. Ce que le mécanisme produit aujourd'hui est donc une salve qui
-	// perfore en profondeur, dessinée comme un seul point.
+	// **Ils partent en front parallèle** : décalés perpendiculairement à la
+	// visée, même direction et même vitesse. Les trois autres lectures que ce
+	// champ a longtemps laissées ouvertes sont écartées, et deux d'entre elles
+	// parce qu'elles feraient doublon avec un axe voisin — la superposition est
+	// ce que `perforant` apporte, l'étalement en angle est `eventail`, et la
+	// recette « trois projectiles plus éventail » n'aurait alors rien à
+	// combiner. La troisième, une rafale étalée dans le temps, dirait ce que
+	// `cadence` dit déjà et ne montrerait jamais qu'un projectile à la fois,
+	// quand ce qu'on attend d'un nombre est d'abord qu'il se voie.
 	//
-	// Ce n'est aucune des choses que la conception nomme, et trois lectures
-	// restent ouvertes : un étalement dans le temps, qui ferait du nombre une
-	// rafale ; un étalement dans l'espace, qui est l'éventail, un axe distinct ;
-	// ou la superposition telle quelle, assumée comme de la perforation. Trancher
-	// est une décision de conception, et la prendre pour avoir un axe de plus
-	// serait la prendre pour la mauvaise raison — c'est pourquoi l'axe du nombre
-	// n'est pas ouvert au jalon 3.
+	// **À cible unique, trois projectiles ne valent pas trois fois un**, et cela
+	// se lirait comme un défaut sans cette phrase. Seul celui du centre suit la
+	// ligne d'interception ; les autres passent à côté d'une cible ponctuelle et
+	// vont chercher derrière. C'est ce qui sépare l'axe d'un multiplicateur de
+	// dégâts : il paie contre la masse, et ne rend rien contre une Buse isolée.
+	//
+	// **Cela cesse d'être vrai en montant, et ce n'est pas une contradiction.**
+	// `Front` gardant une largeur constante, la salve se densifie à chaque
+	// palier : à sept projectiles ils sont assez serrés pour qu'une même
+	// créature en prenne deux ou trois, si bien que l'axe redevient en partie le
+	// multiplicateur qu'il n'était pas à trois. C'est une progression où l'axe
+	// change de nature plutôt qu'un effet de bord — le spécialiste qui a dépensé
+	// six choix sur lui gagne contre la masse d'abord, et contre la cible unique
+	// ensuite.
 	Projectiles int
+	// Front est la largeur totale du front, en tuiles, quel que soit le nombre.
+	//
+	// **C'est la largeur qui se règle, et l'écartement entre voisins qui s'en
+	// dérive.** L'inverse — un écartement fixe entre deux projectiles — élargit
+	// le front d'un palier à l'autre, et les extrêmes d'une salve de sept
+	// passeraient à plusieurs tuiles de la visée : le dernier palier tirerait de
+	// plus en plus large au lieu de rapporter. Dérivée de la largeur, la salve se
+	// densifie.
+	//
+	// Un front nul n'est pas une absence légitime : il superposerait les
+	// projectiles, c'est-à-dire la salve confondue que ce champ remplace.
+	Front Fixed
 	// ProjectileSpeed est la vitesse d'un projectile, en tuiles par tick.
 	ProjectileSpeed Fixed
 }
@@ -162,6 +184,8 @@ type rawWeapon struct {
 	Hits *int `json:"degats_touches"`
 	// Projectiles est le nombre de projectiles d'une salve.
 	Projectiles *int `json:"projectiles"`
+	// FrontTuiles est la largeur sur laquelle une salve se répartit.
+	FrontTuiles *float64 `json:"front_tuiles"`
 	// Speed est la vitesse d'un projectile, en tuiles par seconde.
 	Speed *float64 `json:"vitesse_projectile_tuiles_s"`
 }
@@ -181,7 +205,17 @@ func (a rawWeapon) arme(cle string, dire func(string, ...any)) Weapon {
 		Range:           FromFloat(exige(cle, "portee_tuiles", a.TileRange, dire)),
 		Hits:            exige(cle, "degats_touches", a.Hits, dire),
 		Projectiles:     exige(cle, "projectiles", a.Projectiles, dire),
+		Front:           FromFloat(exige(cle, "front_tuiles", a.FrontTuiles, dire)),
 		ProjectileSpeed: parTick(exige(cle, "vitesse_projectile_tuiles_s", a.Speed, dire)),
+	}
+
+	// Un front que la virgule fixe ramène à zéro superpose les projectiles, ce
+	// qui est la salve confondue d'avant l'axe : le nombre monterait sans que
+	// rien ne se voie. Le refus se tait quand le champ manque, son absence étant
+	// déjà signalée.
+	if a.FrontTuiles != nil && w.Front < 1 {
+		dire("%s.front_tuiles : %v, un front que la virgule fixe arrondit à zéro "+
+			"superpose les projectiles", cle, *a.FrontTuiles)
 	}
 
 	// La cadence passe par la conversion commune, qui refuse une durée sous le

@@ -42,6 +42,18 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Ajouté
+
+- **Une carte fait tirer en front.** Le troisième axe d'amélioration ajoute un
+  projectile par palier, jusqu'à sept : ils partent côte à côte, sur la même
+  course, et couvrent une largeur qui ne change pas — la salve se resserre à
+  mesure qu'elle grossit au lieu de s'élargir. Contre une créature isolée elle ne
+  rend d'abord rien de plus ; contre la foule, tout de suite.
+- **La carte de soin n'occupe plus une place à chaque montée.** Trois axes
+  remplissent les trois cartes, si bien qu'elle ne revient qu'une fois un axe
+  épuisé — le choix se fait entre trois améliorations, au lieu de deux et d'un
+  soin.
+
 ### Corrigé
 
 - **On voit ses tirs partir.** Le projectile du joueur était dessiné à une
@@ -50,6 +62,17 @@ publié, et explique les conventions du dépôt à qui y contribue.
   l'endroit qu'il occupait et celui où il est.
 
 ***
+
+### Added
+
+- **A card makes the weapon fire in a line.** The third upgrade axis adds one
+  projectile per tier, up to seven: they leave side by side, on the same course,
+  and span a width that never changes — the volley tightens as it grows instead
+  of spreading. Against a lone creature it adds nothing at first; against a
+  crowd, immediately.
+- **The healing card no longer takes a slot at every level.** Three axes fill the
+  three cards, so it only comes back once an axis is spent — the choice is
+  between three upgrades instead of two and a heal.
 
 ### Fixed
 

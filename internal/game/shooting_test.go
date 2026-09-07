@@ -176,6 +176,77 @@ func TestLaCadenceEspaceLesTirs(t *testing.T) {
 //
 // La résistance du Quidam vaut trois touches de l'arme de base : trois tirs, et
 // il n'est plus dans le bassin. Aucun drapeau, aucune liste de morts en attente.
+// salveDe joue un tick de tir sur une cible unique et rend les projectiles nés.
+//
+// Le nombre est posé sur l'arme de la partie plutôt que gagné par une carte : ce
+// qu'on isole ici est la géométrie de la salve, et le chemin qui l'accroît est
+// gardé ailleurs, par `TestChoisirAppliqueLePalierDeProjectiles`.
+func salveDe(t *testing.T, nombre int) []Projectile {
+	t.Helper()
+	w, profils := champDeTir(t)
+	w.arme.Projectiles = nombre
+
+	px, py := w.Player()
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), px+FromInt(3), py); !ok {
+		t.Fatal("créature refusée")
+	}
+	w.Step(Vec{})
+
+	if vol := len(w.tirs.Active()); vol != nombre {
+		t.Fatalf("%d projectile(s) en vol, attendu %d", vol, nombre)
+	}
+	salve := make([]Projectile, nombre)
+	for i := range nombre {
+		salve[i] = *w.tirs.At(i)
+	}
+	return salve
+}
+
+// TestLeFrontEcarteSansTournerLaCourse garde ce qui sépare le front de
+// l'éventail.
+//
+// **Un front n'est pas un cône** : les projectiles se décalent perpendiculairement
+// à la visée et gardent tous la même course. C'est ce qui laisse à l'axe
+// `eventail` quelque chose à apporter, et à la recette « trois projectiles plus
+// éventail » deux termes à combiner — si le nombre écartait déjà les courses, la
+// synergie n'aurait rien à faire.
+func TestLeFrontEcarteSansTournerLaCourse(t *testing.T) {
+	salve := salveDe(t, 3)
+
+	for i := 1; i < len(salve); i++ {
+		if salve[i].Step != salve[0].Step {
+			t.Errorf("projectile %d : pas %v, attendu %v", i, salve[i].Step, salve[0].Step)
+		}
+	}
+	if salve[0].X == salve[1].X && salve[0].Y == salve[1].Y {
+		t.Error("deux projectiles au même point : la salve est confondue")
+	}
+}
+
+// TestLeFrontGardeSaLargeurQuandLeNombreMonte garde la décision de structure.
+//
+// **C'est la largeur qui se règle, et l'écartement qui s'en dérive.** Éprouvé
+// contre l'implémentation qu'on écarterait naturellement — un écartement fixe
+// entre voisins —, qui rendrait ici deux tuiles à trois projectiles et six à
+// sept, au lieu d'une seule à chaque fois. On découvrirait alors au sixième
+// palier que les extrêmes tirent à plusieurs tuiles de la visée, et l'on
+// corrigerait l'écartement pour tous les paliers d'un coup.
+func TestLeFrontGardeSaLargeurQuandLeNombreMonte(t *testing.T) {
+	// Sept est le dernier palier de l'axe, celui où un écartement fixe aurait
+	// coûté le plus cher.
+	for _, nombre := range []int{2, 3, 7} {
+		salve := salveDe(t, nombre)
+		premier, dernier := salve[0], salve[len(salve)-1]
+		largeur := Vec{X: dernier.X - premier.X, Y: dernier.Y - premier.Y}.Len()
+
+		// Quelques unités de virgule fixe : la division par le nombre d'écarts
+		// ne tombe pas juste, et une tolérance nulle mesurerait l'arrondi.
+		if ecart := largeur - One; ecart.Abs() > 16 {
+			t.Errorf("%d projectiles : front de %v, attendu une tuile", nombre, largeur)
+		}
+	}
+}
+
 func TestLeTirTueEtLaCreatureQuitteLeBassin(t *testing.T) {
 	w, profils := champDeTir(t)
 	px, py := w.Player()

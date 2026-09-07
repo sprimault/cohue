@@ -7,6 +7,7 @@
 package game
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/sprimault/cohue"
@@ -62,24 +63,28 @@ func TestUneMonteeOuvreTroisPlaces(t *testing.T) {
 	}
 }
 
-// TestLeMenuEstLesDeuxAxesPuisLaSoupape écrit ce que le jalon offre réellement.
+// TestLeMenuEstLesTroisAxesSansSoupape écrit ce que la table offre désormais.
 //
-// **Le menu ne varie pas, et c'est une conséquence arithmétique.** Deux axes
-// plus la soupape font exactement trois places : il n'y a rien à choisir parmi
-// les éligibles, donc aucun tirage n'a lieu. Ce test est ce qui rendra le
-// changement visible le jour où un troisième axe entrera — il tombera, et c'est
-// à ce moment qu'un flux aléatoire prendra son numéro.
-func TestLeMenuEstLesDeuxAxesPuisLaSoupape(t *testing.T) {
+// **La soupape a quitté le menu ordinaire, et c'est le vrai gain du troisième
+// axe.** Trois axes remplissent exactement les trois places, si bien qu'elle ne
+// reparaît qu'à l'épuisement de l'un d'eux — ce que la conception attend d'elle,
+// et ce que deux axes lui interdisaient : elle occupait alors une place sur trois
+// du début à la fin d'une run.
+//
+// **Aucun tirage n'a lieu pour autant**, et la version précédente de ce test
+// annonçait le contraire pour ce jour-ci. Le pool ne dépasse les trois places
+// qu'au quatrième axe, et c'est alors qu'un flux aléatoire prendra son numéro. Ce
+// test tombera une seconde fois ce jour-là, ce qui est son second emploi.
+func TestLeMenuEstLesTroisAxesSansSoupape(t *testing.T) {
 	w, profils := champDeCartes(t, monteeSimple())
 	semer(t, w, profils, 1)
 	w.Step(Vec{})
 
 	cartes := w.Pending()
-	if cartes[0].Name != "Cadence" || cartes[1].Name != "Portée" {
-		t.Errorf("les deux premières places : %q et %q", cartes[0].Name, cartes[1].Name)
-	}
-	if cartes[2].Name != w.passifs.Relief.Name {
-		t.Errorf("la troisième place : %q, attendu la soupape", cartes[2].Name)
+	if cartes[0].Name != "Cadence" || cartes[1].Name != "Portée" ||
+		cartes[2].Name != "Projectiles" {
+		t.Errorf("les trois places : %q, %q et %q",
+			cartes[0].Name, cartes[1].Name, cartes[2].Name)
 	}
 	// Le rang sur la borne, et non la grandeur du gain : c'est ce que le joueur
 	// ne peut pas déduire autrement, l'épuisement d'un axe étant un moment de jeu.
@@ -103,6 +108,30 @@ func TestChoisirAppliqueLePalier(t *testing.T) {
 	}
 	if w.Choosing() {
 		t.Error("le choix reste ouvert après avoir été pris")
+	}
+}
+
+// TestChoisirAppliqueLePalierDeProjectiles ferme le chemin de la carte à l'arme.
+//
+// Les tests de géométrie de `shooting_test.go` posent le nombre sur l'arme pour
+// isoler la forme du front ; celui-ci garde l'autre moitié — qu'une carte prise
+// l'accroisse réellement. Sans lui, l'axe pourrait n'être qu'une entrée de table
+// que rien ne branche, et les deux autres tests passeraient quand même.
+func TestChoisirAppliqueLePalierDeProjectiles(t *testing.T) {
+	w, profils := champDeCartes(t, monteeSimple())
+	avant := w.arme.Projectiles
+
+	semer(t, w, profils, 1)
+	w.Step(Vec{})
+
+	rang := slices.IndexFunc(w.Pending(), func(c Card) bool { return c.Name == "Projectiles" })
+	if rang < 0 {
+		t.Fatal("la carte des projectiles n'est pas offerte")
+	}
+	w.Choose(rang)
+
+	if w.arme.Projectiles != avant+1 {
+		t.Errorf("projectiles : %d, attendu %d", w.arme.Projectiles, avant+1)
 	}
 }
 
@@ -138,9 +167,13 @@ func TestLesPaliersSIndexentCommeLesAxes(t *testing.T) {
 
 // TestUnAxeEpuiseSortDuMenu éprouve la borne, et ce que la soupape fait alors.
 //
-// Épuiser un axe oblige à basculer sur celui qu'on n'avait pas choisi : c'est ce
+// Épuiser un axe oblige à basculer sur ceux qu'on n'avait pas choisis : c'est ce
 // que la conception attend de la borne, et ça ne se voit qu'en prenant six fois
 // la même carte.
+//
+// **C'est aussi le seul chemin qui fasse reparaître la soupape**, depuis que
+// trois axes remplissent les trois places : un axe épuisé libère une place, et
+// c'est elle qu'elle vient prendre.
 func TestUnAxeEpuiseSortDuMenu(t *testing.T) {
 	w, profils := champDeCartes(t, monteeSimple())
 
@@ -157,13 +190,11 @@ func TestUnAxeEpuiseSortDuMenu(t *testing.T) {
 	if len(cartes) != Choices {
 		t.Fatalf("%d place(s) après épuisement, attendu %d", len(cartes), Choices)
 	}
-	if cartes[0].Name != "Portée" {
-		t.Errorf("première place : %q, attendu l'axe restant", cartes[0].Name)
+	if cartes[0].Name != "Portée" || cartes[1].Name != "Projectiles" {
+		t.Errorf("les deux axes restants : %q et %q", cartes[0].Name, cartes[1].Name)
 	}
-	soupape := w.passifs.Relief.Name
-	if cartes[1].Name != soupape || cartes[2].Name != soupape {
-		t.Errorf("places de remplissage : %q et %q, attendu la soupape deux fois",
-			cartes[1].Name, cartes[2].Name)
+	if soupape := w.passifs.Relief.Name; cartes[2].Name != soupape {
+		t.Errorf("place libérée : %q, attendu la soupape", cartes[2].Name)
 	}
 }
 

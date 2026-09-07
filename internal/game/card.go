@@ -91,6 +91,8 @@ func (w *World) appliquer(c Card) {
 		w.arme.Cooldown -= axe.CooldownStep
 	case AxisRange:
 		w.arme.Range += axe.RangeStep
+	case AxisProjectiles:
+		w.arme.Projectiles += axe.ProjectileStep
 	}
 }
 

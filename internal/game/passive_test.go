@@ -27,7 +27,8 @@ func tableDEssai(t *testing.T, passifs string) (*Weapons, error) {
 		"armes": {
 			"reglementaire": {"nom": "Réglementaire", "role": "base", "cadence_ms": 400,
 			                  "portee_tuiles": 6, "degats_touches": 1, "projectiles": 1,
-			                  "front_tuiles": 1.0, "vitesse_projectile_tuiles_s": 12.0}
+			                  "front_tuiles": 1.0, "perforations": 0, "rebonds": 0,
+			                  "vitesse_projectile_tuiles_s": 12.0}
 		},
 		` + passifs + `
 	}`)}}
@@ -46,19 +47,30 @@ func TestManifesteLivreDonneLesPassifs(t *testing.T) {
 	}
 	table := armes.Passives
 
-	if len(table.Axes) != 3 {
-		t.Fatalf("%d axe(s), attendu 3", len(table.Axes))
+	if len(table.Axes) != 5 {
+		t.Fatalf("%d axe(s), attendu 5", len(table.Axes))
 	}
-	// Triés par clé de manifeste : « cadence », « portee », « projectiles ».
-	if table.Axes[0].Axis != AxisCadence || table.Axes[1].Axis != AxisRange ||
-		table.Axes[2].Axis != AxisProjectiles {
-		t.Errorf("axes dans l'ordre %s, %s, %s",
-			table.Axes[0].Axis, table.Axes[1].Axis, table.Axes[2].Axis)
+	// Triés par clé de manifeste, ce qui n'est pas l'ordre où on les a écrits :
+	// « perforant » passe avant « portee », et « portee » avant « projectiles ».
+	attendus := []Axis{AxisCadence, AxisPierce, AxisRange, AxisProjectiles, AxisBounce}
+	for i, attendu := range attendus {
+		if table.Axes[i].Axis != attendu {
+			t.Errorf("axe %d : %s, attendu %s", i, table.Axes[i].Axis, attendu)
+		}
 	}
-	// Un projectile de plus par palier, soit sept sur l'axe entier. La valeur est
-	// écrite en clair pour la même raison que le pas de cadence en dessous.
-	if table.Axes[2].ProjectileStep != 1 {
-		t.Errorf("pas de projectiles : %d, attendu 1", table.Axes[2].ProjectileStep)
+	// Les pas en clair, pour la même raison que celui de la cadence en dessous :
+	// un test qui refait la lecture du code passe même quand les deux sont faux.
+	for _, cas := range []struct {
+		pas  int
+		quoi string
+	}{
+		{table.Axes[1].PierceStep, "perforations"},
+		{table.Axes[3].ProjectileStep, "projectiles"},
+		{table.Axes[4].BounceStep, "rebonds"},
+	} {
+		if cas.pas != 1 {
+			t.Errorf("pas de %s : %d, attendu 1", cas.quoi, cas.pas)
+		}
 	}
 
 	// 33 ms à 60 ticks par seconde. La valeur est écrite en clair : un test qui
@@ -66,8 +78,8 @@ func TestManifesteLivreDonneLesPassifs(t *testing.T) {
 	if table.Axes[0].CooldownStep != 2 {
 		t.Errorf("pas de cadence : %d ticks, attendu 2", table.Axes[0].CooldownStep)
 	}
-	if table.Axes[1].RangeStep != One/2 {
-		t.Errorf("pas de portée : %d, attendu %d", table.Axes[1].RangeStep, One/2)
+	if table.Axes[2].RangeStep != One/2 {
+		t.Errorf("pas de portée : %d, attendu %d", table.Axes[2].RangeStep, One/2)
 	}
 	if table.Relief.Heal != 30 {
 		t.Errorf("soin de la soupape : %d, attendu 30", table.Relief.Heal)

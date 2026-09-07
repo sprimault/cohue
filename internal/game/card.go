@@ -93,6 +93,10 @@ func (w *World) appliquer(c Card) {
 		w.arme.Range += axe.RangeStep
 	case AxisProjectiles:
 		w.arme.Projectiles += axe.ProjectileStep
+	case AxisPierce:
+		w.arme.Pierce += axe.PierceStep
+	case AxisBounce:
+		w.arme.Bounces += axe.BounceStep
 	}
 }
 

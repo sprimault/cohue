@@ -23,18 +23,19 @@ type Axis string
 
 // Les axes que le manifeste sait nommer.
 //
-// **Trois sur les six que la conception veut.** Le perforant, le ricochet et
-// l'éventail demandent du travail dans `toucher` que l'étape 6 n'a pas encore
-// écrit ; le nombre de projectiles, lui, n'attendait pas du code mais une
-// décision, prise et écrite dans `Weapon.Projectiles`.
+// **Cinq sur les six que la conception veut.** Seul l'éventail manque, et c'est
+// le nombre de projectiles qui le conditionne : il écarte les courses d'un front
+// que la salve pose déjà côte à côte.
 const (
 	AxisCadence     Axis = "cadence"
 	AxisRange       Axis = "portee"
 	AxisProjectiles Axis = "projectiles"
+	AxisPierce      Axis = "perforant"
+	AxisBounce      Axis = "ricochet"
 )
 
 // axes est la liste close des axes admis.
-var axes = []Axis{AxisCadence, AxisRange, AxisProjectiles}
+var axes = []Axis{AxisCadence, AxisRange, AxisProjectiles, AxisPierce, AxisBounce}
 
 // Passive est un axe d'amélioration, pris palier par palier.
 //
@@ -76,6 +77,15 @@ type Passive struct {
 	// Il ne s'accompagne d'aucun élargissement : la largeur du front est celle
 	// de l'arme et ne bouge pas d'un palier à l'autre — voir `Weapon.Front`.
 	ProjectileStep int
+	// PierceStep est ce qu'un palier ajoute aux créatures traversées, BounceStep
+	// aux rebonds.
+	//
+	// Deux champs et deux axes, bien qu'ils portent la même unité : ce qu'ils
+	// changent au tir n'est pas de même nature — l'un prolonge la course, l'autre
+	// la redirige —, et `Projectile.Pierce` dit pourquoi l'ordre entre eux est
+	// fixé.
+	PierceStep int
+	BounceStep int
 }
 
 // Relief est la carte qui remplit une place quand aucun palier ne le peut.
@@ -149,13 +159,20 @@ type rawAxis struct {
 	// tirage, et c'est ce qui fait de sa borne un moment de jeu.
 	Tiers *int `json:"paliers"`
 
-	// Les trois pas, dont chaque axe porte le sien et refuse ceux des autres.
+	// Les pas, dont chaque axe porte le sien et refuse ceux des autres.
 	// CadenceMs se retranche de l'écart entre deux salves, Tiles s'ajoute à la
-	// portée, Shots au nombre de projectiles ; d'où les unités qui les séparent,
-	// des millisecondes, des tuiles et un compte.
+	// portée, Shots au nombre de projectiles, Pierce à ce qu'un tir traverse et
+	// Bounces à ce vers quoi il repart ; d'où les unités qui les séparent, des
+	// millisecondes, des tuiles et des comptes.
+	//
+	// Les trois derniers comptent la même chose sans être interchangeables : la
+	// clé décide lequel l'entrée doit porter, et un `pas_rebonds` posé sur le
+	// perforant est refusé plutôt que lu.
 	CadenceMs *int     `json:"pas_ms,omitempty"`
 	Tiles     *float64 `json:"pas_tuiles,omitempty"`
 	Shots     *int     `json:"pas_projectiles,omitempty"`
+	Pierce    *int     `json:"pas_perforations,omitempty"`
+	Bounces   *int     `json:"pas_rebonds,omitempty"`
 }
 
 // rawRelief porte les champs de la carte de secours.
@@ -225,6 +242,8 @@ func (a rawAxis) axe(cle Axis, base Weapon, dire func(string, ...any)) Passive {
 		{"pas_ms", AxisCadence, a.CadenceMs != nil},
 		{"pas_tuiles", AxisRange, a.Tiles != nil},
 		{"pas_projectiles", AxisProjectiles, a.Shots != nil},
+		{"pas_perforations", AxisPierce, a.Pierce != nil},
+		{"pas_rebonds", AxisBounce, a.Bounces != nil},
 	} {
 		switch {
 		case cle == c.pour && !c.present:
@@ -284,6 +303,22 @@ func (a rawAxis) axe(cle Axis, base Weapon, dire func(string, ...any)) Passive {
 			if axe.ProjectileStep < 1 {
 				dire("%s.pas_projectiles : %d, un palier qui n'ajoute aucun "+
 					"projectile ne change rien à la salve", nom, axe.ProjectileStep)
+			}
+		}
+	case AxisPierce:
+		if a.Pierce != nil {
+			axe.PierceStep = *a.Pierce
+			if axe.PierceStep < 1 {
+				dire("%s.pas_perforations : %d, un palier qui ne traverse "+
+					"personne de plus ne change rien au tir", nom, axe.PierceStep)
+			}
+		}
+	case AxisBounce:
+		if a.Bounces != nil {
+			axe.BounceStep = *a.Bounces
+			if axe.BounceStep < 1 {
+				dire("%s.pas_rebonds : %d, un palier qui n'ajoute aucun rebond "+
+					"ne change rien au tir", nom, axe.BounceStep)
 			}
 		}
 	}

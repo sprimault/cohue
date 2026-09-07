@@ -115,6 +115,20 @@ func (p *Pool[T]) At(place int) *T { return &p.entities[place] }
 // est morte ailleurs, ce qui se voit à l'écran et se relie très mal à sa cause.
 func (p *Pool[T]) IDAt(place int) int { return p.ids[place] }
 
+// HandleAt rend la référence complète de l'entité qui occupe une place.
+//
+// **C'est l'exception que la godoc d'`IDAt` annonce en creux, et la distinction
+// est l'usage plutôt que l'appelant.** Un tri range des entités dans le tick où
+// il les lit et ne conserve rien : un Handle y serait une porte ouverte pour
+// rien. Un projectile qui perfore, lui, doit se souvenir d'un tick au suivant de
+// ce qu'il vient de traverser — c'est-à-dire exactement ce pour quoi le couple
+// identifiant et génération existe, et ce qu'un identifiant nu ne peut pas faire
+// sans désigner un jour l'entité qui a recyclé sa place.
+func (p *Pool[T]) HandleAt(place int) Handle {
+	id := p.ids[place]
+	return Handle{id: id, gen: p.gens[id]}
+}
+
 // Spawn pose une entité et rend la référence qui la désignera.
 //
 // Le second résultat est faux quand le bassin est plein. Il l'est vraiment :

@@ -34,6 +34,8 @@ func (w *World) tirer() {
 			Step:      vers.Scale(w.arme.ProjectileSpeed),
 			Remaining: w.arme.Range,
 			Hits:      w.arme.Hits,
+			Pierce:    w.arme.Pierce,
+			Bounces:   w.arme.Bounces,
 		}); !ok {
 			// Bassin plein : le tir est perdu, pas différé. Une file d'attente
 			// rendrait la cadence élastique, et l'arme rattraperait son retard
@@ -217,7 +219,24 @@ func (w *World) auContactDu(x, y Fixed) bool {
 // La comparaison porte sur les carrés des distances : une racine par créature et
 // par tick, pour un classement que le carré donne aussi bien.
 func (w *World) plusProche() (int, bool) {
-	portee := w.arme.Range
+	return w.plusProcheDe(w.playerX, w.playerY, w.arme.Range, Handle{})
+}
+
+// plusProcheDe rend la place de la créature vivante la plus proche d'un point.
+//
+// **Le point n'est pas toujours le joueur**, et c'est le ricochet qui l'a
+// demandé : un projectile qui repart cherche autour de son impact, et il exclut
+// celle qu'il vient de frapper — sans quoi il rebondirait sur elle, qui est par
+// construction la plus proche.
+//
+// **Les mortes sont écartées**, ce que la recherche autour du joueur ne faisait
+// pas. Une résistance tombée est la mort et la passe de nettoyage n'a pas encore
+// eu lieu : un rebond les comptant repartirait vers un cadavre, et une salve
+// tirée dans le même tick viserait un mort plutôt que ce qui menace.
+//
+// `Handle{}` ne désigne aucune entité — les générations partent à un —, si bien
+// que la recherche sans exclusion n'a pas de cas à part.
+func (w *World) plusProcheDe(x, y, portee Fixed, sauf Handle) (int, bool) {
 	if portee <= 0 {
 		// Une arme sans portée n'atteint rien. Sans cette ligne elle viserait ce
 		// qui est exactement superposé au joueur, à la seule distance qu'un
@@ -229,12 +248,34 @@ func (w *World) plusProche() (int, bool) {
 
 	for i := range w.ennemis.Active() {
 		e := w.ennemis.At(i)
-		if d := (Vec{e.X - w.playerX, e.Y - w.playerY}).carres(); d <= meilleure {
+		if e.Hits <= 0 || w.ennemis.HandleAt(i) == sauf {
+			continue
+		}
+		if d := (Vec{e.X - x, e.Y - y}).carres(); d <= meilleure {
 			meilleure = d
 			choix = i
 		}
 	}
 	return choix, choix >= 0
+}
+
+// rebondir réoriente un projectile vers une autre cible et dit s'il en a une.
+//
+// **Le rayon de recherche est la portée restante**, ce qui n'ajoute aucun
+// réglage : un projectile ne repart que vers ce qu'il pouvait déjà atteindre, et
+// la portée continue de descendre. Un rebond qui la rechargerait rendrait le
+// projectile perpétuel dans une foule, chaque créature en amenant une autre.
+//
+// La vitesse se relit sur le pas plutôt que sur l'arme : un projectile en vol ne
+// renvoie pas vers ce qui l'a tiré, et l'arme peut avoir monté de niveau depuis.
+func (w *World) rebondir(p *Projectile) bool {
+	cible, trouvee := w.plusProcheDe(p.X, p.Y, p.Remaining, p.LastHit)
+	if !trouvee {
+		return false
+	}
+	e := w.ennemis.At(cible)
+	p.Step = (Vec{e.X - p.X, e.Y - p.Y}).Direction(cible).Scale(p.Step.Len())
+	return true
 }
 
 // deplacerTirs avance les projectiles et résout ce qu'ils touchent.
@@ -288,7 +329,7 @@ func (w *World) toucher(depart Vec, p *Projectile) bool {
 	touchee, avancee := -1, int64(0)
 	for i := range w.ennemis.Active() {
 		e := w.ennemis.At(i)
-		if e.Hits <= 0 {
+		if e.Hits <= 0 || w.ennemis.HandleAt(i) == p.LastHit {
 			continue
 		}
 
@@ -337,7 +378,25 @@ func (w *World) toucher(depart Vec, p *Projectile) bool {
 		w.lacher(e)
 		w.amorcer(e)
 	}
-	return true
+	p.LastHit = w.ennemis.HandleAt(touchee)
+
+	// **La perforation prolonge la course, le rebond la redirige**, et c'est ce
+	// qui fixe leur ordre : rebondir d'abord ferait qu'un projectile ayant les
+	// deux ne traverserait jamais rien, et l'axe du perforant ne servirait à rien
+	// chez qui l'a pris. `Projectile.Pierce` porte la décision.
+	switch {
+	case p.Pierce > 0:
+		p.Pierce--
+		return false
+	case p.Bounces > 0:
+		p.Bounces--
+		// Sans cible à portée, le projectile meurt là où il a frappé plutôt que
+		// de poursuivre tout droit : le rebond a été dépensé, et le laisser
+		// filer donnerait à un tir sans suite la course d'un tir ordinaire.
+		return !w.rebondir(p)
+	default:
+		return true
+	}
 }
 
 // traverse dit si le pas d'un projectile entre dans une case qui l'arrête.

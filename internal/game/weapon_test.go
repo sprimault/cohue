@@ -197,8 +197,8 @@ func TestChampsDArmeManquantsListesEnUneFois(t *testing.T) {
 	if !errors.As(err, &invalide) {
 		t.Fatalf("arme sans aucune valeur acceptée : %v", err)
 	}
-	if len(invalide.Missing) != 6 {
-		t.Errorf("%d manquement(s), attendu 6 :\n  %v", len(invalide.Missing), invalide.Missing)
+	if len(invalide.Missing) != 8 {
+		t.Errorf("%d manquement(s), attendu 8 :\n  %v", len(invalide.Missing), invalide.Missing)
 	}
 }
 

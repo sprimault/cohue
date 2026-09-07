@@ -202,6 +202,13 @@ type vue struct {
 	// première touche serait trop tôt : ce que la mêlée juge est le personnage
 	// entouré, pas le premier contact.
 	jusquAuxDegats bool
+	// jusquAuTir s'arrête sur un tir du joueur détaché de son canon.
+	//
+	// **À distance et non à l'émission.** Un projectile qui vient de partir a sa
+	// traînée sous le personnage, qui la recouvre : ce que la vue donne à relire
+	// est le trait entre le tireur et ce qu'il vise, jamais l'instant du départ.
+	// C'est la règle de l'effet à mi-vie, sur un objet qui dure plus longtemps.
+	jusquAuTir bool
 	// jusquAlEffet s'arrête au premier effet bref d'une sorte donnée.
 	//
 	// **Un effet dure une fraction de seconde et rien ne le rejoue** : une vue
@@ -256,6 +263,13 @@ var vues = []vue{
 	{nom: "porte", ou: porte},
 
 	{nom: "melee", ticks: 300 * game.TPS, jusquAuxDegats: true},
+
+	// **Le tir du joueur n'avait aucune vue**, et c'est ce qui l'a laissé
+	// invisible jusqu'à ce qu'une partie jouée le signale : les projectiles sont
+	// à l'image sur près d'un quart d'une partie, ils portent et ils tuent, et
+	// rien ne les donnait à relire. La horde reste, puisque l'arme ne part que
+	// s'il y a une cible à portée.
+	{nom: "tirs", ticks: 300 * game.TPS, jusquAuTir: true},
 
 	// La vignette de danger, qui ne se juge que sur ce qu'elle laisse voir : la
 	// horde doit rester lisible au centre, sans quoi le signal coûte la fuite
@@ -755,6 +769,16 @@ func (v vue) arrive(monde *game.World) bool {
 		return monde.Health() <= monde.MaxHealth()*3/4
 	case v.jusquAuDanger:
 		return monde.InDanger()
+	case v.jusquAuTir:
+		x, y := monde.Player()
+		joueur := game.Vec{X: x, Y: y}
+		tirs := monde.Shots()
+		for i := range tirs.Active() {
+			p := tirs.At(i)
+			if (game.Vec{X: p.X, Y: p.Y}).Sub(joueur).Len() >= game.FromInt(2) {
+				return true
+			}
+		}
 	case v.jusquAlEffet != nil:
 		// **À mi-vie et non à l'émission.** Au premier tick, les huit éclats sont
 		// encore au point de départ et l'onde à sa première image : la vue

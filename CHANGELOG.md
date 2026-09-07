@@ -42,6 +42,22 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Corrigé
+
+- **On voit ses tirs partir.** Le projectile du joueur était dessiné à une
+  position par image et sautait plus loin que sa propre largeur : il portait, il
+  tuait, et rien ne reliait deux images. Il laisse maintenant une traînée entre
+  l'endroit qu'il occupait et celui où il est.
+
+***
+
+### Fixed
+
+- **You can see your shots leave.** The player's projectile was drawn at one
+  position per frame and jumped further than its own width: it hit, it killed,
+  and nothing connected two frames. It now leaves a trail between where it was
+  and where it is.
+
 ## [0.5.0] — 2026-09-06 — Les assets
 
 ### Ajouté

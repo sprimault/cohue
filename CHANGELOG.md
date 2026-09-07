@@ -42,6 +42,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+## [0.6.0] — 2026-09-07 — Armes, niveaux et synergies
+
 ### Ajouté
 
 - **Une grenade se déclenche sur la touche 2.** Première arme lourde : trois

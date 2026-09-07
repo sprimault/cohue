@@ -61,6 +61,9 @@ func (h *HUD) Border() int { return h.theme.Border }
 func (h *HUD) Color(nom string) color.RGBA { return h.theme.Color(nom) }
 
 // Rect peint un rectangle plein.
+//
+// **Elle laisse sa teinte dans `h.op`**, et c'est pourquoi rien d'autre ne doit
+// s'y poser à la main — voir `Image`.
 func (h *HUD) Rect(dst *ebiten.Image, x, y, largeur, hauteur int, teinte color.RGBA) {
 	if largeur <= 0 || hauteur <= 0 {
 		return
@@ -70,6 +73,26 @@ func (h *HUD) Rect(dst *ebiten.Image, x, y, largeur, hauteur int, teinte color.R
 	h.op.GeoM.Translate(float64(x), float64(y))
 	h.op.ColorScale.ScaleWithColor(teinte)
 	dst.DrawImage(h.pixel, &h.op)
+}
+
+// Image pose un dessin du bandeau à son coin, sans rien lui ajouter.
+//
+// **Elle existe parce qu'un dessin posé à la main héritait d'une teinte.** Les
+// options de dessin sont partagées, `Rect` y laisse la sienne, et l'icône d'arme
+// lourde était posée juste après le bord du cadre : elle se voyait multipliée par
+// `cadre_bord`, c'est-à-dire divisée par deux et demi. Mesuré sur une planche —
+// (188, 194, 204) dans le fichier, (68, 73, 85) à l'écran — après qu'une partie
+// jouée eut signalé qu'on ne distinguait rien dans les cases.
+//
+// **C'est la deuxième fois que ce piège se referme ici**, la première ayant fait
+// disparaître l'éclair d'impact ; la mise en garde de `silhouette.go` ne l'a pas
+// empêchée parce qu'elle est écrite ailleurs. Une méthode qui monte ses options
+// rend le défaut inexprimable au lieu de le rendre reconnaissable, ce que ce
+// projet préfère partout où il le peut.
+func (h *HUD) Image(dst, img *ebiten.Image, x, y int) {
+	h.op = ebiten.DrawImageOptions{}
+	h.op.GeoM.Translate(float64(x), float64(y))
+	dst.DrawImage(img, &h.op)
 }
 
 // Frame peint un cadre : un fond translucide et un bord d'un pixel.

@@ -753,6 +753,28 @@ peut pas porter reste au test, et [Un test se vérifie en le faisant
 échouer](#un-test-se-vérifie-en-le-faisant-échouer) dit à quelle condition il
 vaut quelque chose.
 
+**La règle a un second moment, et c'est le plus retors.** Le premier dit qu'un
+test qui détecte ne remplace pas une forme qui empêche ; le second, qu'une forme
+qui empêche **ne se justifie pas par ce qu'un test détecte**. Retirer une garde
+parce que rien ne tombe quand on la supprime est le geste symétrique — et il est
+plus difficile à arrêter, parce que **la suppression paraît étayée** : on a une
+mesure, elle est juste, et elle semble dire que la garde ne sert à rien. Elle dit
+seulement qu'aujourd'hui les deux chemins coïncident.
+
+Le cas est le tir en éventail. Un projectile vise un point décalé et sa direction
+sort d'une normalisation ; à ouverture nulle, une garde rend la direction de
+visée telle quelle au lieu de la renormaliser. Supprimer cette garde ne fait
+bouger aucun attendu — normaliser un vecteur déjà unitaire rend le même vecteur.
+Mais cela tient à une propriété de l'arithmétique en virgule fixe à cette
+échelle, et le jour où l'échelle changerait, personne ne referait le lien.
+
+D'où la formulation, qui vaut pour les deux moments : **une propriété vraie par
+construction n'a pas le même prix qu'une propriété vraie par ce qu'un arrondi
+rend**, même quand les deux donnent le même résultat. Ce qui se corrige alors
+n'est pas la garde mais sa godoc, qui doit dire ce qui a été éprouvé plutôt que
+ce qu'on en supposait — c'est ce que demande [Une condition vaut mieux qu'une
+conclusion](#une-condition-vaut-mieux-quune-conclusion).
+
 ## Le symptôme désigne parfois le mauvais mécanisme
 
 **Dans une boucle où plusieurs passes se suivent, un effet produit puis consommé

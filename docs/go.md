@@ -40,6 +40,7 @@ index.
 | pourquoi un test échoue sur un diff qui ne l'atteint pas | [Un rouge que le diff ne peut pas atteindre](#un-rouge-que-le-diff-ne-peut-pas-atteindre-vient-de-linstrument) |
 | pourquoi un test passe alors qu'il exécute le code fautif | [Un instrument qui moyenne](#un-instrument-qui-moyenne-ne-voit-quun-coût-que-chaque-exécution-paie) |
 | pourquoi une image de relecture juste montre autre chose | [Un artefact capture un instant](#un-artefact-de-relecture-capture-un-instant-autant-quun-état) |
+| si ce qu'on vient de livrer demande une vue | [Un lot qui se voit](#un-lot-qui-se-voit-se-livre-avec-la-vue-qui-le-montre) |
 | si un test vert prouve quelque chose | [Cinq façons d'avoir un test vert](#cinq-façons-davoir-un-test-vert-qui-ne-prouve-rien) |
 | contre quoi éprouver un test qui garde une décision | [L'implémentation abandonnée](#un-test-qui-garde-une-décision-séprouve-contre-limplémentation-abandonnée) |
 | comment défendre un test qu'on croirait faux | [Le test contre-intuitif](#le-test-qui-garde-une-propriété-contre-intuitive) |
@@ -959,13 +960,56 @@ chiffres de dégâts restaient lisibles sur le décor clair, alors qu'aucun n'y
 était posé : ils tombaient tous sur des créatures sombres, et le cas hostile
 n'était pas à l'image.
 
-Elle ne vaut que pour ce qui se juge à l'œil. Une planche qui sert à comparer
-deux états — l'identité au bit près avant et après un remaniement — ne demande
-aucun jugement, et l'échelle à laquelle on la regarde n'y change rien.
+**Elle vaut pour une mesure autant que pour un coup d'œil**, et cette version-ci
+disait le contraire — « elle ne vaut que pour ce qui se juge à l'œil ». Une icône
+d'arme jugée illisible a été redessinée sur la foi d'une luminance relevée dans
+son fichier : corps à 193 contre 28 pour le fond de sa case, un écart que rien ne
+rendait douteux. Elle est restée illisible, parce que le rendu la multipliait par
+la teinte du bord du cadre et l'affichait à 73. Le nombre était juste et portait
+sur ce que le jeu n'affiche pas. **Ce qu'on mesure d'un artefact se relève sur ce
+que l'écran en fait**, et l'écart entre les deux est lui-même la mesure qui
+tranche : comparer le pixel du fichier au pixel rendu a désigné la cause en une
+ligne, après deux lots qui l'avaient cherchée ailleurs.
+
+Ce qu'elle ne couvre pas : une planche qui sert à comparer deux états —
+l'identité au bit près avant et après un remaniement — ne demande aucun jugement,
+et l'échelle à laquelle on la regarde n'y change rien.
 
 C'est la structure de [Un contrôle privé de son
 entrée](#un-contrôle-privé-de-son-entrée-échoue-il-ne-passe-pas) : le mécanisme
 est en place, et son résultat ne veut rien dire.
+
+### Un lot qui se voit se livre avec la vue qui le montre
+
+[Une planche que rien ne
+fabrique](#une-planche-que-rien-ne-fabrique-ne-relit-rien) dit qu'une planche
+doit sortir d'une cible ; [Une planche se juge dans les conditions du
+jeu](#une-planche-se-juge-dans-les-conditions-du-jeu) dit qu'elle doit montrer ce
+que le joueur verra. Reste ce qu'aucune des deux ne demande : **qu'une vue existe
+pour ce que le lot vient d'ajouter.**
+
+La question se pose à la fin d'un lot, avant de proposer son message : *ce lot
+ajoute-t-il quelque chose qui se voit, et une vue le montre-t-elle ?* Deux fois
+la réponse a été non, et chaque fois le défaut est parti en production :
+
+- une arme lourde au sol a été livrée sans qu'aucun dessin ne la pose, dans un
+  lot dont c'était tout l'objet. Les vues montraient l'emplacement qui la tient,
+  jamais l'objet posé ;
+- longer le mur d'enceinte donnait au personnage l'air d'être passé dessus. Les
+  quatre vues de bord posaient le joueur à deux cases du mur, ce qui juge le
+  cadrage et rien d'autre — le contact n'était nulle part.
+
+**Le premier lot d'une séance de jeu est celui qui donne le défaut à voir.** Sur
+le second cas, deux remèdes ont été échafaudés et écartés sur le raisonnement —
+épaissir l'enceinte, la rehausser — avant qu'une vue au contact ne montre en une
+image que ni l'un ni l'autre n'y changeait rien. Ce que coûte une vue manquante
+n'est pas le défaut qu'elle aurait attrapé, c'est le temps passé à corriger ce
+qu'on n'a pas regardé.
+
+Elle ne demande pas une vue par lot. Un lot qui ne change rien de visible n'en
+appelle aucune, et c'est le cas de la moitié d'entre eux ; ce qu'elle interdit
+est de livrer un dessin, une disposition ou un état d'interface sans qu'une
+planche le donne à relire.
 
 ### Dans un paquet sans tests, ce que rien n'exerce est invérifiable
 

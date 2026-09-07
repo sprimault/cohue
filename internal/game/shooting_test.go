@@ -183,15 +183,7 @@ func TestLaCadenceEspaceLesTirs(t *testing.T) {
 // gardé ailleurs, par `TestChoisirAppliqueLePalierDeProjectiles`.
 func salveDe(t *testing.T, nombre int, ouverture Fixed) []Projectile {
 	t.Helper()
-	w, profils := champDeTir(t)
-	w.arme.Projectiles = nombre
-	w.arme.Spread = ouverture
-
-	px, py := w.Player()
-	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), px+FromInt(3), py); !ok {
-		t.Fatal("créature refusée")
-	}
-	w.Step(Vec{})
+	w := viserUneCible(t, nombre, ouverture)
 
 	if vol := len(w.tirs.Active()); vol != nombre {
 		t.Fatalf("%d projectile(s) en vol, attendu %d", vol, nombre)
@@ -201,6 +193,44 @@ func salveDe(t *testing.T, nombre int, ouverture Fixed) []Projectile {
 		salve[i] = *w.tirs.At(i)
 	}
 	return salve
+}
+
+// viserUneCible monte le champ, y pose une créature droit devant à trois tuiles,
+// et joue le tick qui déclenche la salve.
+//
+// **Droit devant, et c'est le cas qui compte** : la horde converge sur le joueur,
+// si bien qu'une cible sur l'axe de visée est la situation ordinaire du combat et
+// non un cas limite. C'est là que la géométrie de la salve décide de ce qui
+// touche.
+func viserUneCible(t *testing.T, nombre int, ouverture Fixed) *World {
+	t.Helper()
+	w, profils := champDeTir(t)
+	w.arme.Projectiles = nombre
+	w.arme.Spread = ouverture
+
+	px, py := w.Player()
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), px+FromInt(3), py); !ok {
+		t.Fatal("créature refusée")
+	}
+	w.Step(Vec{})
+	return w
+}
+
+// etendueDe rend la distance entre les deux projectiles les plus éloignés.
+//
+// Elle remplace l'écart du premier au dernier, qui mesurait la largeur tant que
+// la répartition allait d'une extrémité à l'autre. Le rang zéro tenant désormais
+// l'axe, le dernier n'est plus l'opposé du premier — et un test qui les
+// comparerait mesurerait une demi-largeur en croyant en mesurer une.
+func etendueDe(salve []Projectile) Fixed {
+	var large Fixed
+	for i := range salve {
+		for j := i + 1; j < len(salve); j++ {
+			ecart := Vec{X: salve[j].X - salve[i].X, Y: salve[j].Y - salve[i].Y}.Len()
+			large = max(large, ecart)
+		}
+	}
+	return large
 }
 
 // TestLeFrontEcarteSansTournerLaCourse garde ce qui sépare le front de
@@ -232,18 +262,63 @@ func TestLeFrontEcarteSansTournerLaCourse(t *testing.T) {
 // sept, au lieu d'une seule à chaque fois. On découvrirait alors au sixième
 // palier que les extrêmes tirent à plusieurs tuiles de la visée, et l'on
 // corrigerait l'écartement pour tous les paliers d'un coup.
+//
+// **Une tuile aux rangs impairs, jamais plus aux autres.** Le rang zéro tenant
+// l'axe, un rang pair est le rang impair précédent plus un projectile à une
+// extrémité : sa salve est donc plus étroite, et c'est le prix du centre tenu —
+// voir `ecartDansLaSalve`. Ce que ce test garde est le plafond, qui est la
+// décision, et l'égalité là où elle est atteinte.
 func TestLeFrontGardeSaLargeurQuandLeNombreMonte(t *testing.T) {
 	// Sept est le dernier palier de l'axe, celui où un écartement fixe aurait
 	// coûté le plus cher.
-	for _, nombre := range []int{2, 3, 7} {
-		salve := salveDe(t, nombre, 0)
-		premier, dernier := salve[0], salve[len(salve)-1]
-		largeur := Vec{X: dernier.X - premier.X, Y: dernier.Y - premier.Y}.Len()
+	for _, nombre := range []int{2, 3, 4, 7} {
+		largeur := etendueDe(salveDe(t, nombre, 0))
 
-		// Quelques unités de virgule fixe : la division par le nombre d'écarts
+		// Quelques unités de virgule fixe : la division par le nombre de paires
 		// ne tombe pas juste, et une tolérance nulle mesurerait l'arrondi.
-		if ecart := largeur - One; ecart.Abs() > 16 {
-			t.Errorf("%d projectiles : front de %v, attendu une tuile", nombre, largeur)
+		if largeur-One > 16 {
+			t.Errorf("%d projectiles : front de %v, attendu une tuile au plus",
+				nombre, largeur)
+		}
+		if nombre%2 == 1 && One-largeur > 16 {
+			t.Errorf("%d projectiles : front de %v, attendu une tuile pleine",
+				nombre, largeur)
+		}
+	}
+}
+
+// TestLaSalveToucheToujoursCeQuElleVise garde ce que le front ne doit jamais
+// coûter.
+//
+// **Le premier palier de l'axe faisait passer d'une touche à zéro**, et une
+// partie jouée l'a signalé avant qu'aucune mesure ne le cherche : les
+// projectiles partant à intervalles égaux du premier au dernier, le centre
+// n'était occupé que pour un nombre impair, si bien qu'à deux et à quatre la
+// salve encadrait la cible sans la toucher — un Quidam a un rayon de 0,125 tuile
+// pour un front d'une tuile.
+//
+// **Il porte sur les sept paliers et non sur ceux qui avaient échoué.** Le
+// défaut tenait à la parité, ce qu'on ne découvre qu'en les parcourant tous ;
+// garder les deux cas connus laisserait passer la prochaine formule qui casse un
+// rang qu'on n'a pas listé.
+func TestLaSalveToucheToujoursCeQuElleVise(t *testing.T) {
+	for nombre := 1; nombre <= 7; nombre++ {
+		w := viserUneCible(t, nombre, 0)
+		avant := w.ennemis.At(0).Hits
+
+		// Trois tuiles à douze tuiles par seconde : quinze ticks suffisent au
+		// projectile, et la cadence de l'arme en demande vingt-quatre — la salve
+		// mesurée reste la première.
+		for range 20 {
+			w.Step(Vec{})
+		}
+
+		if w.ennemis.Len() == 0 {
+			continue
+		}
+		if reste := w.ennemis.At(0).Hits; reste >= avant {
+			t.Errorf("%d projectile(s) : la cible garde %d de résistance sur %d",
+				nombre, reste, avant)
 		}
 	}
 }
@@ -254,10 +329,13 @@ func TestLeFrontGardeSaLargeurQuandLeNombreMonte(t *testing.T) {
 // nulle les courses restent parallèles — ce que
 // `TestLeFrontEcarteSansTournerLaCourse` garde de son côté —, et une ouverture les
 // fait diverger sans rien retirer aux départs, qui restent écartés du front.
+// **Le rang zéro est le centre, les deux suivants les extrêmes.** La répartition
+// s'écarte par paires depuis l'axe : lire `salve[0]` comme une extrémité était
+// vrai de la première version et ne l'est plus.
 func TestLEventailEcarteLesCoursesEtLeFrontNon(t *testing.T) {
 	salve := salveDe(t, 3, FromInt(3))
 
-	if salve[0].Step == salve[2].Step {
+	if salve[1].Step == salve[2].Step {
 		t.Error("les courses des extrêmes sont identiques : l'éventail n'écarte rien")
 	}
 	// **Le front subsiste sous l'ouverture**, et cela se garde en comparant les
@@ -266,10 +344,7 @@ func TestLEventailEcarteLesCoursesEtLeFrontNon(t *testing.T) {
 	// l'ouverture avait remplacé le front, les tirs partiraient confondus et
 	// l'écart mesuré serait le seul fait d'un pas — donc plus petit que la tuile
 	// du front seul, au lieu d'être plus grand.
-	ecarte := func(s []Projectile) Fixed {
-		return Vec{X: s[2].X - s[0].X, Y: s[2].Y - s[0].Y}.Len()
-	}
-	avec, sans := ecarte(salve), ecarte(salveDe(t, 3, 0))
+	avec, sans := etendueDe(salve), etendueDe(salveDe(t, 3, 0))
 	if sans-One > 16 || One-sans > 16 {
 		t.Errorf("front seul de %v, attendu une tuile : le cas ne teste rien", sans)
 	}
@@ -279,8 +354,8 @@ func TestLEventailEcarteLesCoursesEtLeFrontNon(t *testing.T) {
 	}
 	// Symétrie : le projectile du centre garde la course de visée, les deux
 	// autres s'en écartent d'autant de part et d'autre.
-	gauche := Vec{X: salve[0].Step.X - salve[1].Step.X, Y: salve[0].Step.Y - salve[1].Step.Y}.Len()
-	droite := Vec{X: salve[2].Step.X - salve[1].Step.X, Y: salve[2].Step.Y - salve[1].Step.Y}.Len()
+	gauche := Vec{X: salve[1].Step.X - salve[0].Step.X, Y: salve[1].Step.Y - salve[0].Step.Y}.Len()
+	droite := Vec{X: salve[2].Step.X - salve[0].Step.X, Y: salve[2].Step.Y - salve[0].Step.Y}.Len()
 	if ecart := gauche - droite; ecart.Abs() > 16 {
 		t.Errorf("écarts asymétriques : %v à gauche, %v à droite", gauche, droite)
 	}

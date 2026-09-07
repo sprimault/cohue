@@ -599,6 +599,8 @@ Et rien n'interdit le cas extrême, celui où tout est épuisé : la soupape doi
 
 **L'étape 6 a porté la table à ses six axes**, dans cet ordre : le nombre de projectiles, qui n'attendait pas du code mais une décision sur ce que devient une salve ; le perforant et le ricochet, qui ont demandé le travail annoncé ; l'éventail enfin. Le tirage existe donc, la soupape est redevenue ce que ce chapitre veut d'elle — une carte qui ne paraît qu'à l'épuisement d'un axe —, et ce qui reste à l'étape sont les recettes qui combinent ces axes, décrites plus bas.
 
+**Un palier ne fait jamais perdre, et la salve le paie au centre.** Le front écarte les départs autour de l'axe de visée ; s'il n'y laissait personne, une créature qui vient droit sur le joueur passerait entre les projectiles, et le premier palier retirerait une touche au lieu d'en ajouter — c'est arrivé, et c'est une partie jouée qui l'a signalé. La salve garde donc toujours un tir sur l'axe, les autres s'écartant par paires de part et d'autre, au prix d'un rang pair légèrement asymétrique : aucune répartition à la fois centrée et symétrique ne peut tenir les deux. C'est la règle qui avait déjà écarté un éventail ramenant les départs au canon — un axe ajoute ou ne fait rien, il ne retire pas.
+
 **Le revers à assumer** : le contraste des patterns disparaît, alors que c'est un moteur de rejouabilité du genre. Il se récupère par deux voies qui ne coûtent aucune animation de personnage — les armes lourdes ramassées dans les caisses, qui sont un effet et non une pose, et les effets qui ne partent pas du personnage : zone au sol, orbite, onde de choc, dessinés au sol ou autour du joueur.
 
 ### Les recettes de fusion

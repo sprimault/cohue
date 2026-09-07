@@ -142,6 +142,7 @@ func (w *World) casser() {
 		// caisse a quitté le bassin et sa position vient d'une copie qu'on aurait
 		// gardée pour rien.
 		w.lacherEn(c.X, c.Y, w.progression.CrateGems)
+		w.lacherUneArme(c.X, c.Y)
 		w.emettre(c.X, c.Y, FxCrate)
 		w.caisses.RemoveAt(i)
 	}

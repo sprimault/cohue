@@ -21,33 +21,24 @@ type Heavy struct {
 	rang int
 }
 
-// HeldHeavy rend l'arme lourde tenue et ce qu'il lui reste.
+// Slots est le nombre d'emplacements d'armes lourdes.
+//
+// **Deux, et ce n'est pas un réglage.** La conception en fait une règle : le
+// joueur a une décision — laquelle garder — et non une gestion. Un troisième
+// emplacement retirerait le choix qu'une trouvaille pose, et un champ de
+// manifeste inviterait à le bouger.
+const Slots = 2
+
+// HeldHeavy rend l'arme d'un emplacement et ce qu'il lui reste.
 //
 // Par valeur : l'interface a besoin d'un nom et d'un compte, pas d'une prise sur
-// ce que la partie modifie.
-func (w *World) HeldHeavy() (Weapon, int) { return w.lourde.Weapon, w.lourde.Charges }
-
-// GiveHeavy pose une arme lourde entre les mains du joueur, par sa clé.
-//
-// **C'est la sonde du lot qui l'introduit, pas la façon dont on en obtient une.**
-// La conception veut qu'une lourde se trouve dans une caisse et se ramasse au
-// sol ; tant que rien ne la pose dans le lieu, un déclenchement n'a rien à
-// éprouver. Elle disparaîtra avec le ramassage, comme la porte donnée d'office a
-// disparu quand un objectif l'a ouverte.
-//
-// Le second résultat est faux quand la clé ne désigne pas une lourde : l'appelant
-// se trompe de table, et le silence lui ferait chercher un défaut de
-// déclenchement.
-func (w *World) GiveHeavy(cle string) bool {
-	for i := range w.armes.All {
-		arme := &w.armes.All[i]
-		if arme.Key != cle || arme.Role != roleHeavy {
-			continue
-		}
-		w.lourde = Heavy{Weapon: *arme, Charges: arme.Charges, rang: i}
-		return true
+// ce que la partie modifie. Une arme vide rend une `Weapon` nulle, ce que la
+// valeur zéro de `Heavy` dit déjà — une lourde à zéro charge n'existe pas.
+func (w *World) HeldHeavy(place int) (Weapon, int) {
+	if place < 0 || place >= len(w.lourdes) {
+		return Weapon{}, 0
 	}
-	return false
+	return w.lourdes[place].Weapon, w.lourdes[place].Charges
 }
 
 // Trigger dépense une charge et pose la déflagration de l'arme tenue.
@@ -66,11 +57,12 @@ func (w *World) GiveHeavy(cle string) bool {
 // La cadence de l'arme lourde n'est pas consultée ici. Elle vaut pour ce qui tire
 // tout seul, et une lourde ne tire que sur une touche — c'est le joueur qui
 // espace ses déclenchements.
-func (w *World) Trigger() {
-	if w.lourde.Charges <= 0 {
+func (w *World) Trigger(place int) {
+	if place < 0 || place >= len(w.lourdes) || w.lourdes[place].Charges <= 0 {
 		return
 	}
-	cible, trouvee := w.plusProcheDe(w.playerX, w.playerY, w.lourde.Weapon.Range, Handle{})
+	tenue := &w.lourdes[place]
+	cible, trouvee := w.plusProcheDe(w.playerX, w.playerY, tenue.Weapon.Range, Handle{})
 	if !trouvee {
 		return
 	}
@@ -79,8 +71,8 @@ func (w *World) Trigger() {
 	if _, ok := w.souffles.Spawn(Blast{
 		X: e.X, Y: e.Y,
 		Source: BlastWeapon,
-		Index:  w.lourde.rang,
-		Fuse:   w.lourde.Weapon.Fuse,
+		Index:  tenue.rang,
+		Fuse:   tenue.Weapon.Fuse,
 	}); !ok {
 		// Bassin plein : la charge n'est pas dépensée. Une déflagration perdue
 		// coûterait au joueur une des trois choses qu'il possède, pour une raison
@@ -88,12 +80,12 @@ func (w *World) Trigger() {
 		return
 	}
 
-	w.lourde.Charges--
-	if w.lourde.Charges == 0 {
+	tenue.Charges--
+	if tenue.Charges == 0 {
 		// **Jetée à vide**, ce que la conception exige : l'arme quitte
 		// l'emplacement au lieu d'y rester inerte, et le joueur voit sa place se
 		// libérer plutôt qu'un compteur à zéro.
-		w.lourde = Heavy{}
+		*tenue = Heavy{}
 	}
 }
 

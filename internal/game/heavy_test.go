@@ -1,32 +1,147 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// Les cas de l'arme lourde : ce qu'on tient, ce qu'un déclenchement dépense,
-// l'arme jetée à vide, et une déflagration qui n'emporte que la horde.
+// Les cas de l'arme lourde : ce qu'une caisse laisse, ce qu'on ramasse en
+// marchant dessus, l'échange quand les deux emplacements sont pleins, ce qu'un
+// déclenchement dépense et la déflagration qui n'emporte que la horde.
 
 package game
 
 import "testing"
 
-// TestUneLourdeSePrendParSaCle garde ce que la sonde du montage appelle.
+// tomber pose une arme lourde au sol sous le joueur, par le bassin.
 //
-// Le second cas est celui qui compte : demander l'arme de base rendrait une arme
-// sans charges, donc un emplacement qu'on croirait tenir et qui ne déclencherait
-// rien.
-func TestUneLourdeSePrendParSaCle(t *testing.T) {
+// **Le hasard est contourné, jamais le ramassage** : ce que ces cas éprouvent
+// est ce qui suit la chute, et passer par une caisse ferait dépendre chacun d'un
+// tirage. La chute elle-même est gardée par
+// `TestUneCaisseLaisseParfoisUneArme`.
+func tomber(t *testing.T, w *World, cle string) {
+	t.Helper()
+	px, py := w.Player()
+	if _, ok := w.armesAuSol.Spawn(Drop{X: px, Y: py, Weapon: rangDeLArme(t, w, cle)}); !ok {
+		t.Fatal("bassin des armes au sol plein")
+	}
+}
+
+// TestUneArmeSeRamasseEnMarchantDessus garde ce que la conception veut du geste.
+//
+// **Aucun menu, aucune touche** tant qu'une place est libre : on passe dessus
+// pour prendre, on contourne pour laisser.
+func TestUneArmeSeRamasseEnMarchantDessus(t *testing.T) {
+	w, _ := champDeTir(t)
+	tomber(t, w, "grenade")
+
+	w.ramasserUneArme()
+
+	arme, charges := w.HeldHeavy(0)
+	if arme.Key != "grenade" || charges != arme.Charges {
+		t.Errorf("tenue : %q à %d charge(s), attendu grenade pleine", arme.Key, charges)
+	}
+	if w.armesAuSol.Len() != 0 {
+		t.Error("l'arme est restée au sol après avoir été prise")
+	}
+}
+
+// TestLesDeuxEmplacementsSeRemplissentPuisSArretent garde la borne.
+//
+// **Deux et pas trois** : la conception en fait une règle, le joueur ayant une
+// décision — laquelle garder — et non une gestion. La troisième arme reste au
+// sol, ce qui est la condition de l'échange.
+func TestLesDeuxEmplacementsSeRemplissentPuisSArretent(t *testing.T) {
 	w, _ := champDeTir(t)
 
-	if !w.GiveHeavy("grenade") {
-		t.Fatal("la grenade n'est pas dans la table des armes")
+	for range Slots {
+		tomber(t, w, "grenade")
+		w.ramasserUneArme()
 	}
-	arme, charges := w.HeldHeavy()
-	if arme.Key != "grenade" || charges != arme.Charges {
-		t.Errorf("tenue : %q à %d charge(s), attendu grenade à %d",
-			arme.Key, charges, arme.Charges)
+	for place := range Slots {
+		if _, charges := w.HeldHeavy(place); charges == 0 {
+			t.Errorf("emplacement %d vide après deux ramassages", place)
+		}
 	}
 
-	if w.GiveHeavy("reglementaire") {
-		t.Error("le socle a été pris pour une lourde")
+	tomber(t, w, "grenade")
+	w.ramasserUneArme()
+	if w.armesAuSol.Len() != 1 {
+		t.Error("la troisième arme a été prise alors que les deux places sont tenues")
+	}
+}
+
+// TestLaToucheEchangeQuandLesDeuxPlacesSontTenues garde la règle unique.
+//
+// **La touche d'un emplacement, pressée sur une arme au sol, y met cette arme** —
+// vide ou plein. Les trois autres lectures possibles — remplacer la plus
+// ancienne, la moins chargée ou la première — font perdre une arme sans que le
+// joueur sache laquelle, et aucun aperçu au sol ne peut le lui dire à l'avance.
+func TestLaToucheEchangeQuandLesDeuxPlacesSontTenues(t *testing.T) {
+	w, _ := champDeTir(t)
+	for range Slots {
+		tomber(t, w, "grenade")
+		w.ramasserUneArme()
+	}
+
+	// Une arme entamée dans la seconde place : c'est ce qui rend l'échange
+	// visible, la neuve arrivant pleine.
+	w.lourdes[1].Charges = 1
+	tomber(t, w, "grenade")
+
+	if !w.TakeDrop(1) {
+		t.Fatal("l'échange a été refusé alors qu'une arme est sous les pieds")
+	}
+	arme, charges := w.HeldHeavy(1)
+	if charges != arme.Charges {
+		t.Errorf("la place échangée porte %d charge(s), attendu une arme pleine", charges)
+	}
+	if w.armesAuSol.Len() != 0 {
+		t.Error("l'arme échangée est restée au sol")
+	}
+}
+
+// TestLEchangeSansArmeSousLesPiedsNeFaitRien garde ce qui laisse la touche
+// déclencher.
+//
+// C'est ce qui permet à la même touche de faire deux choses : sans arme au sol,
+// elle rend faux et l'appelant déclenche ce que l'emplacement tient.
+func TestLEchangeSansArmeSousLesPiedsNeFaitRien(t *testing.T) {
+	w, _ := champDeTir(t)
+	tomber(t, w, "grenade")
+	w.ramasserUneArme()
+
+	if w.TakeDrop(0) {
+		t.Error("un échange a eu lieu sans arme au sol")
+	}
+}
+
+// TestUneCaisseLaisseParfoisUneArme garde le premier lecteur du flux « butin ».
+//
+// **`Loot` attendait le sien depuis sa déclaration**, sa godoc annonçant « au
+// futur, et rien ne l'alimente encore » : seul le témoin de l'empreinte le
+// gardait numéroté. C'est le même moment que les figurants pour le flux
+// cosmétique.
+//
+// Le compte n'est pas vérifié — une chance sur trois n'a pas de fréquence exacte
+// sur un échantillon —, seulement qu'il tombe des armes et qu'il n'en tombe pas à
+// chaque fois. Sans la seconde moitié, un code qui en lâcherait toujours passerait.
+func TestUneCaisseLaisseParfoisUneArme(t *testing.T) {
+	w, _ := champDeTir(t)
+	px, py := w.Player()
+
+	tombees, essais := 0, 60
+	for range essais {
+		avant := w.armesAuSol.Len()
+		w.lacherUneArme(px, py)
+		if w.armesAuSol.Len() > avant {
+			tombees++
+			w.armesAuSol.RemoveAt(0)
+		}
+	}
+
+	if tombees == 0 {
+		t.Errorf("aucune arme sur %d caisses, la chance déclarée est de une sur %d",
+			essais, w.progression.HeavyOdds)
+	}
+	if tombees == essais {
+		t.Error("chaque caisse a laissé une arme : le tirage ne départage rien")
 	}
 }
 
@@ -39,14 +154,13 @@ func TestUneLourdeSePrendParSaCle(t *testing.T) {
 // relier la perte à son geste.
 func TestUnDeclenchementSansCibleNeDepenseRien(t *testing.T) {
 	w, _ := champDeTir(t)
-	if !w.GiveHeavy("grenade") {
-		t.Fatal("la grenade n'est pas dans la table des armes")
-	}
-	_, avant := w.HeldHeavy()
+	tomber(t, w, "grenade")
+	w.ramasserUneArme()
+	_, avant := w.HeldHeavy(0)
 
-	w.Trigger()
+	w.Trigger(0)
 
-	if _, apres := w.HeldHeavy(); apres != avant {
+	if _, apres := w.HeldHeavy(0); apres != avant {
 		t.Errorf("%d charge(s) après un déclenchement sans cible, attendu %d", apres, avant)
 	}
 	if w.souffles.Len() != 0 {
@@ -58,18 +172,17 @@ func TestUnDeclenchementSansCibleNeDepenseRien(t *testing.T) {
 // l'explosion.
 func TestUnDeclenchementPoseUneDeflagrationEtDepense(t *testing.T) {
 	w, profils := champDeTir(t)
-	if !w.GiveHeavy("grenade") {
-		t.Fatal("la grenade n'est pas dans la table des armes")
-	}
+	tomber(t, w, "grenade")
+	w.ramasserUneArme()
 	px, py := w.Player()
 	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), px+FromInt(2), py); !ok {
 		t.Fatal("créature refusée")
 	}
-	_, avant := w.HeldHeavy()
+	_, avant := w.HeldHeavy(0)
 
-	w.Trigger()
+	w.Trigger(0)
 
-	if _, apres := w.HeldHeavy(); apres != avant-1 {
+	if _, apres := w.HeldHeavy(0); apres != avant-1 {
 		t.Errorf("%d charge(s) après un déclenchement, attendu %d", apres, avant-1)
 	}
 	if w.souffles.Len() != 1 {
@@ -87,12 +200,11 @@ func TestUnDeclenchementPoseUneDeflagrationEtDepense(t *testing.T) {
 // une touche qui ne fera plus rien.
 func TestUneLourdeVideEstJetee(t *testing.T) {
 	w, profils := champDeTir(t)
-	if !w.GiveHeavy("grenade") {
-		t.Fatal("la grenade n'est pas dans la table des armes")
-	}
+	tomber(t, w, "grenade")
+	w.ramasserUneArme()
 	px, py := w.Player()
 	marcheur := indexDuProfil(t, profils, "marcheur")
-	_, charges := w.HeldHeavy()
+	_, charges := w.HeldHeavy(0)
 
 	for range charges {
 		// Une cible neuve à chaque fois : la précédente peut être morte de la
@@ -100,11 +212,11 @@ func TestUneLourdeVideEstJetee(t *testing.T) {
 		if _, ok := w.SpawnEnemy(marcheur, px+FromInt(2), py); !ok {
 			t.Fatal("créature refusée")
 		}
-		w.Trigger()
+		w.Trigger(0)
 		w.detoner()
 	}
 
-	if arme, reste := w.HeldHeavy(); arme.Key != "" || reste != 0 {
+	if arme, reste := w.HeldHeavy(0); arme.Key != "" || reste != 0 {
 		t.Errorf("l'arme vide est restée : %q à %d charge(s)", arme.Key, reste)
 	}
 }

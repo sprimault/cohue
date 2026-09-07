@@ -47,8 +47,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Une grenade se déclenche sur la touche 2.** Première arme lourde : trois
   charges, une déflagration qui part sur la créature la plus proche et emporte la
   horde autour sans jamais toucher le joueur — il ne dirige pas son lancer. À
-  court de charges, elle est jetée. Elle est posée au départ le temps que le
-  ramassage existe.
+  court de charges, elle est jetée.
+- **Les armes lourdes sortent des caisses et se ramassent au sol.** Une caisse
+  sur trois en laisse une ; on la prend en marchant dessus. Deux emplacements,
+  touches 2 et 3 : quand les deux sont tenus, marcher dessus ne fait plus rien et
+  c'est la touche d'un emplacement qui y met l'arme à la place de la sienne. Aucun
+  menu, et contourner la laisse au sol.
 - **Deux fusions apparaissent quand on a monté ce qu'elles demandent.** Le Rail
   — perforant épuisé, portée entamée — fait un tir qui ne s'arrête plus sur rien
   de vivant. La Gerbe — projectiles et éventail entamés — fait converger la salve
@@ -90,7 +94,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **A grenade fires on key 2.** First heavy weapon: three charges, a blast that
   lands on the nearest creature and takes out the horde around it without ever
   touching the player — he does not aim his throw. Out of charges, it is dropped.
-  It is handed over at the start until picking one up exists.
+- **Heavy weapons come out of crates and are picked up off the ground.** One
+  crate in three leaves one; you take it by walking over it. Two slots, keys 2
+  and 3: when both are held, walking over does nothing and it is a slot's key
+  that puts the weapon there in place of its own. No menu, and walking around it
+  leaves it on the ground.
 - **Two fusions appear once you have raised what they ask for.** The Rail —
   piercing spent, range started — makes a shot that no longer stops on anything
   alive. The Spray — projectiles and spread started — makes the volley converge on

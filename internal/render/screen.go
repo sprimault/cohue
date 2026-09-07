@@ -302,6 +302,12 @@ var emplacement1 = []ebiten.Key{ebiten.Key1, ebiten.KeyNumpad1}
 // deux places du chiffre pour la raison écrite au-dessus.
 var emplacement2 = []ebiten.Key{ebiten.Key2, ebiten.KeyNumpad2}
 
+// emplacement3 est la touche du second emplacement d'arme lourde.
+//
+// Deux emplacements et non trois : la conception en fait une règle, le joueur
+// ayant une décision — laquelle garder — et non une gestion.
+var emplacement3 = []ebiten.Key{ebiten.Key3, ebiten.KeyNumpad3}
+
 // Update avance la simulation d'un pas, puis recadre.
 //
 // Un pas par appel et rien qui lise l'horloge : Ebitengine appelle cette méthode
@@ -334,8 +340,18 @@ func (s *Screen) Update() error {
 		s.monde.Attract()
 	}
 
-	if presse(emplacement2) {
-		s.monde.Trigger()
+	// **La même touche prend, échange ou déclenche**, et l'ordre n'est pas libre :
+	// une arme sous les pieds l'emporte, sinon la touche déclenche ce que
+	// l'emplacement tient. Sans cette priorité, presser la touche en passant sur
+	// une trouvaille dépenserait une charge au lieu de la ramasser, et le joueur
+	// verrait son arme partir en croyant en prendre une.
+	for place, touches := range [][]ebiten.Key{emplacement2, emplacement3} {
+		if !presse(touches) {
+			continue
+		}
+		if !s.monde.TakeDrop(place) {
+			s.monde.Trigger(place)
+		}
 	}
 
 	if presse(repere) {

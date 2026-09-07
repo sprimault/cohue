@@ -447,8 +447,8 @@ func TestChampsDeProgressionManquantsListesEnUneFois(t *testing.T) {
 	// les deux de la pression et les trois de la caisse. Une absence compte pour
 	// une ligne : les bornes ne se prononcent que sur un champ présent, faute de
 	// quoi le nombre de lignes cesserait d'être le nombre de choses à corriger.
-	if len(invalide.Missing) != 16 {
-		t.Errorf("%d manquement(s), attendu 16 :\n  %v", len(invalide.Missing), invalide.Missing)
+	if len(invalide.Missing) != 17 {
+		t.Errorf("%d manquement(s), attendu 17 :\n  %v", len(invalide.Missing), invalide.Missing)
 	}
 }
 

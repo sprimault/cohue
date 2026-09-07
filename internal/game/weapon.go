@@ -91,6 +91,27 @@ type Weapon struct {
 	// vaudraient zéro sans qu'on sache si c'était voulu.
 	Pierce  int
 	Bounces int
+	// Spread est ce que la salve gagne en largeur à la portée de l'arme.
+	//
+	// **Une largeur et non un angle, et c'est le déterminisme qui l'impose.**
+	// L'IEEE-754 ne garantit pas le dernier bit de `sin` et `cos` d'une
+	// architecture à l'autre, et cette simulation tourne sur trois cibles dont
+	// deux arm64 : un éventail exprimé en degrés y aurait fait diverger deux
+	// binaires publiés sur la même graine. Exprimée en tuiles, l'ouverture donne
+	// un point à viser, et la direction sort de `Direction`, qui normalise par
+	// `sqrt` — la seule opération dont l'arrondi correct est garanti. **Ne pas
+	// « simplifier » ce champ en angle.**
+	//
+	// **Elle s'ajoute à `Front` au lieu de la remplacer.** Un premier palier qui
+	// ramènerait les départs au canon retirerait la couverture rapprochée que le
+	// front donne : ce serait le seul palier de la table à faire perdre quelque
+	// chose. À ouverture nulle la salve reste parallèle, au bit près.
+	//
+	// **Elle ne fait rien sur une salve d'un seul tir**, la répartition étant
+	// centrée : c'est la synergie « projectiles plus éventail » prise par l'autre
+	// bout. La carte reste offerte à qui n'a pas encore de front — les cartes ne
+	// s'auto-censurent pas —, et c'est son libellé qui doit le dire.
+	Spread Fixed
 	// ProjectileSpeed est la vitesse d'un projectile, en tuiles par tick.
 	ProjectileSpeed Fixed
 }
@@ -198,6 +219,8 @@ type rawWeapon struct {
 	// Pierce et Bounces sont ce qu'un tir traverse et ce vers quoi il repart.
 	Pierce  *int `json:"perforations"`
 	Bounces *int `json:"rebonds"`
+	// EventailTuiles est ce que la salve gagne en largeur à la portée.
+	EventailTuiles *float64 `json:"eventail_tuiles"`
 	// Speed est la vitesse d'un projectile, en tuiles par seconde.
 	Speed *float64 `json:"vitesse_projectile_tuiles_s"`
 }
@@ -220,6 +243,7 @@ func (a rawWeapon) arme(cle string, dire func(string, ...any)) Weapon {
 		Front:           FromFloat(exige(cle, "front_tuiles", a.FrontTuiles, dire)),
 		Pierce:          exige(cle, "perforations", a.Pierce, dire),
 		Bounces:         exige(cle, "rebonds", a.Bounces, dire),
+		Spread:          FromFloat(exige(cle, "eventail_tuiles", a.EventailTuiles, dire)),
 		ProjectileSpeed: parTick(exige(cle, "vitesse_projectile_tuiles_s", a.Speed, dire)),
 	}
 

@@ -181,10 +181,11 @@ func TestLaCadenceEspaceLesTirs(t *testing.T) {
 // Le nombre est posé sur l'arme de la partie plutôt que gagné par une carte : ce
 // qu'on isole ici est la géométrie de la salve, et le chemin qui l'accroît est
 // gardé ailleurs, par `TestChoisirAppliqueLePalierDeProjectiles`.
-func salveDe(t *testing.T, nombre int) []Projectile {
+func salveDe(t *testing.T, nombre int, ouverture Fixed) []Projectile {
 	t.Helper()
 	w, profils := champDeTir(t)
 	w.arme.Projectiles = nombre
+	w.arme.Spread = ouverture
 
 	px, py := w.Player()
 	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), px+FromInt(3), py); !ok {
@@ -211,7 +212,7 @@ func salveDe(t *testing.T, nombre int) []Projectile {
 // éventail » deux termes à combiner — si le nombre écartait déjà les courses, la
 // synergie n'aurait rien à faire.
 func TestLeFrontEcarteSansTournerLaCourse(t *testing.T) {
-	salve := salveDe(t, 3)
+	salve := salveDe(t, 3, 0)
 
 	for i := 1; i < len(salve); i++ {
 		if salve[i].Step != salve[0].Step {
@@ -235,7 +236,7 @@ func TestLeFrontGardeSaLargeurQuandLeNombreMonte(t *testing.T) {
 	// Sept est le dernier palier de l'axe, celui où un écartement fixe aurait
 	// coûté le plus cher.
 	for _, nombre := range []int{2, 3, 7} {
-		salve := salveDe(t, nombre)
+		salve := salveDe(t, nombre, 0)
 		premier, dernier := salve[0], salve[len(salve)-1]
 		largeur := Vec{X: dernier.X - premier.X, Y: dernier.Y - premier.Y}.Len()
 
@@ -244,6 +245,62 @@ func TestLeFrontGardeSaLargeurQuandLeNombreMonte(t *testing.T) {
 		if ecart := largeur - One; ecart.Abs() > 16 {
 			t.Errorf("%d projectiles : front de %v, attendu une tuile", nombre, largeur)
 		}
+	}
+}
+
+// TestLEventailEcarteLesCoursesEtLeFrontNon garde ce que le sixième axe apporte.
+//
+// **Le front et l'éventail se composent au lieu de se remplacer** : à ouverture
+// nulle les courses restent parallèles — ce que
+// `TestLeFrontEcarteSansTournerLaCourse` garde de son côté —, et une ouverture les
+// fait diverger sans rien retirer aux départs, qui restent écartés du front.
+func TestLEventailEcarteLesCoursesEtLeFrontNon(t *testing.T) {
+	salve := salveDe(t, 3, FromInt(3))
+
+	if salve[0].Step == salve[2].Step {
+		t.Error("les courses des extrêmes sont identiques : l'éventail n'écarte rien")
+	}
+	// **Le front subsiste sous l'ouverture**, et cela se garde en comparant les
+	// deux cas plutôt qu'en visant une valeur : la salve est relevée après un
+	// tick, si bien que la divergence s'ajoute déjà à l'écart des départs. Si
+	// l'ouverture avait remplacé le front, les tirs partiraient confondus et
+	// l'écart mesuré serait le seul fait d'un pas — donc plus petit que la tuile
+	// du front seul, au lieu d'être plus grand.
+	ecarte := func(s []Projectile) Fixed {
+		return Vec{X: s[2].X - s[0].X, Y: s[2].Y - s[0].Y}.Len()
+	}
+	avec, sans := ecarte(salve), ecarte(salveDe(t, 3, 0))
+	if sans-One > 16 || One-sans > 16 {
+		t.Errorf("front seul de %v, attendu une tuile : le cas ne teste rien", sans)
+	}
+	if avec <= sans {
+		t.Errorf("écart de %v avec ouverture contre %v sans : le front a été remplacé",
+			avec, sans)
+	}
+	// Symétrie : le projectile du centre garde la course de visée, les deux
+	// autres s'en écartent d'autant de part et d'autre.
+	gauche := Vec{X: salve[0].Step.X - salve[1].Step.X, Y: salve[0].Step.Y - salve[1].Step.Y}.Len()
+	droite := Vec{X: salve[2].Step.X - salve[1].Step.X, Y: salve[2].Step.Y - salve[1].Step.Y}.Len()
+	if ecart := gauche - droite; ecart.Abs() > 16 {
+		t.Errorf("écarts asymétriques : %v à gauche, %v à droite", gauche, droite)
+	}
+}
+
+// TestLEventailNeFaitRienSurUnTirSeul garde la conséquence de la répartition
+// centrée.
+//
+// **C'est la synergie « projectiles plus éventail » prise par l'autre bout**, et
+// c'est aussi ce qui rend la phrase de la carte importante : elle est offerte à
+// qui n'a pas encore de front, et ne produit alors rien de visible. La décision
+// est que les cartes ne s'auto-censurent pas — celui qui la prend prépare une
+// gerbe.
+func TestLEventailNeFaitRienSurUnTirSeul(t *testing.T) {
+	seul := salveDe(t, 1, FromInt(3))
+	sans := salveDe(t, 1, 0)
+
+	if seul[0].Step != sans[0].Step {
+		t.Errorf("course %v avec ouverture, %v sans : un tir seul ne s'écarte de rien",
+			seul[0].Step, sans[0].Step)
 	}
 }
 

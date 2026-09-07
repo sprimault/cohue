@@ -132,3 +132,17 @@ func (v Vec) Direction(index int) Vec {
 func (v Vec) carres() int64 {
 	return int64(v.X)*int64(v.X) + int64(v.Y)*int64(v.Y)
 }
+
+// scalaire rend le produit scalaire de deux vecteurs, exact.
+//
+// **Son signe seul est lu**, et c'est ce qui la rend suffisante : positif dit que
+// deux directions vont du même côté, ce qui suffit à demander « est-ce devant
+// moi » sans normaliser ni mesurer un angle. Un cosinus le dirait mieux et
+// coûterait ce que la virgule fixe refuse — `sin` et `cos` n'ont pas le même
+// dernier bit d'une architecture à l'autre.
+//
+// En `int64` pour la raison qui vaut à `carres` de l'être : un produit de deux
+// longueurs n'entre pas dans un `int32`.
+func (v Vec) scalaire(w Vec) int64 {
+	return int64(v.X)*int64(w.X) + int64(v.Y)*int64(w.Y)
+}

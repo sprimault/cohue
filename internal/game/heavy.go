@@ -62,7 +62,10 @@ func (w *World) Trigger(place int) {
 		return
 	}
 	tenue := &w.lourdes[place]
-	cible, trouvee := w.plusProcheDe(w.playerX, w.playerY, tenue.Weapon.Range, Handle{})
+	// Sans restriction de côté, à la différence du tir de base : une grenade
+	// tombe où le joueur la lance et non où il regarde, et le chapitre 9 pose
+	// qu'il ne dirige pas son lancer.
+	cible, trouvee := w.plusProcheDe(w.playerX, w.playerY, tenue.Weapon.Range, Handle{}, Vec{})
 	if !trouvee {
 		return
 	}

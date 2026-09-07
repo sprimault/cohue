@@ -42,6 +42,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+## [0.5.0] — 2026-09-06 — Les assets
+
 ### Ajouté
 
 - **Ce qui casse laisse quelque chose.** Une caisse crache une gerbe d'éclats de

@@ -333,6 +333,54 @@ son auteur ne comprendrait pas ce qui lui arrive, ni bloquant pour la liste
 entière, où un fichier de trop empêcherait de jouer. C'est ce que la validation
 sait déjà dire, porté à l'écran.
 
+## 17 — Le son se joue
+
+Les vingt-quatre bruitages sont générés, contrôlés et embarqués depuis l'étape 5,
+et **rien ne les joue** : aucun `audio` dans `internal/render`, dans
+`internal/session` ni dans `cmd/`. Le catalogue existe, chaque son porte son gain
+et sa catégorie de mixage, et aucune ligne ne les lit.
+
+**Une étape à brancher et non à concevoir**, ce qui explique qu'elle vienne à la
+fin sans en souffrir : les fichiers sont là depuis le premier jour, les catégories
+de mixage sont dans le manifeste, et la conception dit déjà ce que chaque son doit
+faire. Ce qui manque est le moteur de lecture, le mixage par catégorie, et le
+branchement de chaque déclenchement.
+
+**Elle arrive à la fin parce qu'une étape qui apparaît s'ajoute à la fin**, quelle
+que soit sa place logique. Sa place logique était l'étape 3, dont le jalon juge
+une sensation : le son y a été manqué, et la conception le décrit depuis comme
+s'il existait — c'est ce qui a permis à la dette de passer inaperçue si longtemps.
+
+**Six notes de la conception l'attendent nommément**, et c'est ce qu'il faut
+reprendre en l'écrivant plutôt que de partir du catalogue. La liste a été
+constituée d'un coup, par relevé, parce qu'une dette de cette forme se découvre
+sinon par morceaux — les deux dernières manquaient à une première version qui en
+comptait quatre :
+
+- **la montée sonore du déclenchement de l'aimant**, au chapitre 2, dont le
+  document dit qu'elle « reste à écrire » et que les huit degrés du ramassage ne
+  la fournissent pas — deux cents gemmes les parcourraient vingt-cinq fois, ce qui
+  donne une scie ;
+- **les huit degrés de la gamme du ramassage**, au chapitre 14 : le degré suivant
+  à chaque gemme d'une même volée, et le retour au premier après un silence ;
+- **le son de contact qui se réarme après un silence**, au chapitre 5 — un son de
+  dégât par tick serait insupportable à la cadence où le contact s'applique ;
+- **le son sec d'une arme lourde jetée à vide**, au chapitre 9. L'étape 6 a livré
+  la disparition de l'emplacement sans lui : le signal visuel porte
+  l'information, le son en est le renfort ;
+- **le son qui annonce la charge du Molosse**, au chapitre 4 : le télégraphe est
+  « une demi-seconde d'anticipation, un son », et l'étape 4 a livré la demi-seconde
+  sans le son. C'est la moitié d'une annonce dont tout le rôle est d'être perçue ;
+- **les contraintes de mixage**, au chapitre 14, qui ne sont pas un déclenchement
+  mais la règle qui les ordonne : le tir de base est « le son le plus contraint du
+  jeu », très court et au gain le plus bas du catalogue, parce qu'il part
+  plusieurs fois par seconde pendant quinze minutes. La règle générale est que
+  **les sons rares ont le droit d'être forts et les sons répétés restent sous la
+  nappe**, et la transition d'une montée de niveau n'a « pas de son long ».
+
+L'étape 15 dépend d'elle sans le dire : « les volumes par catégorie de mixage »
+règlent des sons qui ne sortent pas tant que celle-ci n'est pas écrite.
+
 ---
 
 ## Hors périmètre v1

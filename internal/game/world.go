@@ -70,7 +70,11 @@ type World struct {
 	// arme est la copie que la partie transforme. Les passifs la modifient, si
 	// bien qu'une relance repart de la table sans qu'on ait à défaire quoi que
 	// ce soit.
-	arme        Weapon
+	arme Weapon
+	// armes est la table entière, que les lourdes rendent nécessaire : une
+	// explosion posée par une arme la désigne par son rang, comme celle d'une
+	// Baudruche désigne un profil.
+	armes       *Weapons
 	passifs     *Passives
 	progression *Progression
 	grille      *CostGrid
@@ -164,6 +168,12 @@ type World struct {
 	// `Passives.Recipes`. Une fusion se prend une fois, là où un axe compte des
 	// paliers — d'où un booléen et non un compteur.
 	fusions []bool
+	// lourde est l'arme lourde que le joueur tient.
+	//
+	// **Un emplacement et non deux**, tant que le ramassage n'existe pas : la
+	// conception en veut deux, et les poser avant qu'on puisse en trouver une
+	// seconde ferait un tableau dont une moitié ne se remplirait jamais.
+	lourde Heavy
 	// enAttente est le nombre de choix dus au joueur, en plus de celui qui est
 	// ouvert. Une récolte abondante en donne deux d'un coup, et les présenter
 	// l'un après l'autre est la seule façon de n'en perdre aucun.
@@ -266,6 +276,7 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scena
 	return &World{
 		profils:     profils,
 		arme:        armes.Base,
+		armes:       armes,
 		passifs:     armes.Passives,
 		progression: progression,
 		scenario:    scenario,

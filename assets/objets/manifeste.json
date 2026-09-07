@@ -495,7 +495,6 @@
       ],
       "famille": "arme",
       "bloquant": false,
-      "charges": 5,
       "son": "ramassage_arme"
     },
     "lance_flammes": {
@@ -513,7 +512,6 @@
       ],
       "famille": "arme",
       "bloquant": false,
-      "charges": 3,
       "son": "ramassage_arme"
     },
     "grenade": {
@@ -531,7 +529,6 @@
       ],
       "famille": "arme",
       "bloquant": false,
-      "charges": 3,
       "son": "ramassage_arme"
     },
     "tourelle": {
@@ -549,7 +546,6 @@
       ],
       "famille": "arme",
       "bloquant": false,
-      "charges": 2,
       "son": "ramassage_arme"
     }
   }

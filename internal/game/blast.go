@@ -20,13 +20,35 @@ type Blast struct {
 	// X et Y sont le point de la mort, où la déflagration reste centrée. Elle ne
 	// suit pas ce qui l'a produite, qui n'existe plus.
 	X, Y Fixed
-	// Profile est l'index du profil qui l'a laissée, d'où viennent son rayon et
-	// ses dégâts. L'index et non les valeurs, comme pour toute entité : régler
-	// une Baudruche ne doit pas dépendre de celles déjà amorcées.
-	Profile int
+	// Source dit d'où viennent son rayon, ses dégâts — et qui elle emporte.
+	//
+	// **Une sorte et non un index qui vaudrait pour les deux tables.** Deux
+	// provenances closes, donc le remède que `docs/go.md` nomme : sans elle, un
+	// index d'arme et un index de profil se liraient l'un pour l'autre sans que
+	// rien ne s'y oppose.
+	//
+	// **Elle dit aussi qui est touché, et ce n'est pas cosmétique** : celle d'une
+	// Baudruche n'emporte que le joueur, celle d'une lourde n'emporte que la
+	// horde. Les unifier en trouvant la distinction décorative retournerait les
+	// deux mécaniques d'un coup — la godoc de `detoner` dit pourquoi chacune est
+	// ce qu'elle est.
+	Source BlastSource
+	// Index désigne le profil ou l'arme, selon la sorte.
+	Index int
 	// Fuse est ce qui reste à brûler, en ticks. À zéro, elle détone et part.
 	Fuse Tick
 }
+
+// BlastSource dit de quelle table une explosion tient ses valeurs.
+type BlastSource uint8
+
+const (
+	// BlastEnemy est la valeur zéro : une explosion bâtie sans rien vient d'une
+	// créature, ce qui était le seul cas jusqu'aux armes lourdes.
+	BlastEnemy BlastSource = iota
+	// BlastWeapon vient d'une arme lourde que le joueur a déclenchée.
+	BlastWeapon
+)
 
 // amorcer pose une explosion là où une créature vient de mourir.
 //
@@ -41,7 +63,7 @@ func (w *World) amorcer(e *Enemy) {
 	if profil.BurstRadius == 0 {
 		return
 	}
-	w.souffles.Spawn(Blast{X: e.X, Y: e.Y, Profile: e.Profile, Fuse: profil.Fuse})
+	w.souffles.Spawn(Blast{X: e.X, Y: e.Y, Index: e.Profile, Fuse: profil.Fuse})
 }
 
 // detoner fait brûler les mèches et applique celles qui arrivent au bout.
@@ -62,10 +84,15 @@ func (w *World) detoner() {
 			continue
 		}
 
-		profil := &w.profils.Enemies[b.Profile]
-		ecart := Vec{X: w.playerX - b.X, Y: w.playerY - b.Y}
-		if w.Alive() && ecart.carres() <= int64(profil.BurstRadius)*int64(profil.BurstRadius) {
-			w.blesser(profil.BurstDamage)
+		switch b.Source {
+		case BlastEnemy:
+			profil := &w.profils.Enemies[b.Index]
+			ecart := Vec{X: w.playerX - b.X, Y: w.playerY - b.Y}
+			if w.Alive() && ecart.carres() <= int64(profil.BurstRadius)*int64(profil.BurstRadius) {
+				w.blesser(profil.BurstDamage)
+			}
+		case BlastWeapon:
+			w.emporter(&w.armes.All[b.Index], b.X, b.Y)
 		}
 		// L'onde survit à ce qui la produit, et c'est toute la raison d'un bassin
 		// à part : l'explosion quitte le sien à cet instant précis, si bien que
@@ -75,6 +102,22 @@ func (w *World) detoner() {
 	}
 }
 
+// valeursDe rend le rayon et la mèche d'une explosion, quelle que soit sa
+// provenance.
+//
+// **Un seul endroit qui lit la sorte**, plutôt que trois accesseurs qui la
+// liraient chacun : ce que le rendu peint et ce que la détonation applique
+// doivent venir de la même table, faute de quoi une emprise annoncerait une zone
+// que l'explosion n'atteint pas.
+func (w *World) valeursDe(b *Blast) (rayon Fixed, meche Tick) {
+	if b.Source == BlastWeapon {
+		arme := &w.armes.All[b.Index]
+		return arme.BurstRadius, arme.Fuse
+	}
+	profil := &w.profils.Enemies[b.Index]
+	return profil.BurstRadius, profil.Fuse
+}
+
 // BlastBounds rend les cases que l'emprise d'une explosion peut atteindre.
 //
 // Un rectangle englobant, que `BlastCovers` affine : le rendu n'a alors ni rayon
@@ -82,7 +125,7 @@ func (w *World) detoner() {
 // détonation appliquera. Deux calculs de la même zone finiraient par marquer une
 // case que l'explosion épargne.
 func (w *World) BlastBounds(b *Blast) (u0, v0, u1, v1 int) {
-	rayon := w.profils.Enemies[b.Profile].BurstRadius
+	rayon, _ := w.valeursDe(b)
 	return (b.X - rayon).Floor(), (b.Y - rayon).Floor(),
 		(b.X + rayon).Floor(), (b.Y + rayon).Floor()
 }
@@ -93,7 +136,7 @@ func (w *World) BlastBounds(b *Blast) (u0, v0, u1, v1 int) {
 // une distance depuis un point, et marquer une case dont le centre est hors du
 // rayon annoncerait un danger qui n'arrivera pas.
 func (w *World) BlastCovers(b *Blast, u, v int) bool {
-	rayon := w.profils.Enemies[b.Profile].BurstRadius
+	rayon, _ := w.valeursDe(b)
 	ecart := Vec{X: FromInt(u) + One/2 - b.X, Y: FromInt(v) + One/2 - b.Y}
 	return ecart.carres() <= int64(rayon)*int64(rayon)
 }
@@ -106,7 +149,7 @@ func (w *World) BlastCovers(b *Blast, u, v int) bool {
 // des paliers distincts, et un entier pour qu'aucun flottant n'entre dans ce que
 // la simulation expose.
 func (w *World) FuseLeft(b *Blast) int {
-	total := w.profils.Enemies[b.Profile].Fuse
+	_, total := w.valeursDe(b)
 	if total <= 0 {
 		return 0
 	}

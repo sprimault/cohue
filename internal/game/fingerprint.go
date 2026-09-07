@@ -63,8 +63,9 @@ func (w *World) Fingerprint() string {
 	for i := range w.souffles.Active() {
 		souffle := w.souffles.At(i)
 		id := w.souffles.IDAt(i)
-		fmt.Fprintf(&b, "souffle %d id=%d gen=%d x=%d y=%d profil=%d meche=%d\n",
-			i, id, w.souffles.gens[id], souffle.X, souffle.Y, souffle.Profile, souffle.Fuse)
+		fmt.Fprintf(&b, "souffle %d id=%d gen=%d x=%d y=%d source=%d index=%d meche=%d\n",
+			i, id, w.souffles.gens[id], souffle.X, souffle.Y,
+			souffle.Source, souffle.Index, souffle.Fuse)
 	}
 	for i := range w.gemmes.Active() {
 		g := w.gemmes.At(i)

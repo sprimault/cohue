@@ -638,7 +638,11 @@ VALEURS = {
     "fiole": {"soin": 30, "emplacements": 2},
 }
 
-CHARGES = {"fusil": 5, "lance_flammes": 3, "grenade": 3, "tourelle": 2}
+# Les charges d'une arme lourde ne sont plus ici : elles ont déménagé dans
+# assets/armes/manifeste.json, tenu à la main, par le critère qui avait déjà fait
+# descendre l'expérience d'une gemme dans celui de la progression — une valeur vit
+# à côté de ce qu'elle alimente, et régler une charge ne touche pas au dessin.
+# ressources.py refuse qu'elles reviennent sur un objet.
 
 CATALOGUE = {
     "caisse": caisse,
@@ -784,7 +788,6 @@ def main():
                           "taille_sol": list(au_sol.size),
                           "ancrage_sol": [au_sol.width // 2, au_sol.height - 1],
                           "famille": "arme", "bloquant": False,
-                          "charges": CHARGES[nom],
                           "son": "ramassage_arme"}
         print(f"{nom:22} icône {icone.size}  sol {au_sol.size}")
 

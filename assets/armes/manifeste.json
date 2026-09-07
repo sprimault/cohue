@@ -15,6 +15,25 @@
       "rebonds": 0,
       "eventail_tuiles": 0.0,
       "vitesse_projectile_tuiles_s": 12.0
+    },
+    "grenade": {
+      "$comment": "La première arme lourde. Elle ne monte pas de niveau — les lourdes sont hors du système d'XP —, mais les axes qu'elle déclare l'affectent : sans eux, une arme trouvée à la douzième minute serait plus faible que le tir de base, ridicule au moment où elle doit impressionner. || Elle déclare la cadence et rien d'autre : la portée d'un lancer n'a pas de sens tant qu'on ne le dirige pas, et le nombre de projectiles, le perforant, le ricochet et l'éventail décrivent une course que cette arme n'a pas — elle pose une déflagration. || Ses charges vivent ici et non sur l'objet, par le critère qui avait fait descendre l'expérience d'une gemme dans la progression : régler une charge ne touche pas au dessin. Le renvoi objet reste pour que le contrôle des ressources vérifie que l'arme désigne un objet du catalogue. || rayon et degats sont ceux de la déflagration, meche_ms le délai avant qu'elle parte — le même vocabulaire que la Baudruche, dont elle réemploie le souffle. Elle n'emporte que la horde : le joueur ne dirige pas son lancer, donc le blesser serait une sanction sans recours.",
+      "nom": "Grenade",
+      "role": "lourde",
+      "objet": "grenade",
+      "charges": 3,
+      "cadence_ms": 1000,
+      "portee_tuiles": 4,
+      "degats_touches": 6,
+      "projectiles": 1,
+      "front_tuiles": 1.0,
+      "perforations": 0,
+      "rebonds": 0,
+      "eventail_tuiles": 0.0,
+      "vitesse_projectile_tuiles_s": 8.0,
+      "axes": ["cadence"],
+      "rayon_tuiles": 2.5,
+      "meche_ms": 500
     }
   },
   "passifs": {

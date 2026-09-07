@@ -98,26 +98,44 @@ func (w *World) appliquer(c Card) {
 
 // offrir compose les cartes de la montée en cours.
 //
-// **Aucun tirage n'a lieu, et c'est une conséquence du nombre d'axes plutôt
-// qu'une décision.** Deux axes plus la soupape font exactement trois places :
-// il n'y a rien à choisir parmi les éligibles, donc rien à tirer au sort. Le
-// jour où un troisième axe entre, le pool dépasse les trois places et cette
-// fonction prend un flux — qui n'est pas déclaré aujourd'hui, parce qu'un flux
-// que personne ne lit est un numéro réservé pour rien.
+// **Le tirage ne se consomme que s'il départage.** Tant que les axes éligibles
+// tiennent dans les trois places, ils sont tous offerts et rien n'est tiré : la
+// table livrée en porte trois, donc aucune partie ne consomme `Cards`
+// aujourd'hui. C'est au quatrième axe que le choix commence — la version
+// précédente de cette godoc annonçait le troisième, et se trompait d'un cran :
+// trois éligibles pour trois places ne laissent rien à choisir.
+//
+// Un tirage inconditionnel serait pire qu'inutile : il décalerait le flux sans
+// qu'aucune décision en dépende, et deux graines identiques n'offriraient plus la
+// même chose pour une raison qui n'est pas une règle de jeu.
+//
+// **Le mélange est partiel et se fait en place**, sur une tranche dont la
+// capacité vient du montage : trois échanges suffisent à tirer trois éléments
+// sans biais, et rien n'est alloué dans un tick qui ouvre un choix.
 //
 // La soupape complète, et elle se répète autant qu'il faut : c'est ce qui
 // garantit qu'aucune place ne reste vide, y compris quand tous les axes sont
 // épuisés.
 func (w *World) offrir() {
 	w.cartes = w.cartes[:0]
+	w.eligibles = w.eligibles[:0]
 
 	for i := range w.passifs.Axes {
-		if len(w.cartes) == Choices {
-			break
-		}
 		if w.paliers[i] < w.passifs.Axes[i].Tiers {
-			w.cartes = append(w.cartes, carte(&w.passifs.Axes[i], i, w.paliers[i]+1))
+			w.eligibles = append(w.eligibles, i)
 		}
+	}
+
+	if len(w.eligibles) > Choices {
+		for k := range Choices {
+			j := k + w.hasard.Cards.IntN(len(w.eligibles)-k)
+			w.eligibles[k], w.eligibles[j] = w.eligibles[j], w.eligibles[k]
+		}
+		w.eligibles = w.eligibles[:Choices]
+	}
+
+	for _, i := range w.eligibles {
+		w.cartes = append(w.cartes, carte(&w.passifs.Axes[i], i, w.paliers[i]+1))
 	}
 	for len(w.cartes) < Choices {
 		w.cartes = append(w.cartes, soupape(w.passifs.Relief))

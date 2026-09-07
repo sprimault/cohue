@@ -117,9 +117,9 @@ func (w *World) Fingerprint() string {
 	// se verra plus ici. C'est ce qu'il faut accepter pour que la séparation des
 	// flux devienne vérifiable, et c'est `TestLeCosmetiqueNeDecideDeRien` qui la
 	// garde en face.
-	fmt.Fprintf(&b, "flux vagues=%d positions=%d butin=%d\n",
+	fmt.Fprintf(&b, "flux vagues=%d positions=%d butin=%d cartes=%d\n",
 		w.hasard.Waves.IntN(1<<30), w.hasard.Positions.IntN(1<<30),
-		w.hasard.Loot.IntN(1<<30))
+		w.hasard.Loot.IntN(1<<30), w.hasard.Cards.IntN(1<<30))
 
 	return b.String()
 }

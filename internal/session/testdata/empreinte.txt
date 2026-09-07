@@ -14,7 +14,7 @@ gemme 0 id=3 gen=1 x=3232447 y=4500801 ne=446 attiree=false
 gemme 1 id=1 gen=1 x=3788748 y=4391273 ne=427 attiree=false
 gemme 2 id=5 gen=1 x=3255617 y=4500801 ne=446 attiree=false
 gemme 3 id=0 gen=2 x=3367256 y=3408288 ne=755 attiree=false
-flux vagues=905137858 positions=847631723 butin=306793347
+flux vagues=905137858 positions=847631723 butin=306793347 cartes=812551215
 
 # choisi pour un aimant au sol, le niveau 2 franchi, la vie entamée et dix créatures vivantes
 tick 2700
@@ -34,7 +34,7 @@ gemme 0 id=0 gen=6 x=3450958 y=3205533 ne=2400 attiree=false
 gemme 1 id=5 gen=6 x=3099442 y=3807803 ne=2552 attiree=false
 gemme 2 id=3 gen=7 x=2954796 y=3801881 ne=2602 attiree=false
 aimant 0 id=0 gen=1 x=4816896 y=884736
-flux vagues=450897158 positions=1036398020 butin=444631208
+flux vagues=450897158 positions=1036398020 butin=444631208 cartes=965140428
 
 # choisi pour une horde de onze, la plus fournie de ces trois premiers instants
 tick 3163
@@ -55,7 +55,7 @@ gemme 0 id=1 gen=4 x=3277689 y=3104515 ne=3139 attiree=false
 gemme 1 id=3 gen=8 x=2982089 y=2907205 ne=3002 attiree=false
 gemme 2 id=5 gen=7 x=3182096 y=2882822 ne=3066 attiree=false
 aimant 0 id=0 gen=1 x=4816896 y=884736
-flux vagues=26261793 positions=287567265 butin=495687234
+flux vagues=26261793 positions=287567265 butin=495687234 cartes=461574614
 
 # choisi pour les quatre profils que la run atteint — trois Vigiles, treize Arpenteurs et douze Molosses dans une horde de 132 —, avec le niveau 6
 tick 15987
@@ -197,5 +197,5 @@ gemme 1 id=4 gen=22 x=2818604 y=2122464 ne=15886 attiree=false
 gemme 2 id=0 gen=24 x=2703050 y=2153754 ne=15860 attiree=false
 gemme 3 id=1 gen=14 x=2956043 y=2165726 ne=15913 attiree=false
 aimant 0 id=0 gen=1 x=4816896 y=884736
-flux vagues=253365204 positions=503230892 butin=798434339
+flux vagues=253365204 positions=503230892 butin=798434339 cartes=994304167
 

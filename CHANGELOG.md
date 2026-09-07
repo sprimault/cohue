@@ -95,6 +95,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
   position par image et sautait plus loin que sa propre largeur : il portait, il
   tuait, et rien ne reliait deux images. Il laisse maintenant une traînée entre
   l'endroit qu'il occupait et celui où il est.
+- **Longer un mur ne donne plus l'air d'être passé dessus.** Le personnage caché
+  par du décor était rappelé en aplat plein, qui efface le mur là où il se pose ;
+  contre l'enceinte d'un lieu, on se voyait dehors. Il est maintenant rappelé par
+  son seul tracé, à travers lequel le mur se voit. Derrière une foule, l'aplat
+  reste : c'est là qu'il faut se retrouver d'un coup d'œil.
 
 ***
 
@@ -147,6 +152,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
   position per frame and jumped further than its own width: it hit, it killed,
   and nothing connected two frames. It now leaves a trail between where it was
   and where it is.
+- **Walking along a wall no longer looks like walking over it.** A character
+  hidden by scenery was recalled as a solid shape, which wipes out the wall where
+  it lands; against a place's outer wall, you saw yourself outside. He is now
+  recalled by his outline alone, through which the wall shows. Behind a crowd the
+  solid shape stays: that is where you must find yourself at a glance.
 
 ## [0.5.0] — 2026-09-06 — Les assets
 

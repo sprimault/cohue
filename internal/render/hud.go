@@ -125,6 +125,16 @@ func (h *HUD) Gauge(dst *ebiten.Image, x, y, largeur int, part float64, teinte c
 	h.Rect(dst, x, y, rempli, h.theme.GaugeHeight, teinte)
 }
 
+// SlotSide rend le côté qu'une case aurait, sans rien peindre.
+//
+// **Séparée de `Slot` parce que placer précède peindre** : poser deux cases côte
+// à côte demande de connaître la largeur de la première avant de dessiner la
+// seconde, et appeler `Slot` pour l'apprendre la peindrait au mauvais endroit —
+// ou paniquerait sur une destination nulle, ce qui est arrivé.
+func (h *HUD) SlotSide(contenu int) int {
+	return contenu + 2*(h.theme.Margin+h.theme.Border)
+}
+
 // Slot peint une case d'emplacement et rend son côté.
 //
 // **Le côté n'est pas un réglage, il se calcule** : c'est la taille du contenu,
@@ -135,7 +145,7 @@ func (h *HUD) Gauge(dst *ebiten.Image, x, y, largeur int, part float64, teinte c
 // La touche s'écrit sous la case plutôt que le nom de l'objet : l'icône dit déjà
 // de quoi il s'agit, et ce que le joueur cherche est ce qu'il doit presser.
 func (h *HUD) Slot(dst *ebiten.Image, x, y, contenu int, touche string) int {
-	cote := contenu + 2*(h.theme.Margin+h.theme.Border)
+	cote := h.SlotSide(contenu)
 	h.Frame(dst, x, y, cote, cote)
 
 	largeur := h.Font.Advance(touche)

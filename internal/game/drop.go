@@ -32,6 +32,27 @@ func (w *World) Drops() *Pool[Drop] { return w.armesAuSol }
 // table : il lit une arme, comme il lit un profil pour une créature.
 func (w *World) DropWeapon(d *Drop) *Weapon { return &w.armes.All[d.Weapon] }
 
+// SpawnDrop pose une arme lourde nommée au sol, sans passer par le hasard.
+//
+// **Elle sert à monter un état, jamais à jouer** : une planche de relecture doit
+// pouvoir montrer une arme au sol sans dépendre d'un tirage, et un test éprouver
+// ce qui suit la chute sans éprouver la chute. Ce qui la produit en partie est
+// `lacherUneArme`, depuis une caisse.
+//
+// Le second résultat est faux quand la clé ne désigne pas une lourde ou que le
+// bassin est plein : l'appelant monte une scène, et le silence lui ferait
+// chercher un défaut d'affichage.
+func (w *World) SpawnDrop(cle string, x, y Fixed) bool {
+	for _, rang := range w.armes.Heavy {
+		if w.armes.All[rang].Key != cle {
+			continue
+		}
+		_, ok := w.armesAuSol.Spawn(Drop{X: x, Y: y, Weapon: rang})
+		return ok
+	}
+	return false
+}
+
 // lacherUneArme pose une arme lourde au sol, tirée parmi celles de la table.
 //
 // **C'est le premier lecteur du flux `butin`**, qui attendait le sien depuis sa

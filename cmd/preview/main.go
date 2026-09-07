@@ -171,6 +171,11 @@ type vue struct {
 	// chargeLAimant donne une charge sans la dépenser, pour que l'emplacement du
 	// bandeau se juge plein.
 	chargeLAimant bool
+	// poseDesArmes met une arme lourde dans un emplacement et une autre au sol.
+	//
+	// Sans passer par une caisse : la chute est un tirage, et une vue qui en
+	// dépendrait montrerait un sol vide une fois sur trois.
+	poseDesArmes bool
 	// surUneCaisse pose le joueur sur la première caisse du lieu, qu'il casse
 	// alors au premier contact.
 	surUneCaisse bool
@@ -270,6 +275,12 @@ var vues = []vue{
 	// rien ne les donnait à relire. La horde reste, puisque l'arme ne part que
 	// s'il y a une cible à portée.
 	{nom: "tirs", ticks: 300 * game.TPS, jusquAuTir: true},
+
+	// **Les armes lourdes, tenues et au sol.** Ce que cette vue relit est ce
+	// qu'aucune mesure ne dit : que l'icône tienne dans sa case, que les pastilles
+	// se comptent d'un coup d'œil, et qu'une arme posée au sol se voie parmi le
+	// décor. La horde est retirée pour que rien ne passe devant.
+	{nom: "armes", videLaHorde: true, poseDesArmes: true},
 
 	// La vignette de danger, qui ne se juge que sur ce qu'elle laisse voir : la
 	// horde doit rester lisible au centre, sans quoi le signal coûte la fuite
@@ -489,6 +500,21 @@ func (p *planche) vue(v vue) error {
 	}
 	if v.chargeLAimant {
 		partie.World.Charge()
+	}
+
+	// **Une tenue et une au sol**, parce que ce sont deux choses distinctes à
+	// relire : l'emplacement avec son icône et ses pastilles, et le dessin qui
+	// attend d'être ramassé. Une seule des deux ne montrerait que la moitié de ce
+	// que le lot a ajouté — et c'est l'absence d'une vue de ce genre qui a laissé
+	// livrer une arme au sol que rien ne dessinait.
+	if v.poseDesArmes {
+		px, py := partie.World.Player()
+		// La première est ramassée par le tick qui suit, la seconde reste au sol :
+		// une pose et un tick suffisent, et un échec ne s'annonce pas — la vue
+		// montrerait alors une case vide, ce qui se voit.
+		partie.World.SpawnDrop("grenade", px, py)
+		partie.World.Step(game.Vec{})
+		partie.World.SpawnDrop("grenade", px+game.FromInt(2), py)
 	}
 
 	// La ruée se dessine en plein vol : quelques ticks suffisent à ce que les

@@ -36,6 +36,14 @@ const (
 	// trajectoires qu'il calcule. Ce qui la sépare d'un effet est qu'elle n'a pas
 	// d'ordre — la deuxième forme ne suit pas la première, elle en diffère.
 	familleParticule = "particule"
+	// familleArme est une arme lourde, qui porte **deux dessins de natures
+	// différentes** : celui du sol suit la projection isométrique et se pose
+	// comme un objet du monde, celui de l'icône se voit de face dans un
+	// emplacement. En isométrie, une icône de vingt pixels ne se lirait plus.
+	//
+	// C'est la seule famille dont une entrée donne deux images, et c'est ce qui
+	// l'empêche d'être une `monde` avec un champ de plus.
+	familleArme = "arme"
 )
 
 // Objects est le manifeste que `outils/objets.py` écrit.
@@ -152,12 +160,31 @@ type Prop struct {
 	// peut en cacher un. Une vitrine et un rideau de fer le déclarent, une
 	// caisse de seize pixels non.
 	Masking bool
+	// Icon est le dessin de face d'une arme lourde, nul pour tout le reste.
+	//
+	// **Séparé de `Images` parce qu'il ne se pose pas au même endroit** : celles-ci
+	// vont dans la scène, en isométrie et avec un ancrage au sol, quand celui-ci
+	// va dans un emplacement du bandeau, vu de face. Les confondre ferait poser
+	// une icône dans le monde le jour où quelqu'un parcourrait `Images`.
+	Icon image.Image
 }
 
 // Props porte les objets du catalogue, par nom.
 type Props struct {
 	objets map[string]Prop
+	// armes sont les noms de famille « arme », triés.
+	//
+	// **Une liste rendue plutôt que des noms écrits dans le rendu.** Les autres
+	// objets sont nommés en Go parce que c'est le rendu qui sait lequel va avec
+	// quel bassin ; une arme lourde, elle, est désignée par la table des armes, et
+	// le rendu pose celle que le monde lui donne. Les écrire en dur obligerait à
+	// y revenir à chaque arme ajoutée, pour une correspondance que personne ne
+	// choisit.
+	armes []string
 }
+
+// Weapons rend les noms des armes lourdes du catalogue, triés.
+func (p *Props) Weapons() []string { return p.armes }
 
 // LoadObjects lit le manifeste des objets et découpe ce qu'il déclare.
 //
@@ -227,6 +254,25 @@ func (p *Props) charger(fsys fs.FS, racine, nom string, objet Item) error {
 		if objet.Twinkle != nil {
 			return p.chargerScintillement(fsys, racine, nom, objet)
 		}
+	case familleArme:
+		// Les deux dessins d'une arme vivent dans `armes/`, où le générateur les
+		// range : le nom du fichier porte le suffixe, pas le catalogue.
+		sol, err := lire(fsys, path.Join(racine, "armes", nom+"_sol.png"), objet.GroundSize)
+		if err != nil {
+			return err
+		}
+		icone, err := lire(fsys, path.Join(racine, "armes", nom+"_icone.png"), objet.IconSize)
+		if err != nil {
+			return err
+		}
+		p.objets[nom] = Prop{
+			Images: []image.Image{sol},
+			Offset: [2]int{-objet.GroundAt[0], -objet.GroundAt[1]},
+			Icon:   icone,
+		}
+		// Les entrées sont parcourues dans l'ordre trié du manifeste, si bien que
+		// cette liste l'est aussi sans qu'on ait à la trier.
+		p.armes = append(p.armes, nom)
 	case familleEffet:
 		images, err := decouperLarge(fsys, path.Join(racine, nom+".png"),
 			objet.Cell, objet.Frames)
@@ -302,6 +348,17 @@ func controlerObjet(nom string, objet Item) string {
 		if s := objet.Twinkle; s != nil && (s.Frames < 1 || s.Amplitude < 0) {
 			return fmt.Sprintf("%s : scintillement de %d image(s) et %d d'amplitude",
 				nom, s.Frames, s.Amplitude)
+		}
+	case familleArme:
+		if objet.GroundSize[0] < 1 || objet.IconSize[0] < 1 {
+			return fmt.Sprintf("%s : sol %v et icône %v, une arme porte les deux",
+				nom, objet.GroundSize, objet.IconSize)
+		}
+		for i, borne := range objet.GroundAt {
+			if borne < 0 || borne >= objet.GroundSize[i] {
+				return fmt.Sprintf("%s : ancrage %v, hors d'un dessin au sol de %v",
+					nom, objet.GroundAt, objet.GroundSize)
+			}
 		}
 	case familleEffet:
 		if objet.Frames < 1 || objet.Cell[0] < 1 || objet.Cell[1] < 1 {

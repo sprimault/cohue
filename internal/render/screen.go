@@ -663,6 +663,9 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteCaisse:
 			c := s.monde.Crates().At(e.place)
 			t = s.peindreObjet(ecran, objetCaisse, c.X, c.Y, e.identite, nil)
+		case sorteArmeAuSol:
+			d := s.monde.Drops().At(e.place)
+			t = s.peindreObjet(ecran, s.monde.DropWeapon(d).Key, d.X, d.Y, e.identite, nil)
 		case sorteJoueur:
 			x, y := s.monde.Player()
 			f := s.troupe.joueur

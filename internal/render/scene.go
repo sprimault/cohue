@@ -41,6 +41,10 @@ const (
 	// doit alors être peinte devant ou derrière selon sa profondeur, comme
 	// n'importe quel corps.
 	sorteCaisse
+	// sorteArmeAuSol est une arme lourde tombée d'une caisse, triée comme le
+	// reste : le joueur marche dessus pour la prendre, donc il passe devant ou
+	// derrière selon sa profondeur.
+	sorteArmeAuSol
 	sorteJoueur
 )
 
@@ -177,6 +181,7 @@ func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 	gemmes := monde.Gems()
 	aimants := monde.Magnets()
 	caisses := monde.Crates()
+	armesAuSol := monde.Drops()
 
 	largeur := sol.carte.Width()
 	fenetre := min(cam.casesMax(), largeur*sol.carte.Height())
@@ -240,6 +245,12 @@ func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 			for i := range caisses.Active() {
 				c := caisses.At(i)
 				s.ajouter(c.X, c.Y, caisses.IDAt(i), sorteCaisse, i)
+			}
+		}},
+		{armesAuSol.Cap(), func(s *scene) {
+			for i := range armesAuSol.Active() {
+				d := armesAuSol.At(i)
+				s.ajouter(d.X, d.Y, armesAuSol.IDAt(i), sorteArmeAuSol, i)
 			}
 		}},
 	}

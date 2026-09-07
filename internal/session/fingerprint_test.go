@@ -61,12 +61,30 @@ const enteteAttendu = "# Copyright 2026 Stéphane Primault <sprimault@users.nore
 // **Les ticks sont choisis pour ce qu'ils contiennent, jamais pour être ronds.**
 // Les ramener à 800, 2600 et 2700 perdrait exactement ce pour quoi ils sont là.
 //
-// **Ils se rechoisissent quand le pilote change**, et c'est arrivé : les trois
-// premiers avaient été relevés sur une trajectoire constante, et le tour de
-// l'octogone les a vidés de ce qu'ils décrivaient — le troisième annonçait un
-// niveau 2 que la nouvelle run n'avait pas encore atteint. Régénérer l'attendu
-// sans rouvrir cette table aurait laissé trois phrases fausses sous des chiffres
-// justes, c'est-à-dire la pire des deux moitiés.
+// **Ils se rechoisissent quand le pilote change**, et cette table a menti trois
+// fois. Les trois premiers instants avaient été relevés sur une trajectoire
+// constante, que le tour de l'octogone a vidés de ce qu'ils décrivaient ; puis un
+// quatrième s'est décrit depuis une exploration qui ne relevait pas ; puis le
+// pilote s'est mis à prendre ses cartes, la horde a fondu de moitié, et une
+// « horde de 132 » n'en comptait plus que 53 pour un « niveau 6 » qui en valait 7.
+//
+// **La troisième fois, l'avertissement écrit ici n'a rien empêché**, et c'est ce
+// qu'il faut en retenir : on lit cette table quand on choisit un instant, pas
+// quand on régénère un attendu. Une note prévient d'un geste au mauvais moment,
+// donc elle ne l'atteint pas.
+//
+// **Le diagnostic était ailleurs, et il est traité** : ces phrases annonçaient des
+// chiffres que l'attendu porte trois lignes plus bas, c'est-à-dire deux
+// descriptions du même objet que seule la vigilance tenait d'accord.
+//
+// **Une description dit donc pourquoi l'instant a été choisi, jamais ce qu'il
+// contient.** Le motif d'un choix ne se dérive d'aucun état et survit à un
+// changement de pilote — « les quatre profils que la run atteint » restera vrai
+// quand la horde changera de taille. Un compte, lui, ment à la première
+// modification, et c'est ce qui s'est produit trois fois.
+//
+// Générer ces phrases depuis l'attendu aurait été l'autre remède, et il aurait
+// mécanisé une recopie qui n'a pas lieu d'être.
 //
 // **Et un instant se décrit depuis l'attendu, jamais depuis une exploration.**
 // `Fingerprint` consomme trois tirages à chacun de ces instants, si bien qu'une
@@ -78,11 +96,10 @@ var instantanes = []struct {
 	tick     int
 	pourquoi string
 }{
-	{780, "un projectile en vol et quatre gemmes au sol, sur une horde encore réduite à cinq"},
-	{2700, "un aimant au sol, le niveau 2 franchi, la vie entamée et dix créatures vivantes"},
-	{3163, "une horde de onze, la plus fournie de ces trois premiers instants"},
-	{15987, "les quatre profils que la run atteint — trois Vigiles, treize " +
-		"Arpenteurs et douze Molosses dans une horde de 132 —, avec le niveau 6"},
+	{780, "un tir en vol et des gemmes au sol, avant que la horde ne grossisse"},
+	{2700, "un aimant au sol, une montée franchie et la vie entamée"},
+	{3163, "le seul instant sans aucun tir en vol"},
+	{15987, "les quatre profils que la run atteint, et le niveau le plus haut"},
 }
 
 // jouerLaRun monte la partie livrée sur une graine et rend l'empreinte des trois

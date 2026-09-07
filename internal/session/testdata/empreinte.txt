@@ -1,7 +1,7 @@
 # Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 # SPDX-License-Identifier: Apache-2.0
 
-# choisi pour un projectile en vol et quatre gemmes au sol, sur une horde encore réduite à cinq
+# choisi pour un tir en vol et des gemmes au sol, avant que la horde ne grossisse
 tick 780
 joueur x=3511831 y=3342113 vie=100 niveau=1 xp=3 charge=false
 ennemi 0 id=5 gen=1 profil=4 x=4260293 y=3249792 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
@@ -16,7 +16,7 @@ gemme 2 id=5 gen=1 x=3255617 y=4500801 ne=446 attiree=false
 gemme 3 id=0 gen=2 x=3367256 y=3408288 ne=755 attiree=false
 flux vagues=905137858 positions=847631723 butin=306793347 cartes=812551215
 
-# choisi pour un aimant au sol, le niveau 2 franchi, la vie entamée et dix créatures vivantes
+# choisi pour un aimant au sol, une montée franchie et la vie entamée
 tick 2700
 joueur x=2538388 y=3514861 vie=97 niveau=2 xp=7 charge=false
 ennemi 0 id=4 gen=4 profil=4 x=2702159 y=3664854 hits=3 pas=-1387,-970 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
@@ -36,7 +36,7 @@ gemme 2 id=3 gen=7 x=2954796 y=3801881 ne=2602 attiree=false
 aimant 0 id=0 gen=1 x=4816896 y=884736
 flux vagues=450897158 positions=1036398020 butin=444631208 cartes=359676039
 
-# choisi pour une horde de onze, la plus fournie de ces trois premiers instants
+# choisi pour le seul instant sans aucun tir en vol
 tick 3163
 joueur x=3284240 y=3370570 vie=97 niveau=2 xp=7 charge=false
 ennemi 0 id=9 gen=2 profil=4 x=3869373 y=2714305 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
@@ -56,7 +56,7 @@ gemme 3 id=0 gen=8 x=3279479 y=3162183 ne=3158 attiree=false
 aimant 0 id=0 gen=1 x=4816896 y=884736
 flux vagues=26261793 positions=287567265 butin=495687234 cartes=826903205
 
-# choisi pour les quatre profils que la run atteint — trois Vigiles, treize Arpenteurs et douze Molosses dans une horde de 132 —, avec le niveau 6
+# choisi pour les quatre profils que la run atteint, et le niveau le plus haut
 tick 15987
 joueur x=3394571 y=2302249 vie=51 niveau=7 xp=13 charge=false
 ennemi 0 id=2 gen=6 profil=4 x=3014763 y=2402481 hits=2 pas=2193,-2580 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0

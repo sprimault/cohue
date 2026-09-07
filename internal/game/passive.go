@@ -128,6 +128,12 @@ type Passives struct {
 	Axes []Passive
 	// Relief est la carte de secours.
 	Relief Relief
+	// Recipes sont les fusions, triées par clé de manifeste.
+	//
+	// Triées pour la même raison que les axes : une carte retient une place dans
+	// cette tranche, et l'ordre de parcours d'une map la ferait changer d'un
+	// lancement à l'autre.
+	Recipes []Recipe
 }
 
 // Axes rend la table des axes, dans l'ordre où les cartes les offrent.
@@ -152,6 +158,8 @@ type rawPassives struct {
 	Axes map[string]rawAxis `json:"axes"`
 	// Relief est la carte de secours.
 	Relief rawRelief `json:"soupape"`
+	// Recipes sont les fusions, par clé.
+	Recipes map[string]rawRecipe `json:"recettes"`
 }
 
 // rawAxis porte les champs d'un axe, en pointeurs pour les pas dont zéro est
@@ -211,6 +219,13 @@ func (p rawPassives) passifs(base Weapon, dire func(string, ...any)) *Passives {
 		table.Axes = append(table.Axes, p.Axes[cle].axe(Axis(cle), base, dire))
 	}
 	table.Relief = p.Relief.soupape(dire)
+
+	// Après les axes, parce qu'une recette se contrôle contre eux : ses
+	// ingrédients doivent nommer des axes existants, et n'en exiger que ce que
+	// leur borne permet.
+	for _, cle := range slices.Sorted(maps.Keys(p.Recipes)) {
+		table.Recipes = append(table.Recipes, p.Recipes[cle].recette(cle, table, dire))
+	}
 	return table
 }
 

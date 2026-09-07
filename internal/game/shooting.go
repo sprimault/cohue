@@ -37,12 +37,21 @@ func (w *World) tirer() {
 		// éprouvé en supprimant cette garde, qui laisse l'attendu inchangé —, mais
 		// ce n'est pas une propriété qu'on puisse écrire pour toute direction et
 		// toute portée. Elle évite le calcul, et surtout la question.
+		// **La gerbe inverse le signe de l'écartement au point visé**, et rien de
+		// plus : la salve part de son front et converge là où elle vise, au lieu
+		// de s'en écarter. C'est ce qui la rend écrivable sans mécanisme neuf, et
+		// ce qui répare ce que le front coûte à cible unique.
+		ouverture := w.arme.Spread
+		if w.arme.Spray {
+			ouverture = -ouverture
+		}
+
 		pas := vers
-		if w.arme.Spread != 0 {
+		if ouverture != 0 {
 			// Le point visé est à la portée, décalé de l'ouverture : c'est ce qui
 			// donne l'éventail sans jamais écrire d'angle.
 			pas = vers.Scale(w.arme.Range).
-				Add(cote.Scale(ecartDansLaSalve(w.arme.Spread, k, n))).
+				Add(cote.Scale(ecartDansLaSalve(ouverture, k, n))).
 				Direction(k)
 		}
 
@@ -54,6 +63,7 @@ func (w *World) tirer() {
 			Hits:      w.arme.Hits,
 			Pierce:    w.arme.Pierce,
 			Bounces:   w.arme.Bounces,
+			Rail:      w.arme.Rail,
 		}); !ok {
 			// Bassin plein : le tir est perdu, pas différé. Une file d'attente
 			// rendrait la cadence élastique, et l'arme rattraperait son retard
@@ -407,6 +417,11 @@ func (w *World) toucher(depart Vec, p *Projectile) bool {
 	// deux ne traverserait jamais rien, et l'axe du perforant ne servirait à rien
 	// chez qui l'a pris. `Projectile.Pierce` porte la décision.
 	switch {
+	case p.Rail:
+		// Le rail ne décompte rien : ce que la fusion retire est la borne, pas le
+		// nombre. Le tir s'arrête sur un mur ou au bout de sa portée, comme les
+		// autres.
+		return false
 	case p.Pierce > 0:
 		p.Pierce--
 		return false

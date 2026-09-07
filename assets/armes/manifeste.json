@@ -18,7 +18,7 @@
     }
   },
   "passifs": {
-    "$comment": "Ce que la montée de niveau propose : des variantes de l'arme unique, prises palier par palier. Trois axes sur les six que la conception veut : le perforant, le ricochet et l'éventail demandent dans le tir un travail que l'étape 6 n'a pas encore écrit. Les synergies et les recettes de fusion les suivront, puisqu'elles combinent ce qui n'existe pas encore. || Trois axes font exactement trois places, donc toujours aucun tirage : c'est un quatrième axe qui en ouvrira un. Ce qui change est ailleurs et compte davantage — la soupape sort du menu ordinaire et ne revient qu'à l'épuisement d'un axe, comme la conception le veut, là où elle occupait une place sur trois pendant toute la run. Le joueur arbitre désormais entre trois améliorations d'arme au lieu de deux et d'un soin. || nom et phrase sont du français dans un manifeste, ce que la règle des libellés n'aime pas ; ils suivront le dictionnaire de traduction quand il existera, comme le nom de fiction de l'arme.",
+    "$comment": "Ce que la montée de niveau propose : des variantes de l'arme unique, prises palier par palier. Trois axes sur les six que la conception veut : le perforant, le ricochet et l'éventail demandent dans le tir un travail que l'étape 6 n'a pas encore écrit. Les synergies et les recettes de fusion les suivront, puisqu'elles combinent ce qui n'existe pas encore. || Trois axes font exactement trois places, donc toujours aucun tirage : c'est un quatrième axe qui en ouvrira un. Ce qui change est ailleurs et compte davantage — la soupape sort du menu ordinaire et ne revient qu'à l'épuisement d'un axe, comme la conception le veut, là où elle occupait une place sur trois pendant toute la run. Le joueur arbitre désormais entre trois améliorations d'arme au lieu de deux et d'un soin. || Les recettes sont les fusions : une carte qui paraît quand ses ingrédients sont réunis, reste offerte tant qu'ils le sont, et donne au tir un effet pris dans le vocabulaire fermé du moteur — la table choisit un comportement, elle n'en invente pas. Leurs ingrédients se comptent en paliers pris et jamais en état de l'arme, et « epuise » remplace un nombre là où la recette annule l'utilité de l'axe : recopier la borne ici la ferait mentir le jour où elle bougerait. || Ni « recettes » ni « axes » ne portent de $comment à leur racine : ce sont des tables par clé, où chaque entrée se décode en objet et où une chaîne n'a pas de place. Le commentaire d'ensemble vit donc ici, celui d'une entrée dans l'entrée. || nom et phrase sont du français dans un manifeste, ce que la règle des libellés n'aime pas ; ils suivront le dictionnaire de traduction quand il existera, comme le nom de fiction de l'arme.",
     "axes": {
       "cadence": {
         "$comment": "Deux ticks retirés par palier, soit trente-trois millisecondes. L'axe entier fait passer la cadence de vingt-quatre ticks à douze : l'arme tire deux fois plus vite au bout du chemin, et pas davantage — en deçà de douze ticks, ce n'est plus la cadence qui limite le joueur mais le nombre de cibles à portée.",
@@ -61,6 +61,28 @@
         "phrase": "Les projectiles s'écartent en éventail.",
         "paliers": 6,
         "pas_eventail": 0.5
+      }
+    },
+    "recettes": {
+      "rail": {
+        "$comment": "Perforant épuisé, parce que le rail retire justement sa borne à la perforation : les paliers qui resteraient après lui ne rendraient plus rien. La portée, elle, continue de servir — un rail porte d'autant plus loin qu'il va loin —, donc elle s'exige entamée et pas au bout.",
+        "nom": "Rail",
+        "phrase": "Le tir ne s'arrête plus sur rien.",
+        "effet": "rail",
+        "ingredients": {
+          "perforant": { "epuise": true },
+          "portee": { "paliers": 2 }
+        }
+      },
+      "gerbe": {
+        "$comment": "Deux paliers de chaque, ce qui demande une salve de trois tirs et une ouverture déjà visible. Ni l'un ni l'autre n'est annulé par la fusion : monter l'éventail après elle fait converger de plus loin, et un projectile de plus élargit la gerbe. || Elle répare ce que le front coûte à cible unique — trois projectiles ne valent pas trois fois un contre une créature isolée, la salve couvrant une largeur qu'une cible ponctuelle n'occupe pas. La gerbe rend cette phrase fausse pour qui a monté les deux axes, et seulement pour lui.",
+        "nom": "Gerbe",
+        "phrase": "Les tirs convergent sur la cible.",
+        "effet": "gerbe",
+        "ingredients": {
+          "projectiles": { "paliers": 2 },
+          "eventail": { "paliers": 2 }
+        }
       }
     },
     "soupape": {

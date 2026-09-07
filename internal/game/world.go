@@ -148,14 +148,22 @@ type World struct {
 	// `Passives.Axes`. Un compteur par axe plutôt qu'une liste de cartes prises :
 	// c'est le rang qui décide de ce que la carte suivante offre.
 	paliers []int
-	// eligibles porte les index des axes qu'un choix peut offrir, réutilisée
-	// d'une montée à l'autre comme `cartes`.
+	// candidats porte les cartes qu'un choix peut offrir — un palier d'axe, une
+	// fusion réunie —, réutilisée d'une montée à l'autre comme `cartes`.
 	//
-	// **Sa capacité est celle de la table et se prend au montage**, jamais à la
-	// première ouverture : un coût payé une seule fois se dilue dans la moyenne
+	// **Sa capacité est celle des deux tables et se prend au montage**, jamais à
+	// la première ouverture : un coût payé une seule fois se dilue dans la moyenne
 	// que mesure `testing.AllocsPerRun`, et le garde du budget passerait au vert
 	// en ayant bel et bien alloué.
-	eligibles []int
+	//
+	// Des cartes et non des index depuis que les fusions concourent : deux
+	// tranches d'index auraient demandé de savoir, au moment du tirage, de
+	// laquelle vient chaque place.
+	candidats []Card
+	// fusions dit quelles recettes ont été prises, indexé comme
+	// `Passives.Recipes`. Une fusion se prend une fois, là où un axe compte des
+	// paliers — d'où un booléen et non un compteur.
+	fusions []bool
 	// enAttente est le nombre de choix dus au joueur, en plus de celui qui est
 	// ouvert. Une récolte abondante en donne deux d'un coup, et les présenter
 	// l'un après l'autre est la seule façon de n'en perdre aucun.
@@ -278,7 +286,8 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scena
 		hasard:      NewStreams(graine),
 		cartes:      make([]Card, 0, Choices),
 		paliers:     make([]int, len(armes.Passives.Axes)),
-		eligibles:   make([]int, 0, len(armes.Passives.Axes)),
+		candidats:   make([]Card, 0, len(armes.Passives.Axes)+len(armes.Passives.Recipes)),
+		fusions:     make([]bool, len(armes.Passives.Recipes)),
 		vivants:     make([]int, len(profils.Enemies)),
 		achetables:  make([]int, 0, len(profils.Enemies)),
 	}

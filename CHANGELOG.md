@@ -44,6 +44,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Deux fusions apparaissent quand on a monté ce qu'elles demandent.** Le Rail
+  — perforant épuisé, portée entamée — fait un tir qui ne s'arrête plus sur rien
+  de vivant. La Gerbe — projectiles et éventail entamés — fait converger la salve
+  sur la cible au lieu de l'en écarter, ce qui rend enfin plusieurs projectiles
+  utiles contre une créature isolée. Elles se présentent comme des cartes, donc
+  elles se choisissent ; non prises, elles restent offertes.
 - **Une carte ouvre la salve en éventail.** Les projectiles s'écartent en
   divergeant, une demi-tuile de plus par palier mesurée à la portée. Sur un tir
   unique elle ne change rien : c'est avec plusieurs projectiles qu'elle fait une
@@ -76,6 +82,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **Two fusions appear once you have raised what they ask for.** The Rail —
+  piercing spent, range started — makes a shot that no longer stops on anything
+  alive. The Spray — projectiles and spread started — makes the volley converge on
+  the target instead of away from it, which finally makes several projectiles
+  worth something against a lone creature. They come as cards, so they are
+  chosen; left untaken, they stay on offer.
 - **A card opens the volley into a spread.** Projectiles diverge as they fly,
   half a tile wider per tier measured at the weapon's range. On a single shot it
   changes nothing: it makes a spray only with several projectiles, and it is the

@@ -63,4 +63,11 @@ type Projectile struct {
 	// suppression par échange, et un identifiant privé de sa génération finirait
 	// par désigner l'entité qui a recyclé la sienne.
 	LastHit Handle
+	// Rail dit que le tir ne s'arrête sur rien de vivant.
+	//
+	// **Il porte l'absence de borne, pas une borne très haute.** Un `Pierce`
+	// énorme aurait dit la même chose en chiffres et se serait lu comme un
+	// réglage : ce que la fusion change est une nature, et un nombre l'aurait
+	// rendue discutable là où elle ne l'est pas.
+	Rail bool
 }

@@ -46,7 +46,19 @@ const (
 // comme l'étincelle d'un impact.
 type Stage struct {
 	objets map[string]prop
+	// icones sont les dessins de face des armes lourdes, que le bandeau pose
+	// dans un emplacement. Séparées des `objets` parce qu'elles ne se posent ni
+	// au même endroit ni dans le même repère : celles-là sont vues de face,
+	// ceux-ci en isométrie.
+	icones map[string]*ebiten.Image
 }
+
+// Icon rend l'icône d'une arme lourde, nulle si le catalogue n'en a pas.
+//
+// **Le bandeau ne charge aucune image et n'en cherche aucune** : il pose celle
+// qu'on lui donne, ce qui garde la frontière — il ne connaît pas le catalogue,
+// donc il ne peut pas savoir quelle icône va où.
+func (s *Stage) Icon(nom string) *ebiten.Image { return s.icones[nom] }
 
 // prop est ce qu'un objet donne à peindre.
 type prop struct {
@@ -76,11 +88,19 @@ func NewStage(fsys fs.FS, racine, chemin string) (*Stage, error) {
 		return nil, err
 	}
 
-	scene := &Stage{objets: map[string]prop{}}
-	for _, nom := range []string{
+	scene := &Stage{objets: map[string]prop{}, icones: map[string]*ebiten.Image{}}
+
+	// **Les armes viennent du catalogue et non d'une liste écrite ici**, à la
+	// différence de tout le reste : le rendu sait qu'une gemme se dessine avec
+	// `gemme`, mais une arme lourde est désignée par la table des armes, et il
+	// pose celle que le monde lui donne. Les nommer en dur demanderait d'y revenir
+	// à chaque arme ajoutée.
+	noms := append([]string{
 		objetGemme, objetAimant, objetCaisse, objetTir, objetTirHorde,
 		objetEtincelle, objetSouffle, objetEclatsCaisse,
-	} {
+	}, catalogue.Weapons()...)
+
+	for _, nom := range noms {
 		objet, connu := catalogue.Prop(nom)
 		if !connu {
 			return nil, fmt.Errorf("objets : « %s » n'est pas au catalogue", nom)
@@ -103,6 +123,9 @@ func NewStage(fsys fs.FS, racine, chemin string) (*Stage, error) {
 			dy:      objet.Offset[1],
 			cycle:   objet.Cycle,
 			formes:  formes,
+		}
+		if objet.Icon != nil {
+			scene.icones[nom] = ebiten.NewImageFromImage(objet.Icon)
 		}
 	}
 	return scene, nil

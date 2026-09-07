@@ -84,6 +84,55 @@ func TestLeCatalogueDobjetsLivreSeCharge(t *testing.T) {
 		len(catalogue.Items), poses, scintillants)
 }
 
+// TestUneArmeLourdePorteSesDeuxDessins garde ce qui la distingue des autres
+// familles.
+//
+// **Deux dessins de natures différentes** : celui du sol suit la projection
+// isométrique et se pose comme un objet du monde, celui de l'icône se voit de
+// face dans un emplacement. C'est ce qui empêche « arme » d'être une « monde »
+// avec un champ de plus, et c'est aussi ce qui a laissé le rendu livrer une arme
+// au sol qu'aucune image ne dessinait — la famille n'était pas chargée.
+func TestUneArmeLourdePorteSesDeuxDessins(t *testing.T) {
+	catalogue, props, err := LoadObjects(cohue.Assets, racineObjets, objetsLivres)
+	if err != nil {
+		t.Fatalf("catalogue livré : %v", err)
+	}
+
+	armes := 0
+	for nom, objet := range catalogue.Items {
+		if objet.Family != familleArme {
+			continue
+		}
+		armes++
+
+		p, connu := props.Prop(nom)
+		if !connu {
+			t.Errorf("« %s » est une arme et n'a pas été chargée", nom)
+			continue
+		}
+		if len(p.Images) != 1 {
+			t.Errorf("« %s » : %d dessin(s) au sol, attendu un", nom, len(p.Images))
+		}
+		if p.Icon == nil {
+			t.Errorf("« %s » n'a pas d'icône", nom)
+			continue
+		}
+		// Les deux tailles viennent du manifeste : les confondre poserait l'icône
+		// dans le monde, ou le dessin du sol dans une case.
+		if taille := p.Icon.Bounds().Size(); taille.X != objet.IconSize[0] {
+			t.Errorf("« %s » : icône de %v, le manifeste annonce %v",
+				nom, taille, objet.IconSize)
+		}
+	}
+
+	if armes != len(props.Weapons()) {
+		t.Errorf("%d armes au catalogue, %d dans la liste rendue", armes, len(props.Weapons()))
+	}
+	if armes < 4 {
+		t.Fatalf("%d arme(s) lourde(s), trop peu pour dire quoi que ce soit", armes)
+	}
+}
+
 // TestLaCelluleDunScintillementSeDeriveDeLamplitude épingle la seule
 // arithmétique de ce chargeur.
 //

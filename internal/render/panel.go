@@ -39,6 +39,15 @@ const largeurJauge = 148
 // l'étape 5 — et c'est alors sa taille réelle qui prendra la place de ce chiffre.
 const contenuEmplacement = 12
 
+// contenuLourde est le côté d'une icône d'arme lourde dans son emplacement.
+//
+// **Vingt pixels, la taille réelle du dessin**, ce que `contenuEmplacement`
+// annonçait pour lui-même : « douze aujourd'hui, ce que fera une icône d'objet à
+// l'étape 5 — et c'est alors sa taille réelle qui prendra la place de ce
+// chiffre ». La case de l'aimant garde douze tant qu'elle pose un aplat, faute
+// d'icône dessinée.
+const contenuLourde = 20
+
 // toucheAimant est ce que le joueur presse pour déclencher sa charge.
 //
 // **Les chiffres appartiennent aux emplacements**, et ils les gardent toute la
@@ -46,6 +55,60 @@ const contenuEmplacement = 12
 // mal choisie se rattrape au niveau suivant, un aimant déclenché à vide est perdu
 // jusqu'à la prochaine apparition, et le coût n'est pas symétrique.
 const toucheAimant = "1"
+
+// touchesLourdes sont les chiffres des deux emplacements d'armes lourdes.
+//
+// Ils suivent celui de l'aimant, qui garde le sien : la conception veut que
+// l'aimant ne partage jamais son emplacement, sans quoi il ne serait jamais
+// gardé face au soin.
+var touchesLourdes = [game.Slots]string{"2", "3"}
+
+// cotePastille est le côté d'une pastille de charge, et ecartPastille ce qui les
+// sépare.
+//
+// **Des pastilles et non un compte**, ce que la conception exige : trois
+// pastilles qui s'éteignent se lisent en vision périphérique, un « 3/5 » demande
+// de regarder. Deux pixels de côté suffisent à cette distance ; un de plus les
+// ferait déborder d'une case de vingt à cinq charges.
+const (
+	cotePastille  = 2
+	ecartPastille = 1
+)
+
+// emplacementsLourds résout ce que les emplacements montrent.
+//
+// **L'icône se résout ici et non dans le bandeau**, qui ne connaît pas le
+// catalogue : il pose ce qu'on lui donne. Une arme sans icône dessinée rendrait
+// une case vide plutôt qu'un défaut — la conception veut qu'un dessin manquant se
+// voie, jamais qu'il arrête le jeu.
+func (s *Screen) emplacementsLourds() [game.Slots]Held {
+	var tenues [game.Slots]Held
+	for place := range tenues {
+		arme, charges := s.monde.HeldHeavy(place)
+		if charges <= 0 {
+			continue
+		}
+		tenues[place] = Held{
+			Icon:    s.objets.Icon(arme.Key),
+			Charges: charges,
+			Max:     arme.Charges,
+		}
+	}
+	return tenues
+}
+
+// Held est ce qu'un emplacement d'arme lourde donne à voir.
+//
+// **Une icône déjà résolue et non un nom.** Le bandeau ne connaît pas le
+// catalogue, donc il ne peut pas savoir quelle icône va où : il pose celle qu'on
+// lui donne. C'est ce qui lui permet de ne charger aucune image tout en en
+// posant une.
+type Held struct {
+	// Icon est le dessin de face de l'arme, nul quand l'emplacement est vide.
+	Icon *ebiten.Image
+	// Charges est ce qui reste, Max ce que l'arme portait pleine.
+	Charges, Max int
+}
 
 // Readings est ce que le bandeau montre d'une partie.
 //
@@ -64,6 +127,8 @@ type Readings struct {
 	Elapsed game.Tick
 	// Charged dit si le joueur tient un aimant.
 	Charged bool
+	// Heavies sont les emplacements d'armes lourdes, dans l'ordre des touches.
+	Heavies [game.Slots]Held
 	// Mark est l'accusé d'un repère, vide quand il n'y a rien à confirmer.
 	Mark string
 	// Objective est l'avancement vers l'ouverture de la porte, vide quand le
@@ -144,7 +209,57 @@ func (h *HUD) Panel(dst *ebiten.Image, r Readings) {
 			ligne, h.Color("texte"))
 	}
 
-	h.emplacement(dst, margeEcran, y+h.Font.Height()+h.Margin(), r.Charged)
+	bas := y + h.Font.Height() + h.Margin()
+	h.emplacement(dst, margeEcran, bas, r.Charged)
+	h.lourdes(dst, margeEcran, bas, r)
+}
+
+// lourdes pose les emplacements d'armes lourdes à la suite de celui de l'aimant.
+//
+// **Une case n'existe que tenue**, à l'inverse de celle de l'aimant qui reste
+// toujours là : la conception veut qu'à l'épuisement l'interface disparaisse,
+// sans message. L'aimant, lui, revient de lui-même toutes les trente secondes, si
+// bien qu'une case vide y annonce ce qui va venir ; une arme lourde ne revient
+// que si le joueur en trouve une.
+//
+// La conséquence à assumer est qu'un emplacement vide ne montre pas sa touche.
+// C'est ce que « pas de message » veut dire : rien n'invite à presser une touche
+// qui ne ferait rien.
+func (h *HUD) lourdes(dst *ebiten.Image, x, y int, r Readings) {
+	cote := h.SlotSide(contenuLourde)
+	for place, tenue := range r.Heavies {
+		if tenue.Charges <= 0 {
+			continue
+		}
+		gauche := x + (place+1)*(cote+h.Margin())
+		h.Slot(dst, gauche, y, contenuLourde, touchesLourdes[place])
+
+		bord := (cote - contenuLourde) / 2
+		if tenue.Icon != nil {
+			h.op.GeoM.Reset()
+			h.op.GeoM.Translate(float64(gauche+bord), float64(y+bord))
+			dst.DrawImage(tenue.Icon, &h.op)
+		}
+		h.pastilles(dst, gauche+bord, y+bord+contenuLourde+h.Border(), tenue)
+	}
+}
+
+// pastilles pose une marque par charge restante, éteinte pour ce qui est dépensé.
+//
+// **Les dépensées restent visibles, éteintes.** Ne poser que ce qui reste ferait
+// une rangée qui rétrécit, où le joueur ne saurait pas ce que l'arme portait
+// pleine : ce qu'il lit alors est un nombre absolu, quand ce qui l'intéresse est
+// une proportion — combien il en a brûlé.
+func (h *HUD) pastilles(dst *ebiten.Image, x, y int, tenue Held) {
+	for i := range tenue.Max {
+		// La teinte atténuée du thème pour ce qui est dépensé : c'est celle qui
+		// dit déjà « présent mais secondaire » partout ailleurs dans le bandeau.
+		teinte := h.Color("texte_attenue")
+		if i < tenue.Charges {
+			teinte = h.Color("texte")
+		}
+		h.Rect(dst, x+i*(cotePastille+ecartPastille), y, cotePastille, cotePastille, teinte)
+	}
 }
 
 // emplacement pose la case de l'aimant sous les jauges.
@@ -230,6 +345,7 @@ func (s *Screen) peindreBandeau(ecran *ebiten.Image) {
 		Threshold:  s.monde.Threshold(),
 		Elapsed:    s.monde.Tick(),
 		Charged:    s.monde.Charged(),
+		Heavies:    s.emplacementsLourds(),
 		Mark:       s.marque(),
 		Objective:  s.objectif(),
 	})

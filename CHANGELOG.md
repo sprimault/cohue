@@ -48,6 +48,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   charges, une déflagration qui part sur la créature la plus proche et emporte la
   horde autour sans jamais toucher le joueur — il ne dirige pas son lancer. À
   court de charges, elle est jetée.
+- **Une arme lourde se voit, au sol comme en main.** Elle est dessinée là où elle
+  tombe, et l'emplacement qui la tient montre son icône avec une pastille par
+  charge — celles dépensées restent, éteintes, pour qu'on lise ce qu'on a brûlé.
+  L'emplacement disparaît quand l'arme est vide, sans message.
 - **Les armes lourdes sortent des caisses et se ramassent au sol.** Une caisse
   sur trois en laisse une ; on la prend en marchant dessus. Deux emplacements,
   touches 2 et 3 : quand les deux sont tenus, marcher dessus ne fait plus rien et
@@ -94,6 +98,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **A grenade fires on key 2.** First heavy weapon: three charges, a blast that
   lands on the nearest creature and takes out the horde around it without ever
   touching the player — he does not aim his throw. Out of charges, it is dropped.
+- **A heavy weapon is visible, on the ground as in hand.** It is drawn where it
+  falls, and the slot holding it shows its icon with one pip per charge — spent
+  ones stay, dimmed, so you read what you have burnt. The slot disappears when the
+  weapon is empty, with no message.
 - **Heavy weapons come out of crates and are picked up off the ground.** One
   crate in three leaves one; you take it by walking over it. Two slots, keys 2
   and 3: when both are held, walking over does nothing and it is a slot's key

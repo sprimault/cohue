@@ -42,6 +42,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+## [0.6.1] — 2026-09-07 — La visée suit le pas
+
 ### Modifié
 
 - **Le tir ne prend plus ce qui se tient exactement dans le dos.** Le personnage

@@ -23,17 +23,18 @@ type Axis string
 
 // Les axes que le manifeste sait nommer.
 //
-// **Deux, et c'est une limite du jalon plutôt que de la conception.** Celle-ci
-// en veut six ; le perforant, le ricochet et l'éventail demandent du travail
-// dans `tirer` et `toucher` qui appartient à l'étape 6, et le nombre de
-// projectiles est écarté pour une raison écrite dans `Weapon.Projectiles`.
+// **Trois sur les six que la conception veut.** Le perforant, le ricochet et
+// l'éventail demandent du travail dans `toucher` que l'étape 6 n'a pas encore
+// écrit ; le nombre de projectiles, lui, n'attendait pas du code mais une
+// décision, prise et écrite dans `Weapon.Projectiles`.
 const (
-	AxisCadence Axis = "cadence"
-	AxisRange   Axis = "portee"
+	AxisCadence     Axis = "cadence"
+	AxisRange       Axis = "portee"
+	AxisProjectiles Axis = "projectiles"
 )
 
 // axes est la liste close des axes admis.
-var axes = []Axis{AxisCadence, AxisRange}
+var axes = []Axis{AxisCadence, AxisRange, AxisProjectiles}
 
 // Passive est un axe d'amélioration, pris palier par palier.
 //
@@ -70,6 +71,11 @@ type Passive struct {
 	CooldownStep Tick
 	// RangeStep est ce qu'un palier ajoute à la portée, en tuiles.
 	RangeStep Fixed
+	// ProjectileStep est ce qu'un palier ajoute au nombre de projectiles.
+	//
+	// Il ne s'accompagne d'aucun élargissement : la largeur du front est celle
+	// de l'arme et ne bouge pas d'un palier à l'autre — voir `Weapon.Front`.
+	ProjectileStep int
 }
 
 // Relief est la carte qui remplit une place quand aucun palier ne le peut.
@@ -143,11 +149,13 @@ type rawAxis struct {
 	// tirage, et c'est ce qui fait de sa borne un moment de jeu.
 	Tiers *int `json:"paliers"`
 
-	// Les deux pas, dont chaque axe porte le sien et refuse celui de l'autre.
+	// Les trois pas, dont chaque axe porte le sien et refuse ceux des autres.
 	// CadenceMs se retranche de l'écart entre deux salves, Tiles s'ajoute à la
-	// portée ; d'où l'unité qui les sépare, des millisecondes contre des tuiles.
+	// portée, Shots au nombre de projectiles ; d'où les unités qui les séparent,
+	// des millisecondes, des tuiles et un compte.
 	CadenceMs *int     `json:"pas_ms,omitempty"`
 	Tiles     *float64 `json:"pas_tuiles,omitempty"`
+	Shots     *int     `json:"pas_projectiles,omitempty"`
 }
 
 // rawRelief porte les champs de la carte de secours.
@@ -216,6 +224,7 @@ func (a rawAxis) axe(cle Axis, base Weapon, dire func(string, ...any)) Passive {
 	}{
 		{"pas_ms", AxisCadence, a.CadenceMs != nil},
 		{"pas_tuiles", AxisRange, a.Tiles != nil},
+		{"pas_projectiles", AxisProjectiles, a.Shots != nil},
 	} {
 		switch {
 		case cle == c.pour && !c.present:
@@ -267,6 +276,14 @@ func (a rawAxis) axe(cle Axis, base Weapon, dire func(string, ...any)) Passive {
 			if axe.RangeStep < 1 {
 				dire("%s.pas_tuiles : %v, un pas que la virgule fixe arrondit à "+
 					"zero n ameliore rien", nom, *a.Tiles)
+			}
+		}
+	case AxisProjectiles:
+		if a.Shots != nil {
+			axe.ProjectileStep = *a.Shots
+			if axe.ProjectileStep < 1 {
+				dire("%s.pas_projectiles : %d, un palier qui n'ajoute aucun "+
+					"projectile ne change rien à la salve", nom, axe.ProjectileStep)
 			}
 		}
 	}

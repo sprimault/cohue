@@ -25,10 +25,12 @@ func (w *World) tirer() {
 	}
 
 	vers := w.interception(w.ennemis.At(cible)).Direction(0)
-	for range w.arme.Projectiles {
+	cote := vers.Perp()
+	for k := range w.arme.Projectiles {
+		depart := cote.Scale(w.ecartDuFront(k))
 		if _, ok := w.tirs.Spawn(Projectile{
-			X:         w.playerX,
-			Y:         w.playerY,
+			X:         w.playerX + depart.X,
+			Y:         w.playerY + depart.Y,
 			Step:      vers.Scale(w.arme.ProjectileSpeed),
 			Remaining: w.arme.Range,
 			Hits:      w.arme.Hits,
@@ -53,6 +55,24 @@ func (w *World) tirer() {
 // pilier, par le même chemin qu'un tir du joueur : le décor protège par le fait,
 // pas par une condition — c'est ce que la charge fait déjà, et pour la même
 // raison.
+// ecartDuFront rend le décalage latéral du k-ième projectile d'une salve.
+//
+// Les projectiles se répartissent sur la largeur que l'arme déclare, centrés sur
+// le canon : le premier à moins la moitié, le dernier à plus la moitié. Un
+// projectile seul reste sur l'axe de visée, ce qu'aucune division ne saurait
+// rendre — d'où le cas séparé plutôt qu'une formule qui vaudrait pour tous.
+//
+// **La largeur ne dépend pas du nombre**, si bien qu'un palier de plus resserre
+// la salve au lieu de l'étaler. `Weapon.Front` dit pourquoi, et ce que cela
+// change à l'axe en fin de course.
+func (w *World) ecartDuFront(k int) Fixed {
+	n := w.arme.Projectiles
+	if n < 2 {
+		return 0
+	}
+	return w.arme.Front.Mul(FromInt(k)).Div(FromInt(n-1)) - w.arme.Front.Div(FromInt(2))
+}
+
 func (w *World) tirerLaHorde() {
 	for i := range w.ennemis.Active() {
 		e := w.ennemis.At(i)

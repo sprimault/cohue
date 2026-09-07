@@ -27,7 +27,7 @@ func tableDEssai(t *testing.T, passifs string) (*Weapons, error) {
 		"armes": {
 			"reglementaire": {"nom": "Réglementaire", "role": "base", "cadence_ms": 400,
 			                  "portee_tuiles": 6, "degats_touches": 1, "projectiles": 1,
-			                  "vitesse_projectile_tuiles_s": 12.0}
+			                  "front_tuiles": 1.0, "vitesse_projectile_tuiles_s": 12.0}
 		},
 		` + passifs + `
 	}`)}}
@@ -46,12 +46,19 @@ func TestManifesteLivreDonneLesPassifs(t *testing.T) {
 	}
 	table := armes.Passives
 
-	if len(table.Axes) != 2 {
-		t.Fatalf("%d axe(s), attendu 2", len(table.Axes))
+	if len(table.Axes) != 3 {
+		t.Fatalf("%d axe(s), attendu 3", len(table.Axes))
 	}
-	// Triés par clé de manifeste : « cadence » avant « portee ».
-	if table.Axes[0].Axis != AxisCadence || table.Axes[1].Axis != AxisRange {
-		t.Errorf("axes dans l'ordre %s, %s", table.Axes[0].Axis, table.Axes[1].Axis)
+	// Triés par clé de manifeste : « cadence », « portee », « projectiles ».
+	if table.Axes[0].Axis != AxisCadence || table.Axes[1].Axis != AxisRange ||
+		table.Axes[2].Axis != AxisProjectiles {
+		t.Errorf("axes dans l'ordre %s, %s, %s",
+			table.Axes[0].Axis, table.Axes[1].Axis, table.Axes[2].Axis)
+	}
+	// Un projectile de plus par palier, soit sept sur l'axe entier. La valeur est
+	// écrite en clair pour la même raison que le pas de cadence en dessous.
+	if table.Axes[2].ProjectileStep != 1 {
+		t.Errorf("pas de projectiles : %d, attendu 1", table.Axes[2].ProjectileStep)
 	}
 
 	// 33 ms à 60 ticks par seconde. La valeur est écrite en clair : un test qui

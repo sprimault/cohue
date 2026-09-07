@@ -10,6 +10,7 @@ package render
 import (
 	"fmt"
 	"image/color"
+	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -67,18 +68,6 @@ const toucheAimant = "1"
 // gardé face au soin.
 var touchesLourdes = [game.Slots]string{"2", "3"}
 
-// cotePastille est le côté d'une pastille de charge, et ecartPastille ce qui les
-// sépare.
-//
-// **Des pastilles et non un compte**, ce que la conception exige : trois
-// pastilles qui s'éteignent se lisent en vision périphérique, un « 3/5 » demande
-// de regarder. Deux pixels de côté suffisent à cette distance ; un de plus les
-// ferait déborder d'une case de vingt à cinq charges.
-const (
-	cotePastille  = 2
-	ecartPastille = 1
-)
-
 // emplacementsLourds résout ce que les emplacements montrent.
 //
 // **L'icône se résout ici et non dans le bandeau**, qui ne connaît pas le
@@ -92,11 +81,7 @@ func (s *Screen) emplacementsLourds() [game.Slots]Held {
 		if charges <= 0 {
 			continue
 		}
-		tenues[place] = Held{
-			Icon:    s.objets.Icon(arme.Key),
-			Charges: charges,
-			Max:     arme.Charges,
-		}
+		tenues[place] = Held{Icon: s.objets.Icon(arme.Key), Charges: charges}
 	}
 	return tenues
 }
@@ -110,8 +95,13 @@ func (s *Screen) emplacementsLourds() [game.Slots]Held {
 type Held struct {
 	// Icon est le dessin de face de l'arme, nul quand l'emplacement est vide.
 	Icon *ebiten.Image
-	// Charges est ce qui reste, Max ce que l'arme portait pleine.
-	Charges, Max int
+	// Charges est le nombre de tirs que l'emplacement porte.
+	//
+	// **Un compte et non une proportion**, depuis qu'une arme du même type
+	// s'ajoute à celle qu'on tient : il n'y a plus de maximum, donc plus de
+	// dénominateur. Le champ `Max` qui accompagnait celui-ci est parti avec les
+	// pastilles qu'il servait à compter.
+	Charges int
 }
 
 // Readings est ce que le bandeau montre d'une partie.
@@ -242,32 +232,31 @@ func (h *HUD) lourdes(dst *ebiten.Image, x, y int, r Readings) {
 		if tenue.Icon != nil {
 			h.Image(dst, tenue.Icon, gauche+bord, y+bord)
 		}
-		h.pastilles(dst, gauche+bord, y+bord+contenuEmplacement+h.Border(), tenue)
+		h.compteDeTirs(dst, gauche+h.Border()+1, y+cote-h.Border(), tenue.Charges)
 	}
 }
 
-// pastilles pose une marque par charge restante, éteinte pour ce qui est dépensé.
+// compteDeTirs pose le nombre de tirs restants au coin bas gauche de l'icône.
 //
-// **Les dépensées restent visibles, éteintes.** Ne poser que ce qui reste ferait
-// une rangée qui rétrécit, où le joueur ne saurait pas ce que l'arme portait
-// pleine : ce qu'il lit alors est un nombre absolu, quand ce qui l'intéresse est
-// une proportion — combien il en a brûlé.
+// **Un compte a remplacé les pastilles, et la conception a suivi plutôt que
+// cédé.** Elle voulait une rangée de marques « parce qu'une proportion se lit en
+// vision périphérique, un 3/5 demande de regarder » — et une proportion suppose
+// un maximum. Une arme du même type s'ajoutant désormais à celle qu'on tient, il
+// n'y a plus de dénominateur : ce qui reste est un absolu, et une rangée qui
+// s'allongerait sans borne déborderait de sa case au troisième ramassage.
 //
-// **La rangée se centre sous l'icône**, `x` désignant le bord gauche de celle-ci
-// et non le départ des pastilles : une arme à trois charges en occupe huit
-// pixels sur vingt, et les aligner à gauche faisait pencher la case entière.
-func (h *HUD) pastilles(dst *ebiten.Image, x, y int, tenue Held) {
-	rangee := tenue.Max*(cotePastille+ecartPastille) - ecartPastille
-	x += (contenuEmplacement - rangee) / 2
-	for i := range tenue.Max {
-		// La teinte atténuée du thème pour ce qui est dépensé : c'est celle qui
-		// dit déjà « présent mais secondaire » partout ailleurs dans le bandeau.
-		teinte := h.Color("texte_attenue")
-		if i < tenue.Charges {
-			teinte = h.Color("texte")
-		}
-		h.Rect(dst, x+i*(cotePastille+ecartPastille), y, cotePastille, cotePastille, teinte)
-	}
+// **Dans le coin de la case et non dans celui de l'icône.** Un chiffre fait neuf
+// pixels de haut pour une marge de cinq : il déborde donc forcément, et le poser
+// au ras du contenu le mettait en plein sur le corps de l'arme. Descendu dans la
+// marge, il n'en mord plus que le bas — la région que les quatre dessins
+// laissent la plus vide.
+//
+// **Contouré, parce qu'il se pose malgré tout sur une partie du dessin.** Un
+// chiffre clair sur un corps clair ne se lirait pas, et c'est la règle que le
+// chapitre 2 applique à tout texte posé sur autre chose que son propre fond.
+func (h *HUD) compteDeTirs(dst *ebiten.Image, x, bas, tirs int) {
+	h.Font.DrawOutlined(dst, strconv.Itoa(tirs), x, bas-h.Font.Height(),
+		h.Color("texte"), h.Color("cadre_fond"))
 }
 
 // emplacement pose la case de l'aimant sous les jauges.

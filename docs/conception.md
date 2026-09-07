@@ -672,6 +672,12 @@ Règles associées :
 
   Les trois autres lectures se valaient moins : remplacer la plus ancienne, la moins chargée ou la première fait perdre une arme sans que le joueur sache laquelle, et aucun aperçu au sol ne peut le lui dire à l'avance.
 
+- **Un emplacement par type d'arme, et les charges du même type s'y ajoutent.** Une partie jouée a montré le cas que ce chapitre n'avait pas prévu : le catalogue ne portant qu'une lourde, les deux emplacements ne pouvaient tenir que des doublons, et la troisième grenade ramassée en faisait perdre une — alors que la phrase ci-dessus veut que contourner soit une décision. Ce que tient un emplacement est donc un **stock de tirs**, et non un exemplaire.
+
+  **Un plafond par arme, et le surplus reste au sol.** Sans plafond, les caisses d'un lieu feraient de la lourde un second socle, ce que ce chapitre écarte plus haut ; en rognant ce qui dépasse, on ferait perdre au joueur ce qu'il vient de prendre. Une arme dont le stock ne tient pas entier n'est donc pas ramassée : elle attend qu'on ait dépensé, et l'on revient la chercher. Le plafond est une valeur de la table, six pour la grenade — deux trouvailles —, à rouvrir en jouant comme les autres chiffres d'équilibrage.
+
+  **Le compte remplace les pastilles**, et c'est la conséquence et non une préférence : une rangée de marques dit une proportion, ce qui suppose un maximum atteignable en une fois. Il n'y en a plus. Ce qui reste à lire est un absolu — combien de tirs —, et un nombre le dit là où une rangée s'allongerait jusqu'à déborder de sa case.
+
 Variante si les consommables gênent l'équilibrage : de la surchauffe plutôt que des charges. Même rythme, même retenue, pas de mort par assèchement.
 
 ### Ce qui reste à décider en jouant

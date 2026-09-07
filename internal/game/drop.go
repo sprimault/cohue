@@ -82,27 +82,53 @@ func (w *World) lacherUneArme(x, y Fixed) {
 
 // ramasserUneArme prend l'arme sous les pieds du joueur, s'il a une place.
 //
-// **Marcher dessus suffit quand un emplacement est libre**, ce que la conception
-// veut : aucun menu, aucune touche. Les deux pleins, l'arme reste au sol et c'est
-// la touche d'un emplacement qui l'échange — voir `TakeDrop`.
+// **Marcher dessus suffit quand un emplacement l'accueille**, ce que la
+// conception veut : aucun menu, aucune touche. Les deux tenus par d'autres
+// armes, celle-ci reste au sol et c'est la touche d'un emplacement qui l'échange
+// — voir `TakeDrop`.
 func (w *World) ramasserUneArme() {
 	if !w.Alive() {
 		return
 	}
-	place := -1
-	for i := range w.lourdes {
-		if w.lourdes[i].Charges == 0 {
-			place = i
-			break
-		}
-	}
-	if place < 0 {
+	i, sur := w.armeSousLesPieds()
+	if !sur {
 		return
 	}
-
-	if i, sur := w.armeSousLesPieds(); sur {
+	if place := w.emplacementPour(w.armesAuSol.At(i).Weapon); place >= 0 {
 		w.prendre(i, place)
 	}
+}
+
+// emplacementPour rend la place qui accueille une arme d'un rang donné : celle
+// qui en tient déjà et où le stock tient encore, sinon la première libre, sinon
+// aucune.
+//
+// **Le même type avant le vide**, et c'est ce qui rend une case unique par arme.
+// Une grenade ramassée alors qu'une place est libre irait sinon la remplir, et le
+// joueur se retrouverait avec deux cases de grenades dont il ne peut vider que
+// l'une — ce qu'une partie a signalé, et qui n'avait de sens que du jour où le
+// catalogue portera plusieurs lourdes.
+//
+// **Une case pleine ne renvoie pas au second emplacement.** Il en ferait la
+// seconde case du même type que la règle vient de fermer ; l'arme reste au sol,
+// et c'est ce que le plafond veut dire — on revient la chercher.
+func (w *World) emplacementPour(rang int) int {
+	arme := &w.armes.All[rang]
+	for i := range w.lourdes {
+		if w.lourdes[i].Charges == 0 || w.lourdes[i].rang != rang {
+			continue
+		}
+		if w.lourdes[i].Charges+arme.Charges > arme.Stock {
+			return -1
+		}
+		return i
+	}
+	for i := range w.lourdes {
+		if w.lourdes[i].Charges == 0 {
+			return i
+		}
+	}
+	return -1
 }
 
 // TakeDrop met dans un emplacement l'arme sous les pieds du joueur.
@@ -148,9 +174,22 @@ func (w *World) armeSousLesPieds() (int, bool) {
 }
 
 // prendre pose l'arme d'une place du sol dans un emplacement.
+//
+// **Une arme du même type s'ajoute au lieu de remplacer**, ce qui fait du
+// contenu d'un emplacement un stock de tirs plutôt qu'un exemplaire. C'est ce
+// que la conception demande depuis qu'une partie a montré le cas qu'elle n'avait
+// pas prévu : le catalogue ne porte qu'une lourde, si bien que les deux
+// emplacements ne pouvaient tenir que des doublons, et la troisième grenade
+// ramassée en faisait perdre une.
 func (w *World) prendre(sol, place int) {
 	d := w.armesAuSol.At(sol)
 	arme := &w.armes.All[d.Weapon]
-	w.lourdes[place] = Heavy{Weapon: *arme, Charges: arme.Charges, rang: d.Weapon}
+	tenue := &w.lourdes[place]
+
+	if tenue.Charges > 0 && tenue.rang == d.Weapon {
+		tenue.Charges += arme.Charges
+	} else {
+		*tenue = Heavy{Weapon: *arme, Charges: arme.Charges, rang: d.Weapon}
+	}
 	w.armesAuSol.RemoveAt(sol)
 }

@@ -22,6 +22,7 @@
       "role": "lourde",
       "objet": "grenade",
       "charges": 3,
+      "charges_max": 6,
       "cadence_ms": 1000,
       "portee_tuiles": 4,
       "degats_touches": 6,

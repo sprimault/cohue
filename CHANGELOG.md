@@ -54,13 +54,15 @@ publié, et explique les conventions du dépôt à qui y contribue.
   teinte : dans une horde dense, on remarque ce qui a fait mal sans lire chaque
   coup.
 - **Une arme lourde se voit, au sol comme en main.** Elle est dessinée là où elle
-  tombe, et l'emplacement qui la tient montre son icône avec une pastille par
-  charge — celles dépensées restent, éteintes, pour qu'on lise ce qu'on a brûlé.
-  L'emplacement disparaît quand l'arme est vide, sans message.
+  tombe, et l'emplacement qui la tient montre son icône avec le nombre de tirs
+  qui restent, posé dans son coin. L'emplacement disparaît quand l'arme est vide,
+  sans message.
 - **Les armes lourdes sortent des caisses et se ramassent au sol.** Une caisse
-  sur deux en laisse une ; on la prend en marchant dessus. Deux emplacements,
-  touches 2 et 3 : quand les deux sont tenus, marcher dessus ne fait plus rien et
-  c'est la touche d'un emplacement qui y met l'arme à la place de la sienne. Aucun
+  sur deux en laisse une ; on la prend en marchant dessus. Un emplacement par
+  type d'arme, touches 2 et 3 : une seconde grenade s'ajoute à celle qu'on tient
+  au lieu d'occuper une case de plus, jusqu'à six tirs. Au-delà, elle reste au sol
+  et l'on revient la chercher — rien ne se perd. Une arme d'un type qu'aucun
+  emplacement ne tient prend la place de l'un des deux, sur sa touche. Aucun
   menu, et contourner la laisse au sol.
 - **Deux fusions apparaissent quand on a monté ce qu'elles demandent.** Le Rail
   — perforant épuisé, portée entamée — fait un tir qui ne s'arrête plus sur rien
@@ -113,14 +115,16 @@ publié, et explique les conventions du dépôt à qui y contribue.
   large ones go to full tint: in a dense horde you notice what hurt without
   reading every hit.
 - **A heavy weapon is visible, on the ground as in hand.** It is drawn where it
-  falls, and the slot holding it shows its icon with one pip per charge — spent
-  ones stay, dimmed, so you read what you have burnt. The slot disappears when the
-  weapon is empty, with no message.
+  falls, and the slot holding it shows its icon with the number of shots left,
+  set in its corner. The slot disappears when the weapon is empty, with no
+  message.
 - **Heavy weapons come out of crates and are picked up off the ground.** One
-  crate in two leaves one; you take it by walking over it. Two slots, keys 2
-  and 3: when both are held, walking over does nothing and it is a slot's key
-  that puts the weapon there in place of its own. No menu, and walking around it
-  leaves it on the ground.
+  crate in two leaves one; you take it by walking over it. One slot per weapon
+  type, keys 2 and 3: a second grenade adds to the one you hold instead of taking
+  another slot, up to six shots. Beyond that it stays on the ground and you come
+  back for it — nothing is lost. A weapon of a type neither slot holds takes the
+  place of one of them, on its key. No menu, and walking around it leaves it on
+  the ground.
 - **Two fusions appear once you have raised what they ask for.** The Rail —
   piercing spent, range started — makes a shot that no longer stops on anything
   alive. The Spray — projectiles and spread started — makes the volley converge on

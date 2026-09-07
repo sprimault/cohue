@@ -153,6 +153,19 @@ type Weapon struct {
 	// La lire depuis le catalogue d'objets aurait de surcroît obligé ce paquet à
 	// ouvrir un manifeste d'images pour y chercher un nombre.
 	Charges int
+	// Stock est ce qu'un emplacement accumule au plus de cette arme.
+	//
+	// **Deux valeurs distinctes parce que deux questions distinctes** : `Charges`
+	// dit ce qu'une trouvaille donne, `Stock` ce qu'on peut en garder. Une arme
+	// du même type s'ajoutant à celle qu'on tient, sans plafond les huit caisses
+	// d'un lieu feraient de la lourde un second socle — ce que le chapitre 9
+	// écarte, qui veut qu'elle reste un événement.
+	//
+	// **Le surplus reste au sol plutôt que d'être rogné.** Une arme qui ne tient
+	// pas entière n'est pas prise, et le joueur revient la chercher quand il a
+	// dépensé : remplir jusqu'au plafond lui ferait perdre le reste sans qu'aucun
+	// écran ne le dise.
+	Stock int
 	// Axes sont les axes de la table qui affectent cette arme.
 	//
 	// **Déclarés par arme et non par une règle générale.** Cadence et portée
@@ -296,6 +309,7 @@ type rawWeapon struct {
 	// déménagement des charges de laisser un orphelin.
 	Object     string   `json:"objet,omitempty"`
 	Charges    *int     `json:"charges,omitempty"`
+	MaxCharges *int     `json:"charges_max,omitempty"`
 	Axes       []string `json:"axes,omitempty"`
 	TileRadius *float64 `json:"rayon_tuiles,omitempty"`
 	FuseMs     *int     `json:"meche_ms,omitempty"`
@@ -367,6 +381,7 @@ func (a rawWeapon) lourde(cle string, w *Weapon, dire func(string, ...any)) {
 	}{
 		{"objet", a.Object != ""},
 		{"charges", a.Charges != nil},
+		{"charges_max", a.MaxCharges != nil},
 		{"axes", a.Axes != nil},
 		{"rayon_tuiles", a.TileRadius != nil},
 		{"meche_ms", a.FuseMs != nil},
@@ -383,6 +398,14 @@ func (a rawWeapon) lourde(cle string, w *Weapon, dire func(string, ...any)) {
 	if a.Charges != nil && w.Charges < 1 {
 		dire("%s.charges : %d, une lourde qui ne se déclenche pas n'est pas une arme",
 			cle, w.Charges)
+	}
+
+	// Un plafond sous ce qu'une trouvaille donne interdirait de ramasser la
+	// première : le stock entier doit tenir, sans quoi l'arme reste au sol.
+	w.Stock = exige(cle, "charges_max", a.MaxCharges, dire)
+	if a.MaxCharges != nil && a.Charges != nil && w.Stock < w.Charges {
+		dire("%s.charges_max : %d pour %d charges, aucune ne pourrait etre ramassee",
+			cle, w.Stock, w.Charges)
 	}
 	w.BurstRadius = FromFloat(exige(cle, "rayon_tuiles", a.TileRadius, dire))
 	if a.TileRadius != nil && w.BurstRadius < 1 {

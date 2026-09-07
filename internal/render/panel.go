@@ -35,18 +35,22 @@ const largeurJauge = 148
 // contenuEmplacement est le côté de ce qu'une case d'emplacement contient.
 //
 // Il fixe la case, et non l'inverse : `Slot` en dérive son côté en ajoutant la
-// marge et le bord. Douze pixels aujourd'hui, ce que fera une icône d'objet à
-// l'étape 5 — et c'est alors sa taille réelle qui prendra la place de ce chiffre.
-const contenuEmplacement = 12
-
-// contenuLourde est le côté d'une icône d'arme lourde dans son emplacement.
+// marge et le bord. **Vingt pixels, la taille que le manifeste des objets donne
+// à une icône d'interface** — le jour où le générateur la change, ce nombre suit.
 //
-// **Vingt pixels, la taille réelle du dessin**, ce que `contenuEmplacement`
-// annonçait pour lui-même : « douze aujourd'hui, ce que fera une icône d'objet à
-// l'étape 5 — et c'est alors sa taille réelle qui prendra la place de ce
-// chiffre ». La case de l'aimant garde douze tant qu'elle pose un aplat, faute
-// d'icône dessinée.
-const contenuLourde = 20
+// **Une seule pour toutes les cases, et c'est une correction.** Il y en a eu deux
+// — douze pour l'aimant, vingt pour une arme lourde —, et trois endroits en
+// dépendaient : les deux tracés, plus la hauteur du bandeau, qui calculait avec
+// la petite. Une case d'arme débordait donc du fond de huit pixels et son chiffre
+// tombait sur le décor ; les cases se posaient par ailleurs au pas de la grande
+// alors que la première occupait la petite, ce qui creusait un trou de douze
+// pixels entre les deux premières. Une partie jouée l'a signalé, et la godoc de
+// `Slot` l'annonçait sans le fermer : le côté « n'est pas un réglage, il se
+// calcule ».
+//
+// L'aimant pose un aplat de cette taille faute d'icône dessinée — voir
+// `emplacement`, qui dit ce qui manque.
+const contenuEmplacement = 20
 
 // toucheAimant est ce que le joueur presse pour déclencher sa charge.
 //
@@ -226,21 +230,21 @@ func (h *HUD) Panel(dst *ebiten.Image, r Readings) {
 // C'est ce que « pas de message » veut dire : rien n'invite à presser une touche
 // qui ne ferait rien.
 func (h *HUD) lourdes(dst *ebiten.Image, x, y int, r Readings) {
-	cote := h.SlotSide(contenuLourde)
+	cote := h.SlotSide(contenuEmplacement)
 	for place, tenue := range r.Heavies {
 		if tenue.Charges <= 0 {
 			continue
 		}
 		gauche := x + (place+1)*(cote+h.Margin())
-		h.Slot(dst, gauche, y, contenuLourde, touchesLourdes[place])
+		h.Slot(dst, gauche, y, contenuEmplacement, touchesLourdes[place])
 
-		bord := (cote - contenuLourde) / 2
+		bord := (cote - contenuEmplacement) / 2
 		if tenue.Icon != nil {
 			h.op.GeoM.Reset()
 			h.op.GeoM.Translate(float64(gauche+bord), float64(y+bord))
 			dst.DrawImage(tenue.Icon, &h.op)
 		}
-		h.pastilles(dst, gauche+bord, y+bord+contenuLourde+h.Border(), tenue)
+		h.pastilles(dst, gauche+bord, y+bord+contenuEmplacement+h.Border(), tenue)
 	}
 }
 
@@ -250,7 +254,13 @@ func (h *HUD) lourdes(dst *ebiten.Image, x, y int, r Readings) {
 // une rangée qui rétrécit, où le joueur ne saurait pas ce que l'arme portait
 // pleine : ce qu'il lit alors est un nombre absolu, quand ce qui l'intéresse est
 // une proportion — combien il en a brûlé.
+//
+// **La rangée se centre sous l'icône**, `x` désignant le bord gauche de celle-ci
+// et non le départ des pastilles : une arme à trois charges en occupe huit
+// pixels sur vingt, et les aligner à gauche faisait pencher la case entière.
 func (h *HUD) pastilles(dst *ebiten.Image, x, y int, tenue Held) {
+	rangee := tenue.Max*(cotePastille+ecartPastille) - ecartPastille
+	x += (contenuEmplacement - rangee) / 2
 	for i := range tenue.Max {
 		// La teinte atténuée du thème pour ce qui est dépensé : c'est celle qui
 		// dit déjà « présent mais secondaire » partout ailleurs dans le bandeau.
@@ -373,8 +383,11 @@ func (s *Screen) objectif() string {
 // Il descend jusqu'au libellé de touche posé sous l'emplacement, plus une marge :
 // une hauteur en dur se serait démentie au premier changement de police ou de
 // hauteur de jauge, et c'est exactement ce que ce fichier s'interdit.
+//
+// **Le côté vient de `SlotSide` et non d'une formule recopiée.** Elle l'était, et
+// c'est ce qui a laissé le bandeau se démentir : le calcul restait juste, mais il
+// s'appliquait à un contenu qui n'était plus celui des cases posées.
 func hauteurBandeau(h *HUD) int {
 	haut := margeEcran + 2*h.Font.Height() + h.Margin()
-	cote := contenuEmplacement + 2*(h.Margin()+h.Border())
-	return haut + cote + h.Font.Height() + h.Margin()
+	return haut + h.SlotSide(contenuEmplacement) + h.Font.Height() + h.Margin()
 }

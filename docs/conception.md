@@ -595,11 +595,42 @@ Sa nature n'est pas indifférente : un soin fait l'affaire, précieux quand on e
 
 Et rien n'interdit le cas extrême, celui où tout est épuisé : la soupape doit alors **remplir les trois places à elle seule**. Elle est donc répétable dans un même tirage, ou il en existe plusieurs de natures différentes — faute de quoi on retombe sur l'écran vide qu'elle était censée éviter, au moment précis où le joueur a le mieux joué.
 
-**Ce que l'étape 3 livre est une table réduite, et c'est une décision plutôt qu'un provisoire mal fini.** Deux axes — cadence et portée —, six paliers chacun, et la soupape répétable. Le perforant, le ricochet et l'éventail demandent du travail dans le tir qui appartient à l'étape 6 ; le nombre de projectiles est écarté parce que le mécanisme écrit ne produit aujourd'hui ni un nombre ni un éventail mais une salve confondue qui perfore, et trancher laquelle des trois lectures est la bonne ne se fait pas sous la pression d'avoir un axe de plus.
+**L'étape 3 a livré une table réduite à deux axes**, cadence et portée, parce que les quatre autres demandaient dans le tir un travail qui appartenait à l'étape 6. C'était une décision et non un provisoire mal fini, et elle a coûté ce qu'elle annonçait : deux axes plus la soupape faisaient exactement trois cartes, donc aucun tirage n'avait lieu et la soupape occupait une place sur trois du début à la fin d'une run. Le jalon a pu juger l'arbitrage entre deux axes, jamais « la bonne carte est celle qui fait hésiter ».
 
-Deux conséquences à assumer, puisqu'elles portent sur ce que le jalon peut juger. **La soupape cesse d'y être une soupape** : douze paliers pour une trentaine de montées, elle occupe le tiers final de chaque run et devient un mécanisme. C'est acceptable pour éprouver le choix, ce ne le sera plus à l'étape 6. Et **l'offre ne varie pas** : deux axes plus la soupape font exactement trois cartes, donc aucun tirage n'a lieu. Le jalon exerce l'arbitrage entre deux axes, il n'exerce pas « la bonne carte est celle qui fait hésiter » — c'est une limite du jugement, connue et datée, pas un défaut du lot.
+**L'étape 6 a porté la table à ses six axes**, dans cet ordre : le nombre de projectiles, qui n'attendait pas du code mais une décision sur ce que devient une salve ; le perforant et le ricochet, qui ont demandé le travail annoncé ; l'éventail enfin. Le tirage existe donc, la soupape est redevenue ce que ce chapitre veut d'elle — une carte qui ne paraît qu'à l'épuisement d'un axe —, et ce qui reste à l'étape sont les recettes qui combinent ces axes, décrites plus bas.
 
 **Le revers à assumer** : le contraste des patterns disparaît, alors que c'est un moteur de rejouabilité du genre. Il se récupère par deux voies qui ne coûtent aucune animation de personnage — les armes lourdes ramassées dans les caisses, qui sont un effet et non une pose, et les effets qui ne partent pas du personnage : zone au sol, orbite, onde de choc, dessinés au sol ou autour du joueur.
+
+### Les recettes de fusion
+
+Une recette déclare des **ingrédients** — un axe et un nombre de paliers pris — et un **effet nommé**, pris dans un vocabulaire fermé que le moteur connaît, comme la liste des axes. La table choisit un comportement, elle n'en invente pas : c'est ce qui empêche cinq recettes de devenir cinq mécanismes, et ce qui les garde dans la règle des données qui ne sont pas du code.
+
+**Une recette est une carte, pas un compteur qui monte.** Elle entre dans le tirage quand ses ingrédients sont réunis, et se prend ou se laisse comme les autres. Trois formes ont été écartées pour la même raison : accorder un palier gratuit, lever une borne, ou appliquer l'effet dès que les ingrédients sont là contournent le métronome du chapitre 2 — le joueur devient plus fort sans l'avoir décidé, et rien ne lui dit qu'une fusion a eu lieu. La carte, elle, **rend les recettes découvrables** : une carte qui apparaît dit que deux axes se combinaient.
+
+**Elle reste éligible tant que ses ingrédients le sont**, et sort du tirage une fois prise. Sans cela, celui qui préfère autre chose au moment où elle paraît perdrait définitivement la recette — une carte offerte une seule fois n'est pas un choix, c'est un piège pour qui ne connaît pas encore la table.
+
+**L'effet est une nature et jamais un chiffre.** Un rail qui infligerait davantage serait un palier déguisé, et ne justifierait pas qu'une carte apparaisse plutôt qu'un compteur monte. Il doit aussi **se voir** : une fusion qui changerait le comportement sans changer l'image laisserait le joueur incapable de dire ce qu'il a gagné, ce qui est le défaut de la charge sans télégraphe.
+
+C'est l'exception assumée à la règle du paragraphe « une seule arme, qui évolue », qui veut une évolution **en nombre plutôt qu'en nature**. Elle vaut pour les paliers, qui sont trente et arrivent toutes les vingt secondes ; une fusion est rare, elle se paie de deux axes montés, et c'est précisément parce qu'elle change une nature qu'elle mérite une carte à elle.
+
+**Les ingrédients se comptent en paliers pris**, jamais en état de l'arme : « trois projectiles » se lit « deux paliers de projectiles », et la table reste juste quand on règle ce dont l'arme part.
+
+**Un ingrédient dont la recette annule l'utilité s'exige épuisé.** Le rail faisant disparaître la borne de perforation, les paliers de perforant restants ne rendraient plus rien : le joueur dépenserait des choix pour zéro. L'exiger au bout règle le cas et donne un second sens à la borne, que ce chapitre appelle déjà un moment de jeu. Les ingrédients qu'une recette n'annule pas restent libres — la portée sert encore après le rail, et monter l'éventail après la gerbe fait converger de plus loin.
+
+Deux recettes pour commencer, celles que la synergie des passifs nommait déjà :
+
+| Recette | Ingrédients | Ce que le tir devient |
+|---|---|---|
+| **Rail** | perforant épuisé, portée entamée | il ne s'arrête plus sur rien de vivant tant qu'il lui reste de la portée |
+| **Gerbe** | projectiles et éventail entamés | les tirs convergent au point visé au lieu de s'en écarter |
+
+**Les seuils exacts vivent dans la table, et ce chapitre ne fixe que la nature des ingrédients.** « Entamé » n'est donc pas un oubli : combien de paliers il faut est un réglage qu'on rouvrira en jouant, au même titre que le pas d'un axe, alors que « épuisé » est une règle — elle suit de ce que la recette annule, et non de ce qu'on trouve équilibré.
+
+**La gerbe répare ce que le front coûte à cible unique**, et c'est ce qui la rend méritée. Ce chapitre pose qu'à trois projectiles on ne fait pas trois fois un contre une créature isolée, la salve couvrant une largeur qu'une cible ponctuelle n'occupe pas ; la gerbe rend cette phrase fausse pour qui a monté les deux axes, et ne la rend fausse que pour lui.
+
+**Une recette emploie un mécanisme déjà écrit** — la perforation pour l'une, l'écartement de la salve pour l'autre. Celle qui demanderait du code neuf dans ce qui applique un tir est trop ambitieuse pour la table où elle s'écrit, et c'est ce critère qui décide de leur nombre : il y en a deux parce que deux mécanismes s'y prêtaient, et la troisième arrivera quand un troisième s'y prêtera.
+
+**Le cumul de deux recettes sur un même axe ne se pose pas** : le rail et la gerbe ne partagent aucun ingrédient. La question s'ouvrira avec une troisième recette qui prendrait un axe déjà pris par l'une des deux, et c'est ce jour-là qu'elle se tranchera.
 
 ### La visée
 

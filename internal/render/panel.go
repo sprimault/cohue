@@ -240,9 +240,7 @@ func (h *HUD) lourdes(dst *ebiten.Image, x, y int, r Readings) {
 
 		bord := (cote - contenuEmplacement) / 2
 		if tenue.Icon != nil {
-			h.op.GeoM.Reset()
-			h.op.GeoM.Translate(float64(gauche+bord), float64(y+bord))
-			dst.DrawImage(tenue.Icon, &h.op)
+			h.Image(dst, tenue.Icon, gauche+bord, y+bord)
 		}
 		h.pastilles(dst, gauche+bord, y+bord+contenuEmplacement+h.Border(), tenue)
 	}

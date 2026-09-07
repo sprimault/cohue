@@ -44,17 +44,6 @@ func (w *World) tirer() {
 	w.cooldown = w.arme.Cooldown
 }
 
-// tirerLaHorde fait tirer les créatures dont le profil porte une portée.
-//
-// **La cadence ne se consomme pas hors de portée**, exactement comme celle de
-// l'arme du joueur : une Buse qui voit le joueur réapparaître tirerait sinon
-// avec un retard fonction du temps qu'elle a passé sans cible, et rien à l'écran
-// ne l'expliquerait.
-//
-// **Rien ne vérifie que la voie est libre.** Le projectile part et meurt sur le
-// pilier, par le même chemin qu'un tir du joueur : le décor protège par le fait,
-// pas par une condition — c'est ce que la charge fait déjà, et pour la même
-// raison.
 // ecartDuFront rend le décalage latéral du k-ième projectile d'une salve.
 //
 // Les projectiles se répartissent sur la largeur que l'arme déclare, centrés sur
@@ -73,6 +62,17 @@ func (w *World) ecartDuFront(k int) Fixed {
 	return w.arme.Front.Mul(FromInt(k)).Div(FromInt(n-1)) - w.arme.Front.Div(FromInt(2))
 }
 
+// tirerLaHorde fait tirer les créatures dont le profil porte une portée.
+//
+// **La cadence ne se consomme pas hors de portée**, exactement comme celle de
+// l'arme du joueur : une Buse qui voit le joueur réapparaître tirerait sinon
+// avec un retard fonction du temps qu'elle a passé sans cible, et rien à l'écran
+// ne l'expliquerait.
+//
+// **Rien ne vérifie que la voie est libre.** Le projectile part et meurt sur le
+// pilier, par le même chemin qu'un tir du joueur : le décor protège par le fait,
+// pas par une condition — c'est ce que la charge fait déjà, et pour la même
+// raison.
 func (w *World) tirerLaHorde() {
 	for i := range w.ennemis.Active() {
 		e := w.ennemis.At(i)

@@ -314,6 +314,8 @@ CHAMPS_DEMENAGES = {
     "experience": "chez la progression, à côté des seuils qu'elle alimente",
     "portee_ramassage_tuiles": "chez la progression, avec la durée de vie d'une "
                                "gemme dont elle forme un couple",
+    "charges": "chez l'arme lourde, dans assets/armes/manifeste.json, à côté de "
+               "ce qu'elle déclenche",
 }
 
 

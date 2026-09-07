@@ -44,6 +44,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Une grenade se déclenche sur la touche 2.** Première arme lourde : trois
+  charges, une déflagration qui part sur la créature la plus proche et emporte la
+  horde autour sans jamais toucher le joueur — il ne dirige pas son lancer. À
+  court de charges, elle est jetée. Elle est posée au départ le temps que le
+  ramassage existe.
 - **Deux fusions apparaissent quand on a monté ce qu'elles demandent.** Le Rail
   — perforant épuisé, portée entamée — fait un tir qui ne s'arrête plus sur rien
   de vivant. La Gerbe — projectiles et éventail entamés — fait converger la salve
@@ -82,6 +87,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **A grenade fires on key 2.** First heavy weapon: three charges, a blast that
+  lands on the nearest creature and takes out the horde around it without ever
+  touching the player — he does not aim his throw. Out of charges, it is dropped.
+  It is handed over at the start until picking one up exists.
 - **Two fusions appear once you have raised what they ask for.** The Rail —
   piercing spent, range started — makes a shot that no longer stops on anything
   alive. The Spray — projectiles and spread started — makes the volley converge on

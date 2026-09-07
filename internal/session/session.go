@@ -199,6 +199,18 @@ func (s *Session) monter() {
 	s.World.Populate(s.ambiance)
 	s.World.SetExit(s.sortie)
 	s.World.Stock(s.caisses)
+
+	// **La grenade est une sonde, pas une décision de jeu.** La conception veut
+	// qu'une arme lourde se trouve dans une caisse et se ramasse au sol ; tant
+	// que rien ne la pose dans le lieu, il n'y aurait rien à déclencher et le
+	// mécanisme ne se jugerait pas. C'est ce qu'a été la porte donnée d'office à
+	// l'étape 4, avant qu'un objectif l'ouvre.
+	//
+	// **Elle part avec le ramassage**, et la ligne se retire alors d'un bloc :
+	// une arme offerte au départ n'est pas ce que le jeu doit faire, et la garder
+	// « en attendant » ferait d'un provisoire une règle que personne n'aurait
+	// décidée.
+	s.World.GiveHeavy("grenade")
 }
 
 // Open monte une partie sur la campagne donnée, à son lieu de départ.

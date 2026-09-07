@@ -24,6 +24,21 @@ const FormatWeapons = 1
 // de joueur.
 const roleBase = "base"
 
+// roleHeavy désigne une arme lourde : trouvée, à charges, déclenchée à la touche.
+//
+// **Elle est hors du système d'XP** — les lourdes ne montent pas de niveau, ce
+// qui garde la table d'évolutions lisible —, mais les axes qu'elle déclare
+// l'affectent. Sans eux, une arme trouvée à la douzième minute serait plus faible
+// que le tir de base.
+const roleHeavy = "lourde"
+
+// rolesArme est la liste close des rôles d'arme admis.
+//
+// Nommée ainsi parce que `roles` désigne déjà ceux des profils de créatures, et
+// que deux listes closes sans rapport dans un même paquet ne peuvent pas porter
+// le même nom sans qu'on aille voir laquelle on lit.
+var rolesArme = []string{roleBase, roleHeavy}
+
 // Weapon est une arme, telle que le manifeste tenu à la main la décrit.
 //
 // C'est le tireur qui porte les valeurs de son tir : cadence, portée, dégâts,
@@ -127,6 +142,31 @@ type Weapon struct {
 	Spray bool
 	// ProjectileSpeed est la vitesse d'un projectile, en tuiles par tick.
 	ProjectileSpeed Fixed
+
+	// Role dit ce que l'arme est dans la partie : le socle infini, ou une lourde.
+	Role string
+	// Charges est le nombre de déclenchements d'une lourde, zéro pour le socle.
+	//
+	// **Ici et non sur l'objet ramassé**, par le critère qui avait fait descendre
+	// l'expérience d'une gemme dans le manifeste de progression : une valeur vit à
+	// côté de ce qu'elle alimente, et régler une charge ne touche pas au dessin.
+	// La lire depuis le catalogue d'objets aurait de surcroît obligé ce paquet à
+	// ouvrir un manifeste d'images pour y chercher un nombre.
+	Charges int
+	// Axes sont les axes de la table qui affectent cette arme.
+	//
+	// **Déclarés par arme et non par une règle générale.** Cadence et portée
+	// valent pour toutes ; le nombre de projectiles, le perforant, le ricochet et
+	// l'éventail ont un sens pour un fusil à pompe, aucun pour une tourelle qui
+	// tire seule. Le chapitre 9 nommait auparavant « les passifs de dégâts et de
+	// zone », deux catégories qu'aucune table ne porte.
+	Axes []Axis
+	// BurstRadius, BurstHits et Fuse décrivent la déflagration d'une lourde qui
+	// en pose une, dans le vocabulaire de la Baudruche dont elle réemploie le
+	// souffle. Nuls sur une arme qui n'explose pas.
+	BurstRadius Fixed
+	BurstHits   int
+	Fuse        Tick
 }
 
 // Weapons est la table des armes, et des passifs qui les transforment.
@@ -215,8 +255,7 @@ type rawWeapon struct {
 
 	// Name est le nom lisible de l'arme.
 	Name string `json:"nom"`
-	// Role dit ce qu'elle est dans la partie. Seul l'armement de base existe, et
-	// c'est le champ qui refusera une arme lourde tombée dans cette table.
+	// Role dit ce qu'elle est dans la partie : le socle infini, ou une lourde.
 	Role string `json:"role"`
 	// CadenceMs est l'écart entre deux salves, converti en ticks au chargement.
 	CadenceMs *int `json:"cadence_ms"`
@@ -236,6 +275,20 @@ type rawWeapon struct {
 	EventailTuiles *float64 `json:"eventail_tuiles"`
 	// Speed est la vitesse d'un projectile, en tuiles par seconde.
 	Speed *float64 `json:"vitesse_projectile_tuiles_s"`
+
+	// Ce qu'une lourde porte et que le socle refuse : le contrôle est symétrique,
+	// comme celui des pas d'axes. Un `charges` posé sur l'arme de base ne serait
+	// jamais lu et laisserait croire qu'elle s'épuise.
+	//
+	// Object nomme l'arme dans le manifeste d'objets. Il n'est pas lu ici, comme
+	// les renvois de la progression : c'est le contrôle des ressources qui exige
+	// qu'il désigne un objet du catalogue, et c'est ce qui empêche le
+	// déménagement des charges de laisser un orphelin.
+	Object     string   `json:"objet,omitempty"`
+	Charges    *int     `json:"charges,omitempty"`
+	Axes       []string `json:"axes,omitempty"`
+	TileRadius *float64 `json:"rayon_tuiles,omitempty"`
+	FuseMs     *int     `json:"meche_ms,omitempty"`
 }
 
 // arme convertit une arme brute, en signalant ce qui lui manque.
@@ -243,13 +296,14 @@ func (a rawWeapon) arme(cle string, dire func(string, ...any)) Weapon {
 	if a.Name == "" {
 		dire("%s.nom : absent ou vide", cle)
 	}
-	if a.Role != roleBase {
-		dire("%s.role : « %s », attendu « %s »", cle, a.Role, roleBase)
+	if !slices.Contains(rolesArme, a.Role) {
+		dire("%s.role : « %s » inconnu, attendu %s", cle, a.Role, liste(rolesArme))
 	}
 
 	w := Weapon{
 		Key:             cle,
 		Name:            a.Name,
+		Role:            a.Role,
 		Range:           FromFloat(exige(cle, "portee_tuiles", a.TileRange, dire)),
 		Hits:            exige(cle, "degats_touches", a.Hits, dire),
 		Projectiles:     exige(cle, "projectiles", a.Projectiles, dire),
@@ -285,7 +339,71 @@ func (a rawWeapon) arme(cle string, dire func(string, ...any)) Weapon {
 		// mais à un moteur cassé.
 		dire("%s.cadence_ms : %d, une arme qui tire à chaque image n'a plus de cadence", cle, ms)
 	}
+
+	a.lourde(cle, &w, dire)
 	return w
+}
+
+// lourde lit ce qu'une arme lourde porte, et refuse ces champs au socle.
+//
+// **Le contrôle est symétrique, comme celui des pas d'axes** : le rôle décide
+// quels champs l'entrée doit porter. Un `charges` posé sur l'arme de base ne
+// serait jamais lu et laisserait croire qu'elle s'épuise ; une lourde sans
+// charges serait infinie sans que le fichier le dise.
+func (a rawWeapon) lourde(cle string, w *Weapon, dire func(string, ...any)) {
+	for _, c := range []struct {
+		champ   string
+		present bool
+	}{
+		{"objet", a.Object != ""},
+		{"charges", a.Charges != nil},
+		{"axes", a.Axes != nil},
+		{"rayon_tuiles", a.TileRadius != nil},
+		{"meche_ms", a.FuseMs != nil},
+	} {
+		if a.Role == roleBase && c.present {
+			dire("%s.%s : présent, réservé à une arme « %s »", cle, c.champ, roleHeavy)
+		}
+	}
+	if a.Role != roleHeavy {
+		return
+	}
+
+	w.Charges = exige(cle, "charges", a.Charges, dire)
+	if a.Charges != nil && w.Charges < 1 {
+		dire("%s.charges : %d, une lourde qui ne se déclenche pas n'est pas une arme",
+			cle, w.Charges)
+	}
+	w.BurstRadius = FromFloat(exige(cle, "rayon_tuiles", a.TileRadius, dire))
+	if a.TileRadius != nil && w.BurstRadius < 1 {
+		dire("%s.rayon_tuiles : %v, un rayon que la virgule fixe arrondit à zéro "+
+			"n'emporte personne", cle, *a.TileRadius)
+	}
+	w.BurstHits = w.Hits
+
+	// La mèche passe par la conversion commune, qui refuse une durée sous le pas
+	// de simulation : une déflagration à cinq millisecondes partirait au tick
+	// suivant sans que rien ne l'annonce.
+	if ms := exige(cle, "meche_ms", a.FuseMs, dire); ms > 0 {
+		ticks, err := TicksFromMs(ms)
+		if err != nil {
+			dire("%s.meche_ms : %v", cle, err)
+		}
+		w.Fuse = ticks
+	} else if a.FuseMs != nil {
+		dire("%s.meche_ms : %d, une déflagration sans mèche ne s'esquive pas", cle, ms)
+	}
+
+	// Les axes déclarés doivent exister, faute de quoi un passif que l'auteur
+	// croit appliquer ne le serait jamais. La table n'est pas encore lue ici :
+	// c'est la liste close des axes qui fait foi, comme pour un ingrédient.
+	for _, nom := range a.Axes {
+		if !slices.Contains(axes, Axis(nom)) {
+			dire("%s.axes : « %s » inconnu, attendu %s", cle, nom, liste(axes))
+			continue
+		}
+		w.Axes = append(w.Axes, Axis(nom))
+	}
 }
 
 // exige déréférence un champ obligatoire, ou signale son absence.

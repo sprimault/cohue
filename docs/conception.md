@@ -656,7 +656,12 @@ Règles associées :
 
 - **Affichage en pastilles**, pas en chiffres — trois pastilles qui s'éteignent se lisent en vision périphérique, un « 3/5 » demande de regarder. La dernière pulse. À l'épuisement, disparition de l'interface et son sec, pas de message.
 - **Deux emplacements maximum**, une touche chacun. Une troisième arme ramassée propose l'échange sur place — aperçu au sol, on passe dessus pour prendre, on contourne pour laisser. Aucun menu.
-- **Hors du système d'XP.** Les lourdes ne montent pas de niveau, ce qui garde la table d'évolutions lisible. En revanche les passifs de dégâts et de zone s'y appliquent, sinon elles deviennent inutiles en fin de run.
+- **Hors du système d'XP.** Les lourdes ne montent pas de niveau, ce qui garde la table d'évolutions lisible. En revanche les passifs s'y appliquent, sinon une arme trouvée à la douzième minute serait plus faible que le tir de base — ridicule au moment précis où elle doit impressionner.
+
+  **Chaque arme lourde déclare les axes qui l'affectent**, comme elle déclare ses charges. Cette phrase nommait auparavant « les passifs de dégâts et de zone », deux catégories qui n'existent dans aucune table : la table des axes en porte six, et aucun d'eux n'est un dégât ni une zone. En inventer deux pour cette phrase aurait donné les chiffres déguisés que ce chapitre refuse ailleurs.
+
+  Et une règle générale n'aurait pas convenu : la cadence et la portée valent pour toutes, quand le nombre de projectiles, le perforant, le ricochet et l'éventail ont un sens pour un fusil à pompe, aucun pour une tourelle qui tire seule, et discutable pour une grenade. C'est donc la donnée qui décide, arme par arme, et le moteur qui lit.
+- **Ce qu'une lourde emporte n'emporte pas le joueur.** Une grenade qui le blesserait créerait une décision de placement — viser loin, donc reculer avant de lancer — qu'il ne peut pas prendre : le tir est automatique et il ne contrôle que son déplacement, si bien qu'il ne dirige pas son lancer. Le punir d'un geste qu'il n'oriente pas serait une sanction sans recours, ce que ce document refuse ailleurs. C'est ce qui la sépare de la Baudruche, qu'on voit venir et dont on s'écarte. La question se rouvrira le jour où une lourde deviendra dirigeable, et ce sera le bon moment : le joueur pourra alors éviter.
 - **Une trouvaille toutes les 60 à 90 secondes environ.** Plus rare, le joueur oublie la mécanique et ne l'apprend jamais. Plus fréquent, elle remplace le socle infini.
 
 Variante si les consommables gênent l'équilibrage : de la surchauffe plutôt que des charges. Même rythme, même retenue, pas de mort par assèchement.

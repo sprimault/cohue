@@ -295,6 +295,13 @@ func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Ca
 // jeu écoutait l'autre.
 var emplacement1 = []ebiten.Key{ebiten.Key1, ebiten.KeyNumpad1}
 
+// emplacement2 est la touche qui déclenche l'arme lourde tenue.
+//
+// **L'aimant garde son emplacement propre**, ce que la conception exige de lui :
+// mis en concurrence avec ce qui se déclenche, il ne serait jamais gardé. Les
+// deux places du chiffre pour la raison écrite au-dessus.
+var emplacement2 = []ebiten.Key{ebiten.Key2, ebiten.KeyNumpad2}
+
 // Update avance la simulation d'un pas, puis recadre.
 //
 // Un pas par appel et rien qui lise l'horloge : Ebitengine appelle cette méthode
@@ -325,6 +332,10 @@ func (s *Screen) Update() error {
 		// maintien, la charge partirait à l'image où le doigt se pose et le
 		// joueur ne saurait jamais s'il l'a dépensée exprès.
 		s.monde.Attract()
+	}
+
+	if presse(emplacement2) {
+		s.monde.Trigger()
 	}
 
 	if presse(repere) {

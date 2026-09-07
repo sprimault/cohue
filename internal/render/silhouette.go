@@ -25,6 +25,16 @@ func aplatir(src image.Image) *ebiten.Image {
 	return ebiten.NewImageFromImage(sprite.Flatten(src))
 }
 
+// cerner rend le bord de la même forme, converti en texture.
+//
+// Le calcul vit au même endroit et pour la même raison. Deux textures par pose
+// plutôt qu'une, parce que ce qui recouvre décide de laquelle se pose et qu'on ne
+// le sait qu'à l'image — les construire alors coûterait une allocation dans la
+// boucle.
+func cerner(src image.Image) *ebiten.Image {
+	return ebiten.NewImageFromImage(sprite.Outline(src))
+}
+
 // trace est ce qu'un dessin laisse à la séquence : le coin où il s'est posé, sa
 // forme, et son aplat quand il est de ceux qu'on révèle.
 //
@@ -46,9 +56,22 @@ type trace struct {
 	// bordure de trottoir, ce qui est exactement l'inverse de ce que la
 	// silhouette existe pour donner.
 	cache bool
+	// vivant dit que ce dessin est une créature et non une chose du lieu.
+	//
+	// **Ce n'est pas une redite de `cache`**, qui dit si le dessin peut
+	// dissimuler ; celui-ci dit ce qu'il est. Un mur et une foule cachent tous
+	// deux, et ce qu'il faut montrer par-dessus n'est pas le même — voir
+	// `reveler`.
+	vivant bool
 	// forme est l'aplat blanc, non nul pour les deux seules sortes que la
 	// conception révèle : le joueur et le projectile de la horde.
 	forme *ebiten.Image
+	// bord est le tracé de la même forme, non nul pour le seul joueur.
+	//
+	// Le projectile de la horde n'en a pas, et n'en veut pas : six pixels cernés
+	// d'un ne laisseraient presque rien, quand le sujet de ce tir est d'être vu
+	// arriver.
+	bord *ebiten.Image
 }
 
 // revele est une chose posée qu'on redessinera si quelque chose la recouvre.
@@ -59,12 +82,16 @@ type trace struct {
 // nombres, pas une référence.
 type revele struct {
 	forme  *ebiten.Image
+	bord   *ebiten.Image
 	masque *sprite.Mask
 	x, y   int
 	teinte color.RGBA
 	// couvert dit qu'au moins un pixel de la forme a disparu sous ce qui a été
 	// posé après elle. C'est la condition, et la seule, pour la redessiner.
 	couvert bool
+	// parUnVivant dit qu'une créature est de ce qui recouvre, et il décide de la
+	// forme du rappel plutôt que de son existence.
+	parUnVivant bool
 }
 
 // recouvertPar dit si un dessin posé après celui-ci en cache un pixel.

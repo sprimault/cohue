@@ -684,14 +684,22 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		//
 		// Le test précède l'inscription, sans quoi une chose se masquerait
 		// elle-même.
+		//
+		// **On continue de confronter une chose déjà couverte tant qu'aucune
+		// créature ne l'a couverte.** Ce n'est plus seulement le fait d'être
+		// recouvert qui se relève, c'est par quoi : un mur d'abord puis une foule
+		// ne se rappelle pas comme un mur seul, et s'arrêter au premier
+		// recouvrement rendrait la forme du rappel dépendante de l'ordre du tri.
 		for i := range s.aRevoir {
-			if !s.aRevoir[i].couvert && s.aRevoir[i].recouvertPar(t) {
-				s.aRevoir[i].couvert = true
+			if s.aRevoir[i].parUnVivant || !s.aRevoir[i].recouvertPar(t) {
+				continue
 			}
+			s.aRevoir[i].couvert = true
+			s.aRevoir[i].parUnVivant = t.vivant
 		}
 		if t.forme != nil {
 			s.aRevoir = append(s.aRevoir, revele{
-				forme: t.forme, masque: t.masque, x: t.x, y: t.y,
+				forme: t.forme, bord: t.bord, masque: t.masque, x: t.x, y: t.y,
 				teinte: teinteDeLaSorte(e.sorte),
 			})
 		}
@@ -716,16 +724,29 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 // Vigiles empilés est invisible sans qu'aucune forme ne soit en cause : une
 // transparence ne sait effacer que ce qu'un manifeste a nommé, celle-ci ne
 // regarde que ce qui est dessiné devant.
+//
+// **Le tracé derrière une chose du lieu, l'aplat derrière une créature.** Une
+// partie jouée a montré ce que l'aplat coûte contre un mur : il l'efface là où
+// il se pose, si bien que le personnage se lit *sur* la maçonnerie — et sur
+// l'enceinte, qui n'a que le vide au-delà, comme sorti de la carte. Le tracé
+// laisse le mur au travers et rend la profondeur. Contre une foule, l'aplat
+// reste : ce qu'il faut alors est de retrouver le joueur dans une masse qui
+// partage sa gamme, et un liseré s'y perdrait — c'est la mesure qui avait fait
+// écarter la valeur au profit de la forme.
 func (s *Screen) reveler(ecran *ebiten.Image) {
 	for _, r := range s.aRevoir {
 		if !r.couvert {
 			continue
 		}
+		rappel := r.forme
+		if !r.parUnVivant && r.bord != nil {
+			rappel = r.bord
+		}
 		s.op.GeoM.Reset()
 		s.op.GeoM.Translate(float64(r.x), float64(r.y))
 		s.op.ColorScale.Reset()
 		s.op.ColorScale.ScaleWithColor(r.teinte)
-		ecran.DrawImage(r.forme, &s.op)
+		ecran.DrawImage(rappel, &s.op)
 	}
 }
 
@@ -833,7 +854,11 @@ func (s *Screen) peindreCreature(ecran *ebiten.Image, f *figure, a anim,
 	// **Une créature cache toujours, sans que le manifeste ait à le dire.** Elle
 	// fait la taille d'un personnage par définition, et le chapitre 2 nomme
 	// précisément ce cas : « ce qu'un mur ou une foule recouvre ».
-	return trace{x: coinX, y: coinY, masque: f.masque(p), cache: true, forme: forme}
+	return trace{
+		x: coinX, y: coinY,
+		masque: f.masque(p), cache: true, vivant: true,
+		forme: forme, bord: f.bord(p),
+	}
 }
 
 // intensiteEclair est la part de sa teinte qu'un éclair d'état ajoute au sprite.

@@ -64,6 +64,13 @@ type figure struct {
 	// construire pour tous coûterait douze cents textures dont aucune ne se
 	// poserait.
 	formes map[pose]*ebiten.Image
+	// bords sont les mêmes formes réduites à leur tracé, et vont avec les
+	// précédentes.
+	//
+	// **Deux jeux plutôt qu'un choix fait au montage** : c'est ce qui recouvre le
+	// joueur qui décide de la forme du rappel, et on ne le sait qu'une fois la
+	// scène dessinée.
+	bords map[pose]*ebiten.Image
 }
 
 // pose désigne une image dans une figure.
@@ -129,6 +136,7 @@ func charger(fsys fs.FS, racine string, f game.Figure, aplati bool) (*figure, er
 	}
 	if aplati {
 		dessin.formes = map[pose]*ebiten.Image{}
+		dessin.bords = map[pose]*ebiten.Image{}
 	}
 	for nom, c := range f.Cycles {
 		for _, direction := range f.Directions {
@@ -143,6 +151,7 @@ func charger(fsys fs.FS, racine string, f game.Figure, aplati bool) (*figure, er
 					dessin.masques[p] = sprite.NewMask(img)
 					if aplati {
 						dessin.formes[p] = aplatir(img)
+						dessin.bords[p] = cerner(img)
 					}
 				}
 			}
@@ -156,6 +165,9 @@ func (f *figure) image(p pose) *ebiten.Image { return f.images[p] }
 
 // forme rend la même pose aplatie en blanc, ou nil quand la figure n'en a pas.
 func (f *figure) forme(p pose) *ebiten.Image { return f.formes[p] }
+
+// bord rend le tracé de la même pose, ou nil quand la figure n'en a pas.
+func (f *figure) bord(p pose) *ebiten.Image { return f.bords[p] }
 
 // masque rend la forme d'une pose, ou nil quand la figure ne la porte pas.
 func (f *figure) masque(p pose) *sprite.Mask { return f.masques[p] }

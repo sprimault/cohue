@@ -1,7 +1,7 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// Les quatre flux aléatoires d'une partie, dérivés de sa graine et nommés par
+// Les flux aléatoires d'une partie, dérivés de sa graine et nommés par
 // leur usage. Un flux unique suffirait à rejouer une partie jouée et casserait
 // la run simulée sans rendu, où chaque tirage manquant décale tous les suivants.
 
@@ -18,9 +18,9 @@ type Stream struct {
 	source *rand.Rand
 }
 
-// Streams porte les quatre sources d'une partie, dérivées d'une même graine.
+// Streams porte les cinq sources d'une partie, dérivées d'une même graine.
 //
-// Quatre et non une : le test central du projet joue une run **sans rendu**, et
+// Plusieurs et non une : le test central du projet joue une run **sans rendu**, et
 // une exécution qui ne tirerait pas les teintes de vêtement décalerait tous les
 // tirages suivants. Les vagues d'une run simulée cesseraient alors de
 // correspondre à celles de la même graine jouée à l'écran, c'est-à-dire que
@@ -48,6 +48,20 @@ type Streams struct {
 	Loot *Stream
 	// Cosmetic ne décide de rien : teintes de vêtement, variantes d'éclat.
 	Cosmetic *Stream
+	// Cards tire les axes offerts quand il y en a plus que de places.
+	//
+	// **Aucune donnée livrée ne le consomme encore**, et c'est arithmétique : la
+	// table porte trois axes pour trois places, si bien que `offrir` les prend
+	// tous et n'a rien à choisir. Le tirage n'existe qu'au quatrième axe. Comme
+	// pour `Loot`, c'est le témoin de l'empreinte qui garde le flux numéroté d'ici
+	// là — un numéro réattribué changerait ce que rejoue une graine publiée.
+	//
+	// **Du côté de la simulation et non du cosmétique**, ce qui n'est pas un
+	// rangement : une offre décide de ce que le joueur peut prendre, donc de la
+	// build, donc de la run. Rangé dans `Cosmetic`, il aurait rendu deux runs
+	// d'une même graine divergentes sur leurs builds tout en les déclarant
+	// identiques.
+	Cards *Stream
 }
 
 // Les identifiants de flux, passés à PCG comme numéro de suite : deux suites
@@ -68,9 +82,10 @@ const (
 	suiteLoot      uint64 = 3
 	suiteCosmetic  uint64 = 4
 	suiteRelance   uint64 = 5
+	suiteCards     uint64 = 6
 )
 
-// NewStreams dérive les quatre flux de la graine d'une partie.
+// NewStreams dérive les flux de la graine d'une partie.
 //
 // PCG, et le nom compte autant que le choix : l'algorithme est spécifié et
 // stable d'une version de Go à l'autre, là où le générateur global ne l'est pas
@@ -88,6 +103,7 @@ func NewStreams(graine uint64) *Streams {
 		Positions: nouveau(suitePositions),
 		Loot:      nouveau(suiteLoot),
 		Cosmetic:  nouveau(suiteCosmetic),
+		Cards:     nouveau(suiteCards),
 	}
 }
 

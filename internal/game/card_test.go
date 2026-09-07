@@ -7,6 +7,7 @@
 package game
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 
@@ -108,6 +109,116 @@ func TestChoisirAppliqueLePalier(t *testing.T) {
 	}
 	if w.Choosing() {
 		t.Error("le choix reste ouvert après avoir été pris")
+	}
+}
+
+// tableLarge bâtit une table de passifs plus large que le nombre de places.
+//
+// **Elle est bâtie en Go et non décodée d'un manifeste, et c'est une nécessité
+// plutôt qu'une entorse** : la liste des axes admis est close dans
+// `passive.go`, si bien qu'aucun fichier ne peut en déclarer un quatrième tant
+// que le code n'en connaît pas un quatrième. Ce qu'on isole ici est la
+// sélection, jamais le décodage — celui-ci reste gardé par les tests qui
+// chargent le manifeste livré.
+//
+// Les axes reprennent les clés existantes : ce que le tirage manipule est une
+// place dans la tranche, et leurs effets ne sont pas ce qu'on mesure.
+func tableLarge(t *testing.T) *Weapons {
+	t.Helper()
+	armes, err := LoadWeapons(cohue.Assets, manifesteArmes)
+	if err != nil {
+		t.Fatalf("armes livrées : %v", err)
+	}
+
+	large := *armes.Passives
+	large.Axes = make([]Passive, 0, 5)
+	for _, nom := range []string{"A", "B", "C", "D", "E"} {
+		large.Axes = append(large.Axes, Passive{
+			Axis: AxisCadence, Name: nom, Phrase: "Essai.", Tiers: 6,
+			Effects: []string{"1", "2", "3", "4", "5", "6"},
+		})
+	}
+	copie := *armes
+	copie.Passives = &large
+	return &copie
+}
+
+// offresDe joue une montée sur la table donnée et rend les noms offerts.
+func offresDe(t *testing.T, armes *Weapons, graine uint64) []string {
+	t.Helper()
+	profils, err := LoadProfiles(cohue.Assets, manifestePersonnages)
+	if err != nil {
+		t.Fatalf("profils livrés : %v", err)
+	}
+	w := NewWorld(profils, armes, monteeSimple(), sansVagues(), NewCostGrid(32, 32),
+		graine, capacitesDeTest)
+	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
+
+	semer(t, w, profils, 1)
+	w.Step(Vec{})
+
+	noms := make([]string, 0, Choices)
+	for _, c := range w.Pending() {
+		noms = append(noms, c.Name)
+	}
+	return noms
+}
+
+// TestLeTirageNeSeConsommePasSansChoix garde ce que la table livrée ne fait pas.
+//
+// **Trois axes pour trois places ne laissent rien à choisir**, et le flux ne doit
+// alors pas être touché : un tirage inconditionnel le décalerait sans qu'aucune
+// décision en dépende, et l'attendu d'empreinte bougerait pour une raison qui
+// n'est pas une règle de jeu.
+//
+// C'est aussi ce qui donne son statut au lot qui a introduit `Cards` : le
+// mécanisme est en place, et aucune donnée livrée ne le consomme encore.
+func TestLeTirageNeSeConsommePasSansChoix(t *testing.T) {
+	w, profils := champDeCartes(t, monteeSimple())
+	semer(t, w, profils, 1)
+	w.Step(Vec{})
+
+	if len(w.Pending()) != Choices {
+		t.Fatalf("%d carte(s) offertes", len(w.Pending()))
+	}
+	// Un flux neuf de la même graine : si l'ouverture avait tiré, celui de la
+	// partie aurait pris de l'avance et les deux rendraient des valeurs
+	// différentes.
+	neuf := NewStreams(graineDeTest).Cards
+	if attendu, obtenu := neuf.IntN(1<<30), w.hasard.Cards.IntN(1<<30); attendu != obtenu {
+		t.Errorf("le flux des cartes a été consommé : %d, attendu %d", obtenu, attendu)
+	}
+}
+
+// TestPlusDAxesQueDePlacesFaitTirer garde le mécanisme que le quatrième axe
+// réveillera.
+//
+// Deux propriétés, et la seconde est celle qui compte : trois places sur cinq
+// axes, et deux graines qui n'offrent pas la même chose. Sans elle, un tirage
+// qui rendrait toujours les trois premiers passerait la première.
+func TestPlusDAxesQueDePlacesFaitTirer(t *testing.T) {
+	armes := tableLarge(t)
+
+	offres := offresDe(t, armes, graineDeTest)
+	if len(offres) != Choices {
+		t.Fatalf("%d carte(s) offertes, attendu %d", len(offres), Choices)
+	}
+	vus := map[string]bool{}
+	for _, nom := range offres {
+		if vus[nom] {
+			t.Errorf("« %s » offert deux fois : %v", nom, offres)
+		}
+		vus[nom] = true
+	}
+
+	// Les graines sont choisies distinctes ; deux tirages de trois parmi cinq
+	// peuvent coïncider, donc on en compare plusieurs plutôt qu'une paire.
+	distinctes := map[string]bool{}
+	for _, graine := range []uint64{1, 2, 3, 4, 5} {
+		distinctes[fmt.Sprint(offresDe(t, armes, graine))] = true
+	}
+	if len(distinctes) < 2 {
+		t.Errorf("cinq graines offrent toutes la même chose : %v", distinctes)
 	}
 }
 

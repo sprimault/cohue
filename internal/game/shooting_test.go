@@ -304,6 +304,78 @@ func TestLEventailNeFaitRienSurUnTirSeul(t *testing.T) {
 	}
 }
 
+// TestLaGerbeFaitConvergerLaSalve garde l'effet de la première fusion.
+//
+// **C'est l'éventail au signe près**, et c'est ce qui la rend écrivable sans
+// mécanisme neuf : la salve part de son front et se referme sur le point visé au
+// lieu de s'en écarter. Éprouvé en comparant les deux, seule façon de distinguer
+// une convergence d'une divergence sans mesurer un angle.
+func TestLaGerbeFaitConvergerLaSalve(t *testing.T) {
+	ecarte := func(salve []Projectile) Fixed {
+		a, b := salve[0], salve[2]
+		return Vec{X: b.X - a.X, Y: b.Y - a.Y}.Len()
+	}
+
+	w, profils := champDeTir(t)
+	w.arme.Projectiles, w.arme.Spread = 3, FromInt(3)
+	w.arme.Spray = true
+	px, py := w.Player()
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), px+FromInt(3), py); !ok {
+		t.Fatal("créature refusée")
+	}
+	w.Step(Vec{})
+
+	gerbe := make([]Projectile, 3)
+	for i := range 3 {
+		gerbe[i] = *w.tirs.At(i)
+	}
+
+	// L'éventail écarte la salve au fil du vol, la gerbe la resserre : après un
+	// tick, l'écart de la première dépasse celui de la seconde.
+	if ouverte, fermee := ecarte(salveDe(t, 3, FromInt(3))), ecarte(gerbe); fermee >= ouverte {
+		t.Errorf("écart de %v en gerbe contre %v en éventail : elle ne converge pas",
+			fermee, ouverte)
+	}
+}
+
+// TestLeRailNeSArretePlusSurRien garde l'effet de la seconde fusion.
+//
+// **Il retire la borne, il ne la relève pas.** Un projectile sans perforation
+// s'arrête sur la première créature ; le même en rail traverse les deux, et il ne
+// décompte rien — c'est ce qui sépare une nature d'un chiffre.
+func TestLeRailNeSArretePlusSurRien(t *testing.T) {
+	w, profils := champDeTir(t)
+	px, py := w.Player()
+	marcheur := indexDuProfil(t, profils, "marcheur")
+
+	devant, ok := w.SpawnEnemy(marcheur, px+FromInt(2), py)
+	if !ok {
+		t.Fatal("créature refusée")
+	}
+	derriere, ok := w.SpawnEnemy(marcheur, px+FromInt(2)+One/4, py)
+	if !ok {
+		t.Fatal("créature refusée")
+	}
+	plein := restantDe(w, derriere)
+
+	tir := Projectile{
+		X: px + FromInt(2) - One/16, Y: py,
+		Step:      Vec{X: One/2 + One/4},
+		Remaining: FromInt(6),
+		Hits:      1,
+		Rail:      true,
+	}
+	if w.toucher(Vec{tir.X, tir.Y}, &tir) {
+		t.Error("le rail est consommé par la créature qu'il traverse")
+	}
+	if restantDe(w, devant) >= plein {
+		t.Error("la première est intacte : le cas ne teste rien")
+	}
+	if tir.Pierce != 0 {
+		t.Errorf("perforations décomptées : %d, le rail n'en dépense aucune", tir.Pierce)
+	}
+}
+
 // restantDe rend la résistance d'une créature, ou zéro si elle est morte.
 //
 // Par le `Handle` et non par la place : celle-ci change à chaque suppression par

@@ -30,10 +30,29 @@ type Card struct {
 	// Phrase est ce qu'elle fait, en clair.
 	Phrase string
 
-	// axe est l'index dans `Passives.Axes`, ou -1 pour la soupape. Il ne sort
-	// pas du paquet : l'appelant choisit une place, pas un effet.
-	axe int
+	// sorte dit d'où la carte vient, et index où la trouver dans sa table.
+	//
+	// **Une sorte et un index plutôt que deux index dont l'un vaut moins un.**
+	// Depuis que les recettes entrent dans le menu, il y a trois provenances : un
+	// axe, une fusion, la soupape. Deux champs à moins un rendraient l'état « ni
+	// l'un ni l'autre » exprimable, et c'est ce qu'un champ oublié produirait.
+	//
+	// Ni l'une ni l'autre ne sort du paquet : l'appelant choisit une place, pas un
+	// effet.
+	sorte sorteDeCarte
+	index int
 }
+
+// sorteDeCarte dit de quelle table une carte vient.
+type sorteDeCarte uint8
+
+const (
+	// carteSoupape est la valeur zéro, et c'est délibéré : une `Card` bâtie sans
+	// rien désigne la carte qui n'a pas d'index, jamais un axe.
+	carteSoupape sorteDeCarte = iota
+	carteAxe
+	carteFusion
+)
 
 // Pending rend les cartes offertes, vide quand aucun choix n'est ouvert.
 //
@@ -76,16 +95,26 @@ func (w *World) Choose(rang int) {
 // du manifeste, si bien qu'une relance repart de l'arme neuve sans qu'on ait à
 // défaire quoi que ce soit.
 func (w *World) appliquer(c Card) {
-	if c.axe < 0 {
+	switch c.sorte {
+	case carteSoupape:
 		// La soupape ne dépasse jamais le maximum : un soin qui déborderait
 		// donnerait une jauge pleine à un joueur qui n'a rien de plus, et la
 		// carte cesserait d'être ignorable quand on est haut.
 		w.vie = min(w.vie+w.passifs.Relief.Heal, w.profils.Player.Health)
 		return
+	case carteFusion:
+		w.fusions[c.index] = true
+		switch w.passifs.Recipes[c.index].Effect {
+		case EffectRail:
+			w.arme.Rail = true
+		case EffectSpray:
+			w.arme.Spray = true
+		}
+		return
 	}
 
-	axe := &w.passifs.Axes[c.axe]
-	w.paliers[c.axe]++
+	axe := &w.passifs.Axes[c.index]
+	w.paliers[c.index]++
 	switch axe.Axis {
 	case AxisCadence:
 		w.arme.Cooldown -= axe.CooldownStep
@@ -124,28 +153,72 @@ func (w *World) appliquer(c Card) {
 // épuisés.
 func (w *World) offrir() {
 	w.cartes = w.cartes[:0]
-	w.eligibles = w.eligibles[:0]
+	w.candidats = w.candidats[:0]
 
 	for i := range w.passifs.Axes {
 		if w.paliers[i] < w.passifs.Axes[i].Tiers {
-			w.eligibles = append(w.eligibles, i)
+			w.candidats = append(w.candidats, carte(&w.passifs.Axes[i], i, w.paliers[i]+1))
+		}
+	}
+	// **Les fusions concourent avec les axes plutôt que de passer devant.** Une
+	// recette qui prendrait sa place d'office cesserait d'être un choix, et le
+	// joueur la subirait au lieu de la préférer à ce qu'elle écarte.
+	for i := range w.passifs.Recipes {
+		if !w.fusions[i] && w.reunie(&w.passifs.Recipes[i]) {
+			w.candidats = append(w.candidats, fusion(&w.passifs.Recipes[i], i))
 		}
 	}
 
-	if len(w.eligibles) > Choices {
+	if len(w.candidats) > Choices {
 		for k := range Choices {
-			j := k + w.hasard.Cards.IntN(len(w.eligibles)-k)
-			w.eligibles[k], w.eligibles[j] = w.eligibles[j], w.eligibles[k]
+			j := k + w.hasard.Cards.IntN(len(w.candidats)-k)
+			w.candidats[k], w.candidats[j] = w.candidats[j], w.candidats[k]
 		}
-		w.eligibles = w.eligibles[:Choices]
+		w.candidats = w.candidats[:Choices]
 	}
 
-	for _, i := range w.eligibles {
-		w.cartes = append(w.cartes, carte(&w.passifs.Axes[i], i, w.paliers[i]+1))
-	}
+	w.cartes = append(w.cartes, w.candidats...)
 	for len(w.cartes) < Choices {
 		w.cartes = append(w.cartes, soupape(w.passifs.Relief))
 	}
+}
+
+// reunie dit si les ingrédients d'une recette sont tous réunis.
+//
+// **Elle reste vraie tant qu'ils le sont**, ce qui garde la carte offerte au
+// tirage suivant : celui qui préfère autre chose au moment où elle paraît ne perd
+// pas la recette. C'est `w.fusions` qui la retire, une fois prise.
+//
+// L'axe d'un ingrédient se cherche par sa clé à chaque ouverture plutôt que
+// d'être résolu au chargement. Six axes et deux ingrédients font une douzaine de
+// comparaisons dans un tick qui arrive toutes les vingt secondes, et rien n'y est
+// alloué — un index résolu d'avance serait une seconde description du rang d'un
+// axe, qui change quand la table en gagne un.
+func (w *World) reunie(r *Recipe) bool {
+	for _, ingredient := range r.Ingredients {
+		rang := -1
+		for i := range w.passifs.Axes {
+			if w.passifs.Axes[i].Axis == ingredient.Axis {
+				rang = i
+				break
+			}
+		}
+		if rang < 0 {
+			// Un axe inconnu est refusé au chargement : ici, il ne peut venir que
+			// d'une table bâtie à la main dans un test, et la recette n'est alors
+			// jamais offerte plutôt que d'ouvrir un index hors bornes.
+			return false
+		}
+
+		exige := ingredient.Tiers
+		if ingredient.Spent {
+			exige = w.passifs.Axes[rang].Tiers
+		}
+		if w.paliers[rang] < exige {
+			return false
+		}
+	}
+	return true
 }
 
 // carte compose la carte d'un palier d'axe.
@@ -163,7 +236,23 @@ func carte(axe *Passive, index, palier int) Card {
 		Name:   axe.Name,
 		Effect: axe.Effects[palier-1],
 		Phrase: axe.Phrase,
-		axe:    index,
+		sorte:  carteAxe,
+		index:  index,
+	}
+}
+
+// fusion compose la carte d'une recette.
+//
+// **Sa ligne d'effet nomme la fusion et non un palier**, parce qu'elle n'en a
+// qu'un : ce que le joueur doit lire est qu'une carte de cette sorte n'existait
+// pas au tirage précédent.
+func fusion(r *Recipe, index int) Card {
+	return Card{
+		Name:   r.Name,
+		Effect: "Fusion",
+		Phrase: r.Phrase,
+		sorte:  carteFusion,
+		index:  index,
 	}
 }
 
@@ -173,6 +262,6 @@ func soupape(r Relief) Card {
 		Name:   r.Name,
 		Effect: r.Effect,
 		Phrase: r.Phrase,
-		axe:    -1,
+		sorte:  carteSoupape,
 	}
 }

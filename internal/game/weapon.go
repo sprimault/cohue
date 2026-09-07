@@ -112,6 +112,19 @@ type Weapon struct {
 	// bout. La carte reste offerte à qui n'a pas encore de front — les cartes ne
 	// s'auto-censurent pas —, et c'est son libellé qui doit le dire.
 	Spread Fixed
+	// Rail dit que le tir ne s'arrête plus sur rien de vivant, et Spray que la
+	// salve converge au point visé au lieu de s'en écarter.
+	//
+	// **Deux drapeaux nommés plutôt qu'une table d'effets** : le vocabulaire est
+	// fermé — voir `Effect` —, donc leur nombre est connu, et un `if` nommé se lit
+	// à l'endroit où il agit. Une table indexée par effet demanderait une
+	// allocation dans une struct que le monde copie à chaque partie.
+	//
+	// Ils ne sont pas des paliers : une fusion se prend une fois, et ce qu'elle
+	// change est une nature. `docs/conception.md` dit pourquoi ce ne peut pas être
+	// un chiffre.
+	Rail  bool
+	Spray bool
 	// ProjectileSpeed est la vitesse d'un projectile, en tuiles par tick.
 	ProjectileSpeed Fixed
 }

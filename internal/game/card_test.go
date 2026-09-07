@@ -242,6 +242,143 @@ func TestPlusDAxesQueDePlacesFaitTirer(t *testing.T) {
 	}
 }
 
+// rangAxe rend la place d'un axe dans la table livrée.
+func rangAxe(t *testing.T, w *World, cle Axis) int {
+	t.Helper()
+	rang := slices.IndexFunc(w.passifs.Axes, func(a Passive) bool { return a.Axis == cle })
+	if rang < 0 {
+		t.Fatalf("axe « %s » absent de la table livrée", cle)
+	}
+	return rang
+}
+
+// monter pose des paliers sur un axe sans passer par les cartes.
+//
+// **L'entrée est bâtie pour isoler le critère**, ce que la doctrine autorise :
+// ce qu'on éprouve ici est l'éligibilité d'une recette, et le chemin qui monte un
+// axe est gardé par `TestChoisirAppliqueLePalierDeProjectiles`. Y passer
+// demanderait de tirer jusqu'à ce que le bon axe sorte deux fois, ce qui
+// mesurerait le tirage plutôt que la recette.
+func monter(t *testing.T, w *World, cle Axis, paliers int) {
+	t.Helper()
+	w.paliers[rangAxe(t, w, cle)] = paliers
+}
+
+// offertes dit quelles cartes un choix propose, par leur nom.
+func offertes(w *World) []string {
+	w.offrir()
+	noms := make([]string, 0, Choices)
+	for _, c := range w.Pending() {
+		noms = append(noms, c.Name)
+	}
+	return noms
+}
+
+// TestUneRecetteParaitQuandSesIngredientsSontReunis garde les trois moments
+// d'une fusion.
+//
+// **Absente, puis offerte, puis offerte encore** : le troisième est celui qui
+// compte, et c'est une décision de la conception — celui qui préfère autre chose
+// au moment où elle paraît ne perd pas la recette. Une carte offerte une seule
+// fois serait un piège pour qui ne connaît pas encore la table.
+func TestUneRecetteParaitQuandSesIngredientsSontReunis(t *testing.T) {
+	w, _ := champDeCartes(t, monteeSimple())
+
+	monter(t, w, AxisProjectiles, 2)
+	if slices.Contains(offertes(w), "Gerbe") {
+		t.Error("la gerbe est offerte avec un seul de ses deux ingrédients")
+	}
+
+	monter(t, w, AxisSpread, 2)
+	// Les autres axes sont vides, donc six candidats pour trois places : la gerbe
+	// doit sortir du tirage plusieurs fois de suite pour qu'on la voie.
+	vue := false
+	for range 20 {
+		if slices.Contains(offertes(w), "Gerbe") {
+			vue = true
+			break
+		}
+	}
+	if !vue {
+		t.Fatal("la gerbe n'est jamais offerte alors que ses ingrédients sont réunis")
+	}
+
+	// Non prise, elle reste candidate : rien dans `offrir` ne la retire.
+	encore := false
+	for range 20 {
+		if slices.Contains(offertes(w), "Gerbe") {
+			encore = true
+			break
+		}
+	}
+	if !encore {
+		t.Error("la gerbe a disparu sans avoir été prise")
+	}
+}
+
+// TestUnIngredientEpuiseExigeLaBorne garde ce que « epuise » veut dire.
+//
+// **La borne ne se recopie pas dans la table**, sinon elle mentirait le jour où
+// un axe changerait de nombre de paliers. Éprouvé au palier juste en dessous,
+// seul endroit où les deux lectures se séparent.
+func TestUnIngredientEpuiseExigeLaBorne(t *testing.T) {
+	w, _ := champDeCartes(t, monteeSimple())
+	borne := w.passifs.Axes[rangAxe(t, w, AxisPierce)].Tiers
+
+	monter(t, w, AxisRange, 2)
+	monter(t, w, AxisPierce, borne-1)
+	for range 20 {
+		if slices.Contains(offertes(w), "Rail") {
+			t.Fatalf("le rail est offert à %d paliers de perforant, la borne étant %d",
+				borne-1, borne)
+		}
+	}
+
+	monter(t, w, AxisPierce, borne)
+	vu := false
+	for range 20 {
+		if slices.Contains(offertes(w), "Rail") {
+			vu = true
+			break
+		}
+	}
+	if !vu {
+		t.Error("le rail n'est pas offert avec le perforant épuisé")
+	}
+}
+
+// TestUneRecettePriseSortDuTirageEtPoseSonEffet ferme le chemin de la carte à
+// l'arme.
+func TestUneRecettePriseSortDuTirageEtPoseSonEffet(t *testing.T) {
+	w, _ := champDeCartes(t, monteeSimple())
+	monter(t, w, AxisProjectiles, 2)
+	monter(t, w, AxisSpread, 2)
+
+	pris := false
+	for range 20 {
+		rang := slices.IndexFunc(w.Pending(), func(c Card) bool { return c.Name == "Gerbe" })
+		if rang < 0 {
+			w.offrir()
+			continue
+		}
+		w.Choose(rang)
+		pris = true
+		break
+	}
+	if !pris {
+		t.Fatal("la gerbe n'a pas été offerte en vingt tirages")
+	}
+
+	if !w.arme.Spray {
+		t.Error("la gerbe prise ne pose pas son effet sur l'arme")
+	}
+	for range 20 {
+		if slices.Contains(offertes(w), "Gerbe") {
+			t.Fatal("la gerbe est offerte une seconde fois")
+		}
+	}
+}
+
 // TestChoisirAppliqueLePalierDeProjectiles ferme le chemin de la carte à l'arme.
 //
 // Les tests de géométrie de `shooting_test.go` posent le nombre sur l'arme pour

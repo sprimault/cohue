@@ -176,6 +176,9 @@ type vue struct {
 	// Sans passer par une caisse : la chute est un tirage, et une vue qui en
 	// dépendrait montrerait un sol vide une fois sur trois.
 	poseDesArmes bool
+	// declencheUneArme dépense une charge de l'emplacement tenu, pour que la
+	// déflagration porte et que ses chiffres jaillissent.
+	declencheUneArme bool
 	// surUneCaisse pose le joueur sur la première caisse du lieu, qu'il casse
 	// alors au premier contact.
 	surUneCaisse bool
@@ -281,6 +284,14 @@ var vues = []vue{
 	// se comptent d'un coup d'œil, et qu'une arme posée au sol se voie parmi le
 	// décor. La horde est retirée pour que rien ne passe devant.
 	{nom: "armes", videLaHorde: true, poseDesArmes: true},
+
+	// **Les chiffres de dégâts, et la graduation qui les distingue.** Ce qui se
+	// relit ici est ce qu'aucune mesure ne dit : qu'un « 1 » de tir de base reste
+	// discret dans une horde dense, et qu'un « 6 » de grenade s'en détache. La
+	// horde reste, puisque c'est la masse qui rend la question intéressante — un
+	// chiffre seul sur un sol vide serait toujours lisible.
+	{nom: "degats", ticks: 300 * game.TPS, poseDesArmes: true,
+		declencheUneArme: true, jusquAlEffet: &effetChiffre},
 
 	// La vignette de danger, qui ne se juge que sur ce qu'elle laisse voir : la
 	// horde doit rester lisible au centre, sans quoi le signal coûte la fuite
@@ -517,6 +528,14 @@ func (p *planche) vue(v vue) error {
 		partie.World.SpawnDrop("grenade", px+game.FromInt(2), py)
 	}
 
+	// **Après les pas, parce que la déflagration ne dure qu'une mèche.**
+	// Déclenchée avant, elle aurait détoné pendant la course et ses chiffres
+	// seraient éteints à l'image. Les ticks joués ici sont ceux de la mèche, plus
+	// de quoi laisser les chiffres monter.
+	if v.declencheUneArme {
+		attendreUnGrosChiffre(partie.World)
+	}
+
 	// La ruée se dessine en plein vol : quelques ticks suffisent à ce que les
 	// gemmes soient parties sans être arrivées, ce qui est le seul état où la
 	// convergence se juge.
@@ -710,6 +729,7 @@ func run() error {
 var (
 	effetCaisse  = game.FxCrate
 	effetSouffle = game.FxBlast
+	effetChiffre = game.FxDamage
 )
 
 // poserUneBaudruche en fait apparaître une à deux tuiles du joueur.
@@ -774,6 +794,39 @@ func degagerLaHorde(monde *game.World) {
 	horde := monde.Enemies()
 	for horde.Len() > 0 {
 		horde.RemoveAt(0)
+	}
+}
+
+// attendreUnGrosChiffre joue jusqu'à ce qu'une déflagration ait porté.
+//
+// **Elle s'arrête sur l'événement et non sur un compte de pas**, ce que la
+// doctrine exige d'un artefact — et les essais qui l'ont précédée montrent
+// pourquoi : la mèche d'une demi-seconde et un chiffre d'un tiers ne se
+// recouvrent qu'un instant, si bien qu'un compte trop court montre l'emprise
+// encore allumée et un compte trop long des chiffres déjà éteints. Aucune valeur
+// n'est bonne, et celle qui le paraîtrait cesserait de l'être au premier réglage
+// de mèche.
+//
+// **Le déclenchement se retente à chaque pas**, pour la même raison : une lourde
+// ne part que si une cible est à portée, et le pilote tourne à distance de la
+// horde. Déclencher une fois puis attendre laissait la charge intacte et la
+// planche sans chiffre — ce qui ne se voyait pas, l'emprise n'étant simplement
+// jamais apparue.
+//
+// La borne est large : ce qu'elle garde est l'arrêt de la planche, jamais une
+// propriété de la déflagration.
+func attendreUnGrosChiffre(monde *game.World) {
+	for tick := range 10 * game.TPS {
+		effets := monde.Fxs()
+		for i := range effets.Active() {
+			if e := effets.At(i); e.Kind == game.FxDamage && e.Amount > 1 {
+				return
+			}
+		}
+		if monde.Blasts().Len() == 0 {
+			monde.Trigger(0)
+		}
+		monde.Step(session.Pilot(game.Tick(tick)))
 	}
 }
 

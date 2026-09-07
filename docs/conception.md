@@ -1132,7 +1132,11 @@ Un libellé d'emplacement porte la **touche**, jamais le nom. L'icône dit déj�
 
 Une flèche ne fait donc que déplacer une désignation, qu'un bord de couleur porte, et la prise demande **Espace ou Entrée** — les deux touches dont le sens est « je confirme », qui valent l'une pour l'autre partout où le jeu attend un accord, relance comprise. Rien d'irréversible ne part plus d'une touche tenue pour autre chose, et le choix redevient délibéré, ce que la pause existe pour permettre.
 
-Les chiffres de dégâts jaillissent au-dessus de n'importe quoi — décor clair, flaque, carrelage. Ils portent donc un contour ou une ombre portée d'un pixel, sans quoi leur couleur, distincte pour les critiques, ne suffit pas à les détacher du fond. C'est la discipline des contours foncés du paragraphe précédent, appliquée à ce qui n'est pas un sprite.
+Les chiffres de dégâts jaillissent au-dessus de n'importe quoi — décor clair, flaque, carrelage. Ils portent donc un contour ou une ombre portée d'un pixel, sans quoi leur couleur ne suffit pas à les détacher du fond. C'est la discipline des contours foncés du paragraphe précédent, appliquée à ce qui n'est pas un sprite.
+
+**Ce qui les distingue entre eux est leur montant, et non une nature.** Une horde dense en produit des dizaines par seconde, et ce chapitre veut que l'écran chargé appartienne au joueur et aux menaces : les petits chiffres sont donc discrets, et seuls les gros se remarquent. La graduation se prend sur ce que le coup retire — un tir de base en retire une, une grenade six —, si bien qu'elle ne demande aucun mécanisme et suit ce que l'équilibrage fera des armes.
+
+**La teinte distincte des critiques attend qu'un mécanisme produise des coups distincts.** Ce document l'a longtemps annoncée comme acquise ; or aucun des six axes ni aucune arme n'en produit, et un critique suppose une probabilité, donc un tirage, donc une propriété qu'aucune décision ne porte. L'inventer pour cette phrase serait du contenu écrit d'avance sur son besoin. Elle est donc **due le jour où une arme ou un passif fera sortir un coup du lot**, et la graduation par montant tient d'ici là ce qu'elle promettait — la variation se voit, elle vient seulement d'ailleurs.
 
 ### Les tuiles
 

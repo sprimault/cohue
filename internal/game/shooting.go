@@ -406,6 +406,7 @@ func (w *World) toucher(depart Vec, p *Projectile) bool {
 	e := w.ennemis.At(touchee)
 	e.Hits -= p.Hits
 	e.Flash = eclairImpact
+	w.compter(e.X, e.Y, p.Hits)
 	if e.Hits <= 0 {
 		w.lacher(e)
 		w.amorcer(e)

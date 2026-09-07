@@ -48,6 +48,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
   charges, une déflagration qui part sur la créature la plus proche et emporte la
   horde autour sans jamais toucher le joueur — il ne dirige pas son lancer. À
   court de charges, elle est jetée.
+- **Les coups qui portent affichent ce qu'ils retirent.** Un chiffre jaillit
+  au-dessus de ce qui vient d'être touché, avec un contour qui le détache du
+  décor. Les petits montants restent discrets et les gros passent en pleine
+  teinte : dans une horde dense, on remarque ce qui a fait mal sans lire chaque
+  coup.
 - **Une arme lourde se voit, au sol comme en main.** Elle est dessinée là où elle
   tombe, et l'emplacement qui la tient montre son icône avec une pastille par
   charge — celles dépensées restent, éteintes, pour qu'on lise ce qu'on a brûlé.
@@ -98,6 +103,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **A grenade fires on key 2.** First heavy weapon: three charges, a blast that
   lands on the nearest creature and takes out the horde around it without ever
   touching the player — he does not aim his throw. Out of charges, it is dropped.
+- **Hits that land show what they take off.** A number springs above whatever was
+  just struck, outlined so it stands off the scenery. Small amounts stay dim and
+  large ones go to full tint: in a dense horde you notice what hurt without
+  reading every hit.
 - **A heavy weapon is visible, on the ground as in hand.** It is drawn where it
   falls, and the slot holding it shows its icon with one pip per charge — spent
   ones stay, dimmed, so you read what you have burnt. The slot disappears when the

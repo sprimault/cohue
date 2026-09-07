@@ -116,7 +116,7 @@ L'effacement travaille au-delà de l'aimant. Ramasser oblige à revenir là où 
 
 **Une gemme s'éteint progressivement, elle ne clignote pas**, et pas seulement pour épargner un signal clignotant à un écran déjà chargé où il concurrencerait les télégraphes. L'extinction donne une information continue : l'âge d'une gemme se lit, donc la récolte d'un déclenchement s'estime avant d'appuyer. C'est ce qui fait du déclenchement une lecture de la salle plutôt qu'un réflexe, et c'est ce qu'on casserait en revenant au clignotement pour une raison de lisibilité.
 
-**La montée sonore du déclenchement reste à écrire, et les huit degrés du ramassage ordinaire ne la fournissent pas.** Ils sont conçus pour une volée de quelques gemmes, où la hauteur monte puis retombe après un silence ; deux cents gemmes les parcourent vingt-cinq fois, ce qui donne une scie. Ce qui est décidé est qu'il s'agit d'un son unique, attaché au déclenchement et non à chaque gemme aspirée — le reste se décide en écoutant.
+**La montée sonore du déclenchement reste à écrire, et les huit degrés du ramassage ordinaire ne la fournissent pas.** Elle attend l'étape 17, qui branche le son : les fichiers existent depuis l'étape 5 et rien ne les joue encore. Ils sont conçus pour une volée de quelques gemmes, où la hauteur monte puis retombe après un silence ; deux cents gemmes les parcourent vingt-cinq fois, ce qui donne une scie. Ce qui est décidé est qu'il s'agit d'un son unique, attaché au déclenchement et non à chaque gemme aspirée — le reste se décide en écoutant.
 
 ### La lisibilité de l'échec
 
@@ -313,7 +313,7 @@ Il n'est pas davantage une cible. Le tir étant automatique, le rendre ciblable 
 Il traverse la scène en va-et-vient — il avance tout droit et repart quand il bute, ce qui n'exige aucune trajectoire posée dans la pièce — et son seul effet est d'occuper l'espace où l'on voulait passer. Lui donner des dégâts de contact en referait un Quidam affaibli, c'est-à-dire un doublon ; le ranger parmi les ennemis obligerait chaque boucle écrite ensuite à demander « celui-là attaque-t-il ? ».
 
 - **Le Quidam** : masse lente, il ne fait qu'exister en nombre. Il existe en plusieurs teintes de vêtement — une foule d'un seul bleu se lit comme un bloc uni, alors que six variantes cassent la répétition sans coûter une silhouette de plus. La variante est tirée à l'apparition depuis la graine de la run, donc elle ne casse pas le déterminisme.
-- **Le Molosse** : télégraphe une charge (une demi-seconde d'anticipation, un son), puis fonce en ligne droite et ne corrige plus. Sa charge inflige davantage qu'un contact ordinaire — sans cela, charger ne serait qu'un déplacement rapide. Il punit l'immobilité, mais s'esquive latéralement. Le fait qu'il abandonne le flow field pendant la charge est ce qui le rend lisible. **Il n'apparaît jamais seul** : une meute de trois qui charge en décalé impose d'arrêter de reculer en ligne droite, ce qu'un chien isolé n'obtient pas. La taille de groupe est un champ du profil, pas une exception du spawner.
+- **Le Molosse** : télégraphe une charge (une demi-seconde d'anticipation, un son — celui-ci attend l'étape 17, qui branche le son), puis fonce en ligne droite et ne corrige plus. Sa charge inflige davantage qu'un contact ordinaire — sans cela, charger ne serait qu'un déplacement rapide. Il punit l'immobilité, mais s'esquive latéralement. Le fait qu'il abandonne le flow field pendant la charge est ce qui le rend lisible. **Il n'apparaît jamais seul** : une meute de trois qui charge en décalé impose d'arrêter de reculer en ligne droite, ce qu'un chien isolé n'obtient pas. La taille de groupe est un champ du profil, pas une exception du spawner.
 
   Trois décisions complètent la charge, et elles se tiennent ensemble parce que chacune sans les deux autres retire à la mécanique ce qui la rend jouable.
 
@@ -654,7 +654,7 @@ Les armes lourdes sont **à charges** : lance-flammes, fusil à pompe, grenades,
 
 Règles associées :
 
-- **Affichage en pastilles**, pas en chiffres — trois pastilles qui s'éteignent se lisent en vision périphérique, un « 3/5 » demande de regarder. La dernière pulse. À l'épuisement, disparition de l'interface et son sec, pas de message.
+- **Affichage en pastilles**, pas en chiffres — trois pastilles qui s'éteignent se lisent en vision périphérique, un « 3/5 » demande de regarder. La dernière pulse. À l'épuisement, disparition de l'interface et son sec, pas de message. Le son attend l'étape 17 : la disparition porte l'information, il en est le renfort.
 - **Deux emplacements maximum**, une touche chacun. Une troisième arme ramassée propose l'échange sur place — aperçu au sol, on passe dessus pour prendre, on contourne pour laisser. Aucun menu.
 - **Hors du système d'XP.** Les lourdes ne montent pas de niveau, ce qui garde la table d'évolutions lisible. En revanche les passifs s'y appliquent, sinon une arme trouvée à la douzième minute serait plus faible que le tir de base — ridicule au moment précis où elle doit impressionner.
 

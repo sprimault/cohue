@@ -58,7 +58,7 @@ publié, et explique les conventions du dépôt à qui y contribue.
   charge — celles dépensées restent, éteintes, pour qu'on lise ce qu'on a brûlé.
   L'emplacement disparaît quand l'arme est vide, sans message.
 - **Les armes lourdes sortent des caisses et se ramassent au sol.** Une caisse
-  sur trois en laisse une ; on la prend en marchant dessus. Deux emplacements,
+  sur deux en laisse une ; on la prend en marchant dessus. Deux emplacements,
   touches 2 et 3 : quand les deux sont tenus, marcher dessus ne fait plus rien et
   c'est la touche d'un emplacement qui y met l'arme à la place de la sienne. Aucun
   menu, et contourner la laisse au sol.
@@ -117,7 +117,7 @@ publié, et explique les conventions du dépôt à qui y contribue.
   ones stay, dimmed, so you read what you have burnt. The slot disappears when the
   weapon is empty, with no message.
 - **Heavy weapons come out of crates and are picked up off the ground.** One
-  crate in three leaves one; you take it by walking over it. Two slots, keys 2
+  crate in two leaves one; you take it by walking over it. Two slots, keys 2
   and 3: when both are held, walking over does nothing and it is a slot's key
   that puts the weapon there in place of its own. No menu, and walking around it
   leaves it on the ground.

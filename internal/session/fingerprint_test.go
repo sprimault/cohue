@@ -111,9 +111,17 @@ func jouerLaRun(t *testing.T, graine uint64) string {
 
 	var b strings.Builder
 	vus := map[int]bool{}
-	suivant := 0
+	suivant, montees := 0, 0
 	for tick := 1; tick <= instantanes[len(instantanes)-1].tick; tick++ {
 		s.World.Step(Pilot(game.Tick(tick)))
+
+		// Une carte par tick, comme un joueur qui appuie : les montées en attente
+		// se présentent l'une après l'autre, et `enAttente` se résorbe au lieu de
+		// s'accumuler jusqu'à la fin de la run.
+		if s.World.Choosing() {
+			s.World.Choose(PilotChoice(montees))
+			montees++
+		}
 
 		// Relevé sur la horde vivante et non sur les apparitions : c'est ce que
 		// les instants peuvent voir, et donc ce que l'attendu peut garder.
@@ -130,6 +138,15 @@ func jouerLaRun(t *testing.T, graine uint64) string {
 		suivant++
 	}
 	t.Logf("profils visités par la run : %v", slices.Sorted(maps.Keys(vus)))
+
+	// **Le compte est exigé et non seulement rapporté**, à la différence des
+	// profils visités. Une sonde qui ne prend rien est le défaut que ce test a
+	// porté sans le dire : l'empreinte restait verte en gardant une run où l'arme
+	// n'évolue jamais. Zéro carte est donc un échec, pas une observation.
+	t.Logf("cartes prises par la run : %d", montees)
+	if montees == 0 {
+		t.Error("le pilote n'a pris aucune carte : la run garde une arme de niveau un")
+	}
 	return b.String()
 }
 

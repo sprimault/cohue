@@ -113,6 +113,7 @@ func (w *World) emporter(arme *Weapon, x, y Fixed) {
 
 		e.Hits -= arme.BurstHits
 		e.Flash = eclairImpact
+		w.compter(e.X, e.Y, arme.BurstHits)
 		if e.Hits <= 0 {
 			w.lacher(e)
 			w.amorcer(e)

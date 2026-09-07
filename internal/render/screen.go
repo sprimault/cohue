@@ -26,6 +26,7 @@ package render
 import (
 	"image/color"
 	"math"
+	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -983,8 +984,65 @@ func (s *Screen) peindreEffets(ecran *ebiten.Image) {
 			s.poserObjet(ecran, objet, img, e.X, e.Y, nil)
 		case game.FxCrate:
 			s.peindreVolee(ecran, objetEclatsCaisse, e.X, e.Y, age, e.Total)
+		case game.FxDamage:
+			s.peindreChiffre(ecran, e, age)
 		}
 	}
+}
+
+// montantMarquant est le montant à partir duquel un chiffre passe en pleine
+// teinte.
+//
+// **Trois, parce que c'est ce qu'un Quidam encaisse en entier.** En dessous, le
+// coup est ordinaire et le chiffre reste discret ; au-dessus, il vient d'une
+// arme lourde ou d'une build montée, et c'est ce que le joueur doit remarquer. Le
+// seuil suit donc une unité du jeu plutôt qu'un nombre choisi — le jour où la
+// résistance de base changera, c'est là qu'il faudra revenir.
+const montantMarquant = 3
+
+// hauteurChiffre est ce dont un chiffre s'élève sur sa vie, et departChiffre ce
+// dont il part au-dessus du sol.
+//
+// Le départ vaut la moitié d'un sprite de créature : posé à ses pieds, le chiffre
+// serait recouvert par elle ; posé au-dessus de sa tête, il flotterait sans dire
+// ce qu'il compte.
+const (
+	hauteurChiffre = 10
+	departChiffre  = 32
+)
+
+// peindreChiffre pose ce qu'un coup vient de retirer, au-dessus de ce qu'il a
+// touché.
+//
+// **Ce qui distingue deux chiffres est leur montant, jamais leur nature.** Une
+// horde dense en produit des dizaines par seconde, et le chapitre 14 veut que
+// l'écran chargé appartienne au joueur et aux menaces : les petits restent
+// atténués, les gros passent en pleine teinte. C'est la variation que la teinte
+// des critiques aurait apportée, obtenue sans mécanisme — aucun axe ni aucune
+// arme ne produit de coup critique, et la conception date cette teinte du jour où
+// l'un d'eux le fera.
+//
+// **Il monte et s'efface**, sur la même parabole que les éclats : ce qui jaillit
+// se lit comme un événement, ce qui reste en place se lit comme un état.
+func (s *Screen) peindreChiffre(ecran *ebiten.Image, e *game.Fx, age game.Tick) {
+	texte := strconv.Itoa(e.Amount)
+	ex, ey := s.ecranAuSol(e.X, e.Y)
+
+	// La montée est linéaire et non parabolique : un chiffre n'est pas un objet
+	// qui retombe, c'est une valeur qui s'en va.
+	monte := hauteurChiffre * int(age) / int(e.Total)
+	x := ex - s.hud.Font.Advance(texte)/2
+	y := ey - departChiffre - monte
+
+	teinte := s.hud.Color("texte_attenue")
+	if e.Amount >= montantMarquant {
+		teinte = s.hud.Color("texte")
+	}
+
+	// Le contour d'un pixel, que le chapitre 14 exige : un chiffre jaillit
+	// au-dessus de n'importe quoi — décor clair, flaque, carrelage —, et sa seule
+	// couleur ne suffit pas à le détacher du fond.
+	s.hud.Font.DrawOutlined(ecran, texte, x, y, teinte, s.hud.Color("texte_contour"))
 }
 
 // peindreVolee ouvre une gerbe d'éclats depuis le point où quelque chose a cédé.

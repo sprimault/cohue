@@ -22,6 +22,12 @@ const (
 	FxCrate FxKind = iota
 	// FxBlast est une déflagration qui vient de partir.
 	FxBlast
+	// FxDamage est un coup qui vient de porter, et ce qu'il a retiré.
+	//
+	// **Le seul effet qui porte un nombre**, d'où `Fx.Amount`. Il reste cosmétique
+	// au même titre que les autres : ce que la simulation décide est la résistance
+	// retirée, et le chiffre n'en est que la lecture.
+	FxDamage
 )
 
 // Les durées de vie d'un effet, en ticks.
@@ -37,6 +43,13 @@ const (
 const (
 	dureeEclats  Tick = 24
 	dureeSouffle Tick = 18
+	// dureeChiffre est ce que dure un chiffre de dégâts, un tiers de seconde.
+	//
+	// **Plus court que les éclats, et c'est le nombre qui l'impose** : une horde
+	// dense en produit des dizaines par seconde, et une durée d'une seconde en
+	// laisserait autant à l'écran en permanence. Ce que le joueur doit lire est
+	// que son coup a porté, pas le détail de chaque montant.
+	dureeChiffre Tick = 20
 )
 
 // Fx est un effet bref, posé là où quelque chose a eu lieu.
@@ -64,6 +77,17 @@ type Fx struct {
 	// seul décompte obligerait chaque lecteur à retrouver le total par la sorte,
 	// c'est-à-dire à redire ici ce que la constante dit déjà.
 	Life, Total Tick
+	// Amount est ce que le coup a retiré, nul pour les sortes qui ne comptent
+	// rien.
+	//
+	// **Un champ qui ne vaut que pour une sorte**, comme un profil ne porte que
+	// les champs de son comportement : un montant sur une caisse cassée ne serait
+	// jamais lu et laisserait croire qu'elle inflige quelque chose.
+	//
+	// Il ne décide de rien. Ce que le rendu en tire — la taille du chiffre, sa
+	// teinte — est une lecture, et deux runs d'une même graine les produisent
+	// identiques sans que l'empreinte ait à les porter.
+	Amount int
 }
 
 // Fxs rend le bassin des effets brefs, que le rendu parcourt.
@@ -77,10 +101,35 @@ func (w *World) Fxs() *Pool[Fx] { return w.effets }
 // c'est ce que veut dire cosmétique.
 func (w *World) emettre(x, y Fixed, quoi FxKind) {
 	vie := dureeEclats
-	if quoi == FxBlast {
+	switch quoi {
+	case FxBlast:
 		vie = dureeSouffle
+	case FxDamage:
+		vie = dureeChiffre
 	}
 	w.effets.Spawn(Fx{X: x, Y: y, Kind: quoi, Life: vie, Total: vie})
+}
+
+// compter pose le chiffre d'un coup qui vient de porter.
+//
+// **Sans effet quand le coup ne retire rien**, ce qui arrive à une arme dont les
+// dégâts seraient nuls : un « 0 » qui jaillit annonce un tir raté là où il n'y en
+// a pas eu.
+//
+// Le bassin plein perd le chiffre, comme il perd un éclat : un retour manquant
+// coûte moins qu'un chiffre qui apparaîtrait en retard, au-dessus d'une créature
+// qui n'est plus là.
+func (w *World) compter(x, y Fixed, montant int) {
+	if montant <= 0 {
+		return
+	}
+	w.effets.Spawn(Fx{
+		X: x, Y: y,
+		Kind:   FxDamage,
+		Life:   dureeChiffre,
+		Total:  dureeChiffre,
+		Amount: montant,
+	})
 }
 
 // vieillirEffets fait vivre les effets et retire ceux qui ont fini.

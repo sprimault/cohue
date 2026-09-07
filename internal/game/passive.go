@@ -23,19 +23,21 @@ type Axis string
 
 // Les axes que le manifeste sait nommer.
 //
-// **Cinq sur les six que la conception veut.** Seul l'éventail manque, et c'est
-// le nombre de projectiles qui le conditionne : il écarte les courses d'un front
-// que la salve pose déjà côte à côte.
+// **Les six que la conception veut.** Ce qui reste à l'étape 6 après eux est ce
+// qui les combine — les recettes de fusion —, et non un axe de plus.
 const (
 	AxisCadence     Axis = "cadence"
 	AxisRange       Axis = "portee"
 	AxisProjectiles Axis = "projectiles"
 	AxisPierce      Axis = "perforant"
 	AxisBounce      Axis = "ricochet"
+	AxisSpread      Axis = "eventail"
 )
 
 // axes est la liste close des axes admis.
-var axes = []Axis{AxisCadence, AxisRange, AxisProjectiles, AxisPierce, AxisBounce}
+var axes = []Axis{
+	AxisCadence, AxisRange, AxisProjectiles, AxisPierce, AxisBounce, AxisSpread,
+}
 
 // Passive est un axe d'amélioration, pris palier par palier.
 //
@@ -86,6 +88,12 @@ type Passive struct {
 	// fixé.
 	PierceStep int
 	BounceStep int
+	// SpreadStep est ce qu'un palier ajoute à la largeur de la salve à la portée.
+	//
+	// En tuiles comme `RangeStep`, et jamais en degrés : `Weapon.Spread` dit
+	// pourquoi, et c'est une contrainte de déterminisme plutôt qu'un choix
+	// d'unité.
+	SpreadStep Fixed
 }
 
 // Relief est la carte qui remplit une place quand aucun palier ne le peut.
@@ -173,6 +181,7 @@ type rawAxis struct {
 	Shots     *int     `json:"pas_projectiles,omitempty"`
 	Pierce    *int     `json:"pas_perforations,omitempty"`
 	Bounces   *int     `json:"pas_rebonds,omitempty"`
+	Spread    *float64 `json:"pas_eventail,omitempty"`
 }
 
 // rawRelief porte les champs de la carte de secours.
@@ -244,6 +253,7 @@ func (a rawAxis) axe(cle Axis, base Weapon, dire func(string, ...any)) Passive {
 		{"pas_projectiles", AxisProjectiles, a.Shots != nil},
 		{"pas_perforations", AxisPierce, a.Pierce != nil},
 		{"pas_rebonds", AxisBounce, a.Bounces != nil},
+		{"pas_eventail", AxisSpread, a.Spread != nil},
 	} {
 		switch {
 		case cle == c.pour && !c.present:
@@ -319,6 +329,14 @@ func (a rawAxis) axe(cle Axis, base Weapon, dire func(string, ...any)) Passive {
 			if axe.BounceStep < 1 {
 				dire("%s.pas_rebonds : %d, un palier qui n'ajoute aucun rebond "+
 					"ne change rien au tir", nom, axe.BounceStep)
+			}
+		}
+	case AxisSpread:
+		if a.Spread != nil {
+			axe.SpreadStep = FromFloat(*a.Spread)
+			if axe.SpreadStep < 1 {
+				dire("%s.pas_eventail : %v, un pas que la virgule fixe arrondit "+
+					"à zero n ecarte rien", nom, *a.Spread)
 			}
 		}
 	}

@@ -97,6 +97,8 @@ func (w *World) appliquer(c Card) {
 		w.arme.Pierce += axe.PierceStep
 	case AxisBounce:
 		w.arme.Bounces += axe.BounceStep
+	case AxisSpread:
+		w.arme.Spread += axe.SpreadStep
 	}
 }
 

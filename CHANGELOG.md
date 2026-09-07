@@ -44,6 +44,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Une carte ouvre la salve en éventail.** Les projectiles s'écartent en
+  divergeant, une demi-tuile de plus par palier mesurée à la portée. Sur un tir
+  unique elle ne change rien : c'est avec plusieurs projectiles qu'elle fait une
+  gerbe, et c'est la sixième et dernière carte de la table.
 - **Deux cartes changent ce que devient un tir.** Le perforant le fait traverser
   ce qu'il frappe et poursuivre sa route ; le ricochet le fait repartir vers la
   créature la plus proche, sans jamais lui rendre de portée. Un palier de plus
@@ -72,6 +76,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **A card opens the volley into a spread.** Projectiles diverge as they fly,
+  half a tile wider per tier measured at the weapon's range. On a single shot it
+  changes nothing: it makes a spray only with several projectiles, and it is the
+  sixth and last card of the table.
 - **Two cards change what a shot becomes.** Piercing makes it go through what it
   hits and carry on; ricochet makes it leave again for the nearest creature,
   without ever giving it back any range. One tier each, up to seven.

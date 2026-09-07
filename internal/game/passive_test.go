@@ -8,6 +8,7 @@ package game
 
 import (
 	"errors"
+	"slices"
 	"testing"
 	"testing/fstest"
 
@@ -28,6 +29,7 @@ func tableDEssai(t *testing.T, passifs string) (*Weapons, error) {
 			"reglementaire": {"nom": "Réglementaire", "role": "base", "cadence_ms": 400,
 			                  "portee_tuiles": 6, "degats_touches": 1, "projectiles": 1,
 			                  "front_tuiles": 1.0, "perforations": 0, "rebonds": 0,
+			                  "eventail_tuiles": 0.0,
 			                  "vitesse_projectile_tuiles_s": 12.0}
 		},
 		` + passifs + `
@@ -47,26 +49,42 @@ func TestManifesteLivreDonneLesPassifs(t *testing.T) {
 	}
 	table := armes.Passives
 
-	if len(table.Axes) != 5 {
-		t.Fatalf("%d axe(s), attendu 5", len(table.Axes))
+	if len(table.Axes) != 6 {
+		t.Fatalf("%d axe(s), attendu 6", len(table.Axes))
 	}
-	// Triés par clé de manifeste, ce qui n'est pas l'ordre où on les a écrits :
-	// « perforant » passe avant « portee », et « portee » avant « projectiles ».
-	attendus := []Axis{AxisCadence, AxisPierce, AxisRange, AxisProjectiles, AxisBounce}
+	// Triés par clé de manifeste, ce qui n'est l'ordre ni de leur écriture ni de
+	// leur arrivée : « eventail » ouvre la liste après la cadence, « perforant »
+	// passe avant « portee », et « portee » avant « projectiles ».
+	attendus := []Axis{
+		AxisCadence, AxisSpread, AxisPierce, AxisRange, AxisProjectiles, AxisBounce,
+	}
 	for i, attendu := range attendus {
 		if table.Axes[i].Axis != attendu {
 			t.Errorf("axe %d : %s, attendu %s", i, table.Axes[i].Axis, attendu)
 		}
 	}
+	// **Les valeurs se lisent par clé et non par rang.** L'ordre est alphabétique,
+	// donc chaque axe ajouté décale ses voisins : les rangs écrits ici ont déjà
+	// bougé deux fois, et un test qui les porte en dur se corrige à chaque lot
+	// pour une raison qui n'est pas la sienne. L'ordre reste gardé, juste
+	// au-dessus, où c'est son sujet.
+	axe := func(cle Axis) Passive {
+		i := slices.IndexFunc(table.Axes, func(a Passive) bool { return a.Axis == cle })
+		if i < 0 {
+			t.Fatalf("axe « %s » absent de la table", cle)
+		}
+		return table.Axes[i]
+	}
+
 	// Les pas en clair, pour la même raison que celui de la cadence en dessous :
 	// un test qui refait la lecture du code passe même quand les deux sont faux.
 	for _, cas := range []struct {
 		pas  int
 		quoi string
 	}{
-		{table.Axes[1].PierceStep, "perforations"},
-		{table.Axes[3].ProjectileStep, "projectiles"},
-		{table.Axes[4].BounceStep, "rebonds"},
+		{axe(AxisPierce).PierceStep, "perforations"},
+		{axe(AxisProjectiles).ProjectileStep, "projectiles"},
+		{axe(AxisBounce).BounceStep, "rebonds"},
 	} {
 		if cas.pas != 1 {
 			t.Errorf("pas de %s : %d, attendu 1", cas.quoi, cas.pas)
@@ -75,11 +93,16 @@ func TestManifesteLivreDonneLesPassifs(t *testing.T) {
 
 	// 33 ms à 60 ticks par seconde. La valeur est écrite en clair : un test qui
 	// refait la conversion du code passe même quand les deux sont faux.
-	if table.Axes[0].CooldownStep != 2 {
-		t.Errorf("pas de cadence : %d ticks, attendu 2", table.Axes[0].CooldownStep)
+	if pas := axe(AxisCadence).CooldownStep; pas != 2 {
+		t.Errorf("pas de cadence : %d ticks, attendu 2", pas)
 	}
-	if table.Axes[2].RangeStep != One/2 {
-		t.Errorf("pas de portée : %d, attendu %d", table.Axes[2].RangeStep, One/2)
+	// Une demi-tuile pour la portée comme pour l'éventail, mais sur deux
+	// grandeurs sans rapport : l'une allonge la course, l'autre écarte la salve.
+	if pas := axe(AxisRange).RangeStep; pas != One/2 {
+		t.Errorf("pas de portée : %d, attendu %d", pas, One/2)
+	}
+	if pas := axe(AxisSpread).SpreadStep; pas != One/2 {
+		t.Errorf("pas d'éventail : %d, attendu %d", pas, One/2)
 	}
 	if table.Relief.Heal != 30 {
 		t.Errorf("soin de la soupape : %d, attendu 30", table.Relief.Heal)

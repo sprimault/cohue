@@ -26,12 +26,30 @@ func (w *World) tirer() {
 
 	vers := w.interception(w.ennemis.At(cible)).Direction(0)
 	cote := vers.Perp()
-	for k := range w.arme.Projectiles {
-		depart := cote.Scale(w.ecartDuFront(k))
+	n := w.arme.Projectiles
+	for k := range n {
+		depart := cote.Scale(ecartDansLaSalve(w.arme.Front, k, n))
+
+		// **La course reste `vers` tant que l'ouverture est nulle**, ce qui rend
+		// l'identité vraie par construction plutôt que par ce qu'une
+		// renormalisation rendrait. `Direction` passe par un flottant et un
+		// arrondi ; sur la run de référence elle rend bien `vers` au bit près —
+		// éprouvé en supprimant cette garde, qui laisse l'attendu inchangé —, mais
+		// ce n'est pas une propriété qu'on puisse écrire pour toute direction et
+		// toute portée. Elle évite le calcul, et surtout la question.
+		pas := vers
+		if w.arme.Spread != 0 {
+			// Le point visé est à la portée, décalé de l'ouverture : c'est ce qui
+			// donne l'éventail sans jamais écrire d'angle.
+			pas = vers.Scale(w.arme.Range).
+				Add(cote.Scale(ecartDansLaSalve(w.arme.Spread, k, n))).
+				Direction(k)
+		}
+
 		if _, ok := w.tirs.Spawn(Projectile{
 			X:         w.playerX + depart.X,
 			Y:         w.playerY + depart.Y,
-			Step:      vers.Scale(w.arme.ProjectileSpeed),
+			Step:      pas.Scale(w.arme.ProjectileSpeed),
 			Remaining: w.arme.Range,
 			Hits:      w.arme.Hits,
 			Pierce:    w.arme.Pierce,
@@ -46,22 +64,26 @@ func (w *World) tirer() {
 	w.cooldown = w.arme.Cooldown
 }
 
-// ecartDuFront rend le décalage latéral du k-ième projectile d'une salve.
+// ecartDansLaSalve répartit le k-ième d'une salve de n sur une largeur, centrée.
 //
-// Les projectiles se répartissent sur la largeur que l'arme déclare, centrés sur
-// le canon : le premier à moins la moitié, le dernier à plus la moitié. Un
-// projectile seul reste sur l'axe de visée, ce qu'aucune division ne saurait
-// rendre — d'où le cas séparé plutôt qu'une formule qui vaudrait pour tous.
+// Le premier est à moins la moitié, le dernier à plus la moitié. **Un projectile
+// seul reste sur l'axe de visée**, ce qu'aucune division ne saurait rendre —
+// d'où le cas séparé plutôt qu'une formule qui vaudrait pour tous.
 //
-// **La largeur ne dépend pas du nombre**, si bien qu'un palier de plus resserre
-// la salve au lieu de l'étaler. `Weapon.Front` dit pourquoi, et ce que cela
-// change à l'axe en fin de course.
-func (w *World) ecartDuFront(k int) Fixed {
-	n := w.arme.Projectiles
+// **Deux largeurs la traversent, et c'est ce qui l'a fait extraire.** `Front`
+// écarte les départs au canon, `Spread` écarte les points visés à la portée : la
+// même répartition, sur deux distances. Un éventail se dit alors sans angle, ce
+// que le déterminisme exige — voir `Weapon.Spread`.
+//
+// **Aucune des deux ne dépend du nombre**, si bien qu'un palier de projectiles
+// resserre la salve au lieu de l'étaler. La conséquence qui compte pour
+// l'éventail est le cas `n < 2` : il ne fait rien sur un tir seul, et la carte
+// reste offerte quand même.
+func ecartDansLaSalve(largeur Fixed, k, n int) Fixed {
 	if n < 2 {
 		return 0
 	}
-	return w.arme.Front.Mul(FromInt(k)).Div(FromInt(n-1)) - w.arme.Front.Div(FromInt(2))
+	return largeur.Mul(FromInt(k)).Div(FromInt(n-1)) - largeur.Div(FromInt(2))
 }
 
 // tirerLaHorde fait tirer les créatures dont le profil porte une portée.

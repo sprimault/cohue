@@ -13,6 +13,7 @@
       "front_tuiles": 1.0,
       "perforations": 0,
       "rebonds": 0,
+      "eventail_tuiles": 0.0,
       "vitesse_projectile_tuiles_s": 12.0
     }
   },
@@ -53,6 +54,13 @@
         "phrase": "Les tirs repartent.",
         "paliers": 6,
         "pas_rebonds": 1
+      },
+      "eventail": {
+        "$comment": "Une demi-tuile de largeur en plus par palier, mesurée à la portée de l'arme : la salve s'ouvre de trois tuiles sur l'axe entier, soit la moitié de la portée de départ. || Une largeur et non un angle, et c'est le déterminisme qui l'impose : l'IEEE-754 ne garantit pas le dernier bit de sin et cos d'une architecture à l'autre, et la simulation tourne sur trois cibles dont deux arm64. Un point à viser suffit, et la direction sort d'une normalisation par sqrt, qui est le seul arrondi garanti. Ne pas convertir ce pas en degrés. || Elle s'ajoute au front au lieu de le remplacer : un premier palier qui ramènerait les départs au canon retirerait la couverture rapprochée, et ce serait le seul palier de la table à faire perdre quelque chose. || L'éventail ne fait rien sur une salve d'un seul tir, la répartition étant centrée. La carte reste offerte quand même — les cartes ne s'auto-censurent pas —, et c'est sa phrase qui le dit : celui qui la prend sans projectiles prépare une gerbe.",
+        "nom": "Éventail",
+        "phrase": "Les projectiles s'écartent en éventail.",
+        "paliers": 6,
+        "pas_eventail": 0.5
       }
     },
     "soupape": {

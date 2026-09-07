@@ -669,6 +669,7 @@ la raison pour laquelle le motif est difficile à voir :
 | `cout_traversee` | la traversée est gratuite | l'absence, dans un `*int` |
 | `max_simultane` | aucun plafond de simultanéité | l'absence, dans un `*int` |
 | la génération d'un `Handle` | rien | la validité : les compteurs partent à 1 |
+| l'axe d'une `Card` | le premier axe de la table | la question : une sorte dit d'où la carte vient |
 
 D'où le critère, qui choisit au lieu d'interdire : **le zéro a-t-il une
 signification métier ?** S'il en a une, elle ne se retire pas, et c'est
@@ -676,6 +677,30 @@ l'absence qui doit se représenter ailleurs. S'il n'en a pas, on lui en donne
 une, et le zéro devient l'état que rien de valide ne produit — `Handle{}` ne
 désigne alors aucune entité, ce qui est exactement ce qu'un champ oublié doit
 valoir.
+
+**Le troisième remède est d'une autre force que les deux premiers, et il vaut
+d'être nommé.** Un `*int` rend l'absence représentable ; une génération qui part
+à 1 réserve le zéro à l'invalide. Tous deux laissent l'état absurde
+**exprimable** et se contentent de le rendre reconnaissable. Un couple sorte et
+index, lui, **supprime la question** : il n'y a plus de valeur à interpréter, la
+sorte dit ce qu'on lit et l'index n'a de sens que dans la table qu'elle nomme.
+
+Le cas est celui d'une carte de montée de niveau. Elle portait un index d'axe
+valant `-1` pour la soupape, ce qui marchait tant qu'il n'y avait que deux
+provenances ; la troisième — les fusions — a rendu « ni l'un ni l'autre »
+exprimable, et le zéro d'un champ oublié désignait le premier axe de la table.
+La sorte l'a fermé, et sa valeur zéro est celle qui n'a pas d'index.
+
+C'est [Détecter et empêcher ne sont pas au même
+endroit](#détecter-et-empêcher-ne-sont-pas-au-même-endroit) vu depuis la valeur
+plutôt que depuis le type : `Capacities` rend une inversion inécrivable, une
+sorte rend une provenance ambiguë inécrivable.
+
+**Ce qui le borne, et l'empêche de devenir le remède par défaut :** il ne
+s'applique que quand les provenances sont **connues et closes**. Trois sortes de
+cartes, oui. Un index dans une table qu'on étendra, non — on y retomberait sur
+une sentinelle déguisée en sorte, avec un cas « autre » qui redeviendrait la
+valeur qu'il faut interpréter.
 
 Cette règle est de la même famille que les deux du chapitre Tests, « un contrôle
 privé de son entrée échoue » et « une planche que rien ne fabrique ne relit

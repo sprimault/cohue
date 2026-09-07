@@ -664,6 +664,12 @@ Règles associées :
 - **Ce qu'une lourde emporte n'emporte pas le joueur.** Une grenade qui le blesserait créerait une décision de placement — viser loin, donc reculer avant de lancer — qu'il ne peut pas prendre : le tir est automatique et il ne contrôle que son déplacement, si bien qu'il ne dirige pas son lancer. Le punir d'un geste qu'il n'oriente pas serait une sanction sans recours, ce que ce document refuse ailleurs. C'est ce qui la sépare de la Baudruche, qu'on voit venir et dont on s'écarte. La question se rouvrira le jour où une lourde deviendra dirigeable, et ce sera le bon moment : le joueur pourra alors éviter.
 - **Une trouvaille toutes les 60 à 90 secondes environ.** Plus rare, le joueur oublie la mécanique et ne l'apprend jamais. Plus fréquent, elle remplace le socle infini.
 
+  **Elle sort des caisses, et son rythme dépend donc du lieu — ce qui est admis ici et refusé pour les gemmes.** La différence est de nature : une salle pauvre en caisses donne moins d'armes lourdes, ce qui est une variation de style, et le joueur garde son arme de base et ses paliers. Les gemmes, elles, commandent le métronome des choix, dont ce document fait une règle dure ; leur rythme ne peut donc pas dépendre de ce qu'un auteur écrit. Le « environ » de cette ligne est ce qui l'admet : c'est une cible d'équilibrage, pas une période.
+
+- **La troisième arme ramassée se prend sur une touche, jamais dans un menu.** Un emplacement libre, marcher dessus suffit ; les deux pleins, marcher dessus ne fait rien et presser la touche d'un emplacement y met l'arme à la place de celle qu'il tenait. Une seule règle couvre les deux cas — la touche d'un emplacement, pressée sur une arme au sol, y met cette arme — et contourner laisse l'arme, ce que ce chapitre veut.
+
+  Les trois autres lectures se valaient moins : remplacer la plus ancienne, la moins chargée ou la première fait perdre une arme sans que le joueur sache laquelle, et aucun aperçu au sol ne peut le lui dire à l'avance.
+
 Variante si les consommables gênent l'équilibrage : de la surchauffe plutôt que des charges. Même rythme, même retenue, pas de mort par assèchement.
 
 ### Ce qui reste à décider en jouant

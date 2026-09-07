@@ -168,12 +168,12 @@ type World struct {
 	// `Passives.Recipes`. Une fusion se prend une fois, là où un axe compte des
 	// paliers — d'où un booléen et non un compteur.
 	fusions []bool
-	// lourde est l'arme lourde que le joueur tient.
-	//
-	// **Un emplacement et non deux**, tant que le ramassage n'existe pas : la
-	// conception en veut deux, et les poser avant qu'on puisse en trouver une
-	// seconde ferait un tableau dont une moitié ne se remplirait jamais.
-	lourde Heavy
+	// lourdes sont les emplacements d'armes lourdes, vides quand la charge est
+	// nulle. Un tableau et non une tranche : leur nombre est une règle de
+	// conception, pas une capacité qu'on règle au montage.
+	lourdes [Slots]Heavy
+	// armesAuSol porte les armes lourdes tombées, en attente d'être prises.
+	armesAuSol *Pool[Drop]
 	// enAttente est le nombre de choix dus au joueur, en plus de celui qui est
 	// ouvert. Une récolte abondante en donne deux d'un coup, et les présenter
 	// l'un après l'autre est la seule façon de n'en perdre aucun.
@@ -253,6 +253,11 @@ type Capacities struct {
 	Gems int
 	// Crates est le nombre de caisses qu'un lieu peut porter.
 	Crates int
+	// Drops est le nombre d'armes lourdes qui peuvent attendre au sol.
+	//
+	// Petit par nature : une arme ne s'efface pas, mais le joueur qui en laisse
+	// traîner plus que ce bassin n'en tient a déjà refusé les précédentes.
+	Drops int
 	// Fx est le nombre d'effets brefs qui vivent à la fois. Le seul bassin
 	// entièrement cosmétique de la partie.
 	Fx int
@@ -292,6 +297,7 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scena
 		ambiants:    NewPool[Ambient](capacites.Ambients),
 		gemmes:      NewPool[Gem](capacites.Gems),
 		caisses:     NewPool[Crate](capacites.Crates),
+		armesAuSol:  NewPool[Drop](capacites.Drops),
 		effets:      NewPool[Fx](capacites.Fx),
 		aimants:     NewPool[Magnet](1),
 		hasard:      NewStreams(graine),
@@ -463,6 +469,11 @@ func (w *World) Step(voulu Vec) {
 	w.attirer()
 	w.prendreAimant()
 	w.progresser(w.ramasser())
+	// **Après les gemmes et avant la casse, pour la même raison qu'elles.** Une
+	// arme tombée d'une caisse cassée dans ce tick serait prise sans avoir jamais
+	// existé à l'écran ; posée après, elle attend le tick suivant et le joueur la
+	// voit sous ses pieds avant de la tenir.
+	w.ramasserUneArme()
 	// **Après le ramassage, et l'ordre inverse a été essayé.** Le joueur casse
 	// la caisse en arrivant dessus, donc les gemmes tombent à ses pieds : posées
 	// avant la récolte du même tick, elles étaient ramassées sans avoir jamais

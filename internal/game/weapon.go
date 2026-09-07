@@ -180,6 +180,13 @@ type Weapons struct {
 	Base Weapon
 	// All sont toutes les armes, triées par clé de manifeste.
 	All []Weapon
+	// Heavy sont les rangs des armes lourdes dans `All`.
+	//
+	// Des rangs et non des copies : ce qu'une arme au sol porte est une place
+	// dans la table, comme une créature porte l'index de son profil. Composés au
+	// chargement parce que les composer au tirage allouerait, dans un tick qui
+	// casse une caisse comme un autre.
+	Heavy []int
 	// Passives sont les axes d'amélioration et la carte de secours.
 	Passives *Passives
 }
@@ -215,6 +222,9 @@ func LoadWeapons(fsys fs.FS, chemin string) (*Weapons, error) {
 		if a.Role == roleBase {
 			bases++
 			table.Base = arme
+		}
+		if a.Role == roleHeavy {
+			table.Heavy = append(table.Heavy, len(table.All)-1)
 		}
 	}
 	if bases != 1 {

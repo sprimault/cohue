@@ -73,6 +73,12 @@ func (w *World) Fingerprint() string {
 		fmt.Fprintf(&b, "gemme %d id=%d gen=%d x=%d y=%d ne=%d attiree=%t\n",
 			i, id, w.gemmes.gens[id], g.X, g.Y, g.Born, g.Pulled)
 	}
+	for i := range w.armesAuSol.Active() {
+		d := w.armesAuSol.At(i)
+		id := w.armesAuSol.IDAt(i)
+		fmt.Fprintf(&b, "arme au sol %d id=%d gen=%d x=%d y=%d arme=%d\n",
+			i, id, w.armesAuSol.gens[id], d.X, d.Y, d.Weapon)
+	}
 	for i := range w.aimants.Active() {
 		a := w.aimants.At(i)
 		id := w.aimants.IDAt(i)

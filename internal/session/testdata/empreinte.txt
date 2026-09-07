@@ -14,7 +14,7 @@ gemme 0 id=3 gen=1 x=3232447 y=4500801 ne=446 attiree=false
 gemme 1 id=1 gen=1 x=3788748 y=4391273 ne=427 attiree=false
 gemme 2 id=5 gen=1 x=3255617 y=4500801 ne=446 attiree=false
 gemme 3 id=0 gen=2 x=3367256 y=3408288 ne=755 attiree=false
-flux vagues=905137858 positions=847631723 butin=306793347 cartes=812551215
+flux vagues=905137858 positions=847631723 butin=495687234 cartes=812551215
 
 # choisi pour un aimant au sol, une montée franchie et la vie entamée
 tick 2700
@@ -34,7 +34,7 @@ gemme 0 id=0 gen=6 x=3450958 y=3205533 ne=2400 attiree=false
 gemme 1 id=5 gen=6 x=3099442 y=3807803 ne=2552 attiree=false
 gemme 2 id=3 gen=7 x=2954796 y=3801881 ne=2602 attiree=false
 aimant 0 id=0 gen=1 x=4816896 y=884736
-flux vagues=450897158 positions=1036398020 butin=444631208 cartes=359676039
+flux vagues=450897158 positions=1036398020 butin=798434339 cartes=359676039
 
 # choisi pour le seul instant sans aucun tir en vol
 tick 3163
@@ -53,7 +53,7 @@ gemme 1 id=0 gen=8 x=3278346 y=3157126 ne=3156 attiree=false
 gemme 2 id=3 gen=8 x=3152709 y=2892520 ne=3056 attiree=false
 gemme 3 id=5 gen=7 x=3199283 y=2906289 ne=3080 attiree=false
 aimant 0 id=0 gen=1 x=4816896 y=884736
-flux vagues=26261793 positions=287567265 butin=495687234 cartes=826903205
+flux vagues=26261793 positions=287567265 butin=649468241 cartes=826903205
 
 # choisi pour les quatre profils que la run atteint, et le niveau le plus haut
 tick 15987
@@ -99,5 +99,5 @@ gemme 5 id=1 gen=25 x=2940635 y=2355782 ne=15911 attiree=false
 gemme 6 id=10 gen=12 x=2982855 y=2306908 ne=15932 attiree=false
 gemme 7 id=0 gen=34 x=3054862 y=2290966 ne=15954 attiree=false
 aimant 0 id=0 gen=1 x=4816896 y=884736
-flux vagues=253365204 positions=503230892 butin=798434339 cartes=600360347
+flux vagues=253365204 positions=503230892 butin=1029291302 cartes=600360347
 

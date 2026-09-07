@@ -92,6 +92,17 @@ type Progression struct {
 	CarryOver Tick
 	// CrateGems est le nombre de gemmes qu'une caisse laisse en se cassant.
 	CrateGems int
+	// HeavyOdds est la chance qu'une caisse laisse une arme lourde : une sur n.
+	//
+	// **Une chance sur n et non une probabilité en flottant** : la simulation ne
+	// tire que des entiers, et un flottant y rentrerait par la porte que la
+	// virgule fixe a fermée.
+	//
+	// **Le rythme des trouvailles dépend donc du lieu**, ce que la conception
+	// admet ici et refuse pour les gemmes : une salle pauvre en caisses donne
+	// moins d'armes lourdes, ce qui est une variation de style, quand les gemmes
+	// commandent le métronome des choix.
+	HeavyOdds int
 	// CrateRange est la distance à laquelle le joueur casse une caisse, en
 	// tuiles.
 	CrateRange Fixed
@@ -267,6 +278,15 @@ func LoadProgression(fsys fs.FS, chemin string) (*Progression, error) {
 			"detour qu'elle coute", table.CrateGems)
 	}
 
+	table.HeavyOdds = exige("caisses", "arme_une_sur", c.HeavyOdds, dire)
+	if c.HeavyOdds != nil && table.HeavyOdds < 1 {
+		// Une chance sur zéro ou moins n'a pas de sens, et le tirage la
+		// refuserait de toute façon : mieux vaut le dire au chargement que de la
+		// voir ne jamais rien donner.
+		dire("caisses.arme_une_sur : %d, une chance sur moins d'une n'en est pas "+
+			"une", table.HeavyOdds)
+	}
+
 	table.CrateRange = FromFloat(exige("caisses", "portee_contact_tuiles", c.TileRange, dire))
 	if c.TileRange != nil && table.CrateRange < 1 {
 		dire("caisses.portee_contact_tuiles : %v, une portée que la virgule fixe "+
@@ -325,6 +345,8 @@ type rawCrates struct {
 	Object string `json:"objet"`
 	// Gems est le nombre de gemmes qu'elle laisse.
 	Gems *int `json:"gemmes"`
+	// HeavyOdds est la chance qu'elle laisse une arme lourde : une sur n.
+	HeavyOdds *int `json:"arme_une_sur"`
 	// TileRange est la distance à laquelle le joueur la casse, en tuiles.
 	TileRange *float64 `json:"portee_contact_tuiles"`
 }

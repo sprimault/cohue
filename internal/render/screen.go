@@ -25,6 +25,7 @@ package render
 
 import (
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -606,6 +607,7 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 				a.X, a.Y, e.identite, nil)
 		case sorteTir:
 			p := s.monde.Shots().At(e.place)
+			s.peindreTrainee(ecran, p.X, p.Y, p.Step, e.identite)
 			t = s.peindreObjet(ecran, objetTir, p.X, p.Y, e.identite, nil)
 		case sorteTirHorde:
 			p := s.monde.EnemyShots().At(e.place)
@@ -871,6 +873,61 @@ func (s *Screen) peindreObjet(ecran *ebiten.Image, nom string, x, y game.Fixed,
 	t := s.poserObjet(ecran, objet, img, x, y, voile)
 	t.masque, t.forme, t.cache = objet.masque(i), objet.forme(i), objet.cache
 	return t
+}
+
+// peindreTrainee relie un tir à la place qu'il occupait au tick précédent.
+//
+// **Un point de six pixels qui saute de sept ne se lit pas comme un tir.** Relevé
+// le 6 septembre 2026 : les projectiles du joueur sont à l'image sur 23,5 % d'une
+// partie de dix minutes, ils portent et ils tuent, et on ne les voit pas partir.
+// Le contraste n'était pas en cause — 84 de luminance contre le sol, 85 contre un
+// Quidam, c'est-à-dire les deux à la fois. Ce qui manquait est la trajectoire,
+// que rien ne montrait entre deux positions.
+//
+// C'est le sprite lui-même qui comble l'écart, plutôt qu'un trait tracé au code :
+// aucune forme nouvelle à dessiner, et le pixel entier tient puisque aucune image
+// n'est étirée ni pivotée.
+//
+// **Le nombre de copies se dérive du pas et de la largeur du sprite**, et n'est
+// pas un chiffre choisi : une arme plus rapide écarte davantage ses positions, et
+// une valeur figée y laisserait des trous le jour où
+// `vitesse_projectile_tuiles_s` monte. Un pas plus court que le sprite ne laisse
+// rien à combler, et la fonction ne pose alors personne.
+//
+// **Elle ne rend aucune trace.** Un tir ne recouvre rien, et le faire entrer dans
+// ce que la silhouette consulte en ferait un occulteur.
+//
+// Au premier tick de vie d'un projectile, la place précédente est celle du
+// joueur : la traînée part alors du canon, ce qui est l'autre moitié de ce que la
+// mesure demandait.
+func (s *Screen) peindreTrainee(ecran *ebiten.Image, x, y game.Fixed,
+	pas game.Vec, identite int) {
+	objet, img := s.objets.image(objetTir, s.monde.Tick(), identite)
+	if img == nil {
+		return
+	}
+
+	ex, ey := s.ecranAuSol(x, y)
+	ax, ay := s.ecranAuSol(x-pas.X, y-pas.Y)
+	dx, dy := float64(ex-ax), float64(ey-ay)
+
+	largeur := float64(img.Bounds().Dx())
+	saut := math.Hypot(dx, dy)
+	if saut <= largeur {
+		return
+	}
+
+	copies := int(math.Ceil(saut / largeur))
+	for k := 1; k < copies; k++ {
+		part := float64(k) / float64(copies)
+		s.op.GeoM.Reset()
+		s.op.GeoM.Translate(
+			math.Round(float64(ax)+dx*part)+float64(objet.dx),
+			math.Round(float64(ay)+dy*part)+float64(objet.dy),
+		)
+		s.op.ColorScale.Reset()
+		ecran.DrawImage(img, &s.op)
+	}
 }
 
 // peindreEffets pose ce qui reste d'une chose qui n'existe plus.

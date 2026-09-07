@@ -250,7 +250,7 @@ Un obstacle immobile n'appelle qu'une règle : on ne peut y entrer que par accid
 
 La réciprocité règle les deux d'un coup : le Vigile ne pouvant pas entrer dans le joueur, le recouvrement n'a pas lieu et la question de la sortie ne se pose plus. Qui voudra corriger le cas du joueur emmuré en rétablissant la règle asymétrique retirera donc le blocage lui-même, sans le voir.
 
-Le blocage ne peut pas devenir un piège, parce que le corps solide ne l'est que vivant : un joueur pris entre un Vigile et un mur tire nécessairement dessus — c'est le plus proche, et la visée est omnidirectionnelle. Douze touches, c'est long et c'est fini.
+Le blocage ne peut pas devenir un piège, parce que le corps solide ne l'est que vivant : un joueur pris entre un Vigile et un mur tire nécessairement dessus — c'est le plus proche, et la visée redevient omnidirectionnelle dès qu'il n'avance plus. Douze touches, c'est long et c'est fini. **C'est ce que l'exception du chapitre 9 protège** : sans elle, un joueur bloqué poussant dos au Vigile cesserait de le viser, et mourrait coincé sans qu'un pixel dise pourquoi.
 
 **L'exception tient, et le sursis n'est levé qu'à moitié.** Ce qui est éprouvé : le blocage ne piège pas et ne se lit pas comme une injustice — le joueur s'arrête, comprend qu'il doit contourner, et repart. Ce qui ne l'est pas : le cas décrit juste au-dessus, celui d'un joueur **pris entre un Vigile et un mur**, sans direction de repli. C'est lui qui déciderait, et il ne s'est pas présenté.
 
@@ -299,6 +299,8 @@ Résistance et points de chaque profil : chapitre 6.
 **Deux retours le montrent, et le plus utile n'est pas celui qu'on attend.** Voir une créature récupérer explique pourquoi le travail est perdu ; voir *lequel* soigne dit où aller, et c'est la seule information qui change la conduite du joueur — la visée prenant le plus proche, il faut d'abord savoir qui chercher dans une horde qui se ressemble.
 
 Cette mécanique n'existe que parce que la visée est omnidirectionnelle et automatique. Avec le cône avant qu'on a écarté, il aurait suffi de s'orienter pour le prioriser, et il n'aurait rien coûté. Le lien mérite d'être noté ici, parce qu'aucun fichier ne le montre : réintroduire un jour un moyen de viser — un mode, une arme dirigée, une option d'accessibilité — désactiverait le Secouriste sans que personne ne touche au Secouriste.
+
+**La bande arrière écartée depuis le 7 septembre 2026 ne le désactive pas, et c'est ce qui l'a fait retenir plutôt qu'un cône.** Elle laisse viser dans plus de trois cents degrés : le Secouriste n'échappe au tir que s'il se tient exactement dans le dos, ce qu'il ne fait pas — il vient au joueur comme le reste de la horde. Le seul moyen de l'abattre demeure d'aller vers lui. **C'est cette phrase-ci qu'il faut relire avant d'élargir le secteur**, et non le chiffre qui le mesure.
 
 **Le Passant n'est pas dans cette table**, parce qu'il n'est pas un ennemi. Son profil porte le rôle `ambiance`, et tout en découle d'une seule ligne : **ce qui n'est pas hostile n'entre dans aucun compte** — ni le budget de pression, ni le plafond d'effectif, ni un objectif de porte fondé sur les kills. Sans cette dernière conséquence, un lieu peuplé de Passants ouvrirait sa porte tout seul, et son auteur n'aurait aucun moyen de comprendre pourquoi.
 
@@ -636,9 +638,17 @@ Deux recettes pour commencer, celles que la synergie des passifs nommait déjà 
 
 ### La visée
 
-Le tir de base est **automatique** et vise **le plus proche, dans toutes les directions**. Il n'y a pas de cône, et rien ne retient le tir : s'il existe une cible à portée, ça part.
+Le tir de base est **automatique** et vise **le plus proche, dans toutes les directions sauf une**. Rien ne retient le tir : s'il existe une cible visable à portée, ça part.
 
 Un cône avant a d'abord été retenu, avec la règle « cône vide, pas de tir ». Les deux sont abandonnés, et pas au vu d'une mesure : le conflit est logique et aucune partie ne l'aurait tranché autrement. Le chapitre 1 pose que le joueur ne contrôle que son déplacement, le chapitre 4 que tout son jeu est du kiting — et kiter, c'est avoir la horde derrière soi. Un cône avant ferait donc de la fuite un moment sans dégâts, et le seul moyen de tirer serait de cesser de fuir. Aucun angle ne répare ça.
+
+**Cette phrase a été mise à l'épreuve le 7 septembre 2026, et elle a tenu.** Un demi-plan avant, essayé sur la run de référence, a fait tomber les cent abattus qu'ouvrir la porte demande à vingt-six, et le pilote mourait avant. Le document avait raison sans avoir mesuré.
+
+**Ce qui est écarté n'est donc pas un cône avant mais une bande arrière**, et ce n'est pas le même geste. Le sprite s'oriente sur la visée, si bien qu'une visée entièrement libre faisait marcher le joueur à reculons sur 23,7 % des images où il se déplace — la bande à l'opposé exact de son pas. La visée ignore désormais ce seul secteur **quand le joueur marche**, ce qui rend la bande opposée inatteignable et laisse tout le reste, flancs et trois-quarts arrière compris. La fuite continue donc de faire des dégâts, et c'est ce que le paragraphe ci-dessus exige.
+
+**Sa largeur se dérive et ne se règle pas** : les personnages ont huit directions dessinées, donc quarante-cinq degrés par bande, et la bande opposée en couvre vingt-deux et demi de chaque côté. Le jour où une figurine en déclarerait seize, ce secteur suivrait. Mesuré sur les mêmes cent abattus : 26 pour un demi-plan, 80 pour un dos de quatre-vingt-dix degrés, 93 pour soixante, cent pour la bande seule.
+
+**À l'arrêt, plus rien n'est écarté**, et cette exception est ce qui garde le blocage du Vigile sûr : un joueur coincé pousse dos à lui et cesserait de le viser. Le pas retenu est celui qu'il obtient et non celui qu'il demande, si bien que pousser contre un corps ou contre un mur rouvre la visée sans qu'on ait à reconnaître le cas.
 
 Ce que le cône apportait vraiment était visuel, et se garde sans lui : **le sprite s'oriente sur la cible**, pas sur le déplacement. Les 8 directions étant fournies, reculer en tirant vers l'avant se lit immédiatement. Sans cible à portée, il s'oriente sur le déplacement — un personnage figé dans une direction morte se lirait comme un défaut.
 

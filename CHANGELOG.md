@@ -42,6 +42,24 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Modifié
+
+- **Le tir ne prend plus ce qui se tient exactement dans le dos.** Le personnage
+  s'oriente sur ce qu'il vise, et une cible pile derrière lui le faisait marcher
+  à reculons près d'une image sur quatre. La visée ignore désormais la seule
+  bande opposée au pas : flancs et trois-quarts arrière compris, on tire toujours
+  en fuyant. À l'arrêt, elle reprend tout le tour.
+
+***
+
+### Changed
+
+- **Aiming no longer takes what stands exactly behind you.** The character faces
+  what he aims at, and a target right behind him had him walking backwards nearly
+  one frame in four. Aiming now ignores the single band opposite the step: flanks
+  and rear quarters included, you still fire while fleeing. Standing still, it
+  takes the whole circle back.
+
 ## [0.6.0] — 2026-09-07 — Armes, niveaux et synergies
 
 ### Ajouté

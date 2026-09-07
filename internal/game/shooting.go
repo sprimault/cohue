@@ -119,6 +119,63 @@ func ecartDansLaSalve(largeur Fixed, k, n int) Fixed {
 	return ecart
 }
 
+// reductionDuDos ramène deux longueurs au 1/256 de tuile avant de les
+// multiplier.
+//
+// **Les carrés de deux longueurs en virgule fixe frôlent la borne de l'`int64`
+// dès qu'on les multiplie entre eux** : six tuiles au carré valent déjà 1,5e11,
+// et le produit de deux tels carrés déborde. Un huitième de degré de précision ne
+// manque à personne pour décider d'un secteur, et le décalage arithmétique reste
+// déterministe — c'est ce que la virgule fixe demande, pas plus.
+const reductionDuDos = 8
+
+// Le seuil du secteur arrière, `cos²(22,5°)` en dix-millièmes.
+//
+// **C'est la demi-largeur d'une bande de sprite, et non un angle choisi.** Le
+// manifeste des personnages déclare huit directions, donc quarante-cinq degrés
+// chacune ; celle qui fait face à l'opposé du pas couvre vingt-deux degrés et
+// demi de part et d'autre. Écarter ce secteur écarte exactement la bande qui
+// montrait le dos, et pas un degré de plus — le chiffre se dérive du nombre de
+// directions au lieu de se régler.
+const (
+	dosNumerateur   = 8536
+	dosDenominateur = 10000
+)
+
+// dansLeDos dit si un écart tombe dans le secteur arrière d'un pas.
+//
+// **Le secteur strict et non le demi-plan, et la nuance est tout le lot.** Le
+// chapitre 9 a écarté un cône avant avec un argument qui tient toujours : « kiter,
+// c'est avoir la horde derrière soi, un cône avant ferait de la fuite un moment
+// sans dégâts ». Mesuré sur la run de référence, il coûtait les trois quarts des
+// éliminations — cent abattus tombaient à vingt-six, et le pilote mourait avant
+// la porte. Ce qu'une partie jouée reprochait n'était pas de tirer derrière soi
+// mais de **marcher à reculons**, relevé à 23,7 % des images sur la bande à
+// l'opposé exact du pas.
+//
+// Les quatre secteurs mesurés, sur les cent abattus qu'ouvrir la porte demande :
+//
+//	dos écarté   180°   90°   60°   45°
+//	abattus       26     80    93   100
+//
+// Retirer la seule bande opposée règle ce qui se voit sans rien coûter au
+// kiting : on tire encore sur les flancs et le trois-quarts arrière, donc en
+// fuyant.
+//
+// **Sans cosinus, ce que le déterminisme exige** : le signe du produit scalaire
+// donne le côté, et la comparaison de son carré au produit des carrés donne
+// l'angle. Aucune racine, aucun flottant.
+func dansLeDos(ecart, pas Vec) bool {
+	a := Vec{ecart.X >> reductionDuDos, ecart.Y >> reductionDuDos}
+	b := Vec{pas.X >> reductionDuDos, pas.Y >> reductionDuDos}
+
+	s := a.scalaire(b)
+	if s >= 0 {
+		return false
+	}
+	return dosDenominateur*s*s > dosNumerateur*a.carres()*b.carres()
+}
+
 // tirerLaHorde fait tirer les créatures dont le profil porte une portée.
 //
 // **La cadence ne se consomme pas hors de portée**, exactement comme celle de
@@ -264,17 +321,31 @@ func (w *World) auContactDu(x, y Fixed) bool {
 	return ecart.carres() < int64(portee)*int64(portee)
 }
 
-// plusProche rend la place de la créature la plus proche à portée.
+// plusProche rend la place de la créature la plus proche à portée, devant le
+// joueur quand il marche.
 //
-// La visée est omnidirectionnelle et le joueur ne choisit pas : c'est ce qui
-// donnera son rôle au Secouriste, dont le seul moyen de se débarrasser est
-// d'aller vers lui. Réintroduire un moyen de viser le désactiverait sans que
-// personne ne touche au Secouriste.
+// **Elle reste omnidirectionnelle à un secteur près.** Le sprite s'oriente sur
+// la visée, si bien qu'une visée libre faisait marcher le joueur à reculons près
+// d'une image sur quatre. Le cône arrière strict est donc écarté quand il marche
+// — voir `dansLeDos`, qui dit pourquoi il est étroit plutôt qu'un demi-plan.
+//
+// **À l'arrêt, plus rien n'est écarté**, et cette exception est ce qui rend la
+// règle sûre. La conception justifie le corps solide du Vigile ainsi : « un
+// joueur coincé entre un Vigile et un mur tire nécessairement dessus, puisque la
+// visée prend le plus proche, et douze touches finissent par tomber ». Un joueur
+// bloqué pousse dos à lui et ne le viserait plus — il mourrait coincé sans
+// qu'un pixel dise pourquoi. Or `playerStep` porte le pas **obtenu** : pousser
+// contre un corps ou contre un mur y rend zéro, et le cas se referme sans avoir
+// à le reconnaître.
+//
+// **Le Secouriste est intact.** Il n'est écarté que s'il se tient exactement dans
+// le dos, et il vient au joueur : le seul moyen de l'abattre reste d'aller vers
+// lui, ce que le chapitre 4 lui donne pour rôle.
 //
 // La comparaison porte sur les carrés des distances : une racine par créature et
 // par tick, pour un classement que le carré donne aussi bien.
 func (w *World) plusProche() (int, bool) {
-	return w.plusProcheDe(w.playerX, w.playerY, w.arme.Range, Handle{})
+	return w.plusProcheDe(w.playerX, w.playerY, w.arme.Range, Handle{}, w.playerStep)
 }
 
 // plusProcheDe rend la place de la créature vivante la plus proche d'un point.
@@ -291,7 +362,13 @@ func (w *World) plusProche() (int, bool) {
 //
 // `Handle{}` ne désigne aucune entité — les générations partent à un —, si bien
 // que la recherche sans exclusion n'a pas de cas à part.
-func (w *World) plusProcheDe(x, y, portee Fixed, sauf Handle) (int, bool) {
+//
+// **`devant` restreint la recherche au demi-plan qu'il ouvre, et le vecteur nul
+// ne restreint rien.** Ce n'est pas une sentinelle : un pas nul est un mobile à
+// l'arrêt, qui n'a pas de devant, et c'est exactement le cas où l'on cherche tout
+// autour. Le ricochet et la déflagration passent zéro pour la même raison — un
+// projectile qui repart et une grenade qui tombe n'ont pas de dos à protéger.
+func (w *World) plusProcheDe(x, y, portee Fixed, sauf Handle, devant Vec) (int, bool) {
 	if portee <= 0 {
 		// Une arme sans portée n'atteint rien. Sans cette ligne elle viserait ce
 		// qui est exactement superposé au joueur, à la seule distance qu'un
@@ -306,7 +383,11 @@ func (w *World) plusProcheDe(x, y, portee Fixed, sauf Handle) (int, bool) {
 		if e.Hits <= 0 || w.ennemis.HandleAt(i) == sauf {
 			continue
 		}
-		if d := (Vec{e.X - x, e.Y - y}).carres(); d <= meilleure {
+		ecart := Vec{e.X - x, e.Y - y}
+		if devant != (Vec{}) && dansLeDos(ecart, devant) {
+			continue
+		}
+		if d := ecart.carres(); d <= meilleure {
 			meilleure = d
 			choix = i
 		}
@@ -324,7 +405,10 @@ func (w *World) plusProcheDe(x, y, portee Fixed, sauf Handle) (int, bool) {
 // La vitesse se relit sur le pas plutôt que sur l'arme : un projectile en vol ne
 // renvoie pas vers ce qui l'a tiré, et l'arme peut avoir monté de niveau depuis.
 func (w *World) rebondir(p *Projectile) bool {
-	cible, trouvee := w.plusProcheDe(p.X, p.Y, p.Remaining, p.LastHit)
+	// Sans restriction de côté : un projectile qui repart cherche autour de son
+	// impact, et lui imposer le demi-plan de sa course en ferait un tir de plus
+	// plutôt qu'un rebond.
+	cible, trouvee := w.plusProcheDe(p.X, p.Y, p.Remaining, p.LastHit, Vec{})
 	if !trouvee {
 		return false
 	}

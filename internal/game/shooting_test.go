@@ -89,12 +89,139 @@ func TestSansCibleLArmeNeConsommeRien(t *testing.T) {
 	}
 }
 
+// TestLaViseeIgnoreCeQuiEstDerriereEnMarchant garde ce qu'une partie a demandé.
+//
+// **Le joueur ne choisit pas sa cible, il choisit son côté.** Le sprite
+// s'oriente sur la visée, si bien qu'une visée omnidirectionnelle le faisait
+// marcher à reculons près d'une image sur quatre. Ne retenir que le demi-plan du
+// pas fait coïncider la visée et la marche.
+//
+// **Les deux sens, parce qu'un filtre qui prendrait le mauvais signe passerait
+// l'un des deux.** La créature qu'on garde et celle qu'on écarte échangent leurs
+// places d'un cas à l'autre, et le pas avec elles.
+func TestLaViseeIgnoreCeQuiEstDerriereEnMarchant(t *testing.T) {
+	for _, cas := range []struct {
+		quoi string
+		vers Vec
+	}{
+		{"en marchant vers l'est", Vec{X: One}},
+		{"en marchant vers l'ouest", Vec{X: -One}},
+	} {
+		t.Run(cas.quoi, func(t *testing.T) {
+			w, profils := champDeTir(t)
+			px, py := w.Player()
+			marcheur := indexDuProfil(t, profils, "marcheur")
+
+			// La proche est derrière, la lointaine devant : sans le filtre, c'est
+			// la proche qui serait visée, et le cas ne dirait rien si les deux
+			// étaient du même côté.
+			if _, ok := w.SpawnEnemy(marcheur, px-cas.vers.X.Mul(FromInt(2)), py); !ok {
+				t.Fatal("créature refusée")
+			}
+			if _, ok := w.SpawnEnemy(marcheur, px+cas.vers.X.Mul(FromInt(4)), py); !ok {
+				t.Fatal("créature refusée")
+			}
+
+			// **La première salve, et non la mort d'une créature.** Une première
+			// version attendait laquelle tombait, et elle passait sans le filtre :
+			// le joueur marchant, celle qu'il laisse derrière cesse d'être la plus
+			// proche au bout de quelques ticks, si bien que la bonne mourait pour
+			// la mauvaise raison. La course du tir se lit au tick même.
+			w.Step(cas.vers)
+			if w.tirs.Len() == 0 {
+				t.Fatal("aucun tir au premier tick : le cas ne teste rien")
+			}
+			if course := w.tirs.At(0).Step; course.scalaire(cas.vers) <= 0 {
+				t.Errorf("le tir part en %v pour un pas de %v : la visée a pris "+
+					"ce qui est dans le dos", course, cas.vers)
+			}
+		})
+	}
+}
+
+// TestLeFlancEtLeTroisQuartsArriereRestentVises garde ce qui sépare le secteur
+// écarté d'un demi-plan.
+//
+// **C'est la mesure qui a imposé cette étroitesse, et rien ne la garde
+// autrement.** Un demi-plan avant coûtait les trois quarts des éliminations d'une
+// run de référence — kiter, c'est avoir la horde derrière soi, et le chapitre 9
+// l'avait écrit avant qu'on ne le mesure. Sans ce cas, élargir le secteur passe
+// pour un réglage anodin et casse la fuite.
+//
+// Le trois-quarts arrière est le cas qui compte : à quatre-vingt-dix degrés du
+// pas, il tomberait dans un demi-plan et pas dans une bande de sprite.
+func TestLeFlancEtLeTroisQuartsArriereRestentVises(t *testing.T) {
+	for _, cas := range []struct {
+		quoi string
+		ou   Vec
+	}{
+		{"sur le flanc", Vec{Y: FromInt(3)}},
+		{"au trois-quarts arrière", Vec{X: -FromInt(2), Y: FromInt(3)}},
+	} {
+		t.Run(cas.quoi, func(t *testing.T) {
+			w, profils := champDeTir(t)
+			px, py := w.Player()
+
+			if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"),
+				px+cas.ou.X, py+cas.ou.Y); !ok {
+				t.Fatal("créature refusée")
+			}
+
+			w.Step(Vec{X: One})
+			if w.tirs.Len() == 0 {
+				t.Error("aucun tir : la créature a été écartée du secteur visé")
+			}
+		})
+	}
+}
+
+// TestAlArretLaViseeRedevientLibre garde l'exception qui rend la règle sûre.
+//
+// **C'est elle qui empêche le Vigile de devenir un piège.** La conception fonde
+// son corps solide sur le fait qu'un joueur coincé tire nécessairement dessus ;
+// bloqué, il pousse dos à lui, et un filtre appliqué sans exception le laisserait
+// mourir sans qu'un pixel dise pourquoi. `playerStep` portant le pas obtenu et
+// non le pas voulu, pousser contre un mur y rend zéro.
+func TestAlArretLaViseeRedevientLibre(t *testing.T) {
+	w, profils := champDeTir(t)
+
+	// Le joueur pousse vers l'est contre le bord de la salle, où `champDeTir`
+	// pose un mur, jusqu'à ce qu'il n'avance plus. Les pas se jouent avant que
+	// la créature n'existe : ce qu'on veut est un pas obtenu nul, pas une salve.
+	vers := Vec{X: One}
+	w.Place(FromInt(29)+One/2, FromInt(16)+One/2)
+	for range TPS {
+		w.Step(vers)
+	}
+	if w.playerStep != (Vec{}) {
+		t.Fatalf("le joueur avance encore de %v : il n'est pas bloqué", w.playerStep)
+	}
+
+	// Derrière lui au sens du pas qu'il demande, et pourtant visée : le mur lui
+	// rend un pas nul, donc il n'a pas de dos.
+	px, py := w.Player()
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), px-FromInt(2), py); !ok {
+		t.Fatal("créature refusée")
+	}
+
+	w.Step(vers)
+	if w.tirs.Len() == 0 {
+		t.Fatal("aucun tir sur une créature à portée : un joueur bloqué ne vise plus")
+	}
+	if course := w.tirs.At(0).Step; course.scalaire(vers) >= 0 {
+		t.Errorf("le tir part en %v, attendu vers l'arrière du pas demandé", course)
+	}
+}
+
 // TestLeTirViseLePlusProche fixe le ciblage.
 //
-// La visée est omnidirectionnelle et le joueur ne choisit pas : c'est ce qui
-// donnera son rôle au Secouriste à l'étape 4, dont le seul moyen de se
-// débarrasser est d'aller vers lui. Un ciblage qui prendrait n'importe quelle
-// créature à portée le désactiverait par avance, et rien ici ne le dirait.
+// Le joueur ne choisit pas sa cible : c'est ce qui donne son rôle au Secouriste,
+// dont le seul moyen de se débarrasser est d'aller vers lui. Un ciblage qui
+// prendrait n'importe quelle créature à portée le désactiverait par avance, et
+// rien ici ne le dirait.
+//
+// **Le joueur y est immobile**, donc la visée y est libre : ce que ce cas garde
+// est le classement par distance, que le demi-plan n'a pas changé.
 func TestLeTirViseLePlusProche(t *testing.T) {
 	// Les deux cibles sont dans des directions perpendiculaires, et non alignées
 	// : alignées, un projectile visant la lointaine traverse la proche et la

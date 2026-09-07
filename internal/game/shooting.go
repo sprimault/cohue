@@ -74,16 +74,33 @@ func (w *World) tirer() {
 	w.cooldown = w.arme.Cooldown
 }
 
-// ecartDansLaSalve répartit le k-ième d'une salve de n sur une largeur, centrée.
+// ecartDansLaSalve répartit le k-ième d'une salve de n sur une largeur, autour de
+// l'axe de visée.
 //
-// Le premier est à moins la moitié, le dernier à plus la moitié. **Un projectile
-// seul reste sur l'axe de visée**, ce qu'aucune division ne saurait rendre —
-// d'où le cas séparé plutôt qu'une formule qui vaudrait pour tous.
+// **Le rang zéro reste sur l'axe, quel que soit le nombre**, et les suivants
+// s'écartent par paires de part et d'autre : le pas vaut la demi-largeur divisée
+// par le nombre de paires, si bien que la salve ne dépasse jamais `largeur` et se
+// densifie de deux paliers en deux paliers.
+//
+// **La première version répartissait à intervalles égaux du premier au dernier,
+// et elle faisait perdre.** Le centre n'y était occupé que pour un nombre impair
+// ; à deux et à quatre projectiles, la salve encadrait la cible sans jamais la
+// toucher — un Quidam a un rayon de 0,125 tuile pour un front d'une tuile, si
+// bien que le premier palier de l'axe faisait passer d'une touche à zéro. La
+// conception pose qu'à trois projectiles on ne fait pas trois fois un contre une
+// créature isolée ; elle ne dit pas *moins d'une fois un*, et ce projet a
+// explicitement refusé un palier qui fait perdre.
+//
+// **Le prix est l'asymétrie d'un rang pair** : il est le rang impair précédent
+// plus un projectile à une extrémité. Une salve centrée et symétrique ne peut pas
+// tenir les deux à la fois, et c'est le centre qui décide de ce qui touche.
 //
 // **Deux largeurs la traversent, et c'est ce qui l'a fait extraire.** `Front`
 // écarte les départs au canon, `Spread` écarte les points visés à la portée : la
 // même répartition, sur deux distances. Un éventail se dit alors sans angle, ce
-// que le déterminisme exige — voir `Weapon.Spread`.
+// que le déterminisme exige — voir `Weapon.Spread`. Le centre tenu leur profite
+// à toutes les deux : un éventail qui écarterait tout de l'axe ferait rater ce
+// qu'il vise, exactement comme le front.
 //
 // **Aucune des deux ne dépend du nombre**, si bien qu'un palier de projectiles
 // resserre la salve au lieu de l'étaler. La conséquence qui compte pour
@@ -93,7 +110,13 @@ func ecartDansLaSalve(largeur Fixed, k, n int) Fixed {
 	if n < 2 {
 		return 0
 	}
-	return largeur.Mul(FromInt(k)).Div(FromInt(n-1)) - largeur.Div(FromInt(2))
+	// La multiplication précède la division : l'inverse arrondirait le pas avant
+	// de le multiplier, et les extrêmes n'atteindraient plus la demi-largeur.
+	ecart := largeur.Mul(FromInt((k + 1) / 2)).Div(FromInt(2 * (n / 2)))
+	if k%2 == 0 {
+		return -ecart
+	}
+	return ecart
 }
 
 // tirerLaHorde fait tirer les créatures dont le profil porte une portée.

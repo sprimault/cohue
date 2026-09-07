@@ -520,12 +520,12 @@
         20
       ],
       "taille_sol": [
-        14,
-        20
+        15,
+        21
       ],
       "ancrage_sol": [
         7,
-        19
+        20
       ],
       "famille": "arme",
       "bloquant": false,

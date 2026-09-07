@@ -243,10 +243,39 @@ def icone_lance_flammes():
 
 
 def icone_grenade():
+    """La seule icone d'arme qu'une partie jouee n'a pas reconnue.
+
+    **Elle etait batie sur « poudre », la teinte la plus sombre du catalogue.**
+    Le bord d'un rectangle vaut 0,55 de sa teinte, ce qui mettait le contour de
+    l'icone a 53 de luminance contre 28 pour le fond de sa case : vingt-cinq
+    d'ecart, quand le fusil en a soixante-dix-huit par « acier » et le
+    lance-flammes soixante et un par « feu ». Elle se noyait dans son propre
+    cadre, et ce projet retient quatre-vingts comme l'ordre de grandeur qui
+    detache.
+
+    **Et sa forme ne disait rien** : trois rectangles empiles dont un corps carre
+    de neuf sur neuf, qui se lisait comme une boite. Ce qui nomme une grenade est
+    la cuillere le long du corps et l'anneau de goupille — deux signes que les
+    autres icones n'ont pas, donc deux signes qui la distinguent d'elles autant
+    que d'un objet quelconque.
+
+    L'anneau prend l'or plutot que l'acier : c'est le seul detail de trois
+    pixels de l'icone, et il lui faut la valeur la plus haute pour survivre a
+    cette taille.
+    """
     img = _icone()
-    _rect(img, 6, 8, 14, 16, "poudre")
-    _rect(img, 8, 5, 12, 8, "acier_sombre")
-    _rect(img, 12, 4, 15, 6, "acier")
+    # Le corps d'un seul bloc, plus haut que large : c'est ce qui le separe
+    # d'une caisse. Deux blocs empiles y faisaient une marche, et l'icone se
+    # lisait comme une pile.
+    _rect(img, 5, 7, 12, 18, "acier")
+    # Une nervure courte, sans bord et sans toucher les cotes : elle marque la
+    # fonte a fragmentation. Deux qui traversaient decoupaient le corps en
+    # bandes, et rendaient l'objet plus large qu'il n'est haut a l'oeil.
+    _rect(img, 7, 12, 10, 12, "acier_sombre", bord=False)
+    # Le col, puis la cuillere qui descend le long du corps et l'anneau.
+    _rect(img, 7, 4, 10, 7, "acier_sombre")
+    _rect(img, 12, 3, 14, 12, "acier_sombre")
+    _rect(img, 15, 3, 17, 6, "or")
     return img
 
 

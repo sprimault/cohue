@@ -98,6 +98,18 @@ const (
 	// du lieu, et l'écrire ici en ferait une seconde description qui mentirait
 	// au premier déplacement.
 	porte
+	// Les quatre milieux d'arête, où le joueur vient s'appuyer contre l'enceinte.
+	//
+	// **Les quatre sommets ne montrent pas ce qui se passe le long d'un bord.**
+	// Ils posent le joueur à deux cases du mur, ce qui juge le cadrage et rien
+	// d'autre ; une partie jouée a signalé que longer l'enceinte donnait au
+	// personnage l'air d'être passé dessus, et aucune vue ne le donnait à voir.
+	// Un milieu d'arête est le seul endroit où l'on soit contre le mur sans être
+	// dans un coin, c'est-à-dire sans que deux bords se répondent.
+	murNordOuest
+	murNordEst
+	murSudEst
+	murSudOuest
 )
 
 // margeDuCoin est la distance au bord à laquelle un repère de coin se pose.
@@ -129,10 +141,47 @@ func (r repere) cases(g *game.CostGrid, sortie *game.Exit) (int, int) {
 			}
 		}
 		return sortie.U, sortie.V
+	case murNordOuest:
+		return margeDuCoin, g.Height() / 2
+	case murNordEst:
+		return g.Width() / 2, margeDuCoin
+	case murSudEst:
+		return g.Width() - 1 - margeDuCoin, g.Height() / 2
+	case murSudOuest:
+		return g.Width() / 2, g.Height() - 1 - margeDuCoin
 	default:
 		return g.Width() / 2, g.Height() / 2
 	}
 }
+
+// versLeMur rend la direction dans laquelle un repère d'arête pousse, et faux
+// pour tous les autres.
+//
+// **La position finale se joue, elle ne s'écrit pas.** Le joueur s'arrête à
+// vingt-cinq millièmes de tuile du mur, et poser ce nombre ici en ferait une
+// seconde description de ce que `projeter` décide — celle qui mentirait au
+// premier réglage de vitesse.
+func (r repere) versLeMur() (game.Vec, bool) {
+	switch r {
+	case murNordOuest:
+		return game.Vec{X: -game.One}, true
+	case murNordEst:
+		return game.Vec{Y: -game.One}, true
+	case murSudEst:
+		return game.Vec{X: game.One}, true
+	case murSudOuest:
+		return game.Vec{Y: game.One}, true
+	default:
+		return game.Vec{}, false
+	}
+}
+
+// ticksDeContact est ce qu'on joue pour venir buter contre le mur.
+//
+// Deux cases de marge à cinq tuiles par seconde en demandent vingt-quatre ; la
+// moitié en plus laisse la place à un réglage de vitesse sans que la vue cesse
+// de montrer un contact.
+const ticksDeContact = 36
 
 // vue est une scène à écrire : où poser le joueur, combien de pas jouer avant de
 // dessiner, ce qu'on pose par-dessus, et le nom du fichier qui en sort.
@@ -269,6 +318,16 @@ var vues = []vue{
 	// bord. L'état ouvert demanderait cent créatures abattues, et c'est le
 	// fermé qui décide — une porte qu'on ne trouve pas ne s'ouvre jamais.
 	{nom: "porte", ou: porte},
+
+	// **Les quatre bords, joueur appuyé contre l'enceinte.** Ce qui s'y relit
+	// n'est pas le cadrage mais le personnage lui-même : deux des arêtes le
+	// placent devant le mur, les deux autres derrière, et un mur de quatre-vingt-
+	// seize pixels le couvre alors en entier. C'est là que la silhouette décide
+	// de ce qu'on lit — « derrière le mur » ou « dessus ».
+	{nom: "mur-nord-ouest", ou: murNordOuest},
+	{nom: "mur-nord-est", ou: murNordEst},
+	{nom: "mur-sud-est", ou: murSudEst},
+	{nom: "mur-sud-ouest", ou: murSudOuest},
 
 	{nom: "melee", ticks: 300 * game.TPS, jusquAuxDegats: true},
 
@@ -467,6 +526,13 @@ func (p *planche) vue(v vue) error {
 	if v.poseUneBaudruche {
 		if err := poserUneBaudruche(partie); err != nil {
 			return err
+		}
+	}
+	// Le contact avant les pas joués : c'est la position de départ de la vue, et
+	// non un état qu'on atteindrait en chemin.
+	if vers, contre := v.ou.versLeMur(); contre {
+		for range ticksDeContact {
+			partie.World.Step(vers)
 		}
 	}
 	// **La mort arrête les pas dès qu'une vue en dépend.** `World.Step` continue

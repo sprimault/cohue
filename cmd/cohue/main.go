@@ -125,7 +125,7 @@ func run() error {
 		return err
 	}
 
-	objets, err := render.NewStage(cohue.Assets, cohue.ObjectDir, cohue.ObjectManifest)
+	objets, err := render.NewStage(cohue.Assets, cohue.ObjectDir, cohue.ObjectManifest, partie.Objects)
 	if err != nil {
 		return err
 	}

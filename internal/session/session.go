@@ -133,6 +133,10 @@ type Session struct {
 	// dessin : la simulation la tient déjà, et un afficheur qui la relirait
 	// décoderait une seconde fois le fichier que ce montage vient de lire.
 	Profiles *game.Profiles
+	// Objects est le catalogue des objets, et il voyage pour la même raison que
+	// `Profiles` : le rendu y découpe ses images, et une seconde lecture du même
+	// fichier serait une seconde vérité sur lui.
+	Objects *game.Objects
 
 	// Seed est la graine de la run en cours, et le seul état de jeu qui traverse
 	// une relance — sous une forme changée, puisque chaque run dérive la
@@ -279,11 +283,17 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 	}
 	slog.Info("armes chargées", "base", armes.Base.Key)
 
+	objets, err := game.LoadObjects(fsys, cohue.ObjectManifest)
+	if err != nil {
+		return nil, err
+	}
+
 	partie := &Session{
 		Grid:        grille,
 		Decor:       decor,
 		Tiles:       charge.Tiles,
 		Profiles:    profils,
+		Objects:     objets,
 		Seed:        graine,
 		profils:     profils,
 		armes:       armes,

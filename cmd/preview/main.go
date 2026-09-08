@@ -773,7 +773,11 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	objets, err := render.NewStage(cohue.Assets, cohue.ObjectDir, cohue.ObjectManifest)
+	catalogue, err := game.LoadObjects(cohue.Assets, cohue.ObjectManifest)
+	if err != nil {
+		return err
+	}
+	objets, err := render.NewStage(cohue.Assets, cohue.ObjectDir, cohue.ObjectManifest, catalogue)
 	if err != nil {
 		return err
 	}

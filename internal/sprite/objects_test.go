@@ -9,11 +9,31 @@ package sprite
 
 import (
 	"fmt"
+	"io/fs"
 	"testing"
 	"testing/fstest"
 
 	"github.com/sprimault/cohue"
+	"github.com/sprimault/cohue/internal/game"
 )
+
+// chargerCatalogue décode le manifeste puis en découpe les images, dans l'ordre
+// où le montage le fait.
+//
+// Les deux moitiés vivent dans deux paquets depuis que la simulation lit des
+// valeurs de ce fichier ; les tests d'images ont besoin des deux, et les
+// enchaîner ici évite de le redire à chaque cas.
+func chargerCatalogue(fsys fs.FS, racine, chemin string) (*game.Objects, *Props, error) {
+	catalogue, err := game.LoadObjects(fsys, chemin)
+	if err != nil {
+		return nil, nil, err
+	}
+	props, err := LoadProps(fsys, racine, chemin, catalogue)
+	if err != nil {
+		return nil, nil, err
+	}
+	return catalogue, props, nil
+}
 
 // objetsLivres est le manifeste des objets, tel que le binaire l'embarque.
 const objetsLivres = "assets/objets/manifeste.json"
@@ -55,14 +75,14 @@ func ramassable(amplitude int) string {
 // Il compte ce qu'il a visité : une boucle qui ne trouverait aucun objet
 // passerait au vert en ne vérifiant rien.
 func TestLeCatalogueDobjetsLivreSeCharge(t *testing.T) {
-	catalogue, props, err := LoadObjects(cohue.Assets, racineObjets, objetsLivres)
+	catalogue, props, err := chargerCatalogue(cohue.Assets, racineObjets, objetsLivres)
 	if err != nil {
 		t.Fatalf("catalogue livré : %v", err)
 	}
 
 	poses, scintillants := 0, 0
 	for nom, objet := range catalogue.Items {
-		if objet.Family != familleMonde && objet.Family != familleEffet {
+		if objet.Family != game.FamilyWorld && objet.Family != game.FamilyEffect {
 			continue
 		}
 		p, connu := props.Prop(nom)
@@ -93,14 +113,14 @@ func TestLeCatalogueDobjetsLivreSeCharge(t *testing.T) {
 // avec un champ de plus, et c'est aussi ce qui a laissé le rendu livrer une arme
 // au sol qu'aucune image ne dessinait — la famille n'était pas chargée.
 func TestUneArmeLourdePorteSesDeuxDessins(t *testing.T) {
-	catalogue, props, err := LoadObjects(cohue.Assets, racineObjets, objetsLivres)
+	catalogue, props, err := chargerCatalogue(cohue.Assets, racineObjets, objetsLivres)
 	if err != nil {
 		t.Fatalf("catalogue livré : %v", err)
 	}
 
 	armes := 0
 	for nom, objet := range catalogue.Items {
-		if objet.Family != familleArme {
+		if objet.Family != game.FamilyWeapon {
 			continue
 		}
 		armes++
@@ -147,7 +167,7 @@ func TestLaCelluleDunScintillementSeDeriveDeLamplitude(t *testing.T) {
 	fsys["gemme.png"] = &fstest.MapFile{Data: bande(t, 10, 8)}
 	fsys["gemme_scintille.png"] = &fstest.MapFile{Data: bande(t, 4*10, 8+amplitude)}
 
-	_, props, err := LoadObjects(fsys, ".", "objets.json")
+	_, props, err := chargerCatalogue(fsys, ".", "objets.json")
 	if err != nil {
 		t.Fatalf("chargement : %v", err)
 	}
@@ -181,7 +201,7 @@ func TestUneBandeDeScintillementQuiMentEstRefusee(t *testing.T) {
 	// Trois pixels de bombement là où le manifeste en annonce deux.
 	fsys["gemme_scintille.png"] = &fstest.MapFile{Data: bande(t, 4*10, 8+3)}
 
-	if _, _, err := LoadObjects(fsys, ".", "objets.json"); err == nil {
+	if _, _, err := chargerCatalogue(fsys, ".", "objets.json"); err == nil {
 		t.Fatal("bande d'un pixel trop haute acceptée")
 	}
 }
@@ -196,7 +216,7 @@ func TestUnAncrageDobjetHorsDeSonImageEstRefuse(t *testing.T) {
 	}`)
 	fsys["gemme.png"] = &fstest.MapFile{Data: bande(t, 10, 8)}
 
-	if _, _, err := LoadObjects(fsys, ".", "objets.json"); err == nil {
+	if _, _, err := chargerCatalogue(fsys, ".", "objets.json"); err == nil {
 		t.Fatal("ancrage d'une rangée hors de l'image accepté")
 	}
 }

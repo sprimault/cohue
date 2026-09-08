@@ -82,8 +82,11 @@ type prop struct {
 // Il ne retient que ce que le rendu pose : les armes au sol, les particules et
 // les ruines attendent le mécanisme qui les fera exister, et les charger d'avance
 // serait payer des textures pour ce que rien ne dessine.
-func NewStage(fsys fs.FS, racine, chemin string) (*Stage, error) {
-	_, catalogue, err := sprite.LoadObjects(fsys, racine, chemin)
+//
+// `source` est le manifeste à citer dans un manquement, jamais un fichier à
+// ouvrir : le catalogue arrive décodé.
+func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, error) {
+	catalogue, err := sprite.LoadProps(fsys, racine, source, objets)
 	if err != nil {
 		return nil, err
 	}

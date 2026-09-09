@@ -461,6 +461,13 @@ def formes(sortie):
     dans un seul sens laisserait un `cout_traversee` orphelin sur un mur, jamais
     lu, qui ferait croire à un réglage — et `bloquant` avec un coût fini est un
     état que le format ne doit pas savoir exprimer.
+
+    **Le manifeste d'objets porte le même couple et n'est pas contrôlé ici**, et
+    ce n'est pas un oubli : `decor_iso.py` écrit le sien depuis une table unique
+    qui ne peut pas se contredire, donc le seul endroit où la faute peut naître
+    est un fichier retouché à la main. `objets.py`, lui, refuse d'écrire la paire
+    incohérente et le chargeur Go refuse de la lire — les deux bouts sont là, et
+    un troisième contrôle serait une troisième description de la même règle.
     """
     chemin = sortie / "decors" / "manifeste.json"
     if not chemin.exists():

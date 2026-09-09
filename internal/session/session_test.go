@@ -132,11 +132,76 @@ func TestLaRelanceNeConserveRienDeLaPartie(t *testing.T) {
 		t.Errorf("%d projectiles encore en vol après la relance", got)
 	}
 
-	// Le lieu cuit traverse, dans ses deux moitiés, parce que la partie ne les a
-	// pas touchées : les recuire rendrait les mêmes octets pour le prix d'un
-	// décodage complet.
-	if partie.Grid != grille || partie.Tiles != tuiles {
-		t.Error("la relance recharge le lieu, qu'aucune partie ne modifie")
+	// Les tuiles traversent, parce que la partie ne les touche pas : les recuire
+	// rendrait les mêmes octets pour le prix d'un décodage complet.
+	if partie.Tiles != tuiles {
+		t.Error("la relance recharge les tuiles, qu'aucune partie ne modifie")
+	}
+	// La grille, elle, ne traverse plus : une caisse y écrit son coût, donc elle
+	// est passée du lieu à la partie. C'est
+	// `TestUnePartieNecritPasDansLaCarteDuLieu` qui garde ce que la copie
+	// protège, et il le fait sur la propriété plutôt que sur le mécanisme.
+	if partie.Grid == grille {
+		t.Error("la relance rejoue sur la grille de la run précédente")
+	}
+}
+
+// TestUnePartieNecritPasDansLaCarteDuLieu garde ce que la copie par run protège.
+//
+// **Le lieu cuit est partagé par toutes les runs d'une session**, ce que le
+// remontage énonce comme une propriété par construction. Une caisse qui y
+// écrirait son coût de traversée ferait de la carte un état de jeu : ce que le
+// chargeur a produit cesserait de décrire le lieu, et tout ce qui le relirait
+// ensuite — une compilation de semis, un éditeur, une seconde session — verrait
+// des caisses là où le fichier n'en pose pas.
+//
+// **La confrontation des deux grilles est ce qui discrimine.** Une comparaison
+// des seuls contenus après relance passe sans la copie : le montage réécrit les
+// mêmes coûts, donc la carte polluée et la carte propre finissent identiques. Ce
+// qui les sépare est l'instant où l'une porte le coût d'une caisse et l'autre
+// non — la mutation l'a montré, un cas écrit sur la relance seule restait vert.
+func TestUnePartieNecritPasDansLaCarteDuLieu(t *testing.T) {
+	partie, err := Open(cohue.Assets, cohue.StartingCampaign, graineDeTest)
+	if err != nil {
+		t.Fatalf("montage de la partie livrée : %v", err)
+	}
+	if partie.World.Crates().Len() == 0 {
+		t.Fatal("le lieu livré ne pose aucune caisse : ce cas ne garde rien")
+	}
+
+	caisse := *partie.World.Crates().At(0)
+	u, v := caisse.X.Floor(), caisse.Y.Floor()
+	if got := partie.Grid.At(u, v); got <= game.Free {
+		t.Fatalf("la grille de la run porte %d sur la case d'une caisse : elle "+
+			"ne ralentit personne", got)
+	}
+	if got := partie.carte.At(u, v); got != caisse.Floor {
+		t.Fatalf("la carte du lieu porte %d sur la case d'une caisse, attendu le "+
+			"sol de %d", got, caisse.Floor)
+	}
+
+	debout := partie.World.Crates().Len()
+	partie.World.Place(caisse.X, caisse.Y)
+	for partie.World.Crates().Len() == debout {
+		if !partie.World.Alive() {
+			t.Fatal("mort avant d'avoir cassé la caisse sur laquelle on se tient")
+		}
+		partie.World.Step(game.Vec{})
+	}
+	if got := partie.Grid.At(u, v); got != caisse.Floor {
+		t.Fatalf("la case coûte %d une fois la caisse cassée, attendu le sol de %d",
+			got, caisse.Floor)
+	}
+
+	partie.Restart()
+
+	if got := partie.carte.At(u, v); got != caisse.Floor {
+		t.Errorf("la carte du lieu porte %d après une run, attendu le sol de %d",
+			got, caisse.Floor)
+	}
+	if got := partie.Grid.At(u, v); got <= game.Free {
+		t.Errorf("la caisse reposée ne coûte que %d : la relance rend une salle "+
+			"plus facile que la precedente", got)
 	}
 }
 
@@ -162,10 +227,19 @@ func TestLaRelanceRefermeLaPorte(t *testing.T) {
 		t.Fatal("le lieu livré n'a pas de porte : ce cas ne garde rien")
 	}
 
+	// **L'objectif est abaissé plutôt qu'atteint en jouant**, ce que la godoc
+	// ci-dessus annonçait sans que le corps le fasse. Le pilote y arrivait tant
+	// que sa run croisait de quoi monter ; il n'y arrive plus depuis qu'une
+	// caisse demande qu'on s'y arrête, et un cas qui dépend de la richesse d'une
+	// run pilotée mesure la courbe de pression au lieu de la relance.
+	gagnee := *sortie
+	gagnee.Kills = 1
+	partie.World.SetExit(&gagnee)
+
 	for !partie.World.DoorOpen() {
 		if !partie.World.Alive() {
 			t.Fatalf("mort avant l'ouverture, %d abattus sur %d",
-				partie.World.Kills(), sortie.Kills)
+				partie.World.Kills(), gagnee.Kills)
 		}
 		partie.World.Step(Pilot(partie.World.Tick()))
 	}
@@ -199,11 +273,17 @@ func TestLaRelanceReposeLesCaisses(t *testing.T) {
 		t.Fatal("le lieu livré ne pose aucune caisse : ce cas ne garde rien")
 	}
 
+	// **Le joueur est posé sur une caisse plutôt que promené jusqu'à elle.** Le
+	// pilote ne lit rien du monde, et depuis qu'une caisse demande un tiers de
+	// seconde d'appui il la longe sans la casser — ce qui est la règle et non un
+	// défaut : on ne casse pas en passant. Ce que ce cas garde est la relance,
+	// pas la façon dont une caisse cède.
+	partie.World.Place(partie.World.Crates().At(0).X, partie.World.Crates().At(0).Y)
 	for partie.World.Crates().Len() == semis {
 		if !partie.World.Alive() {
 			t.Fatal("mort sans avoir cassé une seule caisse")
 		}
-		partie.World.Step(Pilot(partie.World.Tick()))
+		partie.World.Step(game.Vec{})
 	}
 
 	partie.Restart()

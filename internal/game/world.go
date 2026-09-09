@@ -93,6 +93,15 @@ type World struct {
 	// qu'elles laissent : elles ne s'attirent pas, ne s'éteignent pas, et ne se
 	// ramassent pas — elles se cassent.
 	caisses *Pool[Crate]
+	// epaves sont les caisses cédées. Cosmétique, hors empreinte, et borné par le
+	// semis lui-même : chaque épave remplace la caisse qui l'a produite.
+	epaves *Pool[Wreck]
+	// appuiCaisse est le temps de contact avant qu'une caisse cède, en ticks.
+	//
+	// Il vient du manifeste des objets, converti une fois au montage. La partie
+	// n'en retient que cette moitié : le coût de traversée, l'autre moitié des
+	// mêmes règles, est écrit dans la grille avant que le monde existe.
+	appuiCaisse Tick
 	// effets porte ce qui reste à l'écran d'une chose qui n'existe plus : les
 	// éclats d'une caisse, l'onde d'une déflagration. Entièrement cosmétique,
 	// donc hors de l'empreinte — et le seul bassin dont rien ne dépend.
@@ -276,9 +285,18 @@ type Capacities struct {
 // La graine en est un, en revanche, et elle vient du montage : lui seul sait de
 // quelle run il s'agit dans la suite d'une session. Une partie qui tirerait la
 // sienne ne se rejouerait plus.
-func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scenario *Scenario,
-	grille *CostGrid, graine uint64, capacites Capacities) *World {
+//
+// **La grille reçue porte déjà les coûts des caisses**, et cette condition n'est
+// pas décorative : `NewFlowField` dérive son nombre de seaux du plus grand coût
+// qu'il y trouve, et un coût apparu après coup casserait l'invariant de la file
+// de Dial, qui exige un seau de plus que la plus grande arête. La seconde moitié
+// de la règle est ce qui la rend durable — **en cours de partie un coût ne fait
+// que baisser** : une caisse cassée rend sa case au sol, et une ruine remplacera
+// un bloquant. Aucun des deux ne touche au compte des seaux.
+func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, caisses CrateRules,
+	scenario *Scenario, grille *CostGrid, graine uint64, capacites Capacities) *World {
 	return &World{
+		appuiCaisse: caisses.Press,
 		profils:     profils,
 		arme:        armes.Base,
 		armes:       armes,
@@ -297,6 +315,7 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, scena
 		ambiants:    NewPool[Ambient](capacites.Ambients),
 		gemmes:      NewPool[Gem](capacites.Gems),
 		caisses:     NewPool[Crate](capacites.Crates),
+		epaves:      NewPool[Wreck](capacites.Crates),
 		armesAuSol:  NewPool[Drop](capacites.Drops),
 		effets:      NewPool[Fx](capacites.Fx),
 		aimants:     NewPool[Magnet](1),

@@ -16,8 +16,7 @@ import "testing"
 // trace — c'est ce qui distingue un effet bref d'une animation d'entité.
 func TestUneCaisseCasseeLaisseUnEffet(t *testing.T) {
 	w, x, y := salleAvecCaisse(t)
-	w.Place(x, y)
-	w.Step(Vec{})
+	casserLaCaisse(t, w, x, y)
 
 	effets := w.Fxs()
 	if effets.Len() != 1 {
@@ -43,8 +42,7 @@ func TestUneCaisseCasseeLaisseUnEffet(t *testing.T) {
 // montrer. Les deux se vérifient au tick près, et aucun ne se voit à l'œil.
 func TestUnEffetVitCeQuOnLuiDonnePuisSEnVa(t *testing.T) {
 	w, x, y := salleAvecCaisse(t)
-	w.Place(x, y)
-	w.Step(Vec{})
+	casserLaCaisse(t, w, x, y)
 
 	total := w.Fxs().At(0).Total
 	if total <= 1 {

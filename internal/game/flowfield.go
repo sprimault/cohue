@@ -62,6 +62,15 @@ type FlowField struct {
 // ajouté. Le calcul exclut `Blocked` **par égalité et non par seuil** — un seuil
 // se mettrait à mentir sans bruit le jour où un coût légitime en approcherait
 // la valeur.
+//
+// **Le champ se bâtit une fois tous les coûts posés, et en cours de partie un
+// coût ne fait que baisser.** Les deux moitiés se tiennent : le compte des seaux
+// est arrêté ici, donc un coût apparu ensuite entrerait dans un seau qui
+// n'existe pas — la file de Dial exige un seau de plus que la plus grande arête.
+// Ce qui la rend durable est la seconde moitié : une caisse cassée rend sa case
+// au sol, une ruine remplacera un bloquant, et rien de ce que la partie fait à
+// la grille ne monte. C'est écrit ici et dans `NewWorld` parce que celui qui
+// ajoutera un coût en cours de partie ouvrira le code, pas la conception.
 func NewFlowField(g *CostGrid) *FlowField {
 	cellules := g.Width() * g.Height()
 

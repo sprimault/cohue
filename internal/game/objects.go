@@ -9,6 +9,8 @@ package game
 import (
 	"fmt"
 	"io/fs"
+	"maps"
+	"slices"
 
 	"github.com/sprimault/cohue/internal/manifest"
 )
@@ -73,8 +75,15 @@ type Object struct {
 	// Family range l'entrée, et décide de ce qu'elle doit porter.
 	Family string `json:"famille"`
 	// Blocking dit si l'objet arrête ce qui s'y présente. Rien ne le lit encore :
-	// une caisse ne bloque pas le champ de flux avant l'étape 7.
+	// les quatre destructibles attendent le lot qui les posera.
 	Blocking bool `json:"bloquant"`
+	// Cost est le prix de traversée de sa case, en pas.
+	//
+	// Un pointeur, et non un entier dont zéro vaudrait absence : c'est la
+	// présence même du champ qui doit s'accorder avec `Blocking`, comme pour une
+	// forme du décor. La plupart des entrées n'en portent aucun, n'étant sur
+	// aucune grille — un projectile, un éclat, une icône.
+	Cost *int `json:"cout_traversee,omitempty"`
 
 	// Ce que porte un objet du monde.
 	Size      [2]int     `json:"taille,omitempty"`
@@ -128,8 +137,15 @@ type Twinkle struct {
 	Loop bool `json:"boucle"`
 }
 
-// Destruction est ce qu'un objet cassable déclare, et que rien ne lit avant
-// l'étape 7.
+// ModeContact est le mode de destruction de ce qui cède à l'appui, en le
+// traversant : la caisse, et elle seule aujourd'hui.
+//
+// Le mode de l'obstacle fragile — on s'arrête contre lui et on presse la touche
+// d'interaction — n'a pas sa constante : rien ne le lit, et une valeur écrite
+// d'avance dans un paquet est une déclaration que personne n'exerce.
+const ModeContact = "contact"
+
+// Destruction est ce qu'un objet cassable déclare.
 type Destruction struct {
 	manifest.Commentable
 	Mode       string `json:"mode"`
@@ -143,15 +159,16 @@ type Destruction struct {
 	BreakSound string `json:"son_rupture,omitempty"`
 }
 
-// LoadObjects lit le manifeste des objets et rend le catalogue tel qu'il est
-// déclaré.
+// LoadObjects lit le manifeste des objets et refuse une passabilité qui se
+// contredit.
 //
-// **Elle ne juge encore rien de ce qu'elle décode**, et ce n'est pas un oubli :
-// le contrôle d'une valeur appartient à ce qui la lit, sans quoi deux règles
-// finissent par diverger sur le même champ. Le rendu juge donc les dessins de
-// son côté, et les valeurs de jeu se jugeront ici quand un mécanisme les
-// consommera. C'est la leçon du contrôle de dessin, qui avait d'abord été posé
-// dans la simulation.
+// **Elle ne juge que ce que ce paquet lit**, le reste appartenant à qui le lira :
+// le rendu juge les dessins de son côté, et les charges d'une arme lourde se
+// jugent dans la table des armes. C'est la leçon du contrôle de dessin, qui
+// avait d'abord été posé dans la simulation.
+//
+// La passabilité est le premier champ à franchir cette porte, et le coût de
+// traversée d'une caisse est ce qui l'y a fait entrer.
 func LoadObjects(fsys fs.FS, chemin string) (*Objects, error) {
 	catalogue, err := manifest.Decode[Objects](fsys, chemin)
 	if err != nil {
@@ -161,5 +178,91 @@ func LoadObjects(fsys fs.FS, chemin string) (*Objects, error) {
 		return nil, fmt.Errorf("%s: %w : %d, ce binaire lit la %d",
 			chemin, manifest.ErrUnsupportedFormat, catalogue.Format, FormatObjects)
 	}
+
+	var manques []string
+	for _, nom := range slices.Sorted(maps.Keys(catalogue.Items)) {
+		if _, defaut := catalogue.Items[nom].cout(); defaut != "" {
+			manques = append(manques, nom+" : "+defaut)
+		}
+	}
+	if len(manques) > 0 {
+		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
+	}
 	return catalogue, nil
+}
+
+// cout rend le prix de traversée d'un objet, ou ce qui l'empêche de l'avoir.
+//
+// **Le contrôle a deux bouts et ils partent ensemble** : `outils/objets.py`
+// refuse d'écrire ces couples, ce chargeur refuse de les lire. Ils ont le même
+// déclencheur — quelqu'un qui lit la valeur —, et chacun sans l'autre est une
+// moitié dont on ne peut plus voir à quoi elle sert.
+//
+// **La moitié qui manque au décor est celle qui n'a pas d'objet ici.** Là-bas
+// tout ce qui se franchit doit déclarer son coût, parce que toute forme est une
+// case ; ici la plupart des entrées ne sont sur aucune grille, et l'exiger
+// d'elles leur inventerait une passabilité. Ce qui la remplace est le mode de
+// destruction : ce qu'on casse **en le traversant** doit pouvoir se traverser et
+// coûter, sans quoi le délai d'appui s'écoule pendant qu'on est déjà de l'autre
+// côté.
+// Sans coût déclaré elle rend `Free`, qui est ce que vaut la traversée de ce qui
+// n'est sur aucune grille : c'est le cas de la plupart des entrées, et la seule
+// qui lise ce résultat est une caisse, dont le refus ci-dessus garantit qu'elle
+// en porte un.
+func (o Object) cout() (Cost, string) {
+	switch {
+	case o.Blocking && o.Cost != nil:
+		return 0, fmt.Sprintf("bloquant et pourtant un cout_traversee de %d", *o.Cost)
+	case o.Cost == nil:
+		if o.Destruction != nil && o.Destruction.Mode == ModeContact {
+			return 0, "se casse en le traversant et se franchit pourtant sans cout_traversee"
+		}
+		return Free, ""
+	case *o.Cost < int(Free) || *o.Cost >= int(Blocked):
+		return 0, fmt.Sprintf("cout_traversee de %d, attendu entre %d et %d",
+			*o.Cost, Free, Blocked-1)
+	}
+	return Cost(*o.Cost), "" // #nosec G115 -- borné par la branche précédente
+}
+
+// CrateRules est ce que la simulation tient d'une caisse : le temps d'appui
+// avant qu'elle cède, et ce que sa case coûte tant qu'elle tient.
+//
+// **Résolues une fois au montage, jamais cherchées par nom dans un tick.** Le
+// catalogue est une table par clé, et l'interroger à chaque image mettrait un
+// nom d'asset dans la boucle de mise à jour — avec, en prime, une résolution qui
+// peut échouer là où plus rien ne saurait quoi en dire.
+type CrateRules struct {
+	// Press est le temps d'appui avant rupture, en ticks.
+	Press Tick
+	// Cost est le prix de traversée de sa case, tant qu'elle tient.
+	Cost Cost
+}
+
+// Crate résout la caisse du catalogue, désignée par son nom de manifeste.
+//
+// Le nom vient du manifeste de progression, où il était déjà écrit : la
+// simulation ne porte donc aucun nom de catalogue, ce que le manifeste-contrat
+// exige d'elle.
+func (o *Objects) Crate(nom string) (CrateRules, error) {
+	objet, connu := o.Items[nom]
+	if !connu {
+		return CrateRules{}, fmt.Errorf("objets : la caisse « %s » n'est pas au catalogue", nom)
+	}
+	if objet.Destruction == nil || objet.Destruction.Mode != ModeContact {
+		return CrateRules{}, fmt.Errorf(
+			"objets : la caisse « %s » ne se casse pas au contact", nom)
+	}
+	appui, err := TicksFromMs(objet.Destruction.DelayMs)
+	if err != nil {
+		return CrateRules{}, fmt.Errorf("objets : caisse « %s » : %w", nom, err)
+	}
+	// Le coût passe par le même contrôle que le chargement, plutôt que d'être
+	// lu directement : les deux rendraient la même valeur aujourd'hui, et deux
+	// lectures d'un même champ sont ce qui finit par diverger.
+	cout, defaut := objet.cout()
+	if defaut != "" {
+		return CrateRules{}, fmt.Errorf("objets : caisse « %s » : %s", nom, defaut)
+	}
+	return CrateRules{Press: appui, Cost: cout}, nil
 }

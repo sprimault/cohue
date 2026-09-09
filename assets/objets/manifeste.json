@@ -16,10 +16,11 @@
         0.5
       ],
       "elevation": 16,
-      "categorie": "obstacle_bas",
+      "categorie": "sol",
       "masquant": false,
       "famille": "monde",
-      "bloquant": true,
+      "bloquant": false,
+      "cout_traversee": 3,
       "destruction": {
         "mode": "contact",
         "delai_ms": 330,
@@ -461,18 +462,18 @@
     "caisse_appui": {
       "images": 3,
       "cote": [
-        36,
+        38,
         32
       ],
       "duree_ms": 110,
-      "boucle": true,
+      "boucle": false,
       "famille": "cycle",
       "bloquant": false
     },
     "caisse_rupture": {
       "images": 3,
       "cote": [
-        36,
+        37,
         32
       ],
       "duree_ms": 90,

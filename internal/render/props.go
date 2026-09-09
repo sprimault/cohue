@@ -51,6 +51,28 @@ type Stage struct {
 	// au même endroit ni dans le même repère : celles-là sont vues de face,
 	// ceux-ci en isométrie.
 	icones map[string]*ebiten.Image
+	// caisse porte ce que le manifeste attache à la caisse : ses deux cycles et
+	// sa ruine.
+	//
+	// **Lus au catalogue plutôt qu'écrits ici**, à la différence des noms
+	// ci-dessus, et la nuance tient à qui choisit. Le rendu décide qu'une gemme
+	// se dessine avec `gemme` — rien ne le dit ailleurs. Ce qu'une caisse joue en
+	// cédant, en revanche, est déjà déclaré sous sa clé `destruction` : l'écrire
+	// une seconde fois en Go en ferait deux vérités, et le manifeste-contrat
+	// existe pour que remplacer une bande soit un changement de fichier.
+	caisse game.Destruction
+}
+
+// duree rend la longueur d'un cycle du catalogue, en ticks, et zéro pour ce qui
+// n'en a pas.
+func (s *Stage) duree(nom string) game.Tick {
+	objet, connu := s.objets[nom]
+	if !connu {
+		return 0
+	}
+	// #nosec G115 -- le nombre d'images est celui d'une bande découpée, donc
+	// borné par la largeur de l'image que le chargement a lue
+	return objet.cycle.Duration * game.Tick(objet.cycle.Frames)
 }
 
 // Icon rend l'icône d'une arme lourde, nulle si le catalogue n'en a pas.
@@ -91,16 +113,29 @@ func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, 
 		return nil, err
 	}
 
-	scene := &Stage{objets: map[string]prop{}, icones: map[string]*ebiten.Image{}}
+	caisse, connue := objets.Items[objetCaisse]
+	if !connue || caisse.Destruction == nil {
+		return nil, fmt.Errorf("objets : « %s » ne declare pas comment elle se casse", objetCaisse)
+	}
+
+	scene := &Stage{
+		objets: map[string]prop{},
+		icones: map[string]*ebiten.Image{},
+		caisse: *caisse.Destruction,
+	}
 
 	// **Les armes viennent du catalogue et non d'une liste écrite ici**, à la
 	// différence de tout le reste : le rendu sait qu'une gemme se dessine avec
 	// `gemme`, mais une arme lourde est désignée par la table des armes, et il
 	// pose celle que le monde lui donne. Les nommer en dur demanderait d'y revenir
 	// à chaque arme ajoutée.
+	//
+	// Les trois dessins d'une caisse qui cède viennent du catalogue pour la même
+	// raison : sa clé `destruction` les nomme déjà.
 	noms := append([]string{
 		objetGemme, objetAimant, objetCaisse, objetTir, objetTirHorde,
 		objetEtincelle, objetSouffle, objetEclatsCaisse,
+		scene.caisse.PressCycle, scene.caisse.BreakCycle, scene.caisse.Ruin,
 	}, catalogue.Weapons()...)
 
 	for _, nom := range noms {

@@ -100,16 +100,14 @@ func (p *Props) Prop(nom string) (Prop, bool) {
 
 // charger découpe ce qu'une entrée déclare, et rien de plus.
 //
-// **Les familles que le rendu ne pose pas encore ne se chargent pas.** Deux
-// restent dehors, et chacune attend un mécanisme plutôt qu'une décision :
-// « arme » attend les armes lourdes de l'étape 6, et « cycle » — les deux bandes
-// d'une caisse qui cède — attend que l'étape 7 donne à la caisse son délai de
-// contact. Les découper d'avance serait charger ce que rien n'exerce, dans un
-// paquet dont le seul lecteur n'a pas de test.
+// **Les cinq familles se posent maintenant**, la dernière étant « cycle » — les
+// deux bandes d'une caisse qui cède —, qui attendait le délai de contact pour
+// avoir quelque chose à cadencer. Les découper d'avance aurait été charger ce que
+// rien n'exerce, dans un paquet dont le seul lecteur n'a pas de test.
 //
 // Un cycle se distingue d'un effet par son ancrage : il appartient à l'objet qui
-// le cite et prend le sien, quand un effet se centre sur le point qu'il marque.
-// C'est ce qui les sépare le jour où les deux se posent.
+// le cite et se pose au sol comme lui, quand un effet se centre sur le point
+// qu'il marque.
 func (p *Props) charger(fsys fs.FS, racine, nom string, objet game.Object) error {
 	switch objet.Family {
 	case game.FamilyWorld:
@@ -156,6 +154,23 @@ func (p *Props) charger(fsys fs.FS, racine, nom string, objet game.Object) error
 			// d'appui parce qu'il ne se pose pas au sol, il recouvre.
 			Images: images,
 			Offset: [2]int{-objet.Cell[0] / 2, -objet.Cell[1] / 2},
+			Cycle:  game.Cycle{Frames: objet.Frames, Duration: duree, Loop: objet.Loop},
+		}
+	case game.FamilyCycle:
+		images, err := decouperLarge(fsys, path.Join(racine, nom+".png"),
+			objet.Cell, objet.Frames)
+		if err != nil {
+			return err
+		}
+		duree, _ := game.TicksFromMs(objet.Duration)
+		p.objets[nom] = Prop{
+			Images: images,
+			// Le bas-centre de la cellule, qui est l'ancrage que le générateur
+			// donne à tout objet du monde : un cycle est dessiné autour du même
+			// point au sol que l'objet qui le cite. Le déduire de sa cellule
+			// évite de lui faire porter un renvoi vers cet objet, que rien
+			// d'autre ne lirait.
+			Offset: [2]int{-objet.Cell[0] / 2, -(objet.Cell[1] - 1)},
 			Cycle:  game.Cycle{Frames: objet.Frames, Duration: duree, Loop: objet.Loop},
 		}
 	case game.FamilyParticle:
@@ -234,6 +249,11 @@ func controlerObjet(nom string, objet game.Object) string {
 	case game.FamilyEffect:
 		if objet.Frames < 1 || objet.Cell[0] < 1 || objet.Cell[1] < 1 {
 			return fmt.Sprintf("%s : %d image(s) de %v, un effet a une bande",
+				nom, objet.Frames, objet.Cell)
+		}
+	case game.FamilyCycle:
+		if objet.Frames < 1 || objet.Cell[0] < 1 || objet.Cell[1] < 1 {
+			return fmt.Sprintf("%s : %d image(s) de %v, un cycle a une bande",
 				nom, objet.Frames, objet.Cell)
 		}
 	case game.FamilyParticle:

@@ -560,22 +560,41 @@ def souffle():
 # qui ne boucle pas.
 
 def _comprimer(img, tassement, elargissement):
-    """Écrase la caisse verticalement en l'élargissant : elle encaisse."""
+    """Écrase la caisse verticalement en l'élargissant : elle encaisse.
+
+    Le canevas suit l'élargissement au lieu d'une marge fixe. Il en portait
+    quatre, ce qui rognait toute image plus large — la dernière du cycle de
+    rupture le dépassait déjà d'un pixel, et rien ne le disait.
+    """
     largeur = img.width + elargissement
     hauteur = max(1, img.height - tassement)
     petite = img.resize((largeur, hauteur), Image.NEAREST)
-    fond = Image.new("RGBA", (img.width + 4, img.height), TRANSPARENT)
-    fond.alpha_composite(petite, ((fond.width - largeur) // 2, img.height - hauteur))
+    fond = Image.new("RGBA", (largeur, img.height), TRANSPARENT)
+    fond.alpha_composite(petite, (0, img.height - hauteur))
     return fond
 
 
 def caisse_appui(images=3):
-    """Boucle jouée pendant que le joueur pousse : la caisse tremble et cède."""
+    """Jouée pendant que le joueur pousse : la caisse s'écrase en s'élargissant.
+
+    **Elle ne boucle pas, et le manifeste le déclare.** Sa durée est celle du
+    délai d'appui, si bien qu'elle se joue une fois et s'achève à l'instant où la
+    caisse cède : le moteur en tire l'image du décompte qui reste, comme de toute
+    animation qui finit. Bouclée, sa phase viendrait du tick et n'aurait aucun
+    rapport avec la poussée — on toucherait une caisse déjà écrasée, qui se
+    redresserait ensuite.
+
+    L'écrasement est franc parce qu'il porte à lui seul l'information : sans lui,
+    un joueur ralenti sur une caisse croit avoir buté sur un mur.
+    """
     base = caisse()
     cadres = []
     for i in range(images):
         avancement = i / max(1, images - 1)
-        cadres.append(_comprimer(base, round(3 * avancement), round(3 * avancement)))
+        # Un cinquième de la hauteur au dernier tiers de seconde. Trois pixels
+        # avaient été essayés d'abord : la planche montrait une caisse intacte, et
+        # une déformation qu'on ne voit pas ne dit rien à qui pousse dessus.
+        cadres.append(_comprimer(base, round(6 * avancement), round(6 * avancement)))
     largeur = max(c.width for c in cadres)
     hauteur = max(c.height for c in cadres)
     planche = Image.new("RGBA", (largeur * images, hauteur), TRANSPARENT)
@@ -633,8 +652,49 @@ DESTRUCTION = {
 
 # Ce qui arrête un déplacement. Les ruines ne bloquent plus : c'est tout
 # l'intérêt d'avoir cassé quelque chose.
-BLOQUANTS = {"caisse", "palette", "cloison_fragile", "vitrine",
+BLOQUANTS = {"palette", "cloison_fragile", "vitrine",
              "grille_ventilation", "rideau_fer"}
+
+# Ce qui se franchit en payant, et le prix en pas.
+#
+# Le coût multiplie la longueur perçue d'une case et divise la vitesse de qui la
+# traverse. C'est le vrai prix de la ressource : ramasser, c'est perdre du
+# terrain. Trois quand une flaque en vaut deux — casser doit coûter plus que
+# patauger —, et le chiffre se juge en jouant.
+#
+# **Deux tables ici, une seule dans le décor, et la différence n'est pas un
+# relâchement.** Là-bas toute forme est une case, si bien que ce qui n'est pas
+# franchissable bloque et qu'une table dit les deux. Ici la plupart des entrées
+# ne sont sur aucune grille — une gemme, un éclat, une icône —, et les ranger
+# d'un côté ou de l'autre leur inventerait une passabilité qu'elles n'ont pas.
+# Ce que l'unique table du décor fermait, un coût orphelin sur ce qui bloque, se
+# ferme ici par le refus de l'intersection.
+COUTS = {"caisse": 3}
+
+
+def _passabilite(nom):
+    """Rend le couple `bloquant` / `cout_traversee`, et refuse ses deux
+    contradictions.
+
+    Le fait porte le booléen, la valeur ne se déclare que quand il est faux :
+    c'est la forme du décor, et le chargeur Go refuse les mêmes couples.
+
+    **La seconde n'a pas d'équivalent dans le décor, et sa place est prise par
+    le mode de destruction.** Là-bas tout ce qui se franchit doit déclarer son
+    coût ; l'exiger de tout objet franchissable reviendrait ici à en réclamer un
+    au projectile et à l'icône. Ce qu'on peut exiger, en revanche, est qu'une
+    chose qu'on casse **en la traversant** puisse se traverser et coûte : sans
+    cela la caisse cède au premier contact, et le ralentissement, qui est la
+    mécanique elle-même, ne se paie jamais.
+    """
+    bloque, cout = nom in BLOQUANTS, COUTS.get(nom)
+    if bloque and cout is not None:
+        raise ValueError(f"{nom} bloque et déclare pourtant un coût de traversée :"
+                         " on ne ralentit pas ce qui est arrêté")
+    if DESTRUCTION.get(nom, {}).get("mode") == "contact" and cout is None:
+        raise ValueError(f"{nom} se casse en le traversant sans coûter à traverser :"
+                         " le délai s'écoulerait pendant qu'on est déjà de l'autre côté")
+    return bloque, cout
 
 # Son joué au ramassage ou à l'usage, quand il y en a un.
 SONS = {"fiole": "soin", "aimant": "aimant"}
@@ -710,11 +770,13 @@ def main():
         # qu'une forme recompose ses volumes dans une image neuve, et un défaut
         # silencieux poserait alors un carré d'un quart de tuile là où la
         # vitrine est une cloison mince — le champ de flux contournerait autre
-        # chose que ce qui est dessiné. Ce qui bloque doit donc la déclarer.
+        # chose que ce qui est dessiné. Ce qui entre dans la grille doit donc la
+        # déclarer, qu'il l'arrête ou qu'il la fasse payer.
+        bloquant, cout = _passabilite(nom)
         emprise = brut.info.get("emprise")
         if emprise is None:
-            if nom in BLOQUANTS:
-                raise ValueError(f"{nom} bloque sans déclarer son emprise :"
+            if bloquant or cout is not None:
+                raise ValueError(f"{nom} entre dans la grille sans déclarer son emprise :"
                                  " la composition l'a perdue en chemin")
             emprise = (0.25, 0.25)
 
@@ -740,10 +802,11 @@ def main():
                           "ancrage": [img.width // 2, img.height - 1],
                           "emprise": list(emprise),
                           "elevation": haut,
-                          "categorie": prim.categorie(nom in BLOQUANTS, haut),
+                          "categorie": prim.categorie(bloquant, haut),
                           "masquant": haut > prim.PLAFOND_OBSTACLE_BAS,
                           "famille": "monde",
-                          "bloquant": nom in BLOQUANTS}
+                          "bloquant": bloquant,
+                          **({} if cout is None else {"cout_traversee": cout})}
         if nom in VALEURS:
             manifeste[nom].update(VALEURS[nom])
         if nom in DESTRUCTION:
@@ -785,7 +848,7 @@ def main():
 
     for nom, fabrique, duree, boucle in (("etincelle", etincelle, 40, False),
                                          ("souffle", souffle, 60, False),
-                                         ("caisse_appui", caisse_appui, 110, True),
+                                         ("caisse_appui", caisse_appui, 110, False),
                                          ("caisse_rupture", caisse_rupture, 90, False)):
         rendu = fabrique()
         if isinstance(rendu, tuple):

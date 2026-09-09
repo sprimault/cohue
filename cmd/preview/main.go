@@ -183,6 +183,14 @@ func (r repere) versLeMur() (game.Vec, bool) {
 // de montrer un contact.
 const ticksDeContact = 36
 
+// dureeDeRupture est le temps au bout duquel une épave est posée, en ticks.
+//
+// **Elle doit couvrir le cycle de rupture**, que le manifeste des objets déclare
+// en trois images de quatre-vingt-dix millisecondes, soit seize ticks. Trente
+// laissent la marge d'un réglage de cadence sans que la vue cesse de montrer une
+// épave — en deçà, elle donnerait à relire une caisse en train d'éclater.
+const dureeDeRupture game.Tick = 30
+
 // vue est une scène à écrire : où poser le joueur, combien de pas jouer avant de
 // dessiner, ce qu'on pose par-dessus, et le nom du fichier qui en sort.
 type vue struct {
@@ -228,8 +236,21 @@ type vue struct {
 	// declencheUneArme dépense une charge de l'emplacement tenu, pour que la
 	// déflagration porte et que ses chiffres jaillissent.
 	declencheUneArme bool
-	// surUneCaisse pose le joueur sur la première caisse du lieu, qu'il casse
-	// alors au premier contact.
+	// surUneCaisse pose le joueur contre la première caisse du lieu, à portée de
+	// contact, si bien que l'appui commence au premier pas.
+	//
+	// **Contre et non dessus, et c'est la vue de l'appui qui l'a montré.** Posé
+	// au centre de la case, le joueur recouvre exactement ce qu'on venait relire :
+	// son sprite fait deux fois la caisse, et la déformation disparaissait sous
+	// lui. Il est donc décalé du côté d'où l'on vient, ce qui met la caisse devant
+	// lui dans le tri en profondeur — et c'est aussi ce qu'une partie produit,
+	// puisqu'on casse en arrivant dessus et non en s'y tenant.
+	//
+	// **Elle retient aussi le pilote, et les deux ne se séparent pas.** L'appui
+	// ne va au bout que si l'on reste : le tour d'octogone emportait le joueur au
+	// deuxième pas, et la caisse finissait par céder onze secondes plus tard, à
+	// un passage que rien n'avait voulu. Un second drapeau aurait laissé écrire
+	// la moitié qui ne marche pas.
 	surUneCaisse bool
 	// poseUneBaudruche en fait apparaître une au pied du joueur, que son arme
 	// abat aussitôt : c'est le seul chemin qui produise une déflagration sans
@@ -273,6 +294,23 @@ type vue struct {
 	// et cesserait de l'attraper au premier réglage de durée. C'est le cas type
 	// de l'artefact qui doit attendre son événement.
 	jusquAlEffet *game.FxKind
+	// jusquAMiAppui s'arrête quand une caisse a encaissé la moitié de son délai.
+	//
+	// **À mi-appui pour la même raison qu'un effet se relit à mi-vie** : au
+	// premier tick la déformation n'a pas commencé, au dernier la caisse a déjà
+	// cédé. Ce que la vue doit donner à relire est l'écrasement en cours, qui est
+	// le seul signal disant au joueur qu'il casse quelque chose plutôt qu'il bute
+	// sur un mur.
+	jusquAMiAppui bool
+	// jusquALepave s'arrête sur une épave dont la rupture est finie.
+	//
+	// **Elle attend un âge et non un compte de pas de la vue**, ce qui la garde
+	// juste si le délai d'appui change : ce qui compte est le temps écoulé depuis
+	// que la caisse a cédé. Le seuil doit couvrir le cycle de rupture, que le
+	// manifeste des objets déclare en trois images de quatre-vingt-dix
+	// millisecondes — le jour où cette bande s'allonge, ce nombre suit, sinon la
+	// vue montre une caisse en train d'éclater là où elle promet une épave.
+	jusquALepave bool
 	// jusquAuDanger s'arrête au franchissement du seuil d'alerte.
 	//
 	// Ni la mêlée ni la mort ne montrent la vignette : la première s'arrête à
@@ -398,6 +436,19 @@ var vues = []vue{
 	// est un effet, pas ce qui l'entoure.
 	{nom: "eclats", ticks: 30 * game.TPS, videLaHorde: true,
 		surUneCaisse: true, jusquAlEffet: &effetCaisse},
+
+	// **Les deux moments d'une caisse qui cède, que rien ne montrait.** Le délai
+	// d'appui n'a de sens que s'il se voit : sans la déformation, un joueur
+	// ralenti sur une caisse croit avoir buté sur un mur, et c'est ce que la
+	// première donne à relire. La seconde montre ce qui reste — l'épave que le
+	// cycle de rupture laisse au sol, et qui dit que la salle a été fouillée ici.
+	//
+	// La horde est retirée dans les deux cas : ce qui est jugé est un dessin, pas
+	// ce qui l'entoure.
+	{nom: "caisse-appui", ticks: 30 * game.TPS, videLaHorde: true,
+		surUneCaisse: true, jusquAMiAppui: true},
+	{nom: "caisse-epave", ticks: 30 * game.TPS, videLaHorde: true,
+		surUneCaisse: true, jusquALepave: true},
 	// **Celle-ci ne vide pas la horde**, contrairement à sa voisine : le
 	// dégagement tourne à chaque pas, et il emportait la Baudruche avant que
 	// l'arme ait eu le temps de l'abattre. Les premières secondes de la courbe
@@ -520,8 +571,11 @@ func (p *planche) vue(v vue) error {
 		if caisses.Len() == 0 {
 			return fmt.Errorf("vue %s : le lieu ne pose aucune caisse", v.nom)
 		}
+		// Trois cinquièmes de tuile sur chaque axe, soit un écart de 0,85 : sous la
+		// portée de contact que la progression déclare, et assez pour que la caisse
+		// se peigne devant le personnage.
 		c := caisses.At(0)
-		partie.World.Place(c.X, c.Y)
+		partie.World.Place(c.X-game.One*3/5, c.Y-game.One*3/5)
 	}
 	if v.poseUneBaudruche {
 		if err := poserUneBaudruche(partie); err != nil {
@@ -563,6 +617,10 @@ func (p *planche) vue(v vue) error {
 		// ne pouvait montrer une charge, une meute superposée, un souffle amorcé
 		// ni un éclair de soin. Le pilote est celui du test de déterminisme, pour
 		// que les deux relectures voient la même chose.
+		if v.surUneCaisse {
+			partie.World.Step(game.Vec{})
+			continue
+		}
 		partie.World.Step(session.Pilot(game.Tick(tick)))
 	}
 	if v.videLaHorde {
@@ -925,6 +983,20 @@ func (v vue) arrive(monde *game.World) bool {
 		for i := range tirs.Active() {
 			p := tirs.At(i)
 			if (game.Vec{X: p.X, Y: p.Y}).Sub(joueur).Len() >= game.FromInt(2) {
+				return true
+			}
+		}
+	case v.jusquAMiAppui:
+		caisses := monde.Crates()
+		for i := range caisses.Active() {
+			if caisses.At(i).Press*2 <= monde.CratePress() {
+				return true
+			}
+		}
+	case v.jusquALepave:
+		epaves := monde.Wrecks()
+		for i := range epaves.Active() {
+			if monde.WreckAge(epaves.At(i)) >= dureeDeRupture {
 				return true
 			}
 		}

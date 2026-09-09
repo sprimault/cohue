@@ -55,9 +55,35 @@ func mondeDEssai(t *testing.T, largeur, hauteur int) (*World, *Profiles) {
 	// Les figurants et les caisses ont leur capacité ici plutôt qu'à zéro : un
 	// bassin vide se parcourt sans rien faire, si bien qu'un garde d'allocation
 	// traverserait leurs passes en croyant les mesurer.
-	return NewWorld(profils, armes, progressionLivree(t), sansVagues(), g, graineDeTest,
+	return NewWorld(profils, armes, progressionLivree(t), caissesLivrees(t), sansVagues(),
+		g, graineDeTest,
 		Capacities{Enemies: 300, Shots: 256, EnemyShots: 64, Blasts: 32, Gems: 512,
 			Ambients: 32, Crates: 32}), profils
+}
+
+// caissesLivrees rend les règles d'une caisse, comme les manifestes livrés les
+// donnent.
+//
+// **Elles se lisent plutôt qu'elles ne se choisissent ici.** Un délai d'appui
+// écrit dans le test serait une seconde description de ce que le catalogue
+// déclare, et un cas qui compterait vingt ticks resterait vert le jour où le
+// fichier en annoncerait trente.
+//
+// Elle passe par le même renvoi que le montage — le nom de la caisse vient du
+// manifeste de progression —, ce qui fait de chaque cas de ce paquet un lecteur
+// de ce lien : le renommer sans le suivre ferait tomber toute la suite plutôt
+// qu'une salle chargée de travers.
+func caissesLivrees(t *testing.T) CrateRules {
+	t.Helper()
+	catalogue, err := LoadObjects(cohue.Assets, manifesteObjets)
+	if err != nil {
+		t.Fatalf("catalogue livré : %v", err)
+	}
+	regles, err := catalogue.Crate(progressionLivree(t).CrateObject)
+	if err != nil {
+		t.Fatalf("caisse du catalogue : %v", err)
+	}
+	return regles
 }
 
 // sansVagues rend le scénario d'un lieu qui n'achète rien.
@@ -155,7 +181,7 @@ func garnirLesPassesDeLEtape4(t *testing.T, w *World, profils *Profiles) {
 		if _, ok := w.SpawnAmbient(civil, px+FromInt(2+i), py+FromInt(4)); !ok {
 			t.Fatal("bassin de figurants plein")
 		}
-		if _, ok := w.SpawnCrate(px-FromInt(2+i), py+FromInt(4)); !ok {
+		if _, ok := w.SpawnCrate(px-FromInt(2+i), py+FromInt(4), Free); !ok {
 			t.Fatal("bassin de caisses plein")
 		}
 		if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "cracheur"),
@@ -385,7 +411,8 @@ func TestRienNeTraverseUnMur(t *testing.T) {
 
 	// Arme inerte : ce test isole le déplacement, et un joueur qui abat la
 	// créature dont on suit la trajectoire ne mesurerait plus rien.
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g, graineDeTest,
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+		sansVagues(), g, graineDeTest,
 		Capacities{Enemies: 4, Shots: 1, EnemyShots: 4, Blasts: 4, Gems: 8})
 	w.Place(FromInt(4)+One/2, FromInt(1)+One/2)
 	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), One/2+One, One/2+One); !ok {
@@ -460,8 +487,8 @@ func TestLeGlissementNeCoupeAucunAngle(t *testing.T) {
 	for _, c := range cas {
 		t.Run(c.nom, func(t *testing.T) {
 			// Arme inerte et bassin d'une place : ce test isole le déplacement.
-			w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(),
-				grilleDepuis(c.grille...), graineDeTest,
+			w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+				sansVagues(), grilleDepuis(c.grille...), graineDeTest,
 				Capacities{Enemies: 1, Shots: 1, EnemyShots: 1, Blasts: 1, Gems: 4})
 			w.Place(FromInt(c.depart[0])+One/2, FromInt(c.depart[1])+One/2)
 
@@ -497,7 +524,8 @@ func TestLeCoutDeLaCaseDiviseLaVitesse(t *testing.T) {
 			g.Set(u, 2, Blocked)
 			g.Set(u, 1, cout)
 		}
-		w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g, graineDeTest,
+		w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+			sansVagues(), g, graineDeTest,
 			Capacities{Enemies: 1, Shots: 1, EnemyShots: 1, Blasts: 1, Gems: 4})
 		w.Place(FromInt(1)+One/2, FromInt(1)+One/2)
 		depart := FromInt(10) + One/2

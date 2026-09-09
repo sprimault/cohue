@@ -68,8 +68,8 @@ func champDeProgression(t *testing.T, seuils *Progression) (*World, *Profiles) {
 	if err != nil {
 		t.Fatalf("profils livrés : %v", err)
 	}
-	w := NewWorld(profils, armesInertes(t), seuils, sansVagues(), NewCostGrid(32, 32),
-		graineDeTest, capacitesDeTest)
+	w := NewWorld(profils, armesInertes(t), seuils, caissesLivrees(t), sansVagues(),
+		NewCostGrid(32, 32), graineDeTest, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils
 }

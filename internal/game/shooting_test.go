@@ -35,7 +35,8 @@ func champDeTir(t *testing.T) (*World, *Profiles) {
 		g.Set(31, v, Blocked)
 	}
 
-	w := NewWorld(profils, armes, progressionLivree(t), sansVagues(), g, graineDeTest, capacitesDeTest)
+	w := NewWorld(profils, armes, progressionLivree(t), caissesLivrees(t), sansVagues(),
+		g, graineDeTest, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils
 }
@@ -49,7 +50,8 @@ func champSansTir(t *testing.T) (*World, *Profiles) {
 		t.Fatalf("profils livrés : %v", err)
 	}
 	g := NewCostGrid(32, 32)
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g, graineDeTest, capacitesDeTest)
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+		sansVagues(), g, graineDeTest, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils
 }
@@ -1130,8 +1132,9 @@ func TestLeTirNeCoupePasUnAngle(t *testing.T) {
 
 	g := NewCostGrid(8, 8)
 	g.Set(1, 1, Blocked)
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g,
-		graineDeTest, Capacities{Enemies: 4, Shots: 4, EnemyShots: 4, Blasts: 4, Gems: 4})
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+		sansVagues(), g, graineDeTest,
+		Capacities{Enemies: 4, Shots: 4, EnemyShots: 4, Blasts: 4, Gems: 4})
 
 	// De la case (2,1) vers la case (1,2), en passant par l'angle du coin (2,2).
 	// Le départ et l'arrivée sont franchissables ; seule (1,1) ne l'est pas.

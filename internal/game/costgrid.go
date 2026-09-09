@@ -53,6 +53,23 @@ func NewCostGrid(largeur, hauteur int) *CostGrid {
 	return &CostGrid{largeur: largeur, hauteur: hauteur, couts: couts}
 }
 
+// Clone rend une copie indépendante de la grille.
+//
+// **Une par run, faite au montage.** La grille cuite est partagée par toutes les
+// runs d'une session — c'est ce qui permet à une relance de reposer le même lieu
+// sans le relire —, et une caisse y écrit son coût de traversée. Sans copie, la
+// case garderait ce coût après la casse : la run suivante reposerait une caisse
+// dessus, relirait la case, et prendrait le coût de la caisse pour celui du sol.
+// La case resterait chère pour toujours, et le symptôme — une salle bizarrement
+// lente au bout de dix relances — arriverait très loin de sa cause.
+//
+// Une allocation par relance, hors de la boucle de mise à jour.
+func (g *CostGrid) Clone() *CostGrid {
+	couts := make([]Cost, len(g.couts))
+	copy(couts, g.couts)
+	return &CostGrid{largeur: g.largeur, hauteur: g.hauteur, couts: couts}
+}
+
 // Width rend la largeur en tuiles.
 func (g *CostGrid) Width() int { return g.largeur }
 

@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Ce que le décodage du catalogue d'objets garde : le fichier livré se lit en
-// entier, et une version de format que ce binaire ne connaît pas se refuse.
+// entier, une version de format inconnue se refuse, et une passabilité qui se
+// contredit aussi.
 
 package game
 
 import (
 	"errors"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -96,5 +98,105 @@ func TestUnFormatDobjetsInconnuEstRefuse(t *testing.T) {
 	_, err := LoadObjects(fsys, "objets.json")
 	if !errors.Is(err, manifest.ErrUnsupportedFormat) {
 		t.Fatalf("erreur %v, attendu %v", err, manifest.ErrUnsupportedFormat)
+	}
+}
+
+// catalogueForge rend un manifeste d'un seul objet, écrit à la main.
+//
+// Bâti plutôt que livré, parce que ce qu'on éprouve ici est un refus : le
+// catalogue livré ne porte aucune des paires que le chargeur doit rejeter, et
+// c'est heureux.
+func catalogueForge(entree string) fstest.MapFS {
+	return fstest.MapFS{"objets.json": &fstest.MapFile{Data: []byte(`{
+		"version_format": 1,
+		"objets": {` + entree + `}
+	}`)}}
+}
+
+// TestUnePassabiliteQuiSeContreditEstRefusee garde le bout que ce paquet tient
+// d'un contrôle à deux bouts.
+//
+// **L'autre est dans `outils/objets.py`, et ils partent ensemble.** Le
+// générateur refuse d'écrire ces couples, ce chargeur refuse de les lire : ils
+// ont le même déclencheur — quelqu'un qui lit la valeur —, et chacun sans
+// l'autre est une moitié dont on ne peut plus voir à quoi elle sert.
+func TestUnePassabiliteQuiSeContreditEstRefusee(t *testing.T) {
+	cas := []struct {
+		nom    string
+		entree string
+		attend string
+	}{
+		{
+			"bloquant avec un coût",
+			`"muret": {"famille": "monde", "bloquant": true, "cout_traversee": 2}`,
+			"bloquant et pourtant",
+		},
+		{
+			"cassé au contact sans coût",
+			`"caisse": {"famille": "monde", "bloquant": false,
+			 "destruction": {"mode": "contact", "delai_ms": 330,
+			  "ruine": "epave", "eclats": "bois"}}`,
+			"sans cout_traversee",
+		},
+		{
+			"coût nul",
+			`"flaque": {"famille": "monde", "bloquant": false, "cout_traversee": 0}`,
+			"attendu entre",
+		},
+	}
+	for _, c := range cas {
+		t.Run(c.nom, func(t *testing.T) {
+			_, err := LoadObjects(catalogueForge(c.entree), "objets.json")
+			if err == nil {
+				t.Fatal("le catalogue est accepté")
+			}
+			if !strings.Contains(err.Error(), c.attend) {
+				t.Errorf("le refus ne dit pas %q : %v", c.attend, err)
+			}
+		})
+	}
+}
+
+// TestUnObjetSansCoutNiBlocagePasse garde ce que le refus ci-dessus ne doit pas
+// emporter.
+//
+// **La moitié qui vaut pour le décor ne vaut pas ici**, et c'est ce cas qui le
+// dit : là-bas tout ce qui se franchit doit déclarer son coût, parce que toute
+// forme est une case. Un projectile, un éclat, une icône ne sont sur aucune
+// grille, et leur en réclamer un leur inventerait une passabilité.
+func TestUnObjetSansCoutNiBlocagePasse(t *testing.T) {
+	entree := `"projectile_base": {"famille": "monde", "bloquant": false}`
+	if _, err := LoadObjects(catalogueForge(entree), "objets.json"); err != nil {
+		t.Errorf("un objet qui n'est sur aucune grille est refusé : %v", err)
+	}
+}
+
+// TestLaCaisseDuCatalogueSeResout garde le renvoi qui relie les deux manifestes.
+//
+// Le nom vient de la progression, les valeurs du catalogue : c'est ce qui évite
+// à la simulation de porter le premier nom d'asset de son histoire. Le lien se
+// casserait en silence à un renommage, d'où un refus qui nomme ce qu'il n'a pas
+// trouvé.
+func TestLaCaisseDuCatalogueSeResout(t *testing.T) {
+	catalogue, err := LoadObjects(cohue.Assets, manifesteObjets)
+	if err != nil {
+		t.Fatalf("catalogue livré : %v", err)
+	}
+
+	regles, err := catalogue.Crate(progressionLivree(t).CrateObject)
+	if err != nil {
+		t.Fatalf("caisse du catalogue livré : %v", err)
+	}
+	// Le tiers de seconde du chapitre 7, converti une fois au chargement.
+	if attendu, _ := TicksFromMs(330); regles.Press != attendu {
+		t.Errorf("appui de %d ticks, attendu %d", regles.Press, attendu)
+	}
+	if regles.Cost <= Free {
+		t.Errorf("coût de traversée de %d : une caisse qui ne ralentit pas ne "+
+			"coute rien a ramasser", regles.Cost)
+	}
+
+	if _, err := catalogue.Crate("caiise"); err == nil {
+		t.Error("un nom de caisse introuvable se résout quand même")
 	}
 }

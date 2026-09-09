@@ -42,6 +42,33 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Modifié
+
+- **Une caisse cède après un tiers de seconde d'appui, et non plus au frôlement.**
+  Elle se déforme pendant le délai, et le décompte repart entier dès qu'on
+  s'écarte : on ne casse plus en passant.
+- **La traverser coûte, et ralentit qui la traverse.** C'est le prix du détour —
+  ramasser, c'est perdre du terrain — et la horde contourne les caisses comme
+  elle contourne une flaque. La case redevient du sol une fois la caisse cassée,
+  qui laisse son épave là où elle se tenait.
+- **Deux caisses posées sur la même case sont refusées au chargement**, avec les
+  deux rangs en cause : la première cassée rendrait la case au sol sous la
+  seconde.
+
+***
+
+### Changed
+
+- **A crate now yields after a third of a second of pressure**, no longer on
+  contact. It deforms while you push, and the countdown restarts as soon as you
+  step away: you no longer break one in passing.
+- **Crossing it costs, and slows whoever crosses.** That is the price of the
+  detour — picking up means losing ground — and the horde routes around crates as
+  it routes around a puddle. The tile becomes plain floor once the crate is
+  broken, leaving its wreck where it stood.
+- **Two crates on the same tile are refused at load time**, naming both entries:
+  the first one broken would hand the tile back to the floor under the second.
+
 ## [0.6.1] — 2026-09-07 — La visée suit le pas
 
 ### Modifié

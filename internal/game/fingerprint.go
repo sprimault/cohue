@@ -73,6 +73,20 @@ func (w *World) Fingerprint() string {
 		fmt.Fprintf(&b, "gemme %d id=%d gen=%d x=%d y=%d ne=%d attiree=%t\n",
 			i, id, w.gemmes.gens[id], g.X, g.Y, g.Born, g.Pulled)
 	}
+	// **Les caisses y entrent depuis qu'elles ont un état.** Tant qu'une caisse
+	// n'était qu'une position venue du fichier, il n'y avait rien à comparer :
+	// deux runs d'une même graine la posaient au même endroit par construction.
+	// Le décompte d'appui, lui, décide du tick où les gemmes tombent et où le
+	// butin se tire, donc deux runs qui en différeraient auraient divergé.
+	//
+	// L'épave qu'elles laissent n'y est pas, et pour la raison qui tient les
+	// effets dehors : elle ne décide de rien.
+	for i := range w.caisses.Active() {
+		c := w.caisses.At(i)
+		id := w.caisses.IDAt(i)
+		fmt.Fprintf(&b, "caisse %d id=%d gen=%d x=%d y=%d appui=%d\n",
+			i, id, w.caisses.gens[id], c.X, c.Y, c.Press)
+	}
 	for i := range w.armesAuSol.Active() {
 		d := w.armesAuSol.At(i)
 		id := w.armesAuSol.IDAt(i)

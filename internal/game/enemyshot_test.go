@@ -25,8 +25,8 @@ func buse(t *testing.T) (*World, *EnemyProfile, *CostGrid) {
 	}
 
 	g := NewCostGrid(32, 32)
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), sansVagues(), g,
-		graineDeTest, capacitesDeTest)
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+		sansVagues(), g, graineDeTest, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 
 	p := &profils.Enemies[indexDuProfil(t, profils, "cracheur")]

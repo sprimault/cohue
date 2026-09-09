@@ -53,6 +53,9 @@ const (
 	// sorteFioleAuSol est une fiole tombée d'une caisse, triée comme une arme et
 	// pour la même raison : elle se ramasse en marchant dessus.
 	sorteFioleAuSol
+	// sorteTourelle est une tourelle posée. Triée comme le reste : on marche
+	// autour, donc elle passe devant ou derrière selon sa profondeur.
+	sorteTourelle
 	sorteJoueur
 )
 
@@ -192,6 +195,7 @@ func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 	epaves := monde.Wrecks()
 	armesAuSol := monde.Drops()
 	fiolesAuSol := monde.Vials()
+	tourelles := monde.Turrets()
 
 	largeur := sol.carte.Width()
 	fenetre := min(cam.casesMax(), largeur*sol.carte.Height())
@@ -273,6 +277,12 @@ func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 			for i := range fiolesAuSol.Active() {
 				f := fiolesAuSol.At(i)
 				s.ajouter(f.X, f.Y, fiolesAuSol.IDAt(i), sorteFioleAuSol, i)
+			}
+		}},
+		{tourelles.Cap(), func(s *scene) {
+			for i := range tourelles.Active() {
+				t := tourelles.At(i)
+				s.ajouter(t.X, t.Y, tourelles.IDAt(i), sorteTourelle, i)
 			}
 		}},
 	}

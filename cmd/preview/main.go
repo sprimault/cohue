@@ -240,6 +240,13 @@ type vue struct {
 	// declencheUneArme dépense une charge de l'emplacement tenu, pour que la
 	// déflagration porte et que ses chiffres jaillissent.
 	declencheUneArme bool
+	// poseUneTourelle en dépose une et la laisse tirer.
+	//
+	// **Ce qu'elle donne à relire est une chose posée qui agit sans le joueur** :
+	// que la tourelle se distingue de l'arme au sol qu'on ramasse — c'est le même
+	// dessin —, et que ses tirs se lisent comme venant d'elle et non du
+	// personnage. Aucune mesure ne dit ni l'un ni l'autre.
+	poseUneTourelle bool
 	// declencheLaSalve tire le fusil de la seconde case et laisse voler ses
 	// projectiles quelques ticks.
 	//
@@ -421,6 +428,13 @@ var vues = []vue{
 	// du fusil, qui ne tire qu'à trois tuiles.
 	{nom: "salve", ticks: 300 * game.TPS, jusquAuxDegats: true,
 		poseDesArmes: true, declencheLaSalve: true},
+
+	// **La tourelle posée, en train de tirer.** Elle s'arrête au premier contact
+	// comme sa voisine : la horde doit être là pour qu'il y ait quelque chose à
+	// abattre, et la simulation continue après la mort — un compte de pas rendrait
+	// un écran de fin.
+	{nom: "tourelle", ticks: 300 * game.TPS, jusquAuxDegats: true,
+		poseUneTourelle: true},
 
 	// **La fiole, tenue et au sol.** Ce qu'elle relit est ce qu'aucune mesure ne
 	// dit : qu'une fiole de douze pixels se voie sur le sol clair — c'est le plus
@@ -743,6 +757,18 @@ func (p *planche) vue(v vue) error {
 		attendreUnGrosChiffre(partie.World)
 	}
 
+	// **La tourelle se pose, puis le joueur s'en écarte.** Posée sous lui, elle
+	// serait recouverte par son sprite, qui fait quatre fois sa taille : la vue
+	// montrerait un personnage et rien d'autre. Les pas joués ensuite la laissent
+	// tirer sur ce qui approche, ce qui est le seul état où elle se juge.
+	if v.poseUneTourelle {
+		px, py := partie.World.Player()
+		partie.World.SpawnDrop("tourelle", px, py)
+		partie.World.Step(game.Vec{})
+		partie.World.Trigger(0)
+		attendreUnTirDeTourelle(partie.World)
+	}
+
 	// Deux ticks après le déclenchement : la salve est sortie du personnage sans
 	// avoir atteint la portée du fusil, qui est de trois tuiles — au-delà, les
 	// projectiles ont déjà touché et il ne resterait rien à voir.
@@ -1048,6 +1074,37 @@ func attendreUnGrosChiffre(monde *game.World) {
 			monde.Trigger(0)
 		}
 		monde.Step(session.Pilot(game.Tick(tick)))
+	}
+}
+
+// attendreUnTirDeTourelle écarte le joueur de ce qu'il vient de poser, puis
+// avance jusqu'à ce que la tourelle ait tiré.
+//
+// **Elle s'arrête sur le tir et non sur un compte de pas**, ce que la première
+// version avait manqué : le pilote tourne, il emmène la horde avec lui, et la
+// vue montrait une tourelle posée que rien n'approchait plus. Ce qu'elle doit
+// donner à relire est une chose qui agit sans le joueur, donc elle attend
+// l'acte.
+//
+// **L'écart est bref et dans une seule direction.** Posée sous lui, la tourelle
+// disparaît sous un sprite quatre fois plus grand ; au-delà de sa portée, elle
+// n'a plus rien à abattre. Une demi-seconde de course met deux tuiles et demie
+// entre les deux, ce qui laisse la horde converger dans ses sept.
+func attendreUnTirDeTourelle(monde *game.World) {
+	for range game.TPS / 2 {
+		monde.Step(game.Vec{X: game.One, Y: 0})
+	}
+
+	tourelles := monde.Turrets()
+	if tourelles.Len() == 0 {
+		return
+	}
+	plein := tourelles.At(0).Shots
+	for range 10 * game.TPS {
+		if tourelles.Len() == 0 || tourelles.At(0).Shots < plein {
+			return
+		}
+		monde.Step(game.Vec{})
 	}
 }
 

@@ -28,7 +28,15 @@ func (w *World) tirer() {
 	w.cooldown = w.arme.Cooldown
 }
 
-// salve pose les projectiles d'une arme dans une direction.
+// salve pose les projectiles d'une arme depuis le joueur.
+//
+// Le cas ordinaire de `salveDe` : ce qui tire est le joueur, et son point de
+// départ est le sien.
+func (w *World) salve(arme *Weapon, vers Vec) int {
+	return w.salveDe(arme, w.playerX, w.playerY, vers)
+}
+
+// salveDe pose les projectiles d'une arme depuis un point, dans une direction.
 //
 // **Paramétrée par l'arme et non par le socle**, depuis qu'une lourde tire : le
 // fusil à pompe emploie ce mécanisme tel quel, avec ses propres nombre, front et
@@ -36,13 +44,19 @@ func (w *World) tirer() {
 // répartition dans la salve, dont le premier a déjà coûté un palier qui faisait
 // perdre.
 //
+// **Et par un point depuis qu'une tourelle tire**, qui n'est pas là où le joueur
+// se tient. C'est le second paramètre que ce mécanisme a pris plutôt qu'une
+// copie, et le même geste : une origine, pas une abstraction.
+//
 // Ce qu'elle ne fait pas est décider **quand** : la cadence appartient à
-// l'appelant — un compteur pour le socle, une charge dépensée pour une lourde.
+// l'appelant — un compteur pour le socle, une charge dépensée pour une lourde,
+// le sien pour une tourelle.
 //
 // Elle rend le nombre de projectiles réellement posés, que le socle ignore et
-// qu'une lourde regarde : celle-ci ne dépense sa charge que si quelque chose est
-// parti, quand le socle perd les tirs qu'un bassin plein refuse.
-func (w *World) salve(arme *Weapon, vers Vec) int {
+// que les deux autres regardent : ceux-là ne dépensent leur charge que si
+// quelque chose est parti, quand le socle perd les tirs qu'un bassin plein
+// refuse.
+func (w *World) salveDe(arme *Weapon, x, y Fixed, vers Vec) int {
 	cote := vers.Perp()
 	n, poses := arme.Projectiles, 0
 	for k := range n {
@@ -74,8 +88,8 @@ func (w *World) salve(arme *Weapon, vers Vec) int {
 		}
 
 		if _, ok := w.tirs.Spawn(Projectile{
-			X:         w.playerX + depart.X,
-			Y:         w.playerY + depart.Y,
+			X:         x + depart.X,
+			Y:         y + depart.Y,
 			Step:      pas.Scale(arme.ProjectileSpeed),
 			Remaining: arme.Range,
 			Hits:      arme.Hits,

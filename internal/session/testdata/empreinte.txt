@@ -17,9 +17,9 @@ caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,1
 caisse 2 id=2 gen=1 x=2326528 y=4161536 appui=20 butin=2,0
 caisse 3 id=3 gen=1 x=4161536 y=4161536 appui=20 butin=2,0
 caisse 4 id=4 gen=1 x=1998848 y=3244032 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,1
+caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,3
 caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
-caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
+caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,1
 flux vagues=905137858 positions=847631723 butin=983279043 cartes=812551215
 
 # choisi pour un aimant au sol, une montée franchie et la vie entamée
@@ -48,9 +48,9 @@ caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,1
 caisse 2 id=2 gen=1 x=2326528 y=4161536 appui=20 butin=2,0
 caisse 3 id=3 gen=1 x=4161536 y=4161536 appui=20 butin=2,0
 caisse 4 id=4 gen=1 x=1998848 y=3244032 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,1
+caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,3
 caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
-caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
+caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,1
 aimant 0 id=0 gen=1 x=4816896 y=884736
 flux vagues=450897158 positions=1036398020 butin=574803774 cartes=359676039
 
@@ -80,9 +80,9 @@ caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,1
 caisse 2 id=2 gen=1 x=2326528 y=4161536 appui=20 butin=2,0
 caisse 3 id=3 gen=1 x=4161536 y=4161536 appui=20 butin=2,0
 caisse 4 id=4 gen=1 x=1998848 y=3244032 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,1
+caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,3
 caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
-caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
+caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,1
 aimant 0 id=0 gen=1 x=4816896 y=884736
 flux vagues=26261793 positions=287567265 butin=654727161 cartes=826903205
 
@@ -129,9 +129,9 @@ caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,1
 caisse 2 id=2 gen=1 x=2326528 y=4161536 appui=20 butin=2,0
 caisse 3 id=3 gen=1 x=4161536 y=4161536 appui=20 butin=2,0
 caisse 4 id=4 gen=1 x=1998848 y=3244032 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,1
+caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,3
 caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
-caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
+caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,1
 aimant 0 id=0 gen=1 x=4816896 y=884736
 flux vagues=253365204 positions=503230892 butin=963961342 cartes=225694613
 

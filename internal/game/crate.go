@@ -59,25 +59,47 @@ type Crate struct {
 	Press Tick
 	// Floor est le coût qu'elle rend à sa case en cédant, venu de son placement.
 	Floor Cost
-	// Weapon est le rang de l'arme lourde qu'elle porte, **décalé de un** : zéro
-	// veut dire qu'elle n'en porte pas.
-	//
-	// Le décalage est celui de `World.convoite`, et pour la même raison : l'index
-	// brut ferait du zéro à la fois « rien » et « la première arme de la table »,
-	// c'est-à-dire qu'un champ oublié ferait porter une arme à toutes les
-	// caisses.
+	// Content est ce qu'elle porte en plus de ses gemmes.
 	//
 	// **Tiré à l'apparition et non à la casse, parce qu'on ne montre pas ce qui
 	// n'est pas décidé.** Ce que la caisse annonce doit être ce qu'elle donnera.
 	// Le tirage y gagne au passage une propriété qu'il n'avait pas : le butin
 	// d'une caisse ne dépend plus de l'ordre dans lequel on les casse, alors que
 	// casser celle du nord avant celle du sud échangeait leurs contenus.
-	//
-	// **La fiole de l'étape 7 rouvrira ce champ**, et c'est ce qui le fera
-	// tomber : à trois provenances — rien, une arme, une fiole —, un index décalé
-	// redevient une sentinelle qu'il faut interpréter, et c'est une sorte qu'il
-	// faudra. Deux provenances n'en demandent pas encore.
-	Weapon int
+	Content Loot
+}
+
+// LootKind dit de quelle nature est ce qu'une caisse porte.
+//
+// **Une sorte, là où un index décalé de un suffisait à deux provenances.** La
+// fiole en fait une troisième — rien, une arme, une fiole —, et un décalage y
+// redevient une sentinelle qu'il faut interpréter. La sorte ne rend pas l'état
+// absurde reconnaissable, elle supprime la question : il n'y a plus de valeur à
+// lire, la sorte dit ce que l'index nomme.
+//
+// Elle ne vaut que parce que les provenances sont **connues et closes**. Un
+// index dans une table qu'on étendra y retomberait sur une sentinelle déguisée
+// en sorte.
+type LootKind uint8
+
+const (
+	// LootNothing est une caisse qui ne laisse que ses gemmes, ce que toutes
+	// laissent. C'est la valeur zéro, donc exactement ce qu'un champ oublié doit
+	// valoir.
+	LootNothing LootKind = iota
+	// LootHeavy est une arme lourde, et l'index est son rang dans la table.
+	LootHeavy
+	// LootVial est une fiole. Son index ne sert pas : le catalogue n'en porte
+	// qu'une, et le jour où il en portera deux c'est lui qui les distinguera.
+	LootVial
+)
+
+// Loot est ce qu'une caisse porte en plus de ses gemmes.
+type Loot struct {
+	// Kind dit de quoi il s'agit, et décide si l'index veut dire quelque chose.
+	Kind LootKind
+	// Index désigne l'entrée de la table que la sorte nomme.
+	Index int
 }
 
 // CompileCrates résout un semis de caisses contre la carte cuite.
@@ -184,26 +206,59 @@ func (w *World) Stock(caisses []CratePlacement) {
 func (w *World) SpawnCrate(x, y Fixed, sol Cost) (Handle, bool) {
 	return w.caisses.Spawn(Crate{
 		X: x, Y: y,
-		Press:  w.appuiCaisse,
-		Floor:  sol,
-		Weapon: w.tirerUneArme(),
+		Press:   w.appuiCaisse,
+		Floor:   sol,
+		Content: w.tirerLeButin(),
 	})
+}
+
+// tirerLeButin décide ce qu'une caisse portera en plus de ses gemmes.
+//
+// **L'arme d'abord, la fiole sur ce qui reste**, et l'ordre est ce qui rend les
+// deux chances lisibles : celle de l'arme se lit sur toutes les caisses, celle de
+// la fiole sur celles qui n'en portent pas. Les tirer en parallèle aurait
+// demandé une règle pour la caisse qui gagne les deux, alors qu'une caisse porte
+// un contenu — c'est ce que la sorte dit, et une icône ne saurait pas en annoncer
+// deux.
+func (w *World) tirerLeButin() Loot {
+	if rang, tiree := w.tirerUneArme(); tiree {
+		return Loot{Kind: LootHeavy, Index: rang}
+	}
+	if w.tirerUneFiole() {
+		return Loot{Kind: LootVial}
+	}
+	return Loot{}
+}
+
+// lacherLeButin pose au sol ce que la caisse portait, s'il y a quelque chose.
+func (w *World) lacherLeButin(c *Crate) {
+	switch c.Content.Kind {
+	case LootHeavy:
+		w.lacherUneArme(c.Content.Index, c.X, c.Y)
+	case LootVial:
+		w.lacherUneFiole(c.X, c.Y)
+	}
 }
 
 // Crates rend le bassin des caisses.
 func (w *World) Crates() *Pool[Crate] { return w.caisses }
 
-// CrateWeapon rend l'arme lourde qu'une caisse porte, et dit si elle en porte
-// une.
+// CrateContent rend la clé de catalogue de ce qu'une caisse annonce, et dit si
+// elle annonce quelque chose.
 //
-// Le rendu en a besoin pour poser l'icône qui l'annonce, et il n'a pas à
-// connaître la table ni le décalage : il lit une arme, comme il en lit une pour
-// ce qui traîne au sol.
-func (w *World) CrateWeapon(c *Crate) (*Weapon, bool) {
-	if c.Weapon == 0 {
-		return nil, false
+// **Une clé et non une sorte**, bien que la sorte soit ce que la caisse porte :
+// ce que le rendu en fait est chercher une icône, qu'il résout par la clé d'un
+// objet. Lui rendre la sorte l'obligerait à retrouver la clé, donc à connaître
+// la table des armes et le nom de la fiole — deux choses qu'il n'a pas à savoir,
+// et qui feraient de son `switch` une seconde description de celui-ci.
+func (w *World) CrateContent(c *Crate) (string, bool) {
+	switch c.Content.Kind {
+	case LootHeavy:
+		return w.armes.All[c.Content.Index].Key, true
+	case LootVial:
+		return w.progression.VialObject, true
 	}
-	return &w.armes.All[c.Weapon-1], true
+	return "", false
 }
 
 // CratePress rend le temps d'appui qu'une caisse intacte porte, en ticks.
@@ -257,7 +312,7 @@ func (w *World) casser() {
 		// gardée pour rien.
 		w.grille.Set(c.X.Floor(), c.Y.Floor(), c.Floor)
 		w.lacherEn(c.X, c.Y, w.progression.CrateGems)
-		w.lacherLarme(c)
+		w.lacherLeButin(c)
 		w.emettre(c.X, c.Y, FxCrate)
 		w.epaves.Spawn(Wreck{X: c.X, Y: c.Y, Born: w.tick})
 		w.caisses.RemoveAt(i)

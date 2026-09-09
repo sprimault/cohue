@@ -56,7 +56,7 @@ func TestLeCosmetiqueNeDecideDeRien(t *testing.T) {
 			t.Fatalf("profils livrés : %v", err)
 		}
 		g := NewCostGrid(32, 32)
-		w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+		w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t), fiolesLivrees(t),
 			vagueUnique(6, indexDuProfil(t, profils, "marcheur")), g,
 			graineDeTest, capacitesDeTest)
 		w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
@@ -96,7 +96,7 @@ func TestLesFigurantsBougentAvecLeCosmetique(t *testing.T) {
 			t.Fatalf("profils livrés : %v", err)
 		}
 		g := NewCostGrid(32, 32)
-		w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+		w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t), fiolesLivrees(t),
 			sansVagues(), g, graineDeTest, capacitesDeTest)
 		w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 
@@ -150,7 +150,7 @@ func TestLesTeintesDeVetementViennentDeLaGraine(t *testing.T) {
 		}
 
 		g := NewCostGrid(32, 32)
-		w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+		w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t), fiolesLivrees(t),
 			vagueUnique(6, marcheur), g, graine, capacitesDeTest)
 		w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 

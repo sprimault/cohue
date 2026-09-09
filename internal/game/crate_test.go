@@ -41,7 +41,7 @@ func salleAvecCaisse(t *testing.T) (*World, Fixed, Fixed) {
 	}
 	StampCrates(g, pose, regles)
 
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), regles,
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), regles, fiolesLivrees(t),
 		vagueUnique(0), g, graineDeTest, capacitesDeTest)
 	w.Place(FromInt(24)+One/2, FromInt(24)+One/2)
 	w.Stock(pose)

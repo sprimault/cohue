@@ -68,6 +68,13 @@ const toucheAimant = "1"
 // gardé face au soin.
 var touchesLourdes = [game.Slots]string{"2", "3"}
 
+// toucheFiole est ce que le joueur presse pour boire.
+//
+// Elle suit les deux emplacements d'armes, et une seule case porte le stock : ce
+// que la conception limite à deux ou trois est le nombre de sortes de
+// consommables, pas le nombre de flacons.
+const toucheFiole = "4"
+
 // emplacementsLourds résout ce que les emplacements montrent.
 //
 // **L'icône se résout ici et non dans le bandeau**, qui ne connaît pas le
@@ -123,6 +130,12 @@ type Readings struct {
 	Charged bool
 	// Heavies sont les emplacements d'armes lourdes, dans l'ordre des touches.
 	Heavies [game.Slots]Held
+	// Vials est la case des fioles : leur nombre et leur dessin.
+	//
+	// La même structure qu'un emplacement d'arme, parce que la case dit la même
+	// chose — ce qu'elle tient, et combien. Ce qui les sépare est la touche, qui
+	// boit ici et déclenche là.
+	Vials Held
 	// Mark est l'accusé d'un repère, vide quand il n'y a rien à confirmer.
 	Mark string
 	// Objective est l'avancement vers l'ouverture de la porte, vide quand le
@@ -206,6 +219,34 @@ func (h *HUD) Panel(dst *ebiten.Image, r Readings) {
 	bas := y + h.Font.Height() + h.Margin()
 	h.emplacement(dst, margeEcran, bas, r.Charged)
 	h.lourdes(dst, margeEcran, bas, r)
+	h.fioles(dst, margeEcran, bas, r)
+}
+
+// fioles pose la case des consommables, après les deux emplacements d'armes.
+//
+// **Sa place est fixe et ne se tasse pas sur les cases vides.** Les touches
+// portent des chiffres, et une case qui glisserait quand une arme s'épuise
+// changerait ce qu'il faut presser au moment où le joueur a le moins de temps
+// pour le relire.
+//
+// **Elle n'existe que tenue, comme une arme lourde et non comme l'aimant.** Une
+// fiole ne revient pas d'elle-même : elle sort des caisses, si bien qu'une case
+// vide n'annoncerait rien qui vienne, à la différence de l'aimant que sa période
+// ramène.
+func (h *HUD) fioles(dst *ebiten.Image, x, y int, r Readings) {
+	if r.Vials.Charges <= 0 {
+		return
+	}
+
+	cote := h.SlotSide(contenuEmplacement)
+	gauche := x + (game.Slots+1)*(cote+h.Margin())
+	h.Slot(dst, gauche, y, contenuEmplacement, toucheFiole)
+
+	bord := (cote - contenuEmplacement) / 2
+	if r.Vials.Icon != nil {
+		h.Image(dst, r.Vials.Icon, gauche+bord, y+bord)
+	}
+	h.compteDansLaCase(dst, gauche+h.Border()+1, y+cote-h.Border(), r.Vials.Charges)
 }
 
 // lourdes pose les emplacements d'armes lourdes à la suite de celui de l'aimant.
@@ -232,11 +273,12 @@ func (h *HUD) lourdes(dst *ebiten.Image, x, y int, r Readings) {
 		if tenue.Icon != nil {
 			h.Image(dst, tenue.Icon, gauche+bord, y+bord)
 		}
-		h.compteDeTirs(dst, gauche+h.Border()+1, y+cote-h.Border(), tenue.Charges)
+		h.compteDansLaCase(dst, gauche+h.Border()+1, y+cote-h.Border(), tenue.Charges)
 	}
 }
 
-// compteDeTirs pose le nombre de tirs restants au coin bas gauche de l'icône.
+// compteDansLaCase pose ce qu'un emplacement tient, au coin bas gauche de son
+// icône — des tirs pour une arme lourde, des flacons pour une fiole.
 //
 // **Un compte a remplacé les pastilles, et la conception a suivi plutôt que
 // cédé.** Elle voulait une rangée de marques « parce qu'une proportion se lit en
@@ -254,8 +296,8 @@ func (h *HUD) lourdes(dst *ebiten.Image, x, y int, r Readings) {
 // **Contouré, parce qu'il se pose malgré tout sur une partie du dessin.** Un
 // chiffre clair sur un corps clair ne se lirait pas, et c'est la règle que le
 // chapitre 2 applique à tout texte posé sur autre chose que son propre fond.
-func (h *HUD) compteDeTirs(dst *ebiten.Image, x, bas, tirs int) {
-	h.Font.DrawOutlined(dst, strconv.Itoa(tirs), x, bas-h.Font.Height(),
+func (h *HUD) compteDansLaCase(dst *ebiten.Image, x, bas, tenu int) {
+	h.Font.DrawOutlined(dst, strconv.Itoa(tenu), x, bas-h.Font.Height(),
 		h.Color("texte"), h.Color("cadre_fond"))
 }
 
@@ -343,8 +385,12 @@ func (s *Screen) peindreBandeau(ecran *ebiten.Image) {
 		Elapsed:    s.monde.Tick(),
 		Charged:    s.monde.Charged(),
 		Heavies:    s.emplacementsLourds(),
-		Mark:       s.marque(),
-		Objective:  s.objectif(),
+		Vials: Held{
+			Icon:    s.objets.Icon(s.monde.VialKey()),
+			Charges: s.monde.VialStock(),
+		},
+		Mark:      s.marque(),
+		Objective: s.objectif(),
 	})
 }
 

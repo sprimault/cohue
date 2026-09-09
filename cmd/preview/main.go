@@ -233,6 +233,10 @@ type vue struct {
 	// Sans passer par une caisse : la chute est un tirage, et une vue qui en
 	// dépendrait montrerait un sol vide une fois sur trois.
 	poseDesArmes bool
+	// poseDesFioles en met une dans la case des consommables et une autre au sol,
+	// pour la raison qui vaut déjà pour les armes : la case et le dessin au sol
+	// sont deux choses à relire, et une seule n'en montrerait que la moitié.
+	poseDesFioles bool
 	// declencheUneArme dépense une charge de l'emplacement tenu, pour que la
 	// déflagration porte et que ses chiffres jaillissent.
 	declencheUneArme bool
@@ -260,6 +264,14 @@ type vue struct {
 	// C'est aussi la seule distance à laquelle l'annonce sert : au contact, on a
 	// déjà décidé.
 	loinDUneCaisse bool
+	// butinAnnonce est la sorte que la caisse choisie doit porter, pour les deux
+	// drapeaux ci-dessus.
+	//
+	// **Toute vue qui pose une caisse le renseigne, y compris celles qui ne
+	// jugent pas l'annonce.** Sa valeur zéro est `LootNothing`, qui est une sorte
+	// légitime et non l'absence de choix : une vue qui l'omettrait chercherait une
+	// caisse vide, et n'en trouverait que si la graine du jour en a laissé une.
+	butinAnnonce game.LootKind
 	// poseUneBaudruche en fait apparaître une au pied du joueur, que son arme
 	// abat aussitôt : c'est le seul chemin qui produise une déflagration sans
 	// forger un état que la partie ne connaît pas.
@@ -390,6 +402,16 @@ var vues = []vue{
 	// décor. La horde est retirée pour que rien ne passe devant.
 	{nom: "armes", videLaHorde: true, poseDesArmes: true},
 
+	// **La fiole, tenue et au sol.** Ce qu'elle relit est ce qu'aucune mesure ne
+	// dit : qu'une fiole de douze pixels se voie sur le sol clair — c'est le plus
+	// petit objet que le jeu pose après la gemme.
+	//
+	// **Elle pose aussi les armes, et c'est ce que la première version manquait.**
+	// Sa case est la quatrième : la juger avec les deux précédentes vides ne dit
+	// rien de son alignement ni de la lecture des quatre chiffres à la suite,
+	// c'est-à-dire précisément ce que le lot ajoute au bandeau.
+	{nom: "fioles", videLaHorde: true, poseDesArmes: true, poseDesFioles: true},
+
 	// **Les chiffres de dégâts, et la graduation qui les distingue.** Ce qui se
 	// relit ici est ce qu'aucune mesure ne dit : qu'un « 1 » de tir de base reste
 	// discret dans une horde dense, et qu'un « 6 » de grenade s'en détache. La
@@ -443,7 +465,7 @@ var vues = []vue{
 	// l'explosion part. La horde est retirée dans les deux cas — ce qui est jugé
 	// est un effet, pas ce qui l'entoure.
 	{nom: "eclats", ticks: 30 * game.TPS, videLaHorde: true,
-		surUneCaisse: true, jusquAlEffet: &effetCaisse},
+		surUneCaisse: true, jusquAlEffet: &effetCaisse, butinAnnonce: game.LootHeavy},
 
 	// **Les deux moments d'une caisse qui cède, que rien ne montrait.** Le délai
 	// d'appui n'a de sens que s'il se voit : sans la déformation, un joueur
@@ -456,11 +478,17 @@ var vues = []vue{
 	// **La seule distance à laquelle l'annonce sert.** Au contact, le joueur a
 	// déjà décidé d'y aller : ce que l'icône doit faire est se lire de loin, au
 	// moment où il choisit entre le détour et la horde.
-	{nom: "caisse-annonce", ticks: 2, videLaHorde: true, loinDUneCaisse: true},
+	{nom: "caisse-annonce", ticks: 2, videLaHorde: true, loinDUneCaisse: true,
+		butinAnnonce: game.LootHeavy},
+	// **La seconde annonce se relit à part**, parce que ce qu'on juge est une
+	// icône : celle de la fiole est plus étroite que celles des armes, et rien ne
+	// dit qu'elle porte à trois tuiles pour l'avoir vue dans une case du bandeau.
+	{nom: "caisse-fiole", ticks: 2, videLaHorde: true, loinDUneCaisse: true,
+		butinAnnonce: game.LootVial},
 	{nom: "caisse-appui", ticks: 30 * game.TPS, videLaHorde: true,
-		surUneCaisse: true, jusquAMiAppui: true},
+		surUneCaisse: true, jusquAMiAppui: true, butinAnnonce: game.LootHeavy},
 	{nom: "caisse-epave", ticks: 30 * game.TPS, videLaHorde: true,
-		surUneCaisse: true, jusquALepave: true},
+		surUneCaisse: true, jusquALepave: true, butinAnnonce: game.LootHeavy},
 	// **Celle-ci ne vide pas la horde**, contrairement à sa voisine : le
 	// dégagement tourne à chaque pas, et il emportait la Baudruche avant que
 	// l'arme ait eu le temps de l'abattre. Les premières secondes de la courbe
@@ -579,7 +607,7 @@ func (p *planche) vue(v vue) error {
 	pu, pv := v.ou.cases(partie.Grid, partie.World.Exit())
 	partie.World.Place(game.FromInt(pu)+game.One/2, game.FromInt(pv)+game.One/2)
 	if v.surUneCaisse || v.loinDUneCaisse {
-		c, err := caisseGarnie(partie.World, v.nom)
+		c, err := caisseGarnie(partie.World, v.nom, v.butinAnnonce)
 		if err != nil {
 			return err
 		}
@@ -666,6 +694,19 @@ func (p *planche) vue(v vue) error {
 		partie.World.SpawnDrop("grenade", px, py)
 		partie.World.Step(game.Vec{})
 		partie.World.SpawnDrop("grenade", px+game.FromInt(2), py)
+	}
+
+	// La même mise en place que les armes, et le même tick qui ramasse la
+	// première : ce qui se relit est la case du bandeau avec son compte, et la
+	// fiole posée au sol parmi le décor.
+	if v.poseDesFioles {
+		px, py := partie.World.Player()
+		partie.World.SpawnVial(px, py)
+		partie.World.Step(game.Vec{})
+		// Sur l'autre axe que l'arme au sol, qui prend celui des `x` : posées au
+		// même endroit, la plus petite des deux passerait sous la plus grande et
+		// la vue ne montrerait qu'un dessin sur les deux.
+		partie.World.SpawnVial(px, py+game.FromInt(2))
 	}
 
 	// **Après les pas, parce que la déflagration ne dure qu'une mèche.**
@@ -974,25 +1015,30 @@ func attendreUnGrosChiffre(monde *game.World) {
 	}
 }
 
-// caisseGarnie rend la première caisse du lieu qui porte une arme.
+// caisseGarnie rend la première caisse du lieu qui porte le butin demandé.
 //
 // **Garnie et non la première venue**, parce qu'une caisse vide n'annonce rien :
 // la vue qui juge l'icône montrerait une caisse nue, et celle qui juge l'appui ne
-// dirait pas que l'annonce tient pendant qu'on pousse. Une caisse sur deux en
-// porte, si bien que le semis livré en a toujours une.
+// dirait pas que l'annonce tient pendant qu'on pousse.
+//
+// **Elle demande une sorte depuis que la fiole en est une**, et les deux
+// annonces se relisent séparément : ce qu'on juge est un dessin, et deux icônes
+// ne se valent pas.
 //
 // Elle échoue plutôt que de se rabattre sur `At(0)` : un repli rendrait la vue
 // muette sans rien dire, et c'est le contrôle privé de son entrée qui doit
-// échouer plutôt que passer.
-func caisseGarnie(monde *game.World, vue string) (*game.Crate, error) {
+// échouer plutôt que passer. Le semis livré porte les deux sortes ; le jour où
+// une graine n'en donnerait qu'une, la vue le dirait au lieu de montrer autre
+// chose.
+func caisseGarnie(monde *game.World, vue string, sorte game.LootKind) (*game.Crate, error) {
 	caisses := monde.Crates()
 	for i := range caisses.Active() {
-		if c := caisses.At(i); c.Weapon != 0 {
+		if c := caisses.At(i); c.Content.Kind == sorte {
 			return c, nil
 		}
 	}
-	return nil, fmt.Errorf("vue %s : aucune des %d caisses du lieu ne porte d'arme",
-		vue, caisses.Len())
+	return nil, fmt.Errorf("vue %s : aucune des %d caisses du lieu ne porte de butin de sorte %d",
+		vue, caisses.Len(), sorte)
 }
 
 // arrive dit si la scène que la vue attend est là.

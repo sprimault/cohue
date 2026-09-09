@@ -352,7 +352,11 @@
       "famille": "monde",
       "bloquant": false,
       "soin": 30,
-      "emplacements": 2,
+      "stock": 2,
+      "taille_icone": [
+        20,
+        20
+      ],
       "son": "soin",
       "scintillement": {
         "images": 4,

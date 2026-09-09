@@ -31,7 +31,7 @@ func salleOuverte(t *testing.T, scenario *Scenario, capacite int) (*World, *Prof
 	}
 
 	g := NewCostGrid(48, 48)
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t), fiolesLivrees(t),
 		scenario, g, graineDeTest,
 		Capacities{Enemies: capacite, Shots: 8, EnemyShots: 8, Blasts: 8, Gems: 16,
 			Crates: 8, Fx: 8})

@@ -183,6 +183,18 @@ type World struct {
 	lourdes [Slots]Heavy
 	// armesAuSol porte les armes lourdes tombées, en attente d'être prises.
 	armesAuSol *Pool[Drop]
+	// fioles est le nombre de fioles que le joueur tient.
+	//
+	// **Un compte et non des cases**, à la différence des emplacements d'armes
+	// lourdes : deux cases qui ne peuvent contenir que la même chose sont un
+	// compteur de deux avec une interface en plus. Ce que la conception limite à
+	// deux ou trois est le nombre de sortes de consommables, et la case par sorte
+	// arrivera avec la deuxième.
+	fioles int
+	// fiole est ce qu'une fiole rend et combien on en tient, venu du catalogue.
+	fiole VialRules
+	// fiolesAuSol porte les fioles tombées, en attente d'être prises.
+	fiolesAuSol *Pool[Vial]
 	// enAttente est le nombre de choix dus au joueur, en plus de celui qui est
 	// ouvert. Une récolte abondante en donne deux d'un coup, et les présenter
 	// l'un après l'autre est la seule façon de n'en perdre aucun.
@@ -267,6 +279,9 @@ type Capacities struct {
 	// Petit par nature : une arme ne s'efface pas, mais le joueur qui en laisse
 	// traîner plus que ce bassin n'en tient a déjà refusé les précédentes.
 	Drops int
+	// Vials est le nombre de fioles qui peuvent attendre au sol, pour la même
+	// raison et avec la même borne.
+	Vials int
 	// Fx est le nombre d'effets brefs qui vivent à la fois. Le seul bassin
 	// entièrement cosmétique de la partie.
 	Fx int
@@ -294,9 +309,11 @@ type Capacities struct {
 // que baisser** : une caisse cassée rend sa case au sol, et une ruine remplacera
 // un bloquant. Aucun des deux ne touche au compte des seaux.
 func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, caisses CrateRules,
-	scenario *Scenario, grille *CostGrid, graine uint64, capacites Capacities) *World {
+	fioles VialRules, scenario *Scenario, grille *CostGrid, graine uint64,
+	capacites Capacities) *World {
 	return &World{
 		appuiCaisse: caisses.Press,
+		fiole:       fioles,
 		profils:     profils,
 		arme:        armes.Base,
 		armes:       armes,
@@ -317,6 +334,7 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, caiss
 		caisses:     NewPool[Crate](capacites.Crates),
 		epaves:      NewPool[Wreck](capacites.Crates),
 		armesAuSol:  NewPool[Drop](capacites.Drops),
+		fiolesAuSol: NewPool[Vial](capacites.Vials),
 		effets:      NewPool[Fx](capacites.Fx),
 		aimants:     NewPool[Magnet](1),
 		hasard:      NewStreams(graine),
@@ -493,6 +511,10 @@ func (w *World) Step(voulu Vec) {
 	// existé à l'écran ; posée après, elle attend le tick suivant et le joueur la
 	// voit sous ses pieds avant de la tenir.
 	w.ramasserUneArme()
+	// La fiole se prend au même moment et à la même portée : ce qu'on ramasse en
+	// marchant dessus se ramasse d'un seul geste, et deux places dans le tick en
+	// feraient deux gestes qui se distinguent d'un tick.
+	w.ramasserUneFiole()
 	// **Après le ramassage, et l'ordre inverse a été essayé.** Le joueur casse
 	// la caisse en arrivant dessus, donc les gemmes tombent à ses pieds : posées
 	// avant la récolte du même tick, elles étaient ramassées sans avoir jamais

@@ -50,6 +50,9 @@ const (
 	// reste : le joueur marche dessus pour la prendre, donc il passe devant ou
 	// derrière selon sa profondeur.
 	sorteArmeAuSol
+	// sorteFioleAuSol est une fiole tombée d'une caisse, triée comme une arme et
+	// pour la même raison : elle se ramasse en marchant dessus.
+	sorteFioleAuSol
 	sorteJoueur
 )
 
@@ -188,6 +191,7 @@ func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 	caisses := monde.Crates()
 	epaves := monde.Wrecks()
 	armesAuSol := monde.Drops()
+	fiolesAuSol := monde.Vials()
 
 	largeur := sol.carte.Width()
 	fenetre := min(cam.casesMax(), largeur*sol.carte.Height())
@@ -263,6 +267,12 @@ func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 			for i := range armesAuSol.Active() {
 				d := armesAuSol.At(i)
 				s.ajouter(d.X, d.Y, armesAuSol.IDAt(i), sorteArmeAuSol, i)
+			}
+		}},
+		{fiolesAuSol.Cap(), func(s *scene) {
+			for i := range fiolesAuSol.Active() {
+				f := fiolesAuSol.At(i)
+				s.ajouter(f.X, f.Y, fiolesAuSol.IDAt(i), sorteFioleAuSol, i)
 			}
 		}},
 	}

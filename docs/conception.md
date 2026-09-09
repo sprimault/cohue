@@ -486,7 +486,7 @@ Ce que cela établit est la cohérence entre un score et un journal, ce qui suff
 
 Le joueur casse une caisse **en la traversant**. Aucune touche, aucun conflit avec l'auto-visée, et ça le garde en mouvement.
 
-**Ce qui reste à écrire de ce chapitre est ce que les caisses donnent** : les consommables et leurs emplacements. Le délai d'appui, le ralentissement, le coût dans le champ de flux et l'annonce du contenu sont livrés ; ce que la caisse laisse est une volée de gemmes, et une arme lourde de temps en temps.
+Ce que la caisse laisse est une volée de gemmes, une arme lourde de temps en temps, et une fiole sur ce qui reste. **Ce qui reste à écrire de ce chapitre sont les obstacles destructibles**, plus bas ; le délai d'appui, le ralentissement, le coût dans le champ de flux, l'annonce du contenu et les consommables sont livrés.
 
 **Elle n'est pas une cible**, et c'est la règle qui coûterait cher à rétablir plus tard. Rangée parmi les ennemis, elle détournerait la visée automatique — qui prend la plus proche sans que le joueur choisisse — et emporterait avec elle la mécanique du Secouriste ; c'est la même règle que pour le figurant, et pour la même raison.
 
@@ -572,6 +572,14 @@ Deux effets font exception et sont bien des animations, parce qu'ils ont une gé
 ### Ce qui sort des caisses
 
 Pas d'inventaire. Une arme ramassée s'ajoute directement à la build, comme un niveau gagné. Les soins sont des consommables à usage unique, **deux ou trois emplacements maximum**, une touche pour boire, aucun menu. Le joueur a une décision — boire maintenant ou garder — pas une gestion.
+
+**Ces emplacements comptent des sortes et non des flacons**, et il a fallu l'écrire le jour où le premier consommable est arrivé seul. Deux cases qui ne peuvent contenir que la même chose sont un compteur de deux avec une interface en plus — c'est le doublon que le chapitre 9 vient de fermer sur les armes lourdes, remis en place à l'étage voisin. La fiole a donc une case, un stock plafonné et une touche ; la deuxième case attendra la deuxième sorte.
+
+**Elle se ramasse en marchant dessus, et le stock plein la laisse au sol.** Le geste est celui d'une arme lourde, et le plafond veut dire la même chose : on revient la chercher. En rogner le surplus ferait perdre ce qu'on vient de trouver ; la prendre au-delà du plafond ferait du soin un second socle, quand la vie doit rester la seule ressource rare.
+
+**Boire à pleine vie est permis, et gaspille** — le surplus perdu est ce qui donne une raison de ne pas boire tout de suite, donc ce qui fait de la fiole une décision. Un refus retirerait cette décision au motif d'épargner une erreur, comme il la retirerait à l'aimant déclenché à vide.
+
+**La rareté du soin se règle par la fréquence des fioles, jamais par ce qu'une fiole rend.** Le seuil d'alerte vaut ce que rend un soin : baisser la fiole désaccorderait l'alerte, qui cesserait d'annoncer la décision qu'elle doit déclencher. Des trois chiffres que le chapitre 5 tient ensemble, celui-là est le seul qu'aucun autre ne contraint.
 
 Toute gestion plus lourde se fait au temps mort de la porte, jamais pendant l'action.
 

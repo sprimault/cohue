@@ -35,8 +35,10 @@ func (w *World) Fingerprint() string {
 	var b strings.Builder
 
 	fmt.Fprintf(&b, "tick %d\n", w.tick)
-	fmt.Fprintf(&b, "joueur x=%d y=%d vie=%d niveau=%d xp=%d charge=%t\n",
-		w.playerX, w.playerY, w.vie, w.niveau, w.experience, w.charge)
+	// Le stock de fioles est un état qui décide : il commande ce que la touche
+	// rend de vie, donc deux runs qui en différeraient auraient divergé.
+	fmt.Fprintf(&b, "joueur x=%d y=%d vie=%d niveau=%d xp=%d charge=%t fioles=%d\n",
+		w.playerX, w.playerY, w.vie, w.niveau, w.experience, w.charge, w.fioles)
 
 	for i := range w.ennemis.Active() {
 		e := w.ennemis.At(i)
@@ -84,14 +86,20 @@ func (w *World) Fingerprint() string {
 	for i := range w.caisses.Active() {
 		c := w.caisses.At(i)
 		id := w.caisses.IDAt(i)
-		fmt.Fprintf(&b, "caisse %d id=%d gen=%d x=%d y=%d appui=%d arme=%d\n",
-			i, id, w.caisses.gens[id], c.X, c.Y, c.Press, c.Weapon)
+		fmt.Fprintf(&b, "caisse %d id=%d gen=%d x=%d y=%d appui=%d butin=%d,%d\n",
+			i, id, w.caisses.gens[id], c.X, c.Y, c.Press, c.Content.Kind, c.Content.Index)
 	}
 	for i := range w.armesAuSol.Active() {
 		d := w.armesAuSol.At(i)
 		id := w.armesAuSol.IDAt(i)
 		fmt.Fprintf(&b, "arme au sol %d id=%d gen=%d x=%d y=%d arme=%d\n",
 			i, id, w.armesAuSol.gens[id], d.X, d.Y, d.Weapon)
+	}
+	for i := range w.fiolesAuSol.Active() {
+		f := w.fiolesAuSol.At(i)
+		id := w.fiolesAuSol.IDAt(i)
+		fmt.Fprintf(&b, "fiole au sol %d id=%d gen=%d x=%d y=%d\n",
+			i, id, w.fiolesAuSol.gens[id], f.X, f.Y)
 	}
 	for i := range w.aimants.Active() {
 		a := w.aimants.At(i)

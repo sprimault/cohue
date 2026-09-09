@@ -31,7 +31,7 @@ func champDeCartes(t *testing.T, seuils *Progression) (*World, *Profiles) {
 		t.Fatalf("armes livrées : %v", err)
 	}
 
-	w := NewWorld(profils, armes, seuils, caissesLivrees(t), sansVagues(),
+	w := NewWorld(profils, armes, seuils, caissesLivrees(t), fiolesLivrees(t), sansVagues(),
 		NewCostGrid(32, 32), graineDeTest, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils
@@ -160,7 +160,7 @@ func champAvec(t *testing.T, armes *Weapons, graine uint64) (*World, *Profiles) 
 	if err != nil {
 		t.Fatalf("profils livrés : %v", err)
 	}
-	w := NewWorld(profils, armes, monteeSimple(), caissesLivrees(t), sansVagues(),
+	w := NewWorld(profils, armes, monteeSimple(), caissesLivrees(t), fiolesLivrees(t), sansVagues(),
 		NewCostGrid(32, 32), graine, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils

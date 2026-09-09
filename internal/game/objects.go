@@ -109,9 +109,17 @@ type Object struct {
 	GroundAt   [2]int `json:"ancrage_sol,omitempty"`
 	Charges    int    `json:"charges,omitempty"`
 
+	// Ce que porte un consommable : ce qu'il rend, et combien on en tient.
+	//
+	// **`Stock` est un plafond de flacons et non un nombre de cases**, ce que son
+	// nom disait avant d'être lu. Deux emplacements qui ne peuvent contenir que la
+	// même chose sont un compteur de deux avec une interface en plus ; ce que la
+	// conception limite à deux ou trois est le nombre de **sortes** de
+	// consommables, contrainte qu'un second exercera.
+	Heal  int `json:"soin,omitempty"`
+	Stock int `json:"stock,omitempty"`
+
 	// Les valeurs de jeu qui restent, et que rien ne lit encore.
-	Heal        int          `json:"soin,omitempty"`
-	Slots       int          `json:"emplacements,omitempty"`
 	Sound       string       `json:"son,omitempty"`
 	SoundFamily string       `json:"famille_sons,omitempty"`
 	Destruction *Destruction `json:"destruction,omitempty"`
@@ -265,4 +273,41 @@ func (o *Objects) Crate(nom string) (CrateRules, error) {
 		return CrateRules{}, fmt.Errorf("objets : caisse « %s » : %s", nom, defaut)
 	}
 	return CrateRules{Press: appui, Cost: cout}, nil
+}
+
+// VialRules est ce que la simulation tient d'une fiole : ce qu'elle rend, et
+// combien le joueur peut en porter.
+type VialRules struct {
+	// Heal est ce qu'une fiole bue rend de vie, en points.
+	Heal int
+	// Stock est le nombre de fioles que le joueur peut tenir.
+	Stock int
+}
+
+// Vial résout la fiole du catalogue, désignée par son nom de manifeste.
+//
+// Le nom vient du manifeste de progression, comme celui de la caisse et pour la
+// même raison : ce que rend une fiole vit sur l'objet, donc quelqu'un doit dire
+// laquelle, et ce ne peut pas être un nom écrit en Go.
+//
+// **Un soin nul est refusé, un stock nul aussi.** Ni l'un ni l'autre n'est un
+// réglage : une fiole qui ne rend rien est un objet qu'on ramasse pour rien, et
+// un stock à zéro rend le ramassage impossible sans que rien à l'écran ne le
+// dise — le joueur passerait dessus indéfiniment.
+func (o *Objects) Vial(nom string) (VialRules, error) {
+	objet, connu := o.Items[nom]
+	if !connu {
+		return VialRules{}, fmt.Errorf("objets : la fiole « %s » n'est pas au catalogue", nom)
+	}
+	switch {
+	case objet.Heal < 1:
+		return VialRules{}, fmt.Errorf(
+			"objets : fiole « %s » : soin de %d, une fiole qui ne rend rien se "+
+				"ramasse pour rien", nom, objet.Heal)
+	case objet.Stock < 1:
+		return VialRules{}, fmt.Errorf(
+			"objets : fiole « %s » : stock de %d, aucune fiole ne pourrait etre "+
+				"prise", nom, objet.Stock)
+	}
+	return VialRules{Heal: objet.Heal, Stock: objet.Stock}, nil
 }

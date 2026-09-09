@@ -65,15 +65,15 @@ func TestLeCatalogueDobjetsLivreSeDecode(t *testing.T) {
 		t.Errorf("délai de %d ms, attendu 330 — le tiers de seconde du chapitre 7", delai)
 	}
 
-	// La fiole porte son soin et ses emplacements, que le chapitre 5 chiffre
-	// ensemble avec la vie et le plafond de dégâts.
+	// La fiole porte son soin et son stock, que le chapitre 5 chiffre ensemble
+	// avec la vie et le plafond de dégâts.
 	fiole, connue := catalogue.Items["fiole"]
 	if !connue {
 		t.Fatal("« fiole » n'est pas au catalogue")
 	}
-	if fiole.Heal != 30 || fiole.Slots != 2 {
-		t.Errorf("fiole : %d de soin sur %d emplacement(s), attendu 30 sur 2",
-			fiole.Heal, fiole.Slots)
+	if fiole.Heal != 30 || fiole.Stock != 2 {
+		t.Errorf("fiole : %d de soin pour un stock de %d, attendu 30 pour 2",
+			fiole.Heal, fiole.Stock)
 	}
 
 	if len(catalogue.Items) < 25 {

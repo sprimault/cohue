@@ -22,7 +22,7 @@ func areneDeSoin(t *testing.T) (*World, *EnemyProfile) {
 	}
 
 	g := NewCostGrid(32, 32)
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t), fiolesLivrees(t),
 		sansVagues(), g, graineDeTest, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 

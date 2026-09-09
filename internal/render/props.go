@@ -23,9 +23,17 @@ import (
 // bassins — des gemmes, des projectiles —, et c'est le rendu qui sait lequel se
 // dessine avec quoi. Elle n'a pas à savoir qu'une image existe.
 const (
-	objetGemme     = "gemme"
-	objetAimant    = "aimant"
-	objetCaisse    = "caisse"
+	objetGemme  = "gemme"
+	objetAimant = "aimant"
+	objetCaisse = "caisse"
+	// La fiole, dont le nom canonique vit ailleurs : c'est le manifeste de
+	// progression qui la désigne, et la simulation l'y lit pour savoir ce qu'elle
+	// rend. Celui-ci ne sert qu'à charger son dessin, comme pour la caisse, et
+	// tout ce qui se résout en partie — l'icône du bandeau, celle qui flotte
+	// au-dessus d'une caisse — passe par la clé que le monde donne. Les deux
+	// divergeraient franchement : `NewStage` refuserait un nom absent du
+	// catalogue.
+	objetFiole     = "fiole"
 	objetTir       = "projectile_base"
 	objetTirHorde  = "projectile_ennemi"
 	objetEtincelle = "etincelle"
@@ -141,7 +149,7 @@ func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, 
 	// Les trois dessins d'une caisse qui cède viennent du catalogue pour la même
 	// raison : sa clé `destruction` les nomme déjà.
 	noms := append([]string{
-		objetGemme, objetAimant, objetCaisse, objetTir, objetTirHorde,
+		objetGemme, objetAimant, objetCaisse, objetFiole, objetTir, objetTirHorde,
 		objetEtincelle, objetSouffle, objetEclatsCaisse,
 		scene.caisse.PressCycle, scene.caisse.BreakCycle, scene.caisse.Ruin,
 	}, catalogue.Weapons()...)

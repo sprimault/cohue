@@ -115,11 +115,23 @@ func (p *Props) charger(fsys fs.FS, racine, nom string, objet game.Object) error
 		if err != nil {
 			return err
 		}
-		p.objets[nom] = Prop{
+		pose := Prop{
 			Images:  []image.Image{img},
 			Offset:  [2]int{-objet.Anchor[0], -objet.Anchor[1]},
 			Masking: objet.Masking,
 		}
+		// **Un objet du monde peut avoir une icône, et la fiole est le premier.**
+		// Son fichier est à côté de son dessin de monde quand celui d'une arme vit
+		// dans `armes/` : ce dossier porte ce qui est une arme, et le suffixe
+		// nomme l'icône dans les deux cas.
+		if objet.IconSize != [2]int{} {
+			icone, err := lire(fsys, path.Join(racine, nom+"_icone.png"), objet.IconSize)
+			if err != nil {
+				return err
+			}
+			pose.Icon = icone
+		}
+		p.objets[nom] = pose
 		if objet.Twinkle != nil {
 			return p.chargerScintillement(fsys, racine, nom, objet)
 		}
@@ -204,12 +216,16 @@ func (p *Props) chargerScintillement(fsys fs.FS, racine, nom string, objet game.
 		return err
 	}
 	duree, _ := game.TicksFromMs(s.Duration)
-	p.objets[nom] = Prop{
-		Images:  images,
-		Offset:  [2]int{-objet.Anchor[0], -(objet.Anchor[1] + s.Amplitude)},
-		Cycle:   game.Cycle{Frames: s.Frames, Duration: duree, Loop: s.Loop},
-		Masking: objet.Masking,
-	}
+	// **La pose déjà écrite est reprise, elle n'est pas rebâtie.** Ce que la
+	// bande remplace est l'image et son ancrage ; ce qui ne dépend pas d'elle —
+	// l'icône d'une fiole — s'y perdrait en silence, et un bandeau sans dessin ne
+	// se distingue pas d'un bandeau qu'on n'a pas encore rempli.
+	pose := p.objets[nom]
+	pose.Images = images
+	pose.Offset = [2]int{-objet.Anchor[0], -(objet.Anchor[1] + s.Amplitude)}
+	pose.Cycle = game.Cycle{Frames: s.Frames, Duration: duree, Loop: s.Loop}
+	pose.Masking = objet.Masking
+	p.objets[nom] = pose
 	return nil
 }
 

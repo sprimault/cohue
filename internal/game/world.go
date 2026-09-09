@@ -195,6 +195,8 @@ type World struct {
 	fiole VialRules
 	// fiolesAuSol porte les fioles tombées, en attente d'être prises.
 	fiolesAuSol *Pool[Vial]
+	// tourelles porte ce que le joueur a posé et qui tire sans lui.
+	tourelles *Pool[Turret]
 	// enAttente est le nombre de choix dus au joueur, en plus de celui qui est
 	// ouvert. Une récolte abondante en donne deux d'un coup, et les présenter
 	// l'un après l'autre est la seule façon de n'en perdre aucun.
@@ -282,6 +284,12 @@ type Capacities struct {
 	// Vials est le nombre de fioles qui peuvent attendre au sol, pour la même
 	// raison et avec la même borne.
 	Vials int
+	// Turrets est le nombre de tourelles posées à la fois.
+	//
+	// **C'est la seule borne de leur accumulation**, une tourelle n'ayant pas de
+	// durée : elle attend qu'une horde passe. Six debout dans une salle sont six
+	// charges déjà employées, et la suivante se voit refusée plutôt que perdue.
+	Turrets int
 	// Fx est le nombre d'effets brefs qui vivent à la fois. Le seul bassin
 	// entièrement cosmétique de la partie.
 	Fx int
@@ -335,6 +343,7 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, caiss
 		epaves:      NewPool[Wreck](capacites.Crates),
 		armesAuSol:  NewPool[Drop](capacites.Drops),
 		fiolesAuSol: NewPool[Vial](capacites.Vials),
+		tourelles:   NewPool[Turret](capacites.Turrets),
 		effets:      NewPool[Fx](capacites.Fx),
 		aimants:     NewPool[Magnet](1),
 		hasard:      NewStreams(graine),
@@ -523,6 +532,12 @@ func (w *World) Step(voulu Vec) {
 	// conception attend d'un butin.
 	w.casser()
 	w.tirer()
+	// **Ce qui tire au nom du joueur tire avec lui**, et c'est la règle plutôt
+	// que le cas : la prochaine chose qui tirera sans qu'il appuie — un piège, ce
+	// qu'une arme lourde posera — prendra cette place sans qu'on rouvre la
+	// question. L'ordre entre elles est sans conséquence, la mort étant un état :
+	// une créature abattue cesse d'être une cible dans la même passe.
+	w.tirerLesTourelles()
 	w.deplacerTirs()
 	w.tirerLaHorde()
 	w.deplacerTirsEnnemis()

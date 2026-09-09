@@ -719,6 +719,14 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteFioleAuSol:
 			f := s.monde.Vials().At(e.place)
 			t = s.peindreObjet(ecran, objetFiole, f.X, f.Y, e.identite, nil)
+		case sorteTourelle:
+			// Le même dessin que l'arme au sol : ce qu'on pose est l'objet qu'on
+			// tenait, et le distinguer demanderait un second dessin pour dire ce
+			// que la position dit déjà — une tourelle posée est là où le joueur
+			// n'est plus.
+			tr := s.monde.Turrets().At(e.place)
+			t = s.peindreObjet(ecran, s.monde.TurretWeapon(tr).Key,
+				tr.X, tr.Y, e.identite, nil)
 		case sorteJoueur:
 			x, y := s.monde.Player()
 			f := s.troupe.joueur

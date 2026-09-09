@@ -280,10 +280,22 @@ def icone_grenade():
 
 
 def icone_tourelle():
+    """La tourelle, et ses canons opposes.
+
+    **Deux et non un, parce qu'elle tire a 360 degres.** Un canon unique qui
+    depasse d'un cote la fait lire comme orientee, et une partie jouee l'a dit
+    en une minute : on la pose en croyant choisir une direction. Le dessin
+    doit dire ce que le mecanisme fait, et celui-ci vise la creature la plus
+    proche ou qu'elle soit.
+
+    Deux suffisent la ou quatre auraient encombre : a vingt pixels, la symetrie
+    se lit des qu'elle existe, et le socle porte deja le reste de la silhouette.
+    """
     img = _icone()
     _rect(img, 4, 13, 16, 17, "acier_sombre")
     _rect(img, 7, 7, 13, 13, "acier")
     _rect(img, 12, 9, 18, 11, "acier_sombre")
+    _rect(img, 2, 9, 8, 11, "acier_sombre")
     return img
 
 

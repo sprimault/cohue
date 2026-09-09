@@ -55,6 +55,26 @@
       "eventail_tuiles": 4.0,
       "vitesse_projectile_tuiles_s": 14.0,
       "axes": ["portee", "projectiles", "perforant", "ricochet", "eventail"]
+    },
+    "tourelle": {
+      "$comment": "La troisième arme lourde, et la seule qui agisse sans le joueur. Une charge la pose là où il se tient : c'est la seule décision de placement que le chapitre 9 lui accorde, puisqu'il ne dirige rien d'autre. || tirs borne sa vie, et non une durée. Une tourelle posée dans un couloir vide attendrait qu'une horde passe plutôt que de s'éteindre pour rien : son intérêt est d'être là quand elle arrive, parfois longtemps après la pose, et une charge doit toujours rendre quelque chose. Le tir ne se consomme d'ailleurs pas quand personne n'est à portée, comme la cadence du socle. || cadence_ms est enfin lue, et cette arme est la seule qui la consulte : les autres partent sur une touche, c'est le joueur qui les espace. Une seconde entre deux tirs la rend audible sans qu'elle remplace le socle. || Portée moyenne et un seul projectile : ce qu'elle tient est une position, pas une largeur — le fusil couvre, elle interdit d'approcher. || Six tirs pour deux charges : une trouvaille en pose deux, ce qui laisse de quoi manquer son placement une fois.",
+      "nom": "Tourelle",
+      "role": "lourde",
+      "objet": "tourelle",
+      "effet": "tourelle",
+      "charges": 2,
+      "charges_max": 4,
+      "cadence_ms": 1000,
+      "portee_tuiles": 7,
+      "degats_touches": 2,
+      "projectiles": 1,
+      "front_tuiles": 1.0,
+      "perforations": 0,
+      "rebonds": 0,
+      "eventail_tuiles": 0.0,
+      "vitesse_projectile_tuiles_s": 12.0,
+      "axes": ["cadence", "portee"],
+      "tirs": 6
     }
   },
   "passifs": {

@@ -705,6 +705,8 @@ Règles associées :
   **L'effet décide des champs que l'entrée porte**, comme le comportement d'une créature décide des siens : un rayon d'explosion sur une arme qui tire des projectiles ne serait jamais lu et laisserait croire à un réglage. Le contrôle vaut dans les deux sens, ce qui attrape le copier-coller d'une arme vers une autre.
 
   **Ce que ces effets ont en commun est le déclenchement, jamais la façon de blesser** : la grenade frappe un point, le fusil couvre une largeur, la tourelle tient une position, les flammes interdisent un passage. C'est ce dernier qui décide de leur nombre — une arme dont l'effet ne se distingue d'aucun autre est une variante de valeurs, et sa place est dans la table plutôt que dans le moteur.
+
+  **La tourelle est le premier effet qui n'exige pas de cible pour partir**, et cela suit de ce qu'elle est : on la pose pour tenir un passage, souvent avant que la horde n'arrive, si bien qu'exiger une créature en vue interdirait l'anticipation qu'elle récompense. Ce qui borne sa vie est un **compte de tirs et non une durée** — une tourelle posée dans un couloir vide attend au lieu de s'éteindre pour rien, et son tir ne se consomme pas quand personne n'est à portée, comme la cadence du socle. C'est ce qui fait qu'une charge rend toujours quelque chose. Elle n'est visée par personne et ne bloque rien ; ce qui borne leur accumulation est la capacité de leur bassin, plusieurs debout n'étant que plusieurs charges déjà dépensées.
 - **Ce qu'une lourde emporte n'emporte pas le joueur.** Une grenade qui le blesserait créerait une décision de placement — viser loin, donc reculer avant de lancer — qu'il ne peut pas prendre : le tir est automatique et il ne contrôle que son déplacement, si bien qu'il ne dirige pas son lancer. Le punir d'un geste qu'il n'oriente pas serait une sanction sans recours, ce que ce document refuse ailleurs. C'est ce qui la sépare de la Baudruche, qu'on voit venir et dont on s'écarte. La question se rouvrira le jour où une lourde deviendra dirigeable, et ce sera le bon moment : le joueur pourra alors éviter.
 - **Une trouvaille toutes les 60 à 90 secondes environ.** Plus rare, le joueur oublie la mécanique et ne l'apprend jamais. Plus fréquent, elle remplace le socle infini.
 
@@ -1419,13 +1421,15 @@ Il n'y a pas de bon ordre, il y a un ordre écrit une fois. Dans un tick :
 7. les contacts et les dégâts ;
 8. l'aimant : son apparition, sa ruée, sa prise ;
 9. le ramassage, et ce qu'il fait monter ;
-10. le tir — du joueur puis de la horde —, et le vol des projectiles avec ce qu'ils touchent ;
+10. le tir — du joueur, de ce qui tire en son nom, puis de la horde —, et le vol des projectiles avec ce qu'ils touchent ;
 11. les suppressions ;
 12. le franchissement de la porte.
 
 **Le franchissement clôt le tick parce qu'il lit ce que les suppressions tiennent** — le compte des abattus, qui décide de l'ouverture. Placé avant elles, il ouvrirait la porte un tick après le coup qui la gagne, et rien à l'écran ne le dirait.
 
 Les apparitions avant la densité, et c'est ce qui commande leur place : le champ de flux ne dépend que du joueur et des obstacles, une créature apparue après son calcul n'y perd rien. La densité, elle, dépend des ennemis — deux créatures apparues au même endroit se superposeraient exactement le temps d'une image, et personne ne retrouverait jamais l'origine de ce scintillement.
+
+**Ce qui tire au nom du joueur tire avec lui**, et c'est une règle plutôt qu'une place accordée à la tourelle : la prochaine chose qui tirera sans qu'il appuie — un piège, ce qu'une arme lourde posera — la prendra sans qu'on rouvre la question. L'ordre entre elles est sans conséquence, la mort étant un état : une créature abattue cesse d'être une cible dans la même passe, si bien que deux tirs ne peuvent pas la tuer deux fois et que le second va chercher derrière.
 
 **Le contact se constate après le déplacement et non avant**, sinon une créature qui vient de se coller ne blesserait qu'au tick suivant, et le joueur verrait la horde le traverser sans effet pendant une image.
 

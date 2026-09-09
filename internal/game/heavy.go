@@ -47,35 +47,27 @@ func (w *World) HeldHeavy(place int) (Weapon, int) {
 // l'appelant est un clavier, et une touche pressée à vide ne doit ni consommer ni
 // avertir.
 //
-// **La grenade tombe sur la cible la plus proche à portée, et rien ne part sans
-// cible.** Le joueur ne dirige pas son lancer — il ne contrôle que son
-// déplacement —, donc le point d'arrivée se choisit comme le tir automatique
-// choisit sa cible. Sans cible, la charge n'est pas dépensée, pour la raison qui
-// fait que la cadence ne se consomme pas à vide : une arme à trois charges dont
-// une part dans le vide se lirait comme un défaut.
+// **Ce qui vise le fait dans sa branche, et non ici.** Deux des trois effets
+// exigent une cible — une grenade et une gerbe parties dans le vide se liraient
+// comme un défaut, pour la raison qui fait que la cadence ne se consomme pas à
+// vide —, mais une tourelle se pose pour tenir un passage, souvent avant que la
+// horde n'arrive. La garde vivait ici tant qu'aucun effet n'en voulait pas.
 //
-// La cadence de l'arme lourde n'est pas consultée ici. Elle vaut pour ce qui tire
-// tout seul, et une lourde ne tire que sur une touche — c'est le joueur qui
-// espace ses déclenchements.
+// **La cadence d'une lourde n'est consultée que par ce qui tire sans le
+// joueur.** Elle ne l'était par personne tant que tout partait d'une touche —
+// c'est le joueur qui espaçait ses déclenchements ; la tourelle est ce qui a
+// rendu cette phrase fausse, et elle dit maintenant à quelle condition elle vaut.
 func (w *World) Trigger(place int) {
 	if place < 0 || place >= len(w.lourdes) || w.lourdes[place].Charges <= 0 {
 		return
 	}
 	tenue := &w.lourdes[place]
-	// Sans restriction de côté, à la différence du tir de base : une grenade
-	// tombe où le joueur la lance et non où il regarde, et le chapitre 9 pose
-	// qu'il ne dirige pas son lancer. Le fusil suit la même règle — ce qui
-	// s'oriente est le tir automatique, jamais ce qu'une touche déclenche.
-	cible, trouvee := w.plusProcheDe(w.playerX, w.playerY, tenue.Weapon.Range, Handle{}, Vec{})
-	if !trouvee {
-		return
-	}
 
 	// **L'effet décide, et la charge se dépense après lui.** Chaque branche peut
-	// renoncer — un bassin plein —, et une charge dépensée pour un effet qui
-	// n'est pas parti coûterait au joueur une des trois choses qu'il possède,
-	// pour une raison qu'aucun écran ne peut lui montrer.
-	if !w.declencher(tenue, w.ennemis.At(cible)) {
+	// renoncer — un bassin plein, une cible absente —, et une charge dépensée
+	// pour un effet qui n'est pas parti coûterait au joueur une des trois choses
+	// qu'il possède, pour une raison qu'aucun écran ne peut lui montrer.
+	if !w.declencher(tenue) {
 		return
 	}
 
@@ -95,13 +87,17 @@ func (w *World) Trigger(place int) {
 // même partageraient ce chemin sans qu'une ligne s'ajoute, ce qui est la règle
 // des données qui ne sont pas du code.
 //
-// La cible sert aux deux effets et ne veut pas dire la même chose : la
-// déflagration s'y pose, la salve s'y dirige. C'est la seule chose qu'un effet
-// reçoit, et il n'y a pas de troisième usage à prévoir tant qu'aucun ne le
-// demande.
-func (w *World) declencher(tenue *Heavy, cible *Enemy) bool {
+// **Chaque effet cherche ce dont il a besoin**, et la cible n'en fait pas
+// partout partie : deux la veulent, et elle n'y veut pas dire la même chose — la
+// déflagration s'y pose, la salve s'y dirige. La tourelle, elle, se pose sous le
+// joueur et vise plus tard, depuis là où elle se tient.
+func (w *World) declencher(tenue *Heavy) bool {
 	switch tenue.Weapon.Effect {
 	case effetDeflagration:
+		cible, trouvee := w.cibleDe(&tenue.Weapon)
+		if !trouvee {
+			return false
+		}
 		_, ok := w.souffles.Spawn(Blast{
 			X: cible.X, Y: cible.Y,
 			Source: BlastWeapon,
@@ -110,14 +106,34 @@ func (w *World) declencher(tenue *Heavy, cible *Enemy) bool {
 		})
 		return ok
 	case effetSalve:
+		cible, trouvee := w.cibleDe(&tenue.Weapon)
+		if !trouvee {
+			return false
+		}
 		// **Vers la cible et non vers son interception**, à la différence du tir
 		// de base : un fusil à pompe étale des plombs sur une largeur, et viser où
 		// la cible sera n'aurait de sens que pour un projectile unique. Ce qui
 		// touche est le front, pas l'anticipation.
 		vers := Vec{X: cible.X - w.playerX, Y: cible.Y - w.playerY}.Direction(0)
 		return w.salve(&tenue.Weapon, vers) > 0
+	case effetTourelle:
+		return w.poserUneTourelle(&tenue.Weapon, tenue.rang)
 	}
 	return false
+}
+
+// cibleDe rend la créature qu'une lourde vise depuis le joueur.
+//
+// **Sans restriction de côté, à la différence du tir de base** : une grenade
+// tombe où le joueur la lance et non où il regarde, et le chapitre 9 pose qu'il
+// ne dirige pas son lancer. Le fusil suit la même règle — ce qui s'oriente est
+// le tir automatique, jamais ce qu'une touche déclenche.
+func (w *World) cibleDe(arme *Weapon) (*Enemy, bool) {
+	place, trouvee := w.plusProcheDe(w.playerX, w.playerY, arme.Range, Handle{}, Vec{})
+	if !trouvee {
+		return nil, false
+	}
+	return w.ennemis.At(place), true
 }
 
 // emporter applique la déflagration d'une arme à la horde autour d'un point.

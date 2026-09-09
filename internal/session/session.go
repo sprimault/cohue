@@ -109,6 +109,14 @@ const DropCapacity = 4
 // a bu moins vite qu'il n'a cassé.
 const VialCapacity = 4
 
+// TurretCapacity plafonne les tourelles posées à la fois.
+//
+// **Elle borne une accumulation que rien d'autre ne borne** : une tourelle
+// n'a pas de durée, elle attend la horde. Quatre, soit deux stocks pleins de la
+// table livrée — au-delà, le joueur a dépensé son arme sans l'employer, et la
+// suivante se voit refusée plutôt que perdue.
+const TurretCapacity = 4
+
 // FxCapacity plafonne le bassin des effets brefs.
 //
 // **Il compte des événements et non des éclats** : une caisse qui cède est une
@@ -234,6 +242,7 @@ func (s *Session) monter() {
 			Crates:     CrateCapacity,
 			Drops:      DropCapacity,
 			Vials:      VialCapacity,
+			Turrets:    TurretCapacity,
 			Fx:         FxCapacity,
 			Ambients:   AmbientCapacity,
 		})

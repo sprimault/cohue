@@ -54,6 +54,13 @@ const (
 	// par le chemin du tir de base : c'est le même mécanisme, paramétré par une
 	// autre arme.
 	effetSalve = "salve"
+	// effetTourelle pose une chose qui tire à la place du joueur, là où il se
+	// tient, et qui reste jusqu'à ce qu'elle ait dépensé ses tirs.
+	//
+	// **Le seul effet qui ne demande pas de cible pour partir.** Une tourelle se
+	// pose pour tenir un passage, souvent avant que la horde n'arrive : exiger
+	// une cible interdirait l'anticipation qu'elle récompense.
+	effetTourelle = "tourelle"
 )
 
 // effetsArme est la liste close des effets admis.
@@ -63,7 +70,7 @@ const (
 // personne n'exerce, et un manifeste pourrait la nommer sans que rien ne se
 // passe. C'est la règle qui a déjà laissé `ModeContact` seul dans le catalogue
 // d'objets, sans le mode des obstacles fragiles.
-var effetsArme = []string{effetDeflagration, effetSalve}
+var effetsArme = []string{effetDeflagration, effetSalve, effetTourelle}
 
 // Weapon est une arme, telle que le manifeste tenu à la main la décrit.
 //
@@ -212,6 +219,17 @@ type Weapon struct {
 	BurstRadius Fixed
 	BurstHits   int
 	Fuse        Tick
+	// Shots est le nombre de tirs qu'une tourelle posée dépense avant de
+	// disparaître, nul sur les autres armes.
+	//
+	// **Un compte de tirs et non une durée**, et ce n'est pas une commodité : une
+	// tourelle posée dans un couloir vide s'éteindrait sans avoir servi, ce qui
+	// est une charge perdue pour une raison que le joueur ne contrôle pas — le
+	// projet refuse cela partout, de la cadence qui ne se consomme pas à vide à la
+	// grenade qui ne part pas sans cible. Son intérêt est d'être là quand la horde
+	// arrive, parfois longtemps après la pose, et une durée retirerait justement
+	// l'anticipation qu'elle récompense.
+	Shots int
 }
 
 // Weapons est la table des armes, et des passifs qui les transforment.
@@ -346,6 +364,7 @@ type rawWeapon struct {
 	Axes       []string `json:"axes,omitempty"`
 	TileRadius *float64 `json:"rayon_tuiles,omitempty"`
 	FuseMs     *int     `json:"meche_ms,omitempty"`
+	Shots      *int     `json:"tirs,omitempty"`
 }
 
 // champsConditionnelsArme dit, pour chaque champ que la table ne porte pas
@@ -377,6 +396,9 @@ var champsConditionnelsArme = []struct {
 		func(a rawWeapon) bool { return a.TileRadius != nil }},
 	{"meche_ms", "l'effet « deflagration »", estEffet(effetDeflagration),
 		func(a rawWeapon) bool { return a.FuseMs != nil }},
+
+	{"tirs", "l'effet « tourelle »", estEffet(effetTourelle),
+		func(a rawWeapon) bool { return a.Shots != nil }},
 }
 
 // estLourde reconnaît une arme lourde.
@@ -506,6 +528,17 @@ func (a rawWeapon) lourde(cle string, w *Weapon, dire func(string, ...any)) {
 			w.Fuse = ticks
 		} else if a.FuseMs != nil {
 			dire("%s.meche_ms : %d, une déflagration sans mèche ne s'esquive pas", cle, ms)
+		}
+	}
+
+	if w.Effect == effetTourelle {
+		w.Shots = exige(cle, "tirs", a.Shots, dire)
+		if a.Shots != nil && w.Shots < 1 {
+			// Une tourelle sans tir occuperait une place et le bassin, puis
+			// disparaîtrait au premier tick sans que rien ne soit parti : c'est la
+			// charge perdue que le compte de tirs existe précisément pour éviter.
+			dire("%s.tirs : %d, une tourelle qui ne tire pas est une charge perdue",
+				cle, w.Shots)
 		}
 	}
 

@@ -106,6 +106,16 @@ type Progression struct {
 	// CrateRange est la distance à laquelle le joueur casse une caisse, en
 	// tuiles.
 	CrateRange Fixed
+	// CrateObject nomme la caisse au catalogue des objets.
+	//
+	// **Le seul renvoi `objet` de ce fichier que le moteur lise**, et c'est le
+	// coût de traversée qui l'y a fait entrer : il vit sur l'objet, une caisse
+	// coûtant parce qu'elle est une caisse — comme la flaque que le décor
+	// déclare ainsi —, donc quelqu'un doit dire laquelle. L'écrire en Go aurait
+	// mis dans la simulation le premier nom de catalogue qu'elle porte, ce que le
+	// manifeste-contrat existe pour éviter. Ici le nom était déjà écrit, et
+	// `outils/ressources.py` exige déjà qu'il désigne un objet du catalogue.
+	CrateObject string
 }
 
 // Threshold rend ce que coûte le passage d'un niveau au suivant, en gemmes.
@@ -270,6 +280,7 @@ func LoadProgression(fsys fs.FS, chemin string) (*Progression, error) {
 	if c.Object == "" {
 		dire("caisses.objet : absent ou vide")
 	}
+	table.CrateObject = c.Object
 	table.CrateGems = exige("caisses", "gemmes", c.Gems, dire)
 	if c.Gems != nil && table.CrateGems < 1 {
 		// Une caisse vide est un objet qu'on casse pour rien : elle coûte le
@@ -339,9 +350,13 @@ type rawSections struct {
 type rawCrates struct {
 	manifest.Commentable
 
-	// Object nomme la caisse dans le manifeste d'objets. Ce champ n'est pas lu
-	// ici, pour la raison écrite sur `rawGems.Object` : c'est le contrôle des
-	// ressources qui exige qu'il désigne un objet existant.
+	// Object nomme la caisse dans le manifeste d'objets.
+	//
+	// **Celui-ci est lu, à la différence des deux autres renvois du fichier**,
+	// et `Progression.CrateObject` dit pourquoi : le coût de traversée vit sur
+	// l'objet, donc le montage a besoin de savoir lequel. Le contrôle des
+	// ressources continue d'exiger qu'il désigne un objet existant, et il protège
+	// maintenant un lecteur au lieu d'un réglage dormant.
 	Object string `json:"objet"`
 	// Gems est le nombre de gemmes qu'elle laisse.
 	Gems *int `json:"gemmes"`

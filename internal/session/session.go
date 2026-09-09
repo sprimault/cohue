@@ -123,7 +123,14 @@ const FxCapacity = 32
 // partie sans en décoder une seule.
 type Session struct {
 	World *game.World
-	Grid  *game.CostGrid
+	// Grid est la grille de la run en cours, copie de la carte cuite sur
+	// laquelle les caisses ont écrit leur coût de traversée.
+	//
+	// **Une copie par run, et c'est ce qui garde vraie la liste d'en dessous.**
+	// La carte cuite ne bouge jamais ; une caisse qui écrirait dedans y laisserait
+	// son coût après la casse, la run suivante reposerait une caisse au même
+	// endroit, et la case resterait chère pour toujours.
+	Grid *game.CostGrid
 	// Decor est le manifeste des formes : leurs tailles, leurs ancrages, et la
 	// taille de tuile dont la projection dépend.
 	Decor *level.Decor
@@ -151,6 +158,12 @@ type Session struct {
 	armes       *game.Weapons
 	progression *game.Progression
 	scenario    *game.Scenario
+	// carte est le lieu cuit, tel que le chargeur l'a rendu et sans une caisse
+	// dessus. C'est la seule chose de cette liste qu'une run pourrait modifier si
+	// on la lui donnait directement, d'où la copie que `monter` en fait.
+	carte *game.CostGrid
+	// caisse porte ce que le catalogue dit d'une caisse, résolu une fois.
+	caisse game.CrateRules
 	// ambiance est le peuplement de figurants du lieu, reposé à chaque relance
 	// comme le reste : une salle vide de civils après une mort ne serait pas la
 	// même salle.
@@ -195,7 +208,14 @@ func (s *Session) Restart() {
 // session sur une graine en jouerait une autre, ce qui se serait vu au moment
 // d'écrire un lieu de défi.
 func (s *Session) monter() {
-	s.World = game.NewWorld(s.profils, s.armes, s.progression, s.scenario, s.Grid, s.Seed,
+	// **La grille se copie et les caisses y écrivent avant que le monde
+	// existe.** `NewFlowField` arrête son nombre de seaux sur le plus grand coût
+	// qu'il trouve, et un coût posé après lui n'aurait pas de seau où entrer.
+	s.Grid = s.carte.Clone()
+	game.StampCrates(s.Grid, s.caisses, s.caisse)
+
+	s.World = game.NewWorld(s.profils, s.armes, s.progression, s.caisse,
+		s.scenario, s.Grid, s.Seed,
 		game.Capacities{
 			Enemies:    HordeCapacity,
 			Shots:      ShotCapacity,
@@ -288,8 +308,16 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		return nil, err
 	}
 
+	// Le renvoi d'un manifeste vers l'autre se résout ici, comme les formes et
+	// les profils qu'un lieu cite : c'est le seul endroit qui tient les deux
+	// fichiers, et une caisse introuvable au catalogue doit le dire au montage
+	// plutôt qu'au premier coup d'épaule.
+	caisse, err := objets.Crate(progression.CrateObject)
+	if err != nil {
+		return nil, err
+	}
+
 	partie := &Session{
-		Grid:        grille,
 		Decor:       decor,
 		Tiles:       charge.Tiles,
 		Profiles:    profils,
@@ -299,6 +327,8 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		armes:       armes,
 		progression: progression,
 		scenario:    scenario,
+		carte:       grille,
+		caisse:      caisse,
 		ambiance:    charge.Ambient,
 		sortie:      charge.Exit,
 		caisses:     charge.Crates,

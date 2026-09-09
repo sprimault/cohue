@@ -801,6 +801,31 @@ n'est pas la garde mais sa godoc, qui doit dire ce qui a été éprouvé plutôt
 ce qu'on en supposait — c'est ce que demande [Une condition vaut mieux qu'une
 conclusion](#une-condition-vaut-mieux-quune-conclusion).
 
+**La règle a un troisième moment, et il porte sur l'ordre plutôt que sur le
+choix.** Certains contrôles ont deux bouts : le générateur refuse d'écrire, le
+chargeur refuse de lire. Trois cas l'ont déjà demandé — la durée sous le pas,
+`bloquant` et `cout_traversee` du décor, et le coût de traversée d'une caisse. À
+chaque fois la question s'est posée dans le même ordre, et à chaque fois la
+réponse a été la même : **les deux bouts ont le même déclencheur, quelqu'un qui
+lit la valeur, donc ils s'écrivent dans le même lot.**
+
+**Les deux moitiés se défendent isolément, et c'est ce qui fait qu'on les sépare
+sans y penser.** Le contrôle du chargeur écrit d'avance **a l'air prudent** —
+refuser un fichier douteux avant qu'il ne nuise ne s'argumente pas contre. Il est
+pourtant un contrôle sans lecteur : personne ne peut dire ce qu'il protège, et sa
+tolérance se réglera plus tard contre un usage qu'on aura oublié. Le refus du
+générateur écrit seul **a l'air d'une validation de plus** — attraper un défaut à
+sa source coûte trois lignes et ne se refuse pas. Il est pourtant un refus sans
+règle, qui interdit une écriture qu'aucun code ne saurait interpréter. C'est le
+même défaut que la garde retirée du second moment, pris par l'autre bout : une
+moitié dont on ne peut plus voir à quoi elle sert.
+
+**Les deux bouts ne portent pas forcément la même règle**, et le troisième cas
+l'a montré : le décor exige un coût sur tout ce qui se franchit, ce qui n'a pas
+de sens pour un catalogue d'objets dont la plupart ne sont sur aucune grille. Ce
+qui doit se répondre des deux côtés est la question — *quand cette valeur est-elle
+absurde ?* —, pas la formule.
+
 ## Le symptôme désigne parfois le mauvais mécanisme
 
 **Dans une boucle où plusieurs passes se suivent, un effet produit puis consommé

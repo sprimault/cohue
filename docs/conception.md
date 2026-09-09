@@ -486,7 +486,11 @@ Ce que cela établit est la cohérence entre un score et un journal, ce qui suff
 
 Le joueur casse une caisse **en la traversant**. Aucune touche, aucun conflit avec l'auto-visée, et ça le garde en mouvement.
 
-**Ce qui en est écrit aujourd'hui est une sonde, et le reste de ce chapitre attend son étape.** Une caisse est posée par le lieu, se casse au contact du joueur et laisse des gemmes ; elle n'a ni délai de contact, ni ralentissement, ni coût dans le champ de flux, et son contenu n'est pas visible avant la casse. Ce qui est déjà tenu est la seule règle qui coûterait cher à rétablir plus tard : **elle n'est pas une cible.** Rangée parmi les ennemis, elle détournerait la visée automatique — qui prend la plus proche sans que le joueur choisisse — et emporterait avec elle la mécanique du Secouriste ; c'est la même règle que pour le figurant, et pour la même raison.
+**Ce qui reste à écrire de ce chapitre est le contenu qu'une caisse montre avant de céder**, et les consommables qui en sortent. Le délai d'appui, le ralentissement et le coût dans le champ de flux sont livrés ; ce que la caisse laisse est une volée de gemmes, et une arme lourde de temps en temps.
+
+**Elle n'est pas une cible**, et c'est la règle qui coûterait cher à rétablir plus tard. Rangée parmi les ennemis, elle détournerait la visée automatique — qui prend la plus proche sans que le joueur choisisse — et emporterait avec elle la mécanique du Secouriste ; c'est la même règle que pour le figurant, et pour la même raison.
+
+**Deux caisses ne se posent pas sur la même case**, et le chargeur le refuse. Elles étaient une redondance sans conséquence tant qu'une caisse n'écrivait rien dans la grille ; depuis qu'elle y écrit son coût, la première cassée rend la case au sol sous la seconde, qui cesse de ralentir ce qu'elle devrait ralentir.
 
 **Ce qu'une caisse laisse est un réglage de partie, pas de lieu.** Un auteur écrit où sont ses caisses, il n'écrit pas ce qu'elles donnent : sans cela il règle la difficulté de sa salle par son butin, et une caisse cesse de signifier la même chose d'un lieu à l'autre. C'est la règle qui vaut déjà pour la valeur d'une gemme.
 
@@ -506,7 +510,13 @@ Contrainte technique : **la passabilité n'est pas un booléen, c'est un coût p
 
 C'est ce qui fait tenir ensemble les trois règles de la caisse, qu'un booléen rendait contradictoires — on ne ralentit pas ce qui est arrêté, et un joueur acculé ne se dégage pas à travers ce qui bloque. Et ce que la conception veut par ailleurs devient gratuit : la flaque, le sol sale et le sol fissuré ralentissent ce qui les traverse sans qu'aucun mécanisme nouveau soit écrit, et un profil pourra ignorer un coût que le joueur paie.
 
-Le champ de flux devient donc un parcours pondéré. **Un tri par seaux, pas un tas** : les coûts sont trois ou quatre valeurs entières, ce qui ramène le calcul au même temps linéaire qu'un parcours en largeur ordinaire — un Dijkstra général se paierait pour une variété de coûts qui n'existe pas ici. La destruction d'une caisse déclenche un rafraîchissement local, pas un recalcul complet.
+Le champ de flux devient donc un parcours pondéré. **Un tri par seaux, pas un tas** : les coûts sont trois ou quatre valeurs entières, ce qui ramène le calcul au même temps linéaire qu'un parcours en largeur ordinaire — un Dijkstra général se paierait pour une variété de coûts qui n'existe pas ici.
+
+**Une caisse cassée n'appelle aucun rafraîchissement, local ou non.** Ce document opposait le local au complet, c'est-à-dire à un recalcul à la demande qui n'existe nulle part : le champ se rebâtit entier tous les six ticks pour suivre le joueur, si bien qu'une case rendue au sol quitte le champ en un dixième de seconde sans qu'une ligne soit écrite. L'optimisation se rouvrira le jour où cette période s'allongera, et pas avant.
+
+**Ce que la destruction demande, en revanche, est un ordre**, et il tient en une phrase que le code porte à l'endroit où on la violerait : le champ se bâtit une fois tous les coûts posés, et en cours de partie un coût ne fait que baisser. La première moitié suit du tri par seaux, dont le nombre se dérive du plus grand coût de la grille ; la seconde est ce qui la rend durable — casser une caisse rend sa case au sol, une ruine remplace un bloquant, et rien de ce qu'une partie fait à la grille ne monte.
+
+**La grille est donc une copie par run et jamais la carte cuite.** Celle-ci est partagée par toutes les runs d'une session, et une caisse qui y écrirait son coût ferait du lieu un état de jeu.
 
 **Le coût se paie au déplacement, et il divise la vitesse.** Sans quoi le parcours pondéré serait une superstition : il contournerait au prix de deux cases ce qui ne coûte rien à traverser, et l'écart entre le chemin choisi et le chemin payé ne se verrait nulle part.
 
@@ -1249,6 +1259,8 @@ C'est ce qui a fait descendre **l'expérience d'une gemme** dans le manifeste de
 
 `outils/ressources.py` porte les deux moitiés du geste : il **refuse** les champs déménagés, pour qu'on ne les remette pas sur un objet par symétrie avec le manifeste des personnages, qui porte bien ses valeurs de jeu ; et il exige que tout renvoi `objet` d'un autre manifeste désigne un objet du catalogue, faute de quoi le lien par nom que le déménagement crée casserait en silence au premier renommage.
 
+**L'un de ces renvois est lu, et c'est celui de la caisse.** Son coût de traversée vit sur l'objet — une caisse coûte parce qu'elle est une caisse, comme la flaque que le décor déclare ainsi —, donc le montage doit savoir laquelle. Écrire ce nom en Go aurait mis dans la simulation le premier nom de catalogue qu'elle porte ; il était déjà dans un fichier, et le contrôle qui le tenait protège maintenant un lecteur au lieu d'un réglage dormant.
+
 Côté **armes** : `assets/armes/manifeste.json`, tenu à la main et non généré — cadence, portée, dégâts, nombre de projectiles, puis la table des passifs et les recettes de fusion. C'est l'une des deux exceptions de `assets/`, et le chapitre 9 dit pourquoi.
 
 Les mettre ailleurs aurait dupliqué la liste des profils à deux endroits. Un nouveau profil reste une ligne de table.
@@ -1263,7 +1275,9 @@ Le plafond d'effectif, lui, n'y est pas : c'est la capacité du bassin des ennem
 
 Côté **sons** : durée, gain, bouclage, et une **catégorie de mixage** — le joueur doit pouvoir baisser les effets sans toucher à la musique, et l'interface doit rester audible quand tout le reste est baissé.
 
-Côté **objets** : emprise, élévation, catégorie et masquage — les trois mêmes que le décor, et pour la même raison, un rideau de fer culmine à 46 pixels et masque un personnage —, ce qui bloque, ce qui détruit, ce qui est projeté, ce qui est entendu, et les valeurs de jeu qui restent — soin d'une fiole, charges d'une arme lourde. Un bloc `destruction` porte le mode — `contact` pour la caisse, où le délai est la mécanique elle-même, `interaction` pour les obstacles fragiles —, le nombre de touches, le nom de la ruine, la matière des éclats, les cycles d'appui et de rupture, et les clés de sons. Le moteur ne code donc rien en dur : un futur obstacle se déclare dans une table.
+Côté **objets** : emprise, élévation, catégorie et masquage — les trois mêmes que le décor, et pour la même raison, un rideau de fer culmine à 46 pixels et masque un personnage —, ce qui bloque et ce que la traversée coûte, ce qui détruit, ce qui est projeté, ce qui est entendu, et les valeurs de jeu qui restent — soin d'une fiole, charges d'une arme lourde.
+
+Le couple `bloquant` et `cout_traversee` y suit la règle du décor — le fait porte le booléen, la valeur ne se déclare que quand il est faux — mais **la moitié qui exige un coût sur ce qui se franchit ne s'y transpose pas** : la plupart des objets ne sont sur aucune grille, et la leur réclamer leur inventerait une passabilité. Ce qui prend sa place est le mode de destruction : **ce qu'on casse en le traversant doit pouvoir se traverser et coûter**, faute de quoi le délai s'écoule pendant qu'on est déjà de l'autre côté. Un bloc `destruction` porte le mode — `contact` pour la caisse, où le délai est la mécanique elle-même, `interaction` pour les obstacles fragiles —, le nombre de touches, le nom de la ruine, la matière des éclats, les cycles d'appui et de rupture, et les clés de sons. Le moteur ne code donc rien en dur : un futur obstacle se déclare dans une table.
 
 Un renvoi de son dit **s'il nomme un fichier ou une famille**. `son` désigne l'un, `famille_sons` une suite de degrés — `gemme_0` à `gemme_7` — que le moteur parcourt en avançant d'un cran à chaque déclenchement rapproché, et qu'il reprend au premier après un silence. Deux clés plutôt qu'une seule à interpréter : sans la distinction, le contrôle ne peut que comparer des préfixes, et accepte alors « gem » et « g » aussi bien que « gemme ».
 

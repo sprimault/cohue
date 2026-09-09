@@ -26,6 +26,11 @@ const (
 	// pile au centre de la case qu'elle foule se peint alors devant elle, ce qui
 	// est le bon sens d'un trottoir sous des pieds.
 	sorteDecor sorte = iota
+	// sorteEpave est ce qu'une caisse a laissé. Elle vient juste après le décor,
+	// donc elle passe sous tout ce qui partage sa profondeur : c'est l'exception
+	// que la conception donne aux cadavres, et pour la même raison — une trace
+	// aplatie au sol n'a jamais à cacher ce qui bouge.
+	sorteEpave
 	sorteEnnemi
 	// sorteAmbiance est le décor mouvant. Il est trié avec le reste et non peint
 	// à part : un figurant passe devant et derrière les créatures comme
@@ -36,9 +41,9 @@ const (
 	sorteTirHorde
 	sorteGemme
 	sorteAimant
-	// sorteCaisse est un objet posé au sol, trié avec le reste : elle ne bloque
-	// pas encore le champ de flux, si bien qu'une créature lui passe dessus et
-	// doit alors être peinte devant ou derrière selon sa profondeur, comme
+	// sorteCaisse est un objet posé au sol, trié avec le reste : elle coûte à
+	// traverser plutôt qu'elle n'arrête, si bien qu'une créature lui passe dessus
+	// et doit alors être peinte devant ou derrière selon sa profondeur, comme
 	// n'importe quel corps.
 	sorteCaisse
 	// sorteArmeAuSol est une arme lourde tombée d'une caisse, triée comme le
@@ -181,6 +186,7 @@ func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 	gemmes := monde.Gems()
 	aimants := monde.Magnets()
 	caisses := monde.Crates()
+	epaves := monde.Wrecks()
 	armesAuSol := monde.Drops()
 
 	largeur := sol.carte.Width()
@@ -239,6 +245,12 @@ func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 			for i := range aimants.Active() {
 				a := aimants.At(i)
 				s.ajouter(a.X, a.Y, aimants.IDAt(i), sorteAimant, i)
+			}
+		}},
+		{epaves.Cap(), func(s *scene) {
+			for i := range epaves.Active() {
+				e := epaves.At(i)
+				s.ajouter(e.X, e.Y, epaves.IDAt(i), sorteEpave, i)
 			}
 		}},
 		{caisses.Cap(), func(s *scene) {

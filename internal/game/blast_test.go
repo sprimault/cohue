@@ -31,8 +31,8 @@ func areneExplosive(t *testing.T) (*World, *EnemyProfile) {
 	}
 
 	g := NewCostGrid(32, 32)
-	w := NewWorld(profils, armes, progressionLivree(t), sansVagues(), g, graineDeTest,
-		capacitesDeTest)
+	w := NewWorld(profils, armes, progressionLivree(t), caissesLivrees(t), sansVagues(), g,
+		graineDeTest, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 
 	p := &profils.Enemies[indexDuProfil(t, profils, "eclateur")]

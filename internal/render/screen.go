@@ -661,8 +661,25 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteAimant:
 			a := s.monde.Magnets().At(e.place)
 			t = s.peindreObjet(ecran, objetAimant, a.X, a.Y, e.identite, nil)
+		case sorteEpave:
+			w := s.monde.Wrecks().At(e.place)
+			t = s.peindreEpave(ecran, w, e.identite)
 		case sorteCaisse:
 			c := s.monde.Crates().At(e.place)
+			// **La déformation dit qu'on est en train de casser**, et c'est tout
+			// ce qui sépare un délai d'un blocage : sans elle, un joueur qui
+			// pousse contre une caisse ralentie croit avoir buté sur un mur.
+			//
+			// **Elle se dérive du décompte d'appui et non du tick**, ce qui est
+			// le régime de toute animation qui s'achève : l'écrasement se complète
+			// à l'instant où la caisse cède. Cadencée sur le tick, sa phase
+			// n'aurait aucun rapport avec la poussée — on toucherait une caisse
+			// déjà écrasée, qui se redresserait ensuite.
+			if c.Press < s.monde.CratePress() {
+				objet, img := s.objets.effet(s.objets.caisse.PressCycle, c.Press)
+				t = s.poserObjet(ecran, objet, img, c.X, c.Y, nil)
+				break
+			}
 			t = s.peindreObjet(ecran, objetCaisse, c.X, c.Y, e.identite, nil)
 		case sorteArmeAuSol:
 			d := s.monde.Drops().At(e.place)
@@ -929,6 +946,24 @@ func (s *Screen) peindreObjet(ecran *ebiten.Image, nom string, x, y game.Fixed,
 	t := s.poserObjet(ecran, objet, img, x, y, voile)
 	t.masque, t.forme, t.cache = objet.masque(i), objet.forme(i), objet.cache
 	return t
+}
+
+// peindreEpave pose ce qu'une caisse a laissé : sa rupture tant qu'elle se
+// déroule, l'épave au sol ensuite.
+//
+// **L'avancement se prend sur l'âge et non sur un décompte**, à l'inverse de
+// toutes les autres animations de ce fichier. La règle générale ancre sur la fin
+// parce que le rendu n'a que le reste d'un état ; ici il n'y a pas d'état qui
+// finisse — l'épave demeure —, et la durée de la bande est connue puisque le
+// cycle est chargé. Le reste s'en déduit, et `Once` retrouve son régime
+// habituel.
+func (s *Screen) peindreEpave(ecran *ebiten.Image, e *game.Wreck, identite int) trace {
+	rupture := s.objets.caisse.BreakCycle
+	if age, duree := s.monde.WreckAge(e), s.objets.duree(rupture); age < duree {
+		objet, img := s.objets.effet(rupture, duree-age)
+		return s.poserObjet(ecran, objet, img, e.X, e.Y, nil)
+	}
+	return s.peindreObjet(ecran, s.objets.caisse.Ruin, e.X, e.Y, identite, nil)
 }
 
 // peindreTrainee relie un tir à la place qu'il occupait au tick précédent.

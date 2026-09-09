@@ -520,6 +520,12 @@ def manifestes(sortie):
             elif "taille" in info and not list(dossier.rglob(f"{nom}.png")):
                 defauts.append((nom, "fichier annoncé au manifeste mais absent"))
 
+            # Une icône vit à côté du dessin de monde pour la fiole et dans
+            # `armes/` pour une lourde : c'est le suffixe qui la nomme dans les
+            # deux cas, donc la recherche descend plutôt que de choisir.
+            if "taille_icone" in info and not list(dossier.rglob(f"{nom}_icone.png")):
+                defauts.append((nom, "icône annoncée au manifeste mais absente"))
+
             # Un renvoi qui ne pointe nulle part casse le jeu au moment précis
             # où l'objet est détruit, c'est-à-dire le plus tard possible.
             destruction = info.get("destruction", {})

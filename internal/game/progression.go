@@ -106,6 +106,21 @@ type Progression struct {
 	// CrateRange est la distance à laquelle le joueur casse une caisse, en
 	// tuiles.
 	CrateRange Fixed
+	// VialObject nomme la fiole au catalogue des objets.
+	//
+	// Lu pour la même raison que `CrateObject` : ce qu'une fiole rend et combien
+	// on en tient vivent sur l'objet, donc le montage doit savoir laquelle.
+	VialObject string
+	// VialOdds est la chance qu'une caisse laisse une fiole, une fois l'arme
+	// écartée : une sur n.
+	//
+	// **C'est ce chiffre qu'on tourne pour régler la rareté du soin, jamais ce
+	// qu'une fiole rend.** Le seuil d'alerte du profil du joueur vaut ce que rend
+	// un soin, si bien que baisser la fiole désaccorderait l'alerte, qui
+	// cesserait d'annoncer la décision qu'elle doit déclencher. Des trois chiffres
+	// que le chapitre 5 tient ensemble — la vie, le plafond par seconde et le
+	// soin —, celui-ci est le seul qu'aucun autre ne contraint.
+	VialOdds int
 	// CrateObject nomme la caisse au catalogue des objets.
 	//
 	// **Le seul renvoi `objet` de ce fichier que le moteur lise**, et c'est le
@@ -254,6 +269,17 @@ func LoadProgression(fsys fs.FS, chemin string) (*Progression, error) {
 			"pas ne rejoint jamais le joueur", *a.GemSpeed)
 	}
 
+	f := brut.Progression.Vial
+	if f.Object == "" {
+		dire("fiole.objet : absent ou vide")
+	}
+	table.VialObject = f.Object
+	table.VialOdds = exige("fiole", "une_sur", f.Odds, dire)
+	if f.Odds != nil && table.VialOdds < 1 {
+		dire("fiole.une_sur : %d, une chance sur moins d'une n'en est pas une",
+			table.VialOdds)
+	}
+
 	s := brut.Progression.Pressure
 	table.SpawnRadius = FromFloat(exige("pression", "rayon_apparition_tuiles", s.Radius, dire))
 	if s.Radius != nil && table.SpawnRadius < One {
@@ -332,6 +358,12 @@ type rawSections struct {
 	Gems rawGems `json:"gemmes"`
 	// Magnet porte le rythme de l'aimant et ce qu'il fait.
 	Magnet rawMagnet `json:"aimant"`
+	// Vial porte la fiole et sa rareté.
+	//
+	// Une section à elle, comme l'aimant, et non deux champs dans `caisses` : ce
+	// qui s'y range est un objet et le rythme auquel on le trouve. La caisse est
+	// le lieu de la trouvaille, elle n'en est pas le sujet.
+	Vial rawVial `json:"fiole"`
 	// Pressure porte ce que le spawner tient de la partie, par opposition à ce
 	// que le lieu lui dit. Le partage est net : un auteur écrit le rythme de ses
 	// vagues, il ne décide pas d'où sortent les créatures.
@@ -364,6 +396,18 @@ type rawCrates struct {
 	HeavyOdds *int `json:"arme_une_sur"`
 	// TileRange est la distance à laquelle le joueur la casse, en tuiles.
 	TileRange *float64 `json:"portee_contact_tuiles"`
+}
+
+// rawVial déclare la fiole et la rareté du soin.
+type rawVial struct {
+	manifest.Commentable
+
+	// Object nomme la fiole dans le manifeste d'objets. Lu, à la différence des
+	// renvois de `rawGems` et `rawMagnet` : `Progression.VialObject` dit pourquoi.
+	Object string `json:"objet"`
+	// Odds est la chance qu'une caisse en laisse une, une fois l'arme écartée :
+	// une sur n.
+	Odds *int `json:"une_sur"`
 }
 
 // rawPressure déclare ce que le spawner tient de la partie.

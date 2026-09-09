@@ -776,9 +776,23 @@ FAMILLES_SONS = {"gemme": "gemme"}
 # `assets/progression/manifeste.json`, où le seuil se règle. Le test n'est pas
 # que le fichier soit généré mais qui l'édite et pourquoi — changer le dessin
 # d'une gemme ne change rien à ce qu'elle rapporte, et l'inverse est vrai aussi.
+# Le stock d'une fiole est un plafond de flacons tenus, et non un nombre de
+# cases : deux emplacements qui ne peuvent contenir que la même chose sont un
+# compteur de deux avec une interface en plus. Ce que la conception limite à deux
+# ou trois est le nombre de sortes de consommables, pas le nombre de flacons.
 VALEURS = {
-    "fiole": {"soin": 30, "emplacements": 2},
+    "fiole": {"soin": 30, "stock": 2},
 }
+
+# Les objets de monde qui portent aussi une icône d'interface, pour la case
+# d'emplacement qui les tient. C'est ce qui met le bandeau et le monde dans le
+# même langage visuel : ce que le joueur lit au-dessus d'une caisse est l'objet
+# qu'il tiendra.
+#
+# **Son fichier est à côté de son dessin de monde, quand celui d'une arme vit
+# dans `armes/`.** Ce dossier porte ce qui est une arme, et une fiole n'en est
+# pas une ; ce qui suit le nom est le suffixe, dans les deux cas.
+ICONES = {"fiole": icone_fiole}
 
 # Les charges d'une arme lourde ne sont plus ici : elles ont déménagé dans
 # assets/armes/manifeste.json, tenu à la main, par le critère qui avait déjà fait
@@ -862,6 +876,10 @@ def main():
                           **({} if cout is None else {"cout_traversee": cout})}
         if nom in VALEURS:
             manifeste[nom].update(VALEURS[nom])
+        if nom in ICONES:
+            icone = ICONES[nom]()
+            icone.save(o.sortie / f"{nom}_icone.png")
+            manifeste[nom]["taille_icone"] = list(icone.size)
         if nom in DESTRUCTION:
             manifeste[nom]["destruction"] = DESTRUCTION[nom]
         if nom in SONS:
@@ -935,8 +953,6 @@ def main():
                           "famille": "arme", "bloquant": False,
                           "son": "ramassage_arme"}
         print(f"{nom:22} icône {icone.size}  sol {au_sol.size}")
-
-    icone_fiole().save(o.sortie / "armes" / "fiole_icone.png")
 
     ecrire_manifeste(o.sortie / "manifeste.json", "objets.py",
                      {"version_format": 1, "objets": manifeste})

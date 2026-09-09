@@ -35,7 +35,7 @@ func champDeTir(t *testing.T) (*World, *Profiles) {
 		g.Set(31, v, Blocked)
 	}
 
-	w := NewWorld(profils, armes, progressionLivree(t), caissesLivrees(t), sansVagues(),
+	w := NewWorld(profils, armes, progressionLivree(t), caissesLivrees(t), fiolesLivrees(t), sansVagues(),
 		g, graineDeTest, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils
@@ -50,7 +50,7 @@ func champSansTir(t *testing.T) (*World, *Profiles) {
 		t.Fatalf("profils livrés : %v", err)
 	}
 	g := NewCostGrid(32, 32)
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t), fiolesLivrees(t),
 		sansVagues(), g, graineDeTest, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils
@@ -1132,7 +1132,7 @@ func TestLeTirNeCoupePasUnAngle(t *testing.T) {
 
 	g := NewCostGrid(8, 8)
 	g.Set(1, 1, Blocked)
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t), fiolesLivrees(t),
 		sansVagues(), g, graineDeTest,
 		Capacities{Enemies: 4, Shots: 4, EnemyShots: 4, Blasts: 4, Gems: 4})
 

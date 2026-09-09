@@ -102,6 +102,13 @@ const CrateCapacity = 32
 // plutôt qu'une limite qu'il subit.
 const DropCapacity = 4
 
+// VialCapacity plafonne les fioles qui attendent au sol.
+//
+// Le même raisonnement que pour les armes lourdes, sur un stock deux fois plus
+// petit : quatre fioles au sol pour deux tenues, et au-delà c'est que le joueur
+// a bu moins vite qu'il n'a cassé.
+const VialCapacity = 4
+
 // FxCapacity plafonne le bassin des effets brefs.
 //
 // **Il compte des événements et non des éclats** : une caisse qui cède est une
@@ -164,6 +171,8 @@ type Session struct {
 	carte *game.CostGrid
 	// caisse porte ce que le catalogue dit d'une caisse, résolu une fois.
 	caisse game.CrateRules
+	// fiole porte ce que le catalogue dit d'une fiole, résolu une fois lui aussi.
+	fiole game.VialRules
 	// ambiance est le peuplement de figurants du lieu, reposé à chaque relance
 	// comme le reste : une salle vide de civils après une mort ne serait pas la
 	// même salle.
@@ -214,7 +223,7 @@ func (s *Session) monter() {
 	s.Grid = s.carte.Clone()
 	game.StampCrates(s.Grid, s.caisses, s.caisse)
 
-	s.World = game.NewWorld(s.profils, s.armes, s.progression, s.caisse,
+	s.World = game.NewWorld(s.profils, s.armes, s.progression, s.caisse, s.fiole,
 		s.scenario, s.Grid, s.Seed,
 		game.Capacities{
 			Enemies:    HordeCapacity,
@@ -224,6 +233,7 @@ func (s *Session) monter() {
 			Gems:       GemCapacity,
 			Crates:     CrateCapacity,
 			Drops:      DropCapacity,
+			Vials:      VialCapacity,
 			Fx:         FxCapacity,
 			Ambients:   AmbientCapacity,
 		})
@@ -316,6 +326,10 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 	if err != nil {
 		return nil, err
 	}
+	fiole, err := objets.Vial(progression.VialObject)
+	if err != nil {
+		return nil, err
+	}
 
 	partie := &Session{
 		Decor:       decor,
@@ -329,6 +343,7 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		scenario:    scenario,
 		carte:       grille,
 		caisse:      caisse,
+		fiole:       fiole,
 		ambiance:    charge.Ambient,
 		sortie:      charge.Exit,
 		caisses:     charge.Crates,

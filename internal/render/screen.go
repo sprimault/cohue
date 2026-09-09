@@ -321,6 +321,14 @@ var emplacement2 = []ebiten.Key{ebiten.Key2, ebiten.KeyNumpad2}
 // ayant une décision — laquelle garder — et non une gestion.
 var emplacement3 = []ebiten.Key{ebiten.Key3, ebiten.KeyNumpad3}
 
+// emplacement4 est la touche qui boit une fiole.
+//
+// **Une case et non deux, bien que le joueur en tienne deux.** Deux cases qui ne
+// pourraient contenir que la même chose seraient un compteur de deux avec une
+// interface en plus ; ce que la conception limite à deux ou trois est le nombre
+// de sortes de consommables, et la seconde case arrivera avec la seconde sorte.
+var emplacement4 = []ebiten.Key{ebiten.Key4, ebiten.KeyNumpad4}
+
 // Update avance la simulation d'un pas, puis recadre.
 //
 // Un pas par appel et rien qui lise l'horloge : Ebitengine appelle cette méthode
@@ -365,6 +373,14 @@ func (s *Screen) Update() error {
 		if !s.monde.TakeDrop(place) {
 			s.monde.Trigger(place)
 		}
+	}
+
+	if presse(emplacement4) {
+		// Sur l'enfoncement comme l'aimant, et pour la même raison : au maintien,
+		// la fiole partirait à l'image où le doigt se pose. Rien à prendre au sol
+		// ici — une fiole se ramasse en marchant dessus, la touche ne fait que
+		// boire.
+		s.monde.Drink()
 	}
 
 	if presse(repere) {
@@ -700,6 +716,9 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteArmeAuSol:
 			d := s.monde.Drops().At(e.place)
 			t = s.peindreObjet(ecran, s.monde.DropWeapon(d).Key, d.X, d.Y, e.identite, nil)
+		case sorteFioleAuSol:
+			f := s.monde.Vials().At(e.place)
+			t = s.peindreObjet(ecran, objetFiole, f.X, f.Y, e.identite, nil)
 		case sorteJoueur:
 			x, y := s.monde.Player()
 			f := s.troupe.joueur
@@ -991,15 +1010,19 @@ const hauteurAnnonce = 38
 // **Le dessin de face au milieu de l'isométrie est le vrai coût, et il est plus
 // étroit qu'il n'y paraît** : le bandeau pose déjà ces mêmes icônes dans ses
 // emplacements. Ce que le joueur lit ici est donc l'objet qu'il connaît, au même
-// endroit du langage visuel — « ceci est une arme lourde, tu l'auras dans ta
-// case ». C'est une continuité entre le monde et le bandeau, pas un registre
-// mêlé.
+// endroit du langage visuel — « tu l'auras dans ta case ». C'est une continuité
+// entre le monde et le bandeau, pas un registre mêlé.
+//
+// **La fiole s'y annonce comme une arme**, et c'est ce que l'argument du dessus
+// prédisait : elle a sa case au bandeau, donc son icône y est déjà connue. La
+// clé vient du monde, si bien que rien ici ne distingue les deux sortes — une
+// icône se pose, quelle que soit la chose qu'elle nomme.
 func (s *Screen) annoncerLeContenu(ecran *ebiten.Image, c *game.Crate) {
-	arme, porte := s.monde.CrateWeapon(c)
+	cle, porte := s.monde.CrateContent(c)
 	if !porte {
 		return
 	}
-	icone := s.objets.Icon(arme.Key)
+	icone := s.objets.Icon(cle)
 	if icone == nil {
 		return
 	}
@@ -1013,7 +1036,7 @@ func (s *Screen) annoncerLeContenu(ecran *ebiten.Image, c *game.Crate) {
 	// épaisseur que ce dépassement. Sans lui, une icône de gris clairs posée sur
 	// un sol clair ne se détache pas — c'est la règle que le chapitre 14 pose
 	// pour les chiffres de dégâts, et une icône flottante est dans le même cas.
-	if bord := s.objets.bordDIcone(arme.Key); bord != nil {
+	if bord := s.objets.bordDIcone(cle); bord != nil {
 		s.contour(ecran, bord, coinX, coinY, teinteContourSombre)
 	}
 	s.op.GeoM.Reset()

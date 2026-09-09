@@ -42,6 +42,15 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Ajouté
+
+- **Les fioles reviennent des caisses, et la touche 4 en boit une.** Elle rend
+  trente points de vie, on en tient deux, et le surplus au-delà du maximum est
+  perdu — boire tout de suite ou garder est la décision. La vie ne se regagne
+  autrement que par la soupape d'une montée de niveau.
+- **Une fiole se ramasse en marchant dessus**, comme une arme lourde, et celle de
+  trop reste au sol : on revient la chercher une fois qu'on a bu.
+
 ### Modifié
 
 - **Une caisse cède après un tiers de seconde d'appui, et non plus au frôlement.**
@@ -59,6 +68,15 @@ publié, et explique les conventions du dépôt à qui y contribue.
   décide avant d'y aller, au lieu de casser tout ce qu'on croise.
 
 ***
+
+### Added
+
+- **Vials come back from crates, and key 4 drinks one.** It restores thirty
+  health, you carry two, and anything above your maximum is lost — drinking now
+  or keeping it is the decision. Health is otherwise regained only through the
+  level-up relief card.
+- **A vial is picked up by walking over it**, like a heavy weapon, and the one
+  too many stays on the ground: you come back for it once you have drunk.
 
 ### Changed
 

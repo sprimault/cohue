@@ -55,7 +55,7 @@ func mondeDEssai(t *testing.T, largeur, hauteur int) (*World, *Profiles) {
 	// Les figurants et les caisses ont leur capacité ici plutôt qu'à zéro : un
 	// bassin vide se parcourt sans rien faire, si bien qu'un garde d'allocation
 	// traverserait leurs passes en croyant les mesurer.
-	return NewWorld(profils, armes, progressionLivree(t), caissesLivrees(t), sansVagues(),
+	return NewWorld(profils, armes, progressionLivree(t), caissesLivrees(t), fiolesLivrees(t), sansVagues(),
 		g, graineDeTest,
 		Capacities{Enemies: 300, Shots: 256, EnemyShots: 64, Blasts: 32, Gems: 512,
 			Ambients: 32, Crates: 32}), profils
@@ -82,6 +82,25 @@ func caissesLivrees(t *testing.T) CrateRules {
 	regles, err := catalogue.Crate(progressionLivree(t).CrateObject)
 	if err != nil {
 		t.Fatalf("caisse du catalogue : %v", err)
+	}
+	return regles
+}
+
+// fiolesLivrees rend les règles d'une fiole, comme les manifestes livrés les
+// donnent.
+//
+// Le pendant de `caissesLivrees`, et pour les mêmes raisons : un soin écrit dans
+// le test serait une seconde description de ce que le catalogue déclare, et le
+// renvoi du manifeste de progression fait de chaque cas un lecteur de ce lien.
+func fiolesLivrees(t *testing.T) VialRules {
+	t.Helper()
+	catalogue, err := LoadObjects(cohue.Assets, manifesteObjets)
+	if err != nil {
+		t.Fatalf("catalogue livré : %v", err)
+	}
+	regles, err := catalogue.Vial(progressionLivree(t).VialObject)
+	if err != nil {
+		t.Fatalf("fiole du catalogue : %v", err)
 	}
 	return regles
 }
@@ -130,7 +149,7 @@ const graineDeTest uint64 = 1
 // d'ici, pour la raison qui vaut déjà pour la graine.
 var capacitesDeTest = Capacities{
 	Enemies: 16, Shots: 64, EnemyShots: 16, Blasts: 8, Ambients: 16, Gems: 32,
-	Fx: 8, Crates: 8, Drops: 4,
+	Fx: 8, Crates: 8, Drops: 4, Vials: 4,
 }
 
 // indexDuProfil rend la place d'un profil dans la table, ou arrête le test.
@@ -411,7 +430,7 @@ func TestRienNeTraverseUnMur(t *testing.T) {
 
 	// Arme inerte : ce test isole le déplacement, et un joueur qui abat la
 	// créature dont on suit la trajectoire ne mesurerait plus rien.
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+	w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t), fiolesLivrees(t),
 		sansVagues(), g, graineDeTest,
 		Capacities{Enemies: 4, Shots: 1, EnemyShots: 4, Blasts: 4, Gems: 8})
 	w.Place(FromInt(4)+One/2, FromInt(1)+One/2)
@@ -487,7 +506,7 @@ func TestLeGlissementNeCoupeAucunAngle(t *testing.T) {
 	for _, c := range cas {
 		t.Run(c.nom, func(t *testing.T) {
 			// Arme inerte et bassin d'une place : ce test isole le déplacement.
-			w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+			w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t), fiolesLivrees(t),
 				sansVagues(), grilleDepuis(c.grille...), graineDeTest,
 				Capacities{Enemies: 1, Shots: 1, EnemyShots: 1, Blasts: 1, Gems: 4})
 			w.Place(FromInt(c.depart[0])+One/2, FromInt(c.depart[1])+One/2)
@@ -524,7 +543,7 @@ func TestLeCoutDeLaCaseDiviseLaVitesse(t *testing.T) {
 			g.Set(u, 2, Blocked)
 			g.Set(u, 1, cout)
 		}
-		w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t),
+		w := NewWorld(profils, armesInertes(t), progressionLivree(t), caissesLivrees(t), fiolesLivrees(t),
 			sansVagues(), g, graineDeTest,
 			Capacities{Enemies: 1, Shots: 1, EnemyShots: 1, Blasts: 1, Gems: 4})
 		w.Place(FromInt(1)+One/2, FromInt(1)+One/2)

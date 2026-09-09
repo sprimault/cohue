@@ -53,7 +53,7 @@ func (w *World) SpawnDrop(cle string, x, y Fixed) bool {
 	return false
 }
 
-// tirerUneArme décide ce qu'une caisse portera, et rend son rang décalé de un.
+// tirerUneArme décide si une caisse portera une arme lourde, et laquelle.
 //
 // **C'est le premier lecteur du flux `butin`**, qui attendait le sien depuis sa
 // déclaration : sa godoc annonçait « au futur, et rien ne l'alimente encore », et
@@ -67,18 +67,22 @@ func (w *World) SpawnDrop(cle string, x, y Fixed) bool {
 // **Elle tire à l'apparition de la caisse**, et non au moment où celle-ci cède :
 // une caisse annonce ce qu'elle porte, et on ne montre pas ce qui n'est pas
 // décidé.
-func (w *World) tirerUneArme() int {
+// **Le rang est rendu tel quel, le second résultat portant l'absence.** Il était
+// décalé de un tant que la caisse le rangeait seul ; c'est la sorte qui porte
+// cette question maintenant, et garder le décalage en aurait fait deux réponses
+// à la même.
+func (w *World) tirerUneArme() (int, bool) {
 	chance := w.progression.HeavyOdds
 	if chance <= 0 || len(w.armes.Heavy) == 0 {
-		return 0
+		return 0, false
 	}
 	if w.hasard.Loot.IntN(chance) != 0 {
-		return 0
+		return 0, false
 	}
-	return w.armes.Heavy[w.hasard.Loot.Pick(len(w.armes.Heavy))] + 1
+	return w.armes.Heavy[w.hasard.Loot.Pick(len(w.armes.Heavy))], true
 }
 
-// lacherLarme pose au sol ce que la caisse portait, s'il y a quelque chose.
+// lacherUneArme pose au sol l'arme d'un rang donné.
 //
 // Le bassin plein perd l'arme plutôt que de la différer. C'est le cas d'un joueur
 // qui a laissé traîner ses trouvailles, et une arme qui apparaîtrait plus tard,
@@ -87,11 +91,8 @@ func (w *World) tirerUneArme() int {
 // **Elle perd donc une arme que la caisse avait annoncée**, ce qui est assumé :
 // l'annonce vaut pour ce que le joueur décide d'aller chercher, et deux
 // trouvailles laissées au sol sont déjà son choix.
-func (w *World) lacherLarme(c *Crate) {
-	if c.Weapon == 0 {
-		return
-	}
-	w.armesAuSol.Spawn(Drop{X: c.X, Y: c.Y, Weapon: c.Weapon - 1})
+func (w *World) lacherUneArme(rang int, x, y Fixed) {
+	w.armesAuSol.Spawn(Drop{X: x, Y: y, Weapon: rang})
 }
 
 // ramasserUneArme prend l'arme sous les pieds du joueur, s'il a une place.

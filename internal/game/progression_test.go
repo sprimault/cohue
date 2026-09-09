@@ -68,7 +68,7 @@ func champDeProgression(t *testing.T, seuils *Progression) (*World, *Profiles) {
 	if err != nil {
 		t.Fatalf("profils livrés : %v", err)
 	}
-	w := NewWorld(profils, armesInertes(t), seuils, caissesLivrees(t), sansVagues(),
+	w := NewWorld(profils, armesInertes(t), seuils, caissesLivrees(t), fiolesLivrees(t), sansVagues(),
 		NewCostGrid(32, 32), graineDeTest, capacitesDeTest)
 	w.Place(FromInt(16)+One/2, FromInt(16)+One/2)
 	return w, profils
@@ -444,11 +444,12 @@ func TestChampsDeProgressionManquantsListesEnUneFois(t *testing.T) {
 		t.Fatalf("section de niveaux vide acceptée : %v", err)
 	}
 	// Les trois seuils, les quatre champs de la gemme, les quatre de l'aimant,
-	// les deux de la pression et les trois de la caisse. Une absence compte pour
-	// une ligne : les bornes ne se prononcent que sur un champ présent, faute de
-	// quoi le nombre de lignes cesserait d'être le nombre de choses à corriger.
-	if len(invalide.Missing) != 17 {
-		t.Errorf("%d manquement(s), attendu 17 :\n  %v", len(invalide.Missing), invalide.Missing)
+	// les deux de la fiole, les deux de la pression et les quatre de la caisse.
+	// Une absence compte pour une ligne : les bornes ne se prononcent que sur un
+	// champ présent, faute de quoi le nombre de lignes cesserait d'être le nombre
+	// de choses à corriger.
+	if len(invalide.Missing) != 19 {
+		t.Errorf("%d manquement(s), attendu 19 :\n  %v", len(invalide.Missing), invalide.Missing)
 	}
 }
 

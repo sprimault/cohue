@@ -259,7 +259,7 @@ func TestUneCaisseLaisseParfoisUneArme(t *testing.T) {
 
 	portees, essais := 0, 60
 	for range essais {
-		if w.tirerUneArme() != 0 {
+		if _, tiree := w.tirerUneArme(); tiree {
 			portees++
 		}
 	}
@@ -282,8 +282,8 @@ func TestUneCaisseLaisseParfoisUneArme(t *testing.T) {
 // individuellement corrects.
 func TestUneCaisseLacheCeQuElleAnnonce(t *testing.T) {
 	w, x, y := salleAvecCaisse(t)
-	c := reposerJusqua(t, w, x, y, true)
-	annoncee, porte := w.CrateWeapon(c)
+	c := reposerJusqua(t, w, x, y, LootHeavy)
+	annoncee, porte := w.CrateContent(c)
 	if !porte {
 		t.Fatal("la caisse porte une arme que sa lecture ne rend pas")
 	}
@@ -293,8 +293,8 @@ func TestUneCaisseLacheCeQuElleAnnonce(t *testing.T) {
 	if n := w.Drops().Len(); n != 1 {
 		t.Fatalf("%d arme(s) au sol après une caisse qui en annonçait une", n)
 	}
-	if lachee := w.DropWeapon(w.Drops().At(0)); lachee.Key != annoncee.Key {
-		t.Errorf("« %s » au sol pour « %s » annoncée", lachee.Key, annoncee.Key)
+	if lachee := w.DropWeapon(w.Drops().At(0)); lachee.Key != annoncee {
+		t.Errorf("« %s » au sol pour « %s » annoncée", lachee.Key, annoncee)
 	}
 }
 
@@ -310,11 +310,15 @@ func TestUneCaisseLacheCeQuElleAnnonce(t *testing.T) {
 // d'échouer. Une chance sur deux rend trente essais suffisants au-delà de tout
 // doute, et la borne dit ce qu'elle attendait plutôt que de laisser lire une
 // interruption.
-func reposerJusqua(t *testing.T, w *World, x, y Fixed, garnie bool) *Crate {
+//
+// **Elle attend une sorte et non un booléen**, depuis que la fiole en fait une
+// troisième : « garnie ou non » ne savait plus dire laquelle des deux garnitures
+// on cherchait.
+func reposerJusqua(t *testing.T, w *World, x, y Fixed, sorte LootKind) *Crate {
 	t.Helper()
 	for range 30 {
 		c := w.Crates().At(0)
-		if (c.Weapon != 0) == garnie {
+		if c.Content.Kind == sorte {
 			return c
 		}
 		w.Crates().RemoveAt(0)
@@ -322,9 +326,9 @@ func reposerJusqua(t *testing.T, w *World, x, y Fixed, garnie bool) *Crate {
 			t.Fatal("bassin de caisses plein")
 		}
 	}
-	t.Fatalf("trente caisses posées sans en obtenir une qui %s une arme, "+
-		"pour une chance sur %d", map[bool]string{true: "porte", false: "ne porte pas"}[garnie],
-		w.progression.HeavyOdds)
+	t.Fatalf("trente caisses posées sans en obtenir une de sorte %d, pour une "+
+		"arme sur %d et une fiole sur %d de ce qui reste",
+		sorte, w.progression.HeavyOdds, w.progression.VialOdds)
 	return nil
 }
 
@@ -335,7 +339,7 @@ func reposerJusqua(t *testing.T, w *World, x, y Fixed, garnie bool) *Crate {
 // qu'aucune n'annonçait.
 func TestUneCaisseSansArmeNenLachePas(t *testing.T) {
 	w, x, y := salleAvecCaisse(t)
-	reposerJusqua(t, w, x, y, false)
+	reposerJusqua(t, w, x, y, LootNothing)
 
 	casserLaCaisse(t, w, x, y)
 

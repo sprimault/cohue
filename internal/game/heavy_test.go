@@ -44,11 +44,12 @@ func TestUneArmeSeRamasseEnMarchantDessus(t *testing.T) {
 
 // autreLourde ajoute une arme lourde à la table de la partie et rend son rang.
 //
-// **Le catalogue livré n'en porte qu'une**, si bien que la règle « une case par
-// type » n'y est pas exprimable : deux grenades s'empilent, et aucun jeu de
-// données ne produit deux emplacements tenus. C'est le cas que la doctrine
-// autorise — isoler un critère que les données livrées ne produisent pas —, et
-// il cessera d'être nécessaire au manifeste le jour où le fusil à pompe entrera.
+// **Elle ne sert plus qu'au troisième type**, celui qui déborde des deux
+// emplacements : le fusil à pompe a rendu les deux premiers exprimables par les
+// données livrées, et c'est par elles que les cas y arrivent maintenant. Ce qui
+// reste forgé est ce qu'aucun manifeste ne produit — une arme de plus que le
+// joueur ne peut en tenir —, et c'est le cas que la doctrine autorise : isoler
+// un critère, jamais contourner le montage.
 //
 // Une copie de la grenade sous une autre clé : ce qu'on éprouve est le type, pas
 // les valeurs.
@@ -164,11 +165,10 @@ func TestLeStockPleinLaisseLArmeAuSol(t *testing.T) {
 // borne éprouvée sur des grenades ne dirait plus rien.
 func TestLesDeuxEmplacementsSeRemplissentPuisSArretent(t *testing.T) {
 	w, _ := champDeTir(t)
-	deuxieme := autreLourde(t, w, "deuxieme_lourde")
 
 	tomber(t, w, "grenade")
 	w.ramasserUneArme()
-	tomberRang(t, w, deuxieme)
+	tomber(t, w, "fusil")
 	w.ramasserUneArme()
 
 	for place := range Slots {
@@ -197,11 +197,10 @@ func TestLesDeuxEmplacementsSeRemplissentPuisSArretent(t *testing.T) {
 // cas où l'arme au sol n'est d'aucun des deux types tenus.
 func TestLaToucheEchangeQuandLesDeuxPlacesSontTenues(t *testing.T) {
 	w, _ := champDeTir(t)
-	deuxieme := autreLourde(t, w, "deuxieme_lourde")
 
 	tomber(t, w, "grenade")
 	w.ramasserUneArme()
-	tomberRang(t, w, deuxieme)
+	tomber(t, w, "fusil")
 	w.ramasserUneArme()
 
 	// Une arme entamée dans la seconde place : c'est ce qui rend l'échange
@@ -464,4 +463,56 @@ func rangDeLArme(t *testing.T, w *World, cle string) int {
 	}
 	t.Fatalf("arme « %s » absente de la table", cle)
 	return 0
+}
+
+// TestUnDeclenchementDeSalveTireEtDepense ferme le chemin de la touche aux
+// projectiles, comme son voisin le ferme jusqu'à l'explosion.
+//
+// **Il vérifie aussi qu'aucune déflagration ne part**, ce qui est la moitié que
+// l'aiguillage peut manquer : une branche qui tomberait dans le cas par défaut
+// laisserait le bassin des souffles vide et celui des tirs aussi, mais une
+// branche qui ferait les deux passerait un cas qui ne compterait que les tirs.
+func TestUnDeclenchementDeSalveTireEtDepense(t *testing.T) {
+	w, profils := champDeTir(t)
+	tomber(t, w, "fusil")
+	w.ramasserUneArme()
+	px, py := w.Player()
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), px+FromInt(2), py); !ok {
+		t.Fatal("créature refusée")
+	}
+	arme, avant := w.HeldHeavy(0)
+
+	w.Trigger(0)
+
+	if _, apres := w.HeldHeavy(0); apres != avant-1 {
+		t.Errorf("%d charge(s) après un déclenchement, attendu %d", apres, avant-1)
+	}
+	if n := w.tirs.Len(); n != arme.Projectiles {
+		t.Errorf("%d projectile(s) en vol, attendu les %d de la salve", n, arme.Projectiles)
+	}
+	if n := w.souffles.Len(); n != 0 {
+		t.Errorf("%d déflagration(s) pour une arme qui tire", n)
+	}
+}
+
+// TestUneSalveNeDepenseRienSansCible garde ce que la conception refuse.
+//
+// **La règle vaut pour tous les effets et non pour la seule grenade** : une arme
+// à huit charges dont une part dans le vide se lit comme un défaut, quel que
+// soit ce qu'elle produit. Le cas part d'une salle vide de créatures, la portée
+// courte du fusil rendant l'absence de cible ordinaire plutôt qu'exceptionnelle.
+func TestUneSalveNeDepenseRienSansCible(t *testing.T) {
+	w, _ := champDeTir(t)
+	tomber(t, w, "fusil")
+	w.ramasserUneArme()
+	_, avant := w.HeldHeavy(0)
+
+	w.Trigger(0)
+
+	if _, apres := w.HeldHeavy(0); apres != avant {
+		t.Errorf("%d charge(s) après un déclenchement à vide, attendu %d", apres, avant)
+	}
+	if n := w.tirs.Len(); n != 0 {
+		t.Errorf("%d projectile(s) partis sans cible", n)
+	}
 }

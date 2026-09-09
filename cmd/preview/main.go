@@ -240,6 +240,14 @@ type vue struct {
 	// declencheUneArme dépense une charge de l'emplacement tenu, pour que la
 	// déflagration porte et que ses chiffres jaillissent.
 	declencheUneArme bool
+	// declencheLaSalve tire le fusil de la seconde case et laisse voler ses
+	// projectiles quelques ticks.
+	//
+	// **Une vue à elle, parce que ce qu'elle montre n'est pas un chiffre mais une
+	// figure** : sept plombs qui s'écartent vers le point visé, à trois tuiles de
+	// portée. C'est la seule chose du lot qui se voie en vol, et la vue des armes
+	// ne montre que la case et le dessin au sol.
+	declencheLaSalve bool
 	// surUneCaisse pose le joueur contre la première caisse du lieu, à portée de
 	// contact, si bien que l'appui commence au premier pas.
 	//
@@ -401,6 +409,18 @@ var vues = []vue{
 	// se comptent d'un coup d'œil, et qu'une arme posée au sol se voie parmi le
 	// décor. La horde est retirée pour que rien ne passe devant.
 	{nom: "armes", videLaHorde: true, poseDesArmes: true},
+
+	// **La salve du fusil en vol.** La horde reste : ce qui se juge est une gerbe
+	// dans une foule, et sept plombs sur un sol vide ne diraient rien de ce que
+	// l'arme nettoie.
+	//
+	// **Elle s'arrête au premier contact et non sur un compte de pas**, ce que la
+	// première version avait manqué : la simulation continue après la mort, si
+	// bien qu'un pilote mort à 4:26 rendait une vue de salve où l'on ne voyait
+	// qu'un écran de fin. Le contact dit du même coup que la horde est à portée
+	// du fusil, qui ne tire qu'à trois tuiles.
+	{nom: "salve", ticks: 300 * game.TPS, jusquAuxDegats: true,
+		poseDesArmes: true, declencheLaSalve: true},
 
 	// **La fiole, tenue et au sol.** Ce qu'elle relit est ce qu'aucune mesure ne
 	// dit : qu'une fiole de douze pixels se voie sur le sol clair — c'est le plus
@@ -693,6 +713,12 @@ func (p *planche) vue(v vue) error {
 		// montrerait alors une case vide, ce qui se voit.
 		partie.World.SpawnDrop("grenade", px, py)
 		partie.World.Step(game.Vec{})
+		// **Les deux types, depuis que le catalogue en porte deux.** Une seule
+		// case tenue ne montre ni la seconde icône ni deux comptes à la suite,
+		// c'est-à-dire ce qui se lit vraiment en jouant ; et le fusil au sol est
+		// un dessin que rien n'avait encore donné à relire.
+		partie.World.SpawnDrop("fusil", px, py)
+		partie.World.Step(game.Vec{})
 		partie.World.SpawnDrop("grenade", px+game.FromInt(2), py)
 	}
 
@@ -715,6 +741,16 @@ func (p *planche) vue(v vue) error {
 	// de quoi laisser les chiffres monter.
 	if v.declencheUneArme {
 		attendreUnGrosChiffre(partie.World)
+	}
+
+	// Deux ticks après le déclenchement : la salve est sortie du personnage sans
+	// avoir atteint la portée du fusil, qui est de trois tuiles — au-delà, les
+	// projectiles ont déjà touché et il ne resterait rien à voir.
+	if v.declencheLaSalve {
+		partie.World.Trigger(1)
+		for range 2 {
+			partie.World.Step(game.Vec{})
+		}
 	}
 
 	// La ruée se dessine en plein vol : quelques ticks suffisent à ce que les

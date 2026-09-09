@@ -64,22 +64,18 @@ func (w *World) Trigger(place int) {
 	tenue := &w.lourdes[place]
 	// Sans restriction de côté, à la différence du tir de base : une grenade
 	// tombe où le joueur la lance et non où il regarde, et le chapitre 9 pose
-	// qu'il ne dirige pas son lancer.
+	// qu'il ne dirige pas son lancer. Le fusil suit la même règle — ce qui
+	// s'oriente est le tir automatique, jamais ce qu'une touche déclenche.
 	cible, trouvee := w.plusProcheDe(w.playerX, w.playerY, tenue.Weapon.Range, Handle{}, Vec{})
 	if !trouvee {
 		return
 	}
 
-	e := w.ennemis.At(cible)
-	if _, ok := w.souffles.Spawn(Blast{
-		X: e.X, Y: e.Y,
-		Source: BlastWeapon,
-		Index:  tenue.rang,
-		Fuse:   tenue.Weapon.Fuse,
-	}); !ok {
-		// Bassin plein : la charge n'est pas dépensée. Une déflagration perdue
-		// coûterait au joueur une des trois choses qu'il possède, pour une raison
-		// qu'aucun écran ne peut lui montrer.
+	// **L'effet décide, et la charge se dépense après lui.** Chaque branche peut
+	// renoncer — un bassin plein —, et une charge dépensée pour un effet qui
+	// n'est pas parti coûterait au joueur une des trois choses qu'il possède,
+	// pour une raison qu'aucun écran ne peut lui montrer.
+	if !w.declencher(tenue, w.ennemis.At(cible)) {
 		return
 	}
 
@@ -90,6 +86,38 @@ func (w *World) Trigger(place int) {
 		// libérer plutôt qu'un compteur à zéro.
 		*tenue = Heavy{}
 	}
+}
+
+// declencher produit ce que l'arme tenue déclare, et dit si c'est parti.
+//
+// **Un aiguillage sur une donnée, jamais une branche par arme.** Ce que le
+// moteur connaît est une liste close d'effets ; deux armes qui déclareraient le
+// même partageraient ce chemin sans qu'une ligne s'ajoute, ce qui est la règle
+// des données qui ne sont pas du code.
+//
+// La cible sert aux deux effets et ne veut pas dire la même chose : la
+// déflagration s'y pose, la salve s'y dirige. C'est la seule chose qu'un effet
+// reçoit, et il n'y a pas de troisième usage à prévoir tant qu'aucun ne le
+// demande.
+func (w *World) declencher(tenue *Heavy, cible *Enemy) bool {
+	switch tenue.Weapon.Effect {
+	case effetDeflagration:
+		_, ok := w.souffles.Spawn(Blast{
+			X: cible.X, Y: cible.Y,
+			Source: BlastWeapon,
+			Index:  tenue.rang,
+			Fuse:   tenue.Weapon.Fuse,
+		})
+		return ok
+	case effetSalve:
+		// **Vers la cible et non vers son interception**, à la différence du tir
+		// de base : un fusil à pompe étale des plombs sur une largeur, et viser où
+		// la cible sera n'aurait de sens que pour un projectile unique. Ce qui
+		// touche est le front, pas l'anticipation.
+		vers := Vec{X: cible.X - w.playerX, Y: cible.Y - w.playerY}.Direction(0)
+		return w.salve(&tenue.Weapon, vers) > 0
+	}
+	return false
 }
 
 // emporter applique la déflagration d'une arme à la horde autour d'un point.

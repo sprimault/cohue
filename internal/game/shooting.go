@@ -24,11 +24,29 @@ func (w *World) tirer() {
 		return
 	}
 
-	vers := w.interception(w.ennemis.At(cible)).Direction(0)
+	_ = w.salve(&w.arme, w.interception(w.ennemis.At(cible)).Direction(0))
+	w.cooldown = w.arme.Cooldown
+}
+
+// salve pose les projectiles d'une arme dans une direction.
+//
+// **Paramétrée par l'arme et non par le socle**, depuis qu'une lourde tire : le
+// fusil à pompe emploie ce mécanisme tel quel, avec ses propres nombre, front et
+// ouverture. Recopier ces trente lignes en aurait fait deux endroits où tenir la
+// répartition dans la salve, dont le premier a déjà coûté un palier qui faisait
+// perdre.
+//
+// Ce qu'elle ne fait pas est décider **quand** : la cadence appartient à
+// l'appelant — un compteur pour le socle, une charge dépensée pour une lourde.
+//
+// Elle rend le nombre de projectiles réellement posés, que le socle ignore et
+// qu'une lourde regarde : celle-ci ne dépense sa charge que si quelque chose est
+// parti, quand le socle perd les tirs qu'un bassin plein refuse.
+func (w *World) salve(arme *Weapon, vers Vec) int {
 	cote := vers.Perp()
-	n := w.arme.Projectiles
+	n, poses := arme.Projectiles, 0
 	for k := range n {
-		depart := cote.Scale(ecartDansLaSalve(w.arme.Front, k, n))
+		depart := cote.Scale(ecartDansLaSalve(arme.Front, k, n))
 
 		// **La course reste `vers` tant que l'ouverture est nulle**, ce qui rend
 		// l'identité vraie par construction plutôt que par ce qu'une
@@ -41,8 +59,8 @@ func (w *World) tirer() {
 		// plus : la salve part de son front et converge là où elle vise, au lieu
 		// de s'en écarter. C'est ce qui la rend écrivable sans mécanisme neuf, et
 		// ce qui répare ce que le front coûte à cible unique.
-		ouverture := w.arme.Spread
-		if w.arme.Spray {
+		ouverture := arme.Spread
+		if arme.Spray {
 			ouverture = -ouverture
 		}
 
@@ -50,7 +68,7 @@ func (w *World) tirer() {
 		if ouverture != 0 {
 			// Le point visé est à la portée, décalé de l'ouverture : c'est ce qui
 			// donne l'éventail sans jamais écrire d'angle.
-			pas = vers.Scale(w.arme.Range).
+			pas = vers.Scale(arme.Range).
 				Add(cote.Scale(ecartDansLaSalve(ouverture, k, n))).
 				Direction(k)
 		}
@@ -58,20 +76,21 @@ func (w *World) tirer() {
 		if _, ok := w.tirs.Spawn(Projectile{
 			X:         w.playerX + depart.X,
 			Y:         w.playerY + depart.Y,
-			Step:      pas.Scale(w.arme.ProjectileSpeed),
-			Remaining: w.arme.Range,
-			Hits:      w.arme.Hits,
-			Pierce:    w.arme.Pierce,
-			Bounces:   w.arme.Bounces,
-			Rail:      w.arme.Rail,
+			Step:      pas.Scale(arme.ProjectileSpeed),
+			Remaining: arme.Range,
+			Hits:      arme.Hits,
+			Pierce:    arme.Pierce,
+			Bounces:   arme.Bounces,
+			Rail:      arme.Rail,
 		}); !ok {
 			// Bassin plein : le tir est perdu, pas différé. Une file d'attente
 			// rendrait la cadence élastique, et l'arme rattraperait son retard
 			// par une salve que rien n'a demandée.
 			break
 		}
+		poses++
 	}
-	w.cooldown = w.arme.Cooldown
+	return poses
 }
 
 // ecartDansLaSalve répartit le k-ième d'une salve de n sur une largeur, autour de

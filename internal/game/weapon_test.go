@@ -234,3 +234,96 @@ func TestFormatDArmesNonPrisEnCharge(t *testing.T) {
 		t.Errorf("format 99 accepté, ou refusé pour une autre raison : %v", err)
 	}
 }
+
+// TestUnEffetInconnuEstRefuse garde le vocabulaire fermé des effets.
+//
+// **Une faute de frappe se dit comme telle, et non par les champs qu'elle
+// entraîne.** Le contrôle par effet ne sait parler que de présence : un
+// « deflgration » y serait lu comme un effet sans rayon ni mèche, et l'auteur
+// corrigerait les deux champs qu'on lui nomme au lieu de la lettre qui manque.
+func TestUnEffetInconnuEstRefuse(t *testing.T) {
+	fsys := fstest.MapFS{"a.json": &fstest.MapFile{Data: []byte(`{
+		"version_format": 1,
+		"armes": {
+			"reglementaire": {"nom": "Réglementaire", "role": "base", "cadence_ms": 400,
+			                  "portee_tuiles": 6, "degats_touches": 1, "projectiles": 1,
+			                  "vitesse_projectile_tuiles_s": 12.0},
+			"grenade": {"nom": "Grenade", "role": "lourde", "objet": "grenade",
+			            "effet": "deflgration", "charges": 3, "charges_max": 6,
+			            "cadence_ms": 1000, "portee_tuiles": 4, "degats_touches": 6,
+			            "projectiles": 1, "vitesse_projectile_tuiles_s": 8.0,
+			            "axes": [], "rayon_tuiles": 2.5, "meche_ms": 500}
+		},
+		` + passifsValides + `
+	}`)}}
+
+	_, err := LoadWeapons(fsys, "a.json")
+	var invalide *manifest.Invalid
+	if !errors.As(err, &invalide) {
+		t.Fatalf("effet inconnu accepté : %v", err)
+	}
+	if !strings.Contains(strings.Join(invalide.Missing, "\n"), "effet") {
+		t.Errorf("le refus ne nomme pas l'effet : %v", invalide.Missing)
+	}
+}
+
+// TestUnRayonSurUneSalveEstRefuse garde la moitié du contrôle qui attrape le
+// copier-coller.
+//
+// **C'est celle qui ne se voit pas autrement.** Un champ manquant se signale au
+// premier chargement ; un `rayon_tuiles` resté sur une arme qui tire des
+// projectiles ne serait jamais lu, et laisserait croire à un réglage — c'est le
+// même défaut que le `tangentiel` oublié sur un Quidam.
+func TestUnRayonSurUneSalveEstRefuse(t *testing.T) {
+	fsys := fstest.MapFS{"a.json": &fstest.MapFile{Data: []byte(`{
+		"version_format": 1,
+		"armes": {
+			"reglementaire": {"nom": "Réglementaire", "role": "base", "cadence_ms": 400,
+			                  "portee_tuiles": 6, "degats_touches": 1, "projectiles": 1,
+			                  "vitesse_projectile_tuiles_s": 12.0},
+			"fusil": {"nom": "Fusil", "role": "lourde", "objet": "fusil",
+			          "effet": "salve", "charges": 8, "charges_max": 16,
+			          "cadence_ms": 600, "portee_tuiles": 3, "degats_touches": 2,
+			          "projectiles": 7, "vitesse_projectile_tuiles_s": 14.0,
+			          "axes": [], "rayon_tuiles": 2.5}
+		},
+		` + passifsValides + `
+	}`)}}
+
+	_, err := LoadWeapons(fsys, "a.json")
+	var invalide *manifest.Invalid
+	if !errors.As(err, &invalide) {
+		t.Fatalf("rayon sur une salve accepté : %v", err)
+	}
+	if !strings.Contains(strings.Join(invalide.Missing, "\n"), "rayon_tuiles") {
+		t.Errorf("le refus ne nomme pas le champ de trop : %v", invalide.Missing)
+	}
+}
+
+// TestUneDeflagrationSansRayonEstRefusee garde l'autre moitié.
+//
+// Une même entrée de table dit les deux choses, mais les deux se cassent
+// séparément : sans ce cas, un contrôle qui n'exigerait plus rien passerait au
+// vert en ne refusant que le champ de trop.
+func TestUneDeflagrationSansRayonEstRefusee(t *testing.T) {
+	fsys := fstest.MapFS{"a.json": &fstest.MapFile{Data: []byte(`{
+		"version_format": 1,
+		"armes": {
+			"reglementaire": {"nom": "Réglementaire", "role": "base", "cadence_ms": 400,
+			                  "portee_tuiles": 6, "degats_touches": 1, "projectiles": 1,
+			                  "vitesse_projectile_tuiles_s": 12.0},
+			"grenade": {"nom": "Grenade", "role": "lourde", "objet": "grenade",
+			            "effet": "deflagration", "charges": 3, "charges_max": 6,
+			            "cadence_ms": 1000, "portee_tuiles": 4, "degats_touches": 6,
+			            "projectiles": 1, "vitesse_projectile_tuiles_s": 8.0,
+			            "axes": [], "meche_ms": 500}
+		},
+		` + passifsValides + `
+	}`)}}
+
+	_, err := LoadWeapons(fsys, "a.json")
+	var invalide *manifest.Invalid
+	if !errors.As(err, &invalide) {
+		t.Fatalf("déflagration sans rayon acceptée : %v", err)
+	}
+}

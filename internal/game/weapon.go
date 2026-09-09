@@ -39,6 +39,32 @@ const roleHeavy = "lourde"
 // le même nom sans qu'on aille voir laquelle on lit.
 var rolesArme = []string{roleBase, roleHeavy}
 
+// Les effets qu'une arme lourde déclenche, dans un vocabulaire fermé que le
+// moteur connaît — comme celui des recettes de fusion, et pour la même raison :
+// la table choisit un comportement, elle n'en invente pas.
+//
+// **Chaque effet est ce que le déclenchement produit, jamais ce que l'arme
+// est.** Le nom de l'arme est de la fiction et vit dans sa clé ; ce que le moteur
+// lit ici est un mécanisme, et deux armes pourront un jour partager le même.
+const (
+	// effetDeflagration pose une explosion sur la cible la plus proche, dans le
+	// vocabulaire de la Baudruche dont elle réemploie le souffle.
+	effetDeflagration = "deflagration"
+	// effetSalve tire les projectiles de l'arme vers la cible la plus proche,
+	// par le chemin du tir de base : c'est le même mécanisme, paramétré par une
+	// autre arme.
+	effetSalve = "salve"
+)
+
+// effetsArme est la liste close des effets admis.
+//
+// **Elle ne porte que ce qui a un lecteur.** La tourelle et les flammes du plan
+// de l'étape n'y sont pas : une valeur écrite d'avance est une déclaration que
+// personne n'exerce, et un manifeste pourrait la nommer sans que rien ne se
+// passe. C'est la règle qui a déjà laissé `ModeContact` seul dans le catalogue
+// d'objets, sans le mode des obstacles fragiles.
+var effetsArme = []string{effetDeflagration, effetSalve}
+
 // Weapon est une arme, telle que le manifeste tenu à la main la décrit.
 //
 // C'est le tireur qui porte les valeurs de son tir : cadence, portée, dégâts,
@@ -145,6 +171,12 @@ type Weapon struct {
 
 	// Role dit ce que l'arme est dans la partie : le socle infini, ou une lourde.
 	Role string
+	// Effect est ce qu'une lourde déclenche, vide pour le socle.
+	//
+	// **Il décide des champs que l'entrée doit porter**, comme le comportement
+	// d'une créature décide des siens : un rayon d'explosion sur une arme qui
+	// tire des projectiles ne serait jamais lu et laisserait croire à un réglage.
+	Effect string
 	// Charges est le nombre de déclenchements d'une lourde, zéro pour le socle.
 	//
 	// **Ici et non sur l'objet ramassé**, par le critère qui avait fait descendre
@@ -308,11 +340,54 @@ type rawWeapon struct {
 	// qu'il désigne un objet du catalogue, et c'est ce qui empêche le
 	// déménagement des charges de laisser un orphelin.
 	Object     string   `json:"objet,omitempty"`
+	Effect     string   `json:"effet,omitempty"`
 	Charges    *int     `json:"charges,omitempty"`
 	MaxCharges *int     `json:"charges_max,omitempty"`
 	Axes       []string `json:"axes,omitempty"`
 	TileRadius *float64 `json:"rayon_tuiles,omitempty"`
 	FuseMs     *int     `json:"meche_ms,omitempty"`
+}
+
+// champsConditionnelsArme dit, pour chaque champ que la table ne porte pas
+// partout, qui a le droit de le porter — et donc qui doit le porter.
+//
+// **Le même patron que `champsConditionnels` pour les profils**, et c'est sa
+// troisième écriture après les rôles d'arme et les comportements de créature :
+// une entrée dit les deux choses à la fois, si bien que le contrôle est
+// symétrique sans qu'il ait fallu l'écrire deux fois. Ce qu'il attrape est le
+// copier-coller d'une arme vers une autre — un `rayon_tuiles` resté sur un fusil
+// à pompe ne serait jamais lu, et laisserait croire à un réglage.
+var champsConditionnelsArme = []struct {
+	// nom est la clé telle qu'elle s'écrit dans le fichier.
+	nom string
+	// qui désigne ce qui autorise le champ, pour le message.
+	qui string
+	// pour dit si cette arme doit porter le champ.
+	pour func(rawWeapon) bool
+	// present dit si elle le porte.
+	present func(rawWeapon) bool
+}{
+	{"objet", "une arme « lourde »", estLourde, func(a rawWeapon) bool { return a.Object != "" }},
+	{"effet", "une arme « lourde »", estLourde, func(a rawWeapon) bool { return a.Effect != "" }},
+	{"charges", "une arme « lourde »", estLourde, func(a rawWeapon) bool { return a.Charges != nil }},
+	{"charges_max", "une arme « lourde »", estLourde, func(a rawWeapon) bool { return a.MaxCharges != nil }},
+	{"axes", "une arme « lourde »", estLourde, func(a rawWeapon) bool { return a.Axes != nil }},
+
+	{"rayon_tuiles", "l'effet « deflagration »", estEffet(effetDeflagration),
+		func(a rawWeapon) bool { return a.TileRadius != nil }},
+	{"meche_ms", "l'effet « deflagration »", estEffet(effetDeflagration),
+		func(a rawWeapon) bool { return a.FuseMs != nil }},
+}
+
+// estLourde reconnaît une arme lourde.
+func estLourde(a rawWeapon) bool { return a.Role == roleHeavy }
+
+// estEffet rend le prédicat qui reconnaît un effet.
+//
+// Il n'est vrai que d'une lourde : le socle ne porte pas d'effet, donc aucun de
+// ses champs conditionnels n'est exigible de lui.
+func estEffet(effet string) func(rawWeapon) bool {
+	return func(a rawWeapon) bool { return estLourde(a) && a.Effect == effet }
 }
 
 // arme convertit une arme brute, en signalant ce qui lui manque.
@@ -375,24 +450,26 @@ func (a rawWeapon) arme(cle string, dire func(string, ...any)) Weapon {
 // serait jamais lu et laisserait croire qu'elle s'épuise ; une lourde sans
 // charges serait infinie sans que le fichier le dise.
 func (a rawWeapon) lourde(cle string, w *Weapon, dire func(string, ...any)) {
-	for _, c := range []struct {
-		champ   string
-		present bool
-	}{
-		{"objet", a.Object != ""},
-		{"charges", a.Charges != nil},
-		{"charges_max", a.MaxCharges != nil},
-		{"axes", a.Axes != nil},
-		{"rayon_tuiles", a.TileRadius != nil},
-		{"meche_ms", a.FuseMs != nil},
-	} {
-		if a.Role == roleBase && c.present {
-			dire("%s.%s : présent, réservé à une arme « %s »", cle, c.champ, roleHeavy)
+	if a.Role == roleHeavy && !slices.Contains(effetsArme, a.Effect) && a.Effect != "" {
+		// L'effet inconnu se dit ici plutôt que dans la table ci-dessous, qui ne
+		// sait parler que de présence : un « deflgration » y serait lu comme un
+		// effet sans rayon, et l'auteur corrigerait le champ qu'on lui nomme au
+		// lieu de la faute de frappe qui l'a produit.
+		dire("%s.effet : « %s » inconnu, attendu %s", cle, a.Effect, liste(effetsArme))
+	}
+
+	for _, champ := range champsConditionnelsArme {
+		switch {
+		case champ.pour(a) && !champ.present(a):
+			dire("%s.%s : absent, alors que %s l'exige", cle, champ.nom, champ.qui)
+		case !champ.pour(a) && champ.present(a):
+			dire("%s.%s : réservé à %s", cle, champ.nom, champ.qui)
 		}
 	}
 	if a.Role != roleHeavy {
 		return
 	}
+	w.Effect = a.Effect
 
 	w.Charges = exige(cle, "charges", a.Charges, dire)
 	if a.Charges != nil && w.Charges < 1 {
@@ -407,24 +484,29 @@ func (a rawWeapon) lourde(cle string, w *Weapon, dire func(string, ...any)) {
 		dire("%s.charges_max : %d pour %d charges, aucune ne pourrait etre ramassee",
 			cle, w.Stock, w.Charges)
 	}
-	w.BurstRadius = FromFloat(exige(cle, "rayon_tuiles", a.TileRadius, dire))
-	if a.TileRadius != nil && w.BurstRadius < 1 {
-		dire("%s.rayon_tuiles : %v, un rayon que la virgule fixe arrondit à zéro "+
-			"n'emporte personne", cle, *a.TileRadius)
-	}
-	w.BurstHits = w.Hits
-
-	// La mèche passe par la conversion commune, qui refuse une durée sous le pas
-	// de simulation : une déflagration à cinq millisecondes partirait au tick
-	// suivant sans que rien ne l'annonce.
-	if ms := exige(cle, "meche_ms", a.FuseMs, dire); ms > 0 {
-		ticks, err := TicksFromMs(ms)
-		if err != nil {
-			dire("%s.meche_ms : %v", cle, err)
+	// **Ce qui suit n'est lu que de l'effet qui l'emploie**, et son absence a
+	// déjà été signalée par la table : la relever ici ferait deux lignes pour une
+	// faute, ce que la validation d'un manifeste s'interdit partout.
+	if w.Effect == effetDeflagration {
+		w.BurstRadius = FromFloat(exige(cle, "rayon_tuiles", a.TileRadius, dire))
+		if a.TileRadius != nil && w.BurstRadius < 1 {
+			dire("%s.rayon_tuiles : %v, un rayon que la virgule fixe arrondit à zéro "+
+				"n'emporte personne", cle, *a.TileRadius)
 		}
-		w.Fuse = ticks
-	} else if a.FuseMs != nil {
-		dire("%s.meche_ms : %d, une déflagration sans mèche ne s'esquive pas", cle, ms)
+		w.BurstHits = w.Hits
+
+		// La mèche passe par la conversion commune, qui refuse une durée sous le
+		// pas de simulation : une déflagration à cinq millisecondes partirait au
+		// tick suivant sans que rien ne l'annonce.
+		if ms := exige(cle, "meche_ms", a.FuseMs, dire); ms > 0 {
+			ticks, err := TicksFromMs(ms)
+			if err != nil {
+				dire("%s.meche_ms : %v", cle, err)
+			}
+			w.Fuse = ticks
+		} else if a.FuseMs != nil {
+			dire("%s.meche_ms : %d, une déflagration sans mèche ne s'esquive pas", cle, ms)
+		}
 	}
 
 	// Les axes déclarés doivent exister, faute de quoi un passif que l'auteur

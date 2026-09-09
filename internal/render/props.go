@@ -51,6 +51,10 @@ type Stage struct {
 	// au même endroit ni dans le même repère : celles-là sont vues de face,
 	// ceux-ci en isométrie.
 	icones map[string]*ebiten.Image
+	// bordsDIcone sont les mêmes icônes aplaties, dont le rendu tire le liseré
+	// qui les détache d'un sol clair. Le bandeau n'en a pas besoin : ses cases
+	// sont sombres, et c'est pour elles que les icônes ont été dessinées.
+	bordsDIcone map[string]*ebiten.Image
 	// caisse porte ce que le manifeste attache à la caisse : ses deux cycles et
 	// sa ruine.
 	//
@@ -81,6 +85,9 @@ func (s *Stage) duree(nom string) game.Tick {
 // qu'on lui donne, ce qui garde la frontière — il ne connaît pas le catalogue,
 // donc il ne peut pas savoir quelle icône va où.
 func (s *Stage) Icon(nom string) *ebiten.Image { return s.icones[nom] }
+
+// bordDIcone rend le liseré d'une icône, nul si le catalogue n'en a pas.
+func (s *Stage) bordDIcone(nom string) *ebiten.Image { return s.bordsDIcone[nom] }
 
 // prop est ce qu'un objet donne à peindre.
 type prop struct {
@@ -119,9 +126,10 @@ func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, 
 	}
 
 	scene := &Stage{
-		objets: map[string]prop{},
-		icones: map[string]*ebiten.Image{},
-		caisse: *caisse.Destruction,
+		objets:      map[string]prop{},
+		icones:      map[string]*ebiten.Image{},
+		bordsDIcone: map[string]*ebiten.Image{},
+		caisse:      *caisse.Destruction,
 	}
 
 	// **Les armes viennent du catalogue et non d'une liste écrite ici**, à la
@@ -164,6 +172,7 @@ func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, 
 		}
 		if objet.Icon != nil {
 			scene.icones[nom] = ebiten.NewImageFromImage(objet.Icon)
+			scene.bordsDIcone[nom] = cerner(objet.Icon)
 		}
 	}
 	return scene, nil

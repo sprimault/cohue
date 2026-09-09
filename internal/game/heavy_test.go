@@ -250,26 +250,97 @@ func TestLEchangeSansArmeSousLesPiedsNeFaitRien(t *testing.T) {
 // Le compte n'est pas vérifié — une chance sur trois n'a pas de fréquence exacte
 // sur un échantillon —, seulement qu'il tombe des armes et qu'il n'en tombe pas à
 // chaque fois. Sans la seconde moitié, un code qui en lâcherait toujours passerait.
+//
+// **Le tirage se relève sur ce qu'une caisse porte et non sur ce qu'elle lâche**,
+// depuis qu'elle l'annonce avant de céder : ce qui décide est l'apparition, et
+// la casse ne fait plus que poser au sol ce qui était déjà décidé.
 func TestUneCaisseLaisseParfoisUneArme(t *testing.T) {
 	w, _ := champDeTir(t)
-	px, py := w.Player()
 
-	tombees, essais := 0, 60
+	portees, essais := 0, 60
 	for range essais {
-		avant := w.armesAuSol.Len()
-		w.lacherUneArme(px, py)
-		if w.armesAuSol.Len() > avant {
-			tombees++
-			w.armesAuSol.RemoveAt(0)
+		if w.tirerUneArme() != 0 {
+			portees++
 		}
 	}
 
-	if tombees == 0 {
+	if portees == 0 {
 		t.Errorf("aucune arme sur %d caisses, la chance déclarée est de une sur %d",
 			essais, w.progression.HeavyOdds)
 	}
-	if tombees == essais {
+	if portees == essais {
 		t.Error("chaque caisse a laissé une arme : le tirage ne départage rien")
+	}
+}
+
+// TestUneCaisseLacheCeQuElleAnnonce garde l'accord entre les deux moments.
+//
+// **C'est ce que l'annonce promet, et le seul endroit où elle peut mentir.** Une
+// caisse tire son contenu à l'apparition et le pose en cédant : si les deux se
+// décidaient séparément, l'icône dirait une chose et le sol en donnerait une
+// autre — un mensonge qu'aucun test de tirage ne verrait, les deux étant
+// individuellement corrects.
+func TestUneCaisseLacheCeQuElleAnnonce(t *testing.T) {
+	w, x, y := salleAvecCaisse(t)
+	c := reposerJusqua(t, w, x, y, true)
+	annoncee, porte := w.CrateWeapon(c)
+	if !porte {
+		t.Fatal("la caisse porte une arme que sa lecture ne rend pas")
+	}
+
+	casserLaCaisse(t, w, x, y)
+
+	if n := w.Drops().Len(); n != 1 {
+		t.Fatalf("%d arme(s) au sol après une caisse qui en annonçait une", n)
+	}
+	if lachee := w.DropWeapon(w.Drops().At(0)); lachee.Key != annoncee.Key {
+		t.Errorf("« %s » au sol pour « %s » annoncée", lachee.Key, annoncee.Key)
+	}
+}
+
+// reposerJusqua repose la caisse du lieu jusqu'à en obtenir une qui porte une
+// arme, ou qui n'en porte pas.
+//
+// **Elle repose plutôt qu'elle n'écrit le champ**, ce qui garde le tirage dans
+// le chemin : une caisse forgée à la main éprouverait ce que la casse fait d'un
+// contenu, jamais l'accord entre ce qui est tiré et ce qui est lâché.
+//
+// **Et elle est bornée**, ce qu'une mutation a montré : à contenu forcé à vide,
+// une boucle qui attend une arme ne s'arrête jamais, et le cas pendait au lieu
+// d'échouer. Une chance sur deux rend trente essais suffisants au-delà de tout
+// doute, et la borne dit ce qu'elle attendait plutôt que de laisser lire une
+// interruption.
+func reposerJusqua(t *testing.T, w *World, x, y Fixed, garnie bool) *Crate {
+	t.Helper()
+	for range 30 {
+		c := w.Crates().At(0)
+		if (c.Weapon != 0) == garnie {
+			return c
+		}
+		w.Crates().RemoveAt(0)
+		if _, ok := w.SpawnCrate(x, y, Free); !ok {
+			t.Fatal("bassin de caisses plein")
+		}
+	}
+	t.Fatalf("trente caisses posées sans en obtenir une qui %s une arme, "+
+		"pour une chance sur %d", map[bool]string{true: "porte", false: "ne porte pas"}[garnie],
+		w.progression.HeavyOdds)
+	return nil
+}
+
+// TestUneCaisseSansArmeNenLachePas garde l'autre moitié de l'annonce.
+//
+// Sans elle, un code qui lâcherait toujours une arme passerait le cas
+// précédent : il aurait posé au sol ce que la caisse annonçait, et aussi ce
+// qu'aucune n'annonçait.
+func TestUneCaisseSansArmeNenLachePas(t *testing.T) {
+	w, x, y := salleAvecCaisse(t)
+	reposerJusqua(t, w, x, y, false)
+
+	casserLaCaisse(t, w, x, y)
+
+	if n := w.Drops().Len(); n != 0 {
+		t.Errorf("%d arme(s) au sol pour une caisse qui n'en annonçait aucune", n)
 	}
 }
 

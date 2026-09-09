@@ -486,7 +486,7 @@ Ce que cela établit est la cohérence entre un score et un journal, ce qui suff
 
 Le joueur casse une caisse **en la traversant**. Aucune touche, aucun conflit avec l'auto-visée, et ça le garde en mouvement.
 
-**Ce qui reste à écrire de ce chapitre est le contenu qu'une caisse montre avant de céder**, et les consommables qui en sortent. Le délai d'appui, le ralentissement et le coût dans le champ de flux sont livrés ; ce que la caisse laisse est une volée de gemmes, et une arme lourde de temps en temps.
+**Ce qui reste à écrire de ce chapitre est ce que les caisses donnent** : les consommables et leurs emplacements. Le délai d'appui, le ralentissement, le coût dans le champ de flux et l'annonce du contenu sont livrés ; ce que la caisse laisse est une volée de gemmes, et une arme lourde de temps en temps.
 
 **Elle n'est pas une cible**, et c'est la règle qui coûterait cher à rétablir plus tard. Rangée parmi les ennemis, elle détournerait la visée automatique — qui prend la plus proche sans que le joueur choisisse — et emporterait avec elle la mécanique du Secouriste ; c'est la même règle que pour le figurant, et pour la même raison.
 
@@ -504,7 +504,15 @@ Ce délai a ses propres images : un cycle d'appui qui boucle tant que le joueur 
 
 **Une distinction ferme entre caisse et obstacle.** Silhouette différente, teinte réservée, liseré lumineux. Si les caisses ressemblent aux piliers, le joueur ne sait jamais ce qui va céder et ce qui va le bloquer.
 
-Le contenu est **visible avant la casse** — icône flottante ou liseré coloré. Sinon le joueur casse tout systématiquement et ce n'est plus un choix, c'est une corvée.
+Le contenu est **visible avant la casse**. Sinon le joueur casse tout systématiquement et ce n'est plus un choix, c'est une corvée.
+
+**C'est une icône flottante, et non le liseré coloré que ce document donnait pour alternative.** Trois raisons, dont la première décide seule : un liseré ne sait dire que « il y a quelque chose », ce qui suffit tant qu'une seule arme lourde existe et devient faux au moment précis où le catalogue en porte quatre — une décision qui expire à l'instant où le mécanisme commence à servir n'est pas moins chère, elle est empruntée. Il faudrait alors une teinte par arme, c'est-à-dire une décision d'apparence portée par le manifeste, que le chapitre 14 lui refuse ; et surtout quatre teintes prises dans un catalogue qui n'a presque plus de creux, quand le violet du projectile ennemi a coûté une exploration entière pour trouver le seul disponible.
+
+**Le registre mêlé est le vrai coût, et il est plus étroit qu'il n'y paraît.** Un dessin de face au milieu de l'isométrie serait une entorse si le joueur ne le connaissait pas ; or le bandeau pose déjà ces mêmes icônes dans ses emplacements. Ce qu'il lit au-dessus d'une caisse est donc l'objet qu'il tiendra, au même endroit du langage visuel — une continuité entre le monde et le bandeau plutôt qu'un mélange.
+
+**Ce qui s'annonce est ce que la caisse a de plus que les autres.** Toutes laissent des gemmes : les annoncer ne départagerait aucune et couvrirait l'écran de marques inutiles. Pas d'icône veut donc dire « des gemmes, et rien d'autre », ce qui s'apprend en deux caisses.
+
+**Le contenu se tire à l'apparition et non à la casse**, puisqu'on ne montre pas ce qui n'est pas décidé. Le tirage y gagne une propriété qu'il n'avait pas : le butin d'une caisse cesse de dépendre de l'ordre dans lequel on les casse.
 
 Contrainte technique : **la passabilité n'est pas un booléen, c'est un coût par case.** Une caisse ne bloque pas et ne se franchit pas librement : elle coûte cher à traverser, ce qui est exactement le ralentissement décrit plus haut. Un mur, lui, a un coût infini.
 

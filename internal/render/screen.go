@@ -166,6 +166,18 @@ var (
 	// plus clair d'un profil monte à 162, celui d'un figurant à 175.
 	teinteContour = color.RGBA{R: 252, G: 246, B: 226, A: 255}
 
+	// **Le contour d'une icône posée dans le monde, et il va dans l'autre
+	// sens.** Celui du joueur éclaircit parce qu'il cerne une silhouette sombre
+	// dans une horde sombre ; une icône d'arme est faite de gris clairs, dessinée
+	// pour être lue dans une case de bandeau à 28 de luminance. Posée sur un sol
+	// à 162 elle n'a plus que trente d'écart, ce qui est le même défaut que celui
+	// qui avait fait redessiner la grenade : une valeur juste, relevée contre un
+	// fond qui n'est pas celui où elle s'affiche.
+	//
+	// Le presque-noir est celui que `outils/objets.py` donne aux objets du monde,
+	// pour que ce qui cerne dans la scène cerne partout de la même façon.
+	teinteContourSombre = color.RGBA{R: 24, G: 24, B: 28, A: 255}
+
 	// **Le projectile de la horde porte une teinte qu'aucune autre ne dispute.**
 	// C'est entre projectiles que la distinction doit être maximale : « est-ce
 	// que ça me fait mal ? » ne se pose que sur eux, si bien que les confondre
@@ -678,9 +690,13 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 			if c.Press < s.monde.CratePress() {
 				objet, img := s.objets.effet(s.objets.caisse.PressCycle, c.Press)
 				t = s.poserObjet(ecran, objet, img, c.X, c.Y, nil)
-				break
+			} else {
+				t = s.peindreObjet(ecran, objetCaisse, c.X, c.Y, e.identite, nil)
 			}
-			t = s.peindreObjet(ecran, objetCaisse, c.X, c.Y, e.identite, nil)
+			// **L'annonce reste pendant l'appui**, et ce n'est pas indifférent :
+			// elle disparaîtrait au moment précis où le joueur décide de rester
+			// ou de repartir, c'est-à-dire là où elle sert le plus.
+			s.annoncerLeContenu(ecran, c)
 		case sorteArmeAuSol:
 			d := s.monde.Drops().At(e.place)
 			t = s.peindreObjet(ecran, s.monde.DropWeapon(d).Key, d.X, d.Y, e.identite, nil)
@@ -946,6 +962,64 @@ func (s *Screen) peindreObjet(ecran *ebiten.Image, nom string, x, y game.Fixed,
 	t := s.poserObjet(ecran, objet, img, x, y, voile)
 	t.masque, t.forme, t.cache = objet.masque(i), objet.forme(i), objet.cache
 	return t
+}
+
+// hauteurAnnonce est ce dont l'icône d'une caisse flotte au-dessus du sol, en
+// pixels.
+//
+// La caisse culmine à trente-deux pixels ; au-delà, l'icône décolle et cesse
+// d'appartenir à l'objet qu'elle annonce.
+const hauteurAnnonce = 38
+
+// annoncerLeContenu pose au-dessus d'une caisse l'icône de ce qu'elle porte.
+//
+// **Le contenu est visible avant la casse, sans quoi on casse tout
+// systématiquement et ce n'est plus un choix.** C'est la règle du chapitre 7, et
+// la seule information qui la remplisse est ce que la caisse a **de plus** que
+// les autres : toutes laissent des gemmes, donc les annoncer ne dirait rien et
+// couvrirait l'écran de marques qui ne départagent aucune.
+//
+// **L'icône plutôt que le liseré coloré, que la conception donnait pour
+// alternative**, et deux raisons vont dans le même sens. Elle dit **laquelle**,
+// ce qui décide dès que le catalogue portera ses quatre lourdes : un liseré ne
+// sait dire que « il y a quelque chose », et il faudrait alors une teinte par
+// arme. Or la palette n'a plus de place — le violet du projectile ennemi a coûté
+// une exploration entière pour trouver son seul creux —, si bien que quatre
+// teintes d'armes rouvriraient quatre fois ce problème, en portant en prime dans
+// le manifeste une décision d'apparence que le chapitre 14 lui refuse.
+//
+// **Le dessin de face au milieu de l'isométrie est le vrai coût, et il est plus
+// étroit qu'il n'y paraît** : le bandeau pose déjà ces mêmes icônes dans ses
+// emplacements. Ce que le joueur lit ici est donc l'objet qu'il connaît, au même
+// endroit du langage visuel — « ceci est une arme lourde, tu l'auras dans ta
+// case ». C'est une continuité entre le monde et le bandeau, pas un registre
+// mêlé.
+func (s *Screen) annoncerLeContenu(ecran *ebiten.Image, c *game.Crate) {
+	arme, porte := s.monde.CrateWeapon(c)
+	if !porte {
+		return
+	}
+	icone := s.objets.Icon(arme.Key)
+	if icone == nil {
+		return
+	}
+
+	ex, ey := s.ecranAuSol(c.X, c.Y)
+	taille := icone.Bounds().Size()
+	coinX, coinY := ex-taille.X/2, ey-hauteurAnnonce-taille.Y
+
+	// **Le liseré vient avant l'icône, qui le recouvre en son centre**, comme
+	// pour le personnage : ce qui dépasse est le contour, et il n'a pas d'autre
+	// épaisseur que ce dépassement. Sans lui, une icône de gris clairs posée sur
+	// un sol clair ne se détache pas — c'est la règle que le chapitre 14 pose
+	// pour les chiffres de dégâts, et une icône flottante est dans le même cas.
+	if bord := s.objets.bordDIcone(arme.Key); bord != nil {
+		s.contour(ecran, bord, coinX, coinY, teinteContourSombre)
+	}
+	s.op.GeoM.Reset()
+	s.op.GeoM.Translate(float64(coinX), float64(coinY))
+	s.op.ColorScale.Reset()
+	ecran.DrawImage(icone, &s.op)
 }
 
 // peindreEpave pose ce qu'une caisse a laissé : sa rupture tant qu'elle se

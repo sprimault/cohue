@@ -13,11 +13,11 @@ ennemi 5 id=5 gen=1 profil=4 x=3677175 y=3341913 hits=3 pas=-3386,0 flash=0 char
 tir 0 id=0 gen=9 x=3547876 y=3342045 reste=340788 hits=1 pas=13107,-17
 gemme 0 id=0 gen=2 x=3367256 y=3408288 ne=755 attiree=false
 caisse 0 id=0 gen=1 x=2326528 y=2326528 appui=20 butin=2,0
-caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,0
+caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,1
 caisse 2 id=2 gen=1 x=2326528 y=4161536 appui=20 butin=2,0
 caisse 3 id=3 gen=1 x=4161536 y=4161536 appui=20 butin=2,0
 caisse 4 id=4 gen=1 x=1998848 y=3244032 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,0
+caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,1
 caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
 caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
 flux vagues=905137858 positions=847631723 butin=983279043 cartes=812551215
@@ -44,11 +44,11 @@ gemme 1 id=2 gen=6 x=3318152 y=3250822 ne=2404 attiree=false
 gemme 2 id=3 gen=4 x=3199834 y=3597349 ne=2539 attiree=false
 gemme 3 id=1 gen=2 x=2930272 y=3809903 ne=2602 attiree=false
 caisse 0 id=0 gen=1 x=2326528 y=2326528 appui=20 butin=2,0
-caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,0
+caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,1
 caisse 2 id=2 gen=1 x=2326528 y=4161536 appui=20 butin=2,0
 caisse 3 id=3 gen=1 x=4161536 y=4161536 appui=20 butin=2,0
 caisse 4 id=4 gen=1 x=1998848 y=3244032 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,0
+caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,1
 caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
 caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
 aimant 0 id=0 gen=1 x=4816896 y=884736
@@ -76,11 +76,11 @@ gemme 0 id=1 gen=3 x=3284642 y=3076622 ne=3127 attiree=false
 gemme 1 id=0 gen=6 x=2556463 y=3357747 ne=2813 attiree=false
 gemme 2 id=2 gen=8 x=3258784 y=3123190 ne=3159 attiree=false
 caisse 0 id=0 gen=1 x=2326528 y=2326528 appui=20 butin=2,0
-caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,0
+caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,1
 caisse 2 id=2 gen=1 x=2326528 y=4161536 appui=20 butin=2,0
 caisse 3 id=3 gen=1 x=4161536 y=4161536 appui=20 butin=2,0
 caisse 4 id=4 gen=1 x=1998848 y=3244032 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,0
+caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,1
 caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
 caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
 aimant 0 id=0 gen=1 x=4816896 y=884736
@@ -125,11 +125,11 @@ gemme 9 id=9 gen=13 x=2888421 y=2418042 ne=15908 attiree=false
 gemme 10 id=3 gen=19 x=3054982 y=2331929 ne=15951 attiree=false
 gemme 11 id=5 gen=20 x=3001534 y=2409325 ne=15957 attiree=false
 caisse 0 id=0 gen=1 x=2326528 y=2326528 appui=20 butin=2,0
-caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,0
+caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,1
 caisse 2 id=2 gen=1 x=2326528 y=4161536 appui=20 butin=2,0
 caisse 3 id=3 gen=1 x=4161536 y=4161536 appui=20 butin=2,0
 caisse 4 id=4 gen=1 x=1998848 y=3244032 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,0
+caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,1
 caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
 caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
 aimant 0 id=0 gen=1 x=4816896 y=884736

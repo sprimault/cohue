@@ -21,6 +21,7 @@
       "nom": "Grenade",
       "role": "lourde",
       "objet": "grenade",
+      "effet": "deflagration",
       "charges": 3,
       "charges_max": 6,
       "cadence_ms": 1000,
@@ -35,6 +36,25 @@
       "axes": ["cadence"],
       "rayon_tuiles": 2.5,
       "meche_ms": 500
+    },
+    "fusil": {
+      "$comment": "La seconde arme lourde, et la première qui tire. Son effet « salve » emprunte le mécanisme du tir de base avec ses propres valeurs : rien n'est écrit pour elle dans le moteur, ce qui est ce qu'un vocabulaire fermé d'effets existe pour permettre. || Portée courte et front large : elle couvre une largeur là où la grenade frappe un point, et c'est ce qui les sépare bien plus que leurs dégâts. Cinq tuiles contre six au socle : il reste une distance à payer, et c'est tout ce qui lui en reste — à six, elle porterait aussi loin que ce qui tire tout seul. Trois avaient été essayées, et il fallait entrer dans la horde pour qu'elle serve. || eventail_tuiles écarte les plombs vers la portée plutôt que de les poser côte à côte : sans lui, la salve resterait une barre qui ne s'ouvre jamais. Il suit la portée, faute de quoi allonger l'une referme l'angle de l'autre — le point visé est à la portée, décalé de la moitié de cette largeur, si bien que c'est l'arrivée qui est réglée ici et non l'ouverture. || Huit charges pour trois à la grenade, et un plafond de seize : elle se dépense vite, une charge ne valant qu'une gerbe là où une grenade vaut une explosion. || Les axes qu'elle déclare sont ceux qui ont un sens pour une arme qui tire : tout sauf la cadence, qu'un déclenchement à la touche ne consulte pas.",
+      "nom": "Fusil à pompe",
+      "role": "lourde",
+      "objet": "fusil",
+      "effet": "salve",
+      "charges": 8,
+      "charges_max": 16,
+      "cadence_ms": 600,
+      "portee_tuiles": 5,
+      "degats_touches": 2,
+      "projectiles": 7,
+      "front_tuiles": 1.5,
+      "perforations": 1,
+      "rebonds": 0,
+      "eventail_tuiles": 4.0,
+      "vitesse_projectile_tuiles_s": 14.0,
+      "axes": ["portee", "projectiles", "perforant", "ricochet", "eventail"]
     }
   },
   "passifs": {

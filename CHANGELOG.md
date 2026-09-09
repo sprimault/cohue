@@ -44,6 +44,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Un fusil à pompe sort des caisses, et tire une gerbe de sept plombs.**
+  Seconde arme lourde : portée courte, front large, huit charges. Là où la
+  grenade frappe un point, il couvre une largeur — et il faut aller au contact
+  pour qu'il porte.
+- **Deux armes de types différents se tiennent enfin ensemble**, une par case :
+  la troisième trouvée reste au sol, et la touche d'un emplacement l'y échange.
 - **Les fioles reviennent des caisses, et la touche 4 en boit une.** Elle rend
   trente points de vie, on en tient deux, et le surplus au-delà du maximum est
   perdu — boire tout de suite ou garder est la décision. La vie ne se regagne
@@ -71,6 +77,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **A pump shotgun comes out of crates, firing a spray of seven pellets.**
+  Second heavy weapon: short range, wide front, eight charges. Where the grenade
+  strikes a point, it covers a width — and you have to close in for it to reach.
+- **Two weapons of different types can finally be held together**, one per slot:
+  the third one found stays on the ground, and a slot key swaps it in.
 - **Vials come back from crates, and key 4 drinks one.** It restores thirty
   health, you carry two, and anything above your maximum is lost — drinking now
   or keeping it is the decision. Health is otherwise regained only through the

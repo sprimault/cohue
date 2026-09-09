@@ -304,8 +304,15 @@ ARMES = {"fusil": icone_fusil, "lance_flammes": icone_lance_flammes,
 # éléments de lieu. Une caisse se casse, une gemme se ramasse — rien de commun
 # avec un mur.
 
-def caisse():
-    return prim.contour(prim.nervures(prim.grain(prim.volume(elevation=16, matiere="carton",
+def caisse(matiere="carton"):
+    """Le carton qu'on casse, ou l'une des matières par lesquelles il passe.
+
+    La matière est un paramètre pour le seul cycle de rupture, qui doit finir sur
+    celle de l'épave : le dernier éclatement et ce qu'il laisse au sol se
+    succèdent d'une image à l'autre, et deux teintes qui ne se rejoignent pas
+    donneraient un saut de couleur là où l'œil suit une chose qui tombe.
+    """
+    return prim.contour(prim.nervures(prim.grain(prim.volume(elevation=16, matiere=matiere,
                                          largeur_tuile=32), graine=5), pas=9))
 
 
@@ -363,10 +370,48 @@ def aimant():
     return img
 
 
+def _fane(source, nom, force=0.55, assombrir=0.24):
+    """Décline une matière en sa version fanée, pour ce qui a été cassé.
+
+    **Dérivée et non saisie.** Une teinte écrite à la main serait une seconde
+    description de la matière d'origine, et c'est celle qu'on oublierait de
+    changer en redessinant l'objet intact — la ruine se mettrait alors à parler
+    d'un autre carton que la caisse.
+
+    Chaque teinte va vers sa propre luminance plutôt que vers un gris commun :
+    c'est ce qui retire la couleur sans écraser le relief, les trois niveaux de
+    la matière gardant leur écart entre eux.
+    """
+    def eteindre(c):
+        gris = round(0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2])
+        return tuple(round((v + (gris - v) * force) * (1 - assombrir)) for v in c)
+
+    prim.MATIERES[nom] = tuple(eteindre(c) for c in prim.MATIERES[source])
+    return nom
+
+
 def caisse_cassee():
-    base = prim.volume(elevation=9, matiere="carton", largeur_tuile=32)
-    return prim.eventrer(prim.grain(base, densite=0.18, graine=15,
-                          faces=("dessus", "gauche", "droite")), graine=16)
+    """Ce qu'une caisse laisse : une épave basse et fanée, jamais une caisse.
+
+    **Elle se lit d'abord à sa hauteur.** À neuf pixels d'élévation contre seize,
+    elle gardait la silhouette d'un cube et une partie jouée l'a prise pour une
+    caisse intacte qui refusait de disparaître : ce qu'elle doit dire est « celle-
+    là est déjà ouverte », et une information qu'on lit à l'envers est pire que
+    pas d'information. À quatre, il ne reste qu'un fond éventré posé au sol.
+
+    **La teinte fait le reste**, et elle est ce qui la sépare des éclats qui
+    tombent dessus : ils sont du même bois et partent du même point, si bien
+    qu'une épave de la couleur de la caisse les avalait. Fanée, elle leur rend un
+    fond sur lequel se détacher.
+    """
+    base = prim.volume(elevation=4, matiere=_fane("carton", "_o_carton_ouvert"),
+                       largeur_tuile=32)
+    # Le pourtour est mangé plus franchement qu'avant : à quatre pixels
+    # d'élévation il ne reste presque plus de flanc à éventrer, et un losange net
+    # se lit comme une plaque posée au sol plutôt que comme un fond de caisse.
+    return prim.eventrer(prim.grain(base, densite=0.22, graine=15,
+                          faces=("dessus", "gauche", "droite")),
+                         densite=0.34, graine=16)
 
 
 # --- Quartier : bâtiments --------------------------------------------------
@@ -605,11 +650,19 @@ def caisse_appui(images=3):
 
 
 def caisse_rupture(images=3):
-    """Éclatement, non bouclé : la dernière image reste au sol."""
-    base = caisse()
+    """Éclatement, non bouclé : la dernière image s'achève sur l'épave.
+
+    **La matière fane au fil des images**, jusqu'à celle de l'épave à la
+    dernière. Elle ne fanait pas tant que l'épave gardait la couleur de la
+    caisse ; depuis qu'elle est éteinte, une rupture restée vive sautait d'un
+    carton clair à une dalle grise en une image, au moment précis où l'œil suit
+    la chose qui tombe.
+    """
     cadres = []
     for i in range(images):
         avancement = (i + 1) / images
+        base = caisse(_fane("carton", f"_o_carton_rupture_{i}",
+                            force=0.55 * avancement, assombrir=0.24 * avancement))
         morceau = _comprimer(base, round(6 * avancement), round(5 * avancement))
         prim.eventrer(morceau, densite=0.18 + 0.30 * avancement, graine=90 + i)
         cadres.append(morceau)

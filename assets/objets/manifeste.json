@@ -35,17 +35,17 @@
     "caisse_cassee": {
       "taille": [
         32,
-        25
+        20
       ],
       "ancrage": [
         16,
-        24
+        19
       ],
       "emprise": [
         0.5,
         0.5
       ],
-      "elevation": 9,
+      "elevation": 4,
       "categorie": "sol",
       "masquant": false,
       "famille": "monde",

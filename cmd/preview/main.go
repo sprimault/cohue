@@ -252,6 +252,14 @@ type vue struct {
 	// un passage que rien n'avait voulu. Un second drapeau aurait laissé écrire
 	// la moitié qui ne marche pas.
 	surUneCaisse bool
+	// loinDUneCaisse pose le joueur à trois tuiles d'elle, hors de portée de
+	// contact.
+	//
+	// Ce qu'elle donne à relire est la décision d'y aller — la caisse intacte et
+	// l'icône qui dit ce qu'elle porte —, jamais ce qui se passe une fois dessus.
+	// C'est aussi la seule distance à laquelle l'annonce sert : au contact, on a
+	// déjà décidé.
+	loinDUneCaisse bool
 	// poseUneBaudruche en fait apparaître une au pied du joueur, que son arme
 	// abat aussitôt : c'est le seul chemin qui produise une déflagration sans
 	// forger un état que la partie ne connaît pas.
@@ -445,6 +453,10 @@ var vues = []vue{
 	//
 	// La horde est retirée dans les deux cas : ce qui est jugé est un dessin, pas
 	// ce qui l'entoure.
+	// **La seule distance à laquelle l'annonce sert.** Au contact, le joueur a
+	// déjà décidé d'y aller : ce que l'icône doit faire est se lire de loin, au
+	// moment où il choisit entre le détour et la horde.
+	{nom: "caisse-annonce", ticks: 2, videLaHorde: true, loinDUneCaisse: true},
 	{nom: "caisse-appui", ticks: 30 * game.TPS, videLaHorde: true,
 		surUneCaisse: true, jusquAMiAppui: true},
 	{nom: "caisse-epave", ticks: 30 * game.TPS, videLaHorde: true,
@@ -566,16 +578,20 @@ func (p *planche) vue(v vue) error {
 	}
 	pu, pv := v.ou.cases(partie.Grid, partie.World.Exit())
 	partie.World.Place(game.FromInt(pu)+game.One/2, game.FromInt(pv)+game.One/2)
-	if v.surUneCaisse {
-		caisses := partie.World.Crates()
-		if caisses.Len() == 0 {
-			return fmt.Errorf("vue %s : le lieu ne pose aucune caisse", v.nom)
+	if v.surUneCaisse || v.loinDUneCaisse {
+		c, err := caisseGarnie(partie.World, v.nom)
+		if err != nil {
+			return err
 		}
-		// Trois cinquièmes de tuile sur chaque axe, soit un écart de 0,85 : sous la
-		// portée de contact que la progression déclare, et assez pour que la caisse
-		// se peigne devant le personnage.
-		c := caisses.At(0)
-		partie.World.Place(c.X-game.One*3/5, c.Y-game.One*3/5)
+		// Au contact : trois cinquièmes de tuile sur chaque axe, soit un écart de
+		// 0,85 — sous la portée que la progression déclare, et assez pour que la
+		// caisse se peigne devant le personnage. À distance : trois tuiles, très
+		// au-delà de cette portée, avec la caisse du même côté pour la même raison.
+		ecart := game.One * 3 / 5
+		if v.loinDUneCaisse {
+			ecart = game.FromInt(3)
+		}
+		partie.World.Place(c.X-ecart, c.Y-ecart)
 	}
 	if v.poseUneBaudruche {
 		if err := poserUneBaudruche(partie); err != nil {
@@ -956,6 +972,27 @@ func attendreUnGrosChiffre(monde *game.World) {
 		}
 		monde.Step(session.Pilot(game.Tick(tick)))
 	}
+}
+
+// caisseGarnie rend la première caisse du lieu qui porte une arme.
+//
+// **Garnie et non la première venue**, parce qu'une caisse vide n'annonce rien :
+// la vue qui juge l'icône montrerait une caisse nue, et celle qui juge l'appui ne
+// dirait pas que l'annonce tient pendant qu'on pousse. Une caisse sur deux en
+// porte, si bien que le semis livré en a toujours une.
+//
+// Elle échoue plutôt que de se rabattre sur `At(0)` : un repli rendrait la vue
+// muette sans rien dire, et c'est le contrôle privé de son entrée qui doit
+// échouer plutôt que passer.
+func caisseGarnie(monde *game.World, vue string) (*game.Crate, error) {
+	caisses := monde.Crates()
+	for i := range caisses.Active() {
+		if c := caisses.At(i); c.Weapon != 0 {
+			return c, nil
+		}
+	}
+	return nil, fmt.Errorf("vue %s : aucune des %d caisses du lieu ne porte d'arme",
+		vue, caisses.Len())
 }
 
 // arrive dit si la scène que la vue attend est là.

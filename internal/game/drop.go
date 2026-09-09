@@ -53,7 +53,7 @@ func (w *World) SpawnDrop(cle string, x, y Fixed) bool {
 	return false
 }
 
-// lacherUneArme pose une arme lourde au sol, tirée parmi celles de la table.
+// tirerUneArme décide ce qu'une caisse portera, et rend son rang décalé de un.
 //
 // **C'est le premier lecteur du flux `butin`**, qui attendait le sien depuis sa
 // déclaration : sa godoc annonçait « au futur, et rien ne l'alimente encore », et
@@ -64,20 +64,34 @@ func (w *World) SpawnDrop(cle string, x, y Fixed) bool {
 // tire que des entiers, et un flottant y rentrerait par la porte que la virgule
 // fixe a fermée.
 //
+// **Elle tire à l'apparition de la caisse**, et non au moment où celle-ci cède :
+// une caisse annonce ce qu'elle porte, et on ne montre pas ce qui n'est pas
+// décidé.
+func (w *World) tirerUneArme() int {
+	chance := w.progression.HeavyOdds
+	if chance <= 0 || len(w.armes.Heavy) == 0 {
+		return 0
+	}
+	if w.hasard.Loot.IntN(chance) != 0 {
+		return 0
+	}
+	return w.armes.Heavy[w.hasard.Loot.Pick(len(w.armes.Heavy))] + 1
+}
+
+// lacherLarme pose au sol ce que la caisse portait, s'il y a quelque chose.
+//
 // Le bassin plein perd l'arme plutôt que de la différer. C'est le cas d'un joueur
 // qui a laissé traîner ses trouvailles, et une arme qui apparaîtrait plus tard,
 // ailleurs, ne se relierait à aucune caisse.
-func (w *World) lacherUneArme(x, y Fixed) {
-	chance := w.progression.HeavyOdds
-	if chance <= 0 || len(w.armes.Heavy) == 0 {
+//
+// **Elle perd donc une arme que la caisse avait annoncée**, ce qui est assumé :
+// l'annonce vaut pour ce que le joueur décide d'aller chercher, et deux
+// trouvailles laissées au sol sont déjà son choix.
+func (w *World) lacherLarme(c *Crate) {
+	if c.Weapon == 0 {
 		return
 	}
-	if w.hasard.Loot.IntN(chance) != 0 {
-		return
-	}
-
-	rang := w.armes.Heavy[w.hasard.Loot.Pick(len(w.armes.Heavy))]
-	w.armesAuSol.Spawn(Drop{X: x, Y: y, Weapon: rang})
+	w.armesAuSol.Spawn(Drop{X: c.X, Y: c.Y, Weapon: c.Weapon - 1})
 }
 
 // ramasserUneArme prend l'arme sous les pieds du joueur, s'il a une place.

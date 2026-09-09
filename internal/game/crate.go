@@ -59,6 +59,25 @@ type Crate struct {
 	Press Tick
 	// Floor est le coût qu'elle rend à sa case en cédant, venu de son placement.
 	Floor Cost
+	// Weapon est le rang de l'arme lourde qu'elle porte, **décalé de un** : zéro
+	// veut dire qu'elle n'en porte pas.
+	//
+	// Le décalage est celui de `World.convoite`, et pour la même raison : l'index
+	// brut ferait du zéro à la fois « rien » et « la première arme de la table »,
+	// c'est-à-dire qu'un champ oublié ferait porter une arme à toutes les
+	// caisses.
+	//
+	// **Tiré à l'apparition et non à la casse, parce qu'on ne montre pas ce qui
+	// n'est pas décidé.** Ce que la caisse annonce doit être ce qu'elle donnera.
+	// Le tirage y gagne au passage une propriété qu'il n'avait pas : le butin
+	// d'une caisse ne dépend plus de l'ordre dans lequel on les casse, alors que
+	// casser celle du nord avant celle du sud échangeait leurs contenus.
+	//
+	// **La fiole de l'étape 7 rouvrira ce champ**, et c'est ce qui le fera
+	// tomber : à trois provenances — rien, une arme, une fiole —, un index décalé
+	// redevient une sentinelle qu'il faut interpréter, et c'est une sorte qu'il
+	// faudra. Deux provenances n'en demandent pas encore.
+	Weapon int
 }
 
 // CompileCrates résout un semis de caisses contre la carte cuite.
@@ -158,12 +177,34 @@ func (w *World) Stock(caisses []CratePlacement) {
 //
 // L'appui part entier : une caisse qu'on trouve déjà entamée serait une caisse
 // que quelqu'un a poussée avant que la partie commence.
+//
+// **Le contenu se tire ici**, ce qui consomme le flux du butin au montage plutôt
+// qu'au fil de la partie. Une caisse qu'on ne casse jamais aura donc coûté un
+// tirage : c'est le prix de pouvoir l'annoncer, et il se paie une fois par run.
 func (w *World) SpawnCrate(x, y Fixed, sol Cost) (Handle, bool) {
-	return w.caisses.Spawn(Crate{X: x, Y: y, Press: w.appuiCaisse, Floor: sol})
+	return w.caisses.Spawn(Crate{
+		X: x, Y: y,
+		Press:  w.appuiCaisse,
+		Floor:  sol,
+		Weapon: w.tirerUneArme(),
+	})
 }
 
 // Crates rend le bassin des caisses.
 func (w *World) Crates() *Pool[Crate] { return w.caisses }
+
+// CrateWeapon rend l'arme lourde qu'une caisse porte, et dit si elle en porte
+// une.
+//
+// Le rendu en a besoin pour poser l'icône qui l'annonce, et il n'a pas à
+// connaître la table ni le décalage : il lit une arme, comme il en lit une pour
+// ce qui traîne au sol.
+func (w *World) CrateWeapon(c *Crate) (*Weapon, bool) {
+	if c.Weapon == 0 {
+		return nil, false
+	}
+	return &w.armes.All[c.Weapon-1], true
+}
 
 // CratePress rend le temps d'appui qu'une caisse intacte porte, en ticks.
 //
@@ -216,7 +257,7 @@ func (w *World) casser() {
 		// gardée pour rien.
 		w.grille.Set(c.X.Floor(), c.Y.Floor(), c.Floor)
 		w.lacherEn(c.X, c.Y, w.progression.CrateGems)
-		w.lacherUneArme(c.X, c.Y)
+		w.lacherLarme(c)
 		w.emettre(c.X, c.Y, FxCrate)
 		w.epaves.Spawn(Wreck{X: c.X, Y: c.Y, Born: w.tick})
 		w.caisses.RemoveAt(i)

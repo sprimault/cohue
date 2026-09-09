@@ -54,6 +54,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Deux caisses posées sur la même case sont refusées au chargement**, avec les
   deux rangs en cause : la première cassée rendrait la case au sol sous la
   seconde.
+- **Une caisse qui contient une arme lourde le montre**, par son icône posée
+  au-dessus d'elle. Sans rien, elle ne laisse que des gemmes : le détour se
+  décide avant d'y aller, au lieu de casser tout ce qu'on croise.
 
 ***
 
@@ -68,6 +71,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
   broken, leaving its wreck where it stood.
 - **Two crates on the same tile are refused at load time**, naming both entries:
   the first one broken would hand the tile back to the floor under the second.
+- **A crate holding a heavy weapon shows it**, through its icon floating above.
+  Bare, it holds nothing but gems: the detour is decided before you walk it,
+  instead of breaking everything you pass.
 
 ## [0.6.1] — 2026-09-07 — La visée suit le pas
 

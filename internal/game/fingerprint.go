@@ -84,8 +84,8 @@ func (w *World) Fingerprint() string {
 	for i := range w.caisses.Active() {
 		c := w.caisses.At(i)
 		id := w.caisses.IDAt(i)
-		fmt.Fprintf(&b, "caisse %d id=%d gen=%d x=%d y=%d appui=%d\n",
-			i, id, w.caisses.gens[id], c.X, c.Y, c.Press)
+		fmt.Fprintf(&b, "caisse %d id=%d gen=%d x=%d y=%d appui=%d arme=%d\n",
+			i, id, w.caisses.gens[id], c.X, c.Y, c.Press, c.Weapon)
 	}
 	for i := range w.armesAuSol.Active() {
 		d := w.armesAuSol.At(i)

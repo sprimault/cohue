@@ -61,16 +61,23 @@ const (
 	// pose pour tenir un passage, souvent avant que la horde n'arrive : exiger
 	// une cible interdirait l'anticipation qu'elle récompense.
 	effetTourelle = "tourelle"
+	// effetFlammes pose une zone qui brûle ce qui la traverse, là où le joueur se
+	// tient, jusqu'à ce que sa durée soit écoulée.
+	//
+	// **Le seul effet qui s'applique pendant sa durée** — la déflagration
+	// s'applique à la fin d'une mèche, la salve part d'un coup —, et c'est ce qui
+	// lui vaut son bassin plutôt qu'un drapeau sur celui des souffles.
+	effetFlammes = "flammes"
 )
 
 // effetsArme est la liste close des effets admis.
 //
-// **Elle ne porte que ce qui a un lecteur.** La tourelle et les flammes du plan
-// de l'étape n'y sont pas : une valeur écrite d'avance est une déclaration que
-// personne n'exerce, et un manifeste pourrait la nommer sans que rien ne se
-// passe. C'est la règle qui a déjà laissé `ModeContact` seul dans le catalogue
+// **Elle ne porte que ce qui a un lecteur.** Un effet écrit d'avance est une
+// déclaration que personne n'exerce : un manifeste pourrait le nommer sans que
+// rien ne se passe, et son contrôle protégerait une lecture qui n'existe pas.
+// C'est la règle qui a déjà laissé `ModeContact` seul dans le catalogue
 // d'objets, sans le mode des obstacles fragiles.
-var effetsArme = []string{effetDeflagration, effetSalve, effetTourelle}
+var effetsArme = []string{effetDeflagration, effetSalve, effetTourelle, effetFlammes}
 
 // Weapon est une arme, telle que le manifeste tenu à la main la décrit.
 //
@@ -213,12 +220,27 @@ type Weapon struct {
 	// tire seule. Le chapitre 9 nommait auparavant « les passifs de dégâts et de
 	// zone », deux catégories qu'aucune table ne porte.
 	Axes []Axis
-	// BurstRadius, BurstHits et Fuse décrivent la déflagration d'une lourde qui
-	// en pose une, dans le vocabulaire de la Baudruche dont elle réemploie le
-	// souffle. Nuls sur une arme qui n'explose pas.
-	BurstRadius Fixed
-	BurstHits   int
-	Fuse        Tick
+	// Radius est le rayon de la zone qu'une lourde pose, en tuiles. Nul sur une
+	// arme qui n'en pose aucune.
+	//
+	// **Partagé par les deux effets de zone plutôt que dédoublé**, le manifeste
+	// n'écrivant qu'un `rayon_tuiles` : deux champs Go pour une clé de fichier
+	// donneraient deux domiciles à la même valeur, et c'est celui qu'on ne relit
+	// pas qui finirait par mentir. Ce qui diffère entre eux n'est pas la
+	// géométrie mais l'instant où elle s'applique.
+	Radius Fixed
+	// BurstHits et Fuse décrivent la déflagration d'une lourde qui en pose une,
+	// dans le vocabulaire de la Baudruche dont elle réemploie le souffle.
+	BurstHits int
+	Fuse      Tick
+	// Duration est le temps qu'une zone de flammes reste au sol, en ticks.
+	//
+	// **Une durée là où la tourelle porte un compte**, et la dissymétrie est
+	// voulue : une tourelle attend qu'une horde passe, si bien qu'une durée lui
+	// retirerait l'anticipation qu'elle récompense, quand une flaque qui
+	// attendrait indéfiniment cesserait d'être un passage interdit pour devenir
+	// un mur. Ce que chacune borne est ce qu'elle promet.
+	Duration Tick
 	// Shots est le nombre de tirs qu'une tourelle posée dépense avant de
 	// disparaître, nul sur les autres armes.
 	//
@@ -365,6 +387,7 @@ type rawWeapon struct {
 	TileRadius *float64 `json:"rayon_tuiles,omitempty"`
 	FuseMs     *int     `json:"meche_ms,omitempty"`
 	Shots      *int     `json:"tirs,omitempty"`
+	DurationMs *int     `json:"duree_ms,omitempty"`
 }
 
 // champsConditionnelsArme dit, pour chaque champ que la table ne porte pas
@@ -392,13 +415,20 @@ var champsConditionnelsArme = []struct {
 	{"charges_max", "une arme « lourde »", estLourde, func(a rawWeapon) bool { return a.MaxCharges != nil }},
 	{"axes", "une arme « lourde »", estLourde, func(a rawWeapon) bool { return a.Axes != nil }},
 
-	{"rayon_tuiles", "l'effet « deflagration »", estEffet(effetDeflagration),
+	// Le rayon est le seul champ que deux effets partagent, et l'entrée le dit en
+	// les nommant tous les deux : un `qui` qui n'en nommerait qu'un enverrait
+	// l'auteur d'un lance-flammes retirer le champ que son arme doit porter.
+	{"rayon_tuiles", "les effets « deflagration » et « flammes »",
+		estUnDesEffets(effetDeflagration, effetFlammes),
 		func(a rawWeapon) bool { return a.TileRadius != nil }},
 	{"meche_ms", "l'effet « deflagration »", estEffet(effetDeflagration),
 		func(a rawWeapon) bool { return a.FuseMs != nil }},
 
 	{"tirs", "l'effet « tourelle »", estEffet(effetTourelle),
 		func(a rawWeapon) bool { return a.Shots != nil }},
+
+	{"duree_ms", "l'effet « flammes »", estEffet(effetFlammes),
+		func(a rawWeapon) bool { return a.DurationMs != nil }},
 }
 
 // estLourde reconnaît une arme lourde.
@@ -410,6 +440,16 @@ func estLourde(a rawWeapon) bool { return a.Role == roleHeavy }
 // ses champs conditionnels n'est exigible de lui.
 func estEffet(effet string) func(rawWeapon) bool {
 	return func(a rawWeapon) bool { return estLourde(a) && a.Effect == effet }
+}
+
+// estUnDesEffets rend le prédicat qui reconnaît un champ partagé par plusieurs
+// effets.
+//
+// Une variadique plutôt qu'une disjonction écrite à l'appel : ce qui se lit dans
+// la table est alors la liste des effets concernés, au même endroit que le
+// libellé qui les nomme.
+func estUnDesEffets(effets ...string) func(rawWeapon) bool {
+	return func(a rawWeapon) bool { return estLourde(a) && slices.Contains(effets, a.Effect) }
 }
 
 // arme convertit une arme brute, en signalant ce qui lui manque.
@@ -509,12 +549,18 @@ func (a rawWeapon) lourde(cle string, w *Weapon, dire func(string, ...any)) {
 	// **Ce qui suit n'est lu que de l'effet qui l'emploie**, et son absence a
 	// déjà été signalée par la table : la relever ici ferait deux lignes pour une
 	// faute, ce que la validation d'un manifeste s'interdit partout.
-	if w.Effect == effetDeflagration {
-		w.BurstRadius = FromFloat(exige(cle, "rayon_tuiles", a.TileRadius, dire))
-		if a.TileRadius != nil && w.BurstRadius < 1 {
+	// Le rayon se lit avant l'aiguillage, les deux effets de zone le portant : le
+	// refus du rayon nul vaut pour l'un comme pour l'autre, et l'écrire deux fois
+	// en ferait deux tolérances à tenir d'accord.
+	if w.Effect == effetDeflagration || w.Effect == effetFlammes {
+		w.Radius = FromFloat(exige(cle, "rayon_tuiles", a.TileRadius, dire))
+		if a.TileRadius != nil && w.Radius < 1 {
 			dire("%s.rayon_tuiles : %v, un rayon que la virgule fixe arrondit à zéro "+
 				"n'emporte personne", cle, *a.TileRadius)
 		}
+	}
+
+	if w.Effect == effetDeflagration {
 		w.BurstHits = w.Hits
 
 		// La mèche passe par la conversion commune, qui refuse une durée sous le
@@ -539,6 +585,21 @@ func (a rawWeapon) lourde(cle string, w *Weapon, dire func(string, ...any)) {
 			// charge perdue que le compte de tirs existe précisément pour éviter.
 			dire("%s.tirs : %d, une tourelle qui ne tire pas est une charge perdue",
 				cle, w.Shots)
+		}
+	}
+
+	if w.Effect == effetFlammes {
+		// La durée passe par la conversion commune, comme la mèche : une flaque
+		// sous le pas de simulation s'éteindrait au tick de sa pose, et le joueur
+		// aurait dépensé une charge pour une image.
+		if ms := exige(cle, "duree_ms", a.DurationMs, dire); ms > 0 {
+			ticks, err := TicksFromMs(ms)
+			if err != nil {
+				dire("%s.duree_ms : %v", cle, err)
+			}
+			w.Duration = ticks
+		} else if a.DurationMs != nil {
+			dire("%s.duree_ms : %d, une zone sans durée ne barre aucun passage", cle, ms)
 		}
 	}
 

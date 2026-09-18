@@ -247,6 +247,15 @@ type vue struct {
 	// dessin —, et que ses tirs se lisent comme venant d'elle et non du
 	// personnage. Aucune mesure ne dit ni l'un ni l'autre.
 	poseUneTourelle bool
+	// poseDesFlammes dépose un lance-flammes, le déclenche, et laisse la horde
+	// entrer dans la flaque.
+	//
+	// **Ce qu'elle donne à relire est une nappe au sol qui ne soit pas prise pour
+	// un télégraphe d'explosion** : les deux se peignent en cases pleines, à la
+	// même échelle et sur le même tampon, et rien d'autre qu'un regard ne dira
+	// qu'on les distingue. Elle montre du même coup que le joueur s'y tient sans
+	// brûler, ce que la nappe seule laisserait croire faux.
+	poseDesFlammes bool
 	// declencheLaSalve tire le fusil de la seconde case et laisse voler ses
 	// projectiles quelques ticks.
 	//
@@ -435,6 +444,17 @@ var vues = []vue{
 	// un écran de fin.
 	{nom: "tourelle", ticks: 300 * game.TPS, jusquAuxDegats: true,
 		poseUneTourelle: true},
+
+	// **Les flammes, avec la horde dedans.** Une flaque sur un sol vide dirait
+	// seulement qu'elle se dessine ; ce qui se juge est une nappe traversée — que
+	// les corps restent lisibles par-dessus, et qu'elle ne se lise pas comme
+	// l'emprise qui annonce une explosion.
+	//
+	// **Elle s'arrête sur une brûlure et non sur un compte de pas.** Une flaque
+	// dure cinq secondes : un compte tomberait sur une nappe posée que rien n'a
+	// encore atteinte, ou sur le sol nu qui la suit.
+	{nom: "flammes", ticks: 300 * game.TPS, jusquAuxDegats: true,
+		poseDesFlammes: true},
 
 	// **La fiole, tenue et au sol.** Ce qu'elle relit est ce qu'aucune mesure ne
 	// dit : qu'une fiole de douze pixels se voie sur le sol clair — c'est le plus
@@ -767,6 +787,18 @@ func (p *planche) vue(v vue) error {
 		partie.World.Step(game.Vec{})
 		partie.World.Trigger(0)
 		attendreUnTirDeTourelle(partie.World)
+	}
+
+	// **Les flammes se posent sous le joueur et il y reste**, à la différence de
+	// la tourelle dont il faut s'écarter : une flaque de deux tuiles de rayon
+	// déborde largement de son sprite, et le voir dedans est la moitié de ce
+	// qu'elle donne à relire.
+	if v.poseDesFlammes {
+		px, py := partie.World.Player()
+		partie.World.SpawnDrop("lance_flammes", px, py)
+		partie.World.Step(game.Vec{})
+		partie.World.Trigger(0)
+		attendreUneBrulure(partie.World)
 	}
 
 	// Deux ticks après le déclenchement : la salve est sortie du personnage sans
@@ -1103,6 +1135,34 @@ func attendreUnTirDeTourelle(monde *game.World) {
 	for range 10 * game.TPS {
 		if tourelles.Len() == 0 || tourelles.At(0).Shots < plein {
 			return
+		}
+		monde.Step(game.Vec{})
+	}
+}
+
+// attendreUneBrulure avance jusqu'à ce qu'une créature prenne une impulsion de
+// la flaque posée.
+//
+// **Elle attend l'acte et non sa possibilité**, comme le tir d'une tourelle : la
+// horde dans le rectangle de la nappe ne dit pas qu'elle brûle, et une vue prise
+// entre deux impulsions montrerait une flaque inerte. Ce qui l'arrête est donc
+// un éclair d'impact **sur une case que la flaque couvre** — l'éclair seul
+// viendrait aussi bien du socle, qui tire pendant ce temps.
+//
+// Elle rend la main sans rien attendre si la flaque s'est éteinte : la vue vaut
+// alors ce qu'elle vaut, et la boucle de la planche a son propre plafond.
+func attendreUneBrulure(monde *game.World) {
+	feux := monde.Fires()
+	for range 10 * game.TPS {
+		if feux.Len() == 0 {
+			return
+		}
+		f := feux.At(0)
+		for i := range monde.Enemies().Active() {
+			e := monde.Enemies().At(i)
+			if e.Flash > 0 && monde.FireCovers(f, e.X.Floor(), e.Y.Floor()) {
+				return
+			}
 		}
 		monde.Step(game.Vec{})
 	}

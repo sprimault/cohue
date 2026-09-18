@@ -92,7 +92,8 @@ func (w *World) detoner() {
 				w.blesser(profil.BurstDamage)
 			}
 		case BlastWeapon:
-			w.emporter(&w.armes.All[b.Index], b.X, b.Y)
+			arme := &w.armes.All[b.Index]
+			w.emporter(b.X, b.Y, arme.Radius, arme.BurstHits)
 		}
 		// L'onde survit à ce qui la produit, et c'est toute la raison d'un bassin
 		// à part : l'explosion quitte le sien à cet instant précis, si bien que
@@ -112,7 +113,7 @@ func (w *World) detoner() {
 func (w *World) valeursDe(b *Blast) (rayon Fixed, meche Tick) {
 	if b.Source == BlastWeapon {
 		arme := &w.armes.All[b.Index]
-		return arme.BurstRadius, arme.Fuse
+		return arme.Radius, arme.Fuse
 	}
 	profil := &w.profils.Enemies[b.Index]
 	return profil.BurstRadius, profil.Fuse

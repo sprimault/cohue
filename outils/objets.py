@@ -23,6 +23,7 @@ jusqu'à la jauge. Le générateur ne fournit que la boucle de scintillement.
 import argparse
 import json
 import math
+import random
 from pathlib import Path
 
 from PIL import Image
@@ -610,6 +611,66 @@ def souffle():
     return planche
 
 
+def flammes(images=4, largeur=48, hauteur=20):
+    """Nappe de feu posée sur une case : des langues qui respirent, en boucle.
+
+    **Du rouge, et l'orange réservé aux pointes.** Une nappe majoritairement
+    orange se lit comme un tapis posé sur le sol plutôt que comme du feu — c'est
+    ce qu'un premier jet en aplat a montré. La braise tient la base, le rouge le
+    corps, et les deux teintes claires ne coiffent que le dernier cinquième de
+    chaque langue.
+
+    **Le découpage des langues est figé, seule leur hauteur respire.** Un tirage
+    par image ferait grésiller la nappe au lieu de la faire onduler, et la
+    boucle se verrait comme un scintillement. Ce qui varie d'une image à
+    l'autre est une onde qui parcourt la largeur, si bien que deux colonnes
+    voisines ne montent pas ensemble.
+
+    **La silhouette est un dôme, et aucune colonne n'est vide.** Le contrôle
+    refuse un trou enclos dans une forme ; une base continue l'interdit par
+    construction, et c'est aussi ce qui empêche la nappe de se lire comme des
+    feux séparés.
+
+    **Plus large que l'écart entre deux cases, et c'est ce qui en fait une
+    nappe.** Les centres de deux cases voisines sont à trente-deux pixels l'un
+    de l'autre ; un dessin plus étroit laisse entre eux un sol nu qui dessine la
+    grille, et la zone se lit comme des feux alignés plutôt que comme une
+    étendue. Le débordement est donc la propriété, pas un effet de bord.
+
+    Pas d'alpha dégressif : `prim.reduire` le binarise à 128, donc ce qui
+    s'éteint est la teinte — la même contrainte que pour le souffle.
+    """
+    planche = Image.new("RGBA", (largeur * images, hauteur), TRANSPARENT)
+    alea = random.Random(77)
+    dents = [alea.uniform(0.62, 1.0) for _ in range(largeur)]
+    # Du pied à la pointe. Les deux dernières sont les seules chaudes, et elles
+    # ne couvrent qu'un cinquième de la hauteur.
+    etages = ((0.38, (128, 26, 20)), (0.72, (190, 40, 24)),
+              (0.90, (222, 78, 30)), (1.00, (240, 142, 48)))
+    milieu = (largeur - 1) / 2
+    for i in range(images):
+        phase = i / images * 2 * math.pi
+        bruts = []
+        for x in range(largeur):
+            ecart = abs(x - milieu) / milieu
+            dome = 1 - ecart * ecart
+            souffle = (1 + math.cos(phase + x * 0.45)) / 2
+            bruts.append(hauteur * dome * dents[x] * (0.58 + 0.42 * souffle))
+
+        # **Lissé sur trois colonnes, et ce n'est pas cosmétique.** Une hauteur
+        # tirée par colonne donne des barres d'un pixel de large : à cette
+        # échelle l'œil y lit un graphique plutôt qu'un feu, et le voisinage est
+        # ce qui transforme des colonnes en langues.
+        for x in range(largeur):
+            voisines = bruts[max(x - 1, 0):x + 2]
+            haut = max(3, round(sum(voisines) / len(voisines)))
+            for n in range(haut):
+                fraction = (n + 1) / haut
+                teinte = next(c for seuil, c in etages if fraction <= seuil)
+                planche.putpixel((i * largeur + x, hauteur - 1 - n), teinte + (255,))
+    return planche, (largeur, hauteur)
+
+
 # --- Caisse cassable -------------------------------------------------------
 # Trois états ne suffisent pas : le délai de contact doit se voir, sinon le
 # joueur ne sait pas qu'il est en train de casser quelque chose et croit à un
@@ -931,6 +992,7 @@ def main():
 
     for nom, fabrique, duree, boucle in (("etincelle", etincelle, 40, False),
                                          ("souffle", souffle, 60, False),
+                                         ("flammes", flammes, 120, True),
                                          ("caisse_appui", caisse_appui, 110, False),
                                          ("caisse_rupture", caisse_rupture, 90, False)):
         rendu = fabrique()

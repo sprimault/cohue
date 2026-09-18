@@ -44,6 +44,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Un lance-flammes pose une nappe de feu qui dure cinq secondes.** Quatrième
+  arme lourde : elle brûle deux fois par seconde ce qui la traverse, sans dévier
+  personne et sans vous atteindre. La horde passe au travers et fond — ce qui la
+  traverse lentement y laisse plus que ce qui la franchit d'un pas.
 - **Une tourelle se pose là où l'on se tient, et tire sans vous.** Troisième arme
   lourde : une charge la dépose, elle abat ce qui passe à sept tuiles, et elle
   disparaît une fois ses six tirs dépensés. Posée dans un couloir vide, elle
@@ -81,6 +85,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **A flamethrower lays a sheet of fire that lasts five seconds.** Fourth heavy
+  weapon: it burns whatever crosses it twice a second, deflecting no one and
+  never reaching you. The horde walks straight through and melts — whatever
+  crosses it slowly leaves more behind than whatever clears it in one stride.
 - **A turret drops where you stand, and fires without you.** Third heavy weapon:
   one charge deploys it, it shoots down whatever passes within seven tiles, and
   it vanishes once its six shots are spent. Left in an empty corridor, it waits —

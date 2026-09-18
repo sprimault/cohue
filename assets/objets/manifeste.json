@@ -463,6 +463,17 @@
       "famille": "effet",
       "bloquant": false
     },
+    "flammes": {
+      "images": 4,
+      "cote": [
+        48,
+        20
+      ],
+      "duree_ms": 120,
+      "boucle": true,
+      "famille": "cycle",
+      "bloquant": false
+    },
     "caisse_appui": {
       "images": 3,
       "cote": [

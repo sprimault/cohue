@@ -38,6 +38,11 @@ const (
 	objetTirHorde  = "projectile_ennemi"
 	objetEtincelle = "etincelle"
 	objetSouffle   = "souffle"
+	// Les flammes qu'une lourde pose. **Une bande par case et non une image par
+	// flaque** : le rayon vient du manifeste des armes et se règle, quand un
+	// dessin taillé pour lui se périmerait au premier réglage — et il ne suivrait
+	// plus la zone que les impulsions appliquent.
+	objetFlammes = "flammes"
 	// La matière d'une caisse. **C'est le rendu qui la sait**, parce que c'est
 	// lui qui lit le manifeste où elle est déclarée : la simulation dit qu'une
 	// caisse a cédé, ce qui est un fait de jeu, et s'arrête là.
@@ -150,7 +155,7 @@ func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, 
 	// raison : sa clé `destruction` les nomme déjà.
 	noms := append([]string{
 		objetGemme, objetAimant, objetCaisse, objetFiole, objetTir, objetTirHorde,
-		objetEtincelle, objetSouffle, objetEclatsCaisse,
+		objetEtincelle, objetSouffle, objetFlammes, objetEclatsCaisse,
 		scene.caisse.PressCycle, scene.caisse.BreakCycle, scene.caisse.Ruin,
 	}, catalogue.Weapons()...)
 

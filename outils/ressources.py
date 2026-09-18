@@ -203,7 +203,7 @@ def controler(sortie, pentes=False):
         # marges sont voulues, comme pour les créatures.
         case_fixe = cote is not None or chemin.stem.endswith(
             ("_icone", "_scintille", "_appui", "_rupture")) or chemin.stem in (
-            "etincelle", "souffle") or chemin.stem.startswith("eclats_")
+            "etincelle", "souffle", "flammes") or chemin.stem.startswith("eclats_")
 
         # Un anneau ou une gerbe de particules est creux par nature : chercher
         # une silhouette pleine n'a pas de sens sur un effet. Une planche de

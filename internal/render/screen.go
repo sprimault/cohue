@@ -129,6 +129,18 @@ var (
 	// joueur ne portent, et translucide **prémultipliée par son alpha** — écrite
 	// à plat, elle rendrait un aplat trois fois trop dense.
 	teinteEmprise = color.RGBA{R: 108, G: 54, B: 24, A: 132}
+	// Le lit de braise sous les langues de feu, à la teinte de leur pied.
+	//
+	// **Il existe parce qu'un dessin par case ne joint pas ses voisines.** Les
+	// langues sont posées au centre d'une case et débordent, mais leur silhouette
+	// laisse passer le sol entre deux cases : la zone se lisait en tas alignés,
+	// avec la grille visible dessous. Le losange, lui, est exactement la case, si
+	// bien que deux voisines se touchent sans recouvrement.
+	//
+	// **Sombre, et c'est ce qui le sépare de l'aplat qu'il remplace.** Une nappe
+	// orange se lit comme un tapis posé sur le sol ; des braises sous des flammes
+	// se lisent comme ce qui brûle, et ce sont les langues qui portent la couleur.
+	teinteBraise = color.RGBA{R: 96, G: 20, B: 14, A: 190}
 	// **L'éclair d'une créature touchée est la même teinte, éclaircie**, et non
 	// une couleur nouvelle : ce qu'il doit dire est « celle-ci vient d'être
 	// atteinte », pas « ceci est autre chose ». Un blanc franc ferait clignoter
@@ -214,8 +226,8 @@ type Screen struct {
 	// casserait le pixel entier. Tous les autres ont cédé la place à des sprites.
 	face *ebiten.Image
 
-	// emprises porte, par case et le temps d'une image, la teinte du télégraphe
-	// qui s'y peint — l'alpha nul disant qu'aucune explosion ne la couvre.
+	// emprises porte, par case et le temps d'une image, la nappe qui s'y peint —
+	// l'alpha nul disant qu'aucune zone ne la couvre.
 	//
 	// **Un relevé par case plutôt qu'une passe par explosion**, parce que le
 	// marquage appartient à la case et doit suivre sa forme dans la passe qui la
@@ -224,7 +236,7 @@ type Screen struct {
 	//
 	// Longue de la carte, allouée au montage : la fenêtre visible s'efface au
 	// début de chaque image, et rien hors d'elle ne se dessine.
-	emprises []color.RGBA
+	emprises []nappe
 
 	// aRevoir porte, le temps d'une image, ce qu'on redessinera si quelque chose
 	// le recouvre. Réutilisée avec `[:0]` : la séquence la remplit soixante fois
@@ -293,7 +305,7 @@ func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Ca
 		// exactement ce que la conception révèle, donc le majorant est le bassin
 		// lui-même.
 		aRevoir:  make([]revele, 0, 1+monde.EnemyShots().Cap()),
-		emprises: make([]color.RGBA, carte.Width()*carte.Height()),
+		emprises: make([]nappe, carte.Width()*carte.Height()),
 	}
 	s.cam.suivre(monde.Player())
 	return s
@@ -551,7 +563,29 @@ func (s *Screen) poser(ecran *ebiten.Image, x, y int, f forme) {
 	ecran.DrawImage(f.image, &s.op)
 }
 
-// releverEmprises note, case par case, ce qu'une explosion amorcée va couvrir.
+// nappe est ce qu'une case porte d'une zone, le temps d'une image.
+//
+// **Une sorte plutôt qu'une teinte convenue.** Les deux natures se peignent par
+// case et au même moment, mais l'une est un aplat teinté et l'autre un dessin :
+// les distinguer par la couleur reviendrait à lire une intention dans une
+// valeur, et le jour où les deux se ressembleraient, la nappe de feu se
+// peindrait en losange sans que rien ne le dise.
+type nappe struct {
+	// vif est la teinte de l'aplat, ou l'atténuation du dessin. L'alpha nul dit
+	// qu'aucune zone ne couvre la case.
+	vif color.RGBA
+	// feu dit que la case porte des flammes plutôt que le télégraphe d'une
+	// explosion.
+	feu bool
+}
+
+// releverEmprises note, case par case, ce qu'une zone couvre — l'emprise qu'une
+// explosion annonce, et les flammes qui brûlent.
+//
+// **Les deux partagent ce tampon parce qu'elles partagent une contrainte**, et
+// non par économie : l'une et l'autre appartiennent à la case et doivent suivre
+// sa forme dans la passe qui la dessine. Ce qui les sépare est la teinte et le
+// sens de l'intensité, et c'est assez pour qu'on ne les confonde pas.
 //
 // **Le télégraphe se peint en cases pleines, et cette forme n'est pas un
 // pis-aller.** Le rendu ne lit aucune image : il n'a rien à agrandir, et
@@ -588,6 +622,35 @@ func (s *Screen) releverEmprises() {
 		clear(s.emprises[v*largeur+u0 : v*largeur+u1+1])
 	}
 
+	// **Les flammes se relèvent avant les mèches, et l'ordre porte la
+	// priorité** : deux nappes qui se recouvrent laissent la dernière relevée, et
+	// ce qui doit l'emporter est l'avertissement. Une flaque dit ce que le joueur
+	// a posé, un télégraphe dit ce qu'il va prendre — masquer le second par le
+	// premier retirerait au joueur la seule information qu'il ne peut pas
+	// deviner.
+	feux := s.monde.Fires()
+	for i := range feux.Active() {
+		f := feux.At(i)
+
+		// **Le dessin porte ses couleurs, et l'atténuation part d'un blanc.** La
+		// teinte multiplie l'image : un voile coloré sur des flammes rouges les
+		// virerait au brun, ce qui est l'accident qui avait éteint l'éclair
+		// d'impact le jour où les créatures ont eu leurs bandes. Ce qui s'éteint
+		// ici est l'opacité, et elle faiblit là où une mèche s'intensifie.
+		reste := float32(s.monde.FireLeft(f)) / 1000
+		vif := attenuer(intact, emprisePlancher+(1-emprisePlancher)*reste)
+
+		fu0, fv0, fu1, fv1 := s.monde.FireBounds(f)
+		for v := max(fv0, v0); v <= min(fv1, v1); v++ {
+			for u := max(fu0, u0); u <= min(fu1, u1); u++ {
+				if !s.carte.InBounds(u, v) || !s.monde.FireCovers(f, u, v) {
+					continue
+				}
+				s.emprises[v*largeur+u] = nappe{vif: vif, feu: true}
+			}
+		}
+	}
+
 	souffles := s.monde.Blasts()
 	for i := range souffles.Active() {
 		b := souffles.At(i)
@@ -603,13 +666,13 @@ func (s *Screen) releverEmprises() {
 				if !s.carte.InBounds(u, v) || !s.monde.BlastCovers(b, u, v) {
 					continue
 				}
-				s.emprises[v*largeur+u] = vif
+				s.emprises[v*largeur+u] = nappe{vif: vif}
 			}
 		}
 	}
 }
 
-// marquerEmprise pose sur une case le télégraphe qu'une explosion y a relevé.
+// marquerEmprise pose sur une case la nappe qu'une zone y a relevée.
 //
 // **Le marquage monte à la hauteur de ce qu'on marche.** Sur un trottoir ou un
 // quai, la face supérieure est la surface, et le losange s'y superpose au pixel
@@ -620,16 +683,59 @@ func (s *Screen) releverEmprises() {
 // est le sol du thème, et l'appelant peint alors le marquage avant la forme,
 // qui doit continuer de passer devant.
 func (s *Screen) marquerEmprise(ecran *ebiten.Image, u, v int, f forme) {
-	vif := s.emprises[v*s.sol.carte.Width()+u]
-	if vif.A == 0 {
+	n := s.emprises[v*s.sol.carte.Width()+u]
+	if n.vif.A == 0 {
+		return
+	}
+	if n.feu {
+		s.marquerFlammes(ecran, u, v, f, n.vif)
 		return
 	}
 	x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
 	s.op.GeoM.Reset()
 	s.op.GeoM.Translate(float64(x-s.demiTuile), float64(y-f.hauteurSol))
 	s.op.ColorScale.Reset()
-	s.op.ColorScale.ScaleWithColor(vif)
+	s.op.ColorScale.ScaleWithColor(n.vif)
 	ecran.DrawImage(s.face, &s.op)
+}
+
+// marquerFlammes pose sur une case le dessin de feu, à la phase que sa place lui
+// donne.
+//
+// **La phase se décale par la case, et c'est ce qui sépare un feu d'un tapis.**
+// Toutes les cases d'une flaque portent le même dessin ; peintes en phase, elles
+// montent et redescendent d'un bloc, ce qui est précisément l'aplat uniforme
+// qu'un sprite devait remplacer. C'est le geste des gemmes, où deux cents
+// scintillements accordés feraient un stroboscope.
+//
+// **Le décalage mêle les deux axes par un facteur impair** : `u+v` est constant
+// le long d'une diagonale, c'est-à-dire exactement les cases qu'une même
+// profondeur aligne à l'écran, et la nappe s'y peindrait en bandes accordées.
+//
+// Le dessin est posé par son ancrage, au centre de la case et à la hauteur de ce
+// qu'on y marche : des flammes sur un trottoir brûlent sur sa face, pas à son
+// pied.
+func (s *Screen) marquerFlammes(ecran *ebiten.Image, u, v int, f forme, vif color.RGBA) {
+	part := float32(vif.A) / 255
+
+	// Le lit d'abord, les langues par-dessus : elles montent de la braise.
+	bx, by := s.cam.ecran(game.FromInt(u), game.FromInt(v))
+	s.op.GeoM.Reset()
+	s.op.GeoM.Translate(float64(bx-s.demiTuile), float64(by-f.hauteurSol))
+	s.op.ColorScale.Reset()
+	s.op.ColorScale.ScaleWithColor(attenuer(teinteBraise, part))
+	ecran.DrawImage(s.face, &s.op)
+
+	objet, img := s.objets.image(objetFlammes, s.monde.Tick(), u*7+v*3)
+	if img == nil {
+		return
+	}
+	x, y := s.ecranAuSol(game.FromInt(u)+game.One/2, game.FromInt(v)+game.One/2)
+	s.op.GeoM.Reset()
+	s.op.GeoM.Translate(float64(x+objet.dx), float64(y+objet.dy-f.hauteurSol))
+	s.op.ColorScale.Reset()
+	s.op.ColorScale.ScaleWithColor(vif)
+	ecran.DrawImage(img, &s.op)
 }
 
 // peindreEntites pose ce qui se tient sur le sol, du plus lointain au plus

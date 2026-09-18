@@ -117,6 +117,14 @@ const VialCapacity = 4
 // suivante se voit refusée plutôt que perdue.
 const TurretCapacity = 4
 
+// FireCapacity plafonne les zones de flammes qui brûlent à la fois.
+//
+// **Il ne borne aucune accumulation**, à la différence de celui des tourelles :
+// une flaque s'éteint au bout de sa durée, donc le joueur ne peut pas en garnir
+// une salle. Ce qu'il faut est de quoi poser deux stocks pleins de la table
+// livrée sans qu'un refus vienne d'ailleurs que du nombre de charges.
+const FireCapacity = 8
+
 // FxCapacity plafonne le bassin des effets brefs.
 //
 // **Il compte des événements et non des éclats** : une caisse qui cède est une
@@ -243,6 +251,7 @@ func (s *Session) monter() {
 			Drops:      DropCapacity,
 			Vials:      VialCapacity,
 			Turrets:    TurretCapacity,
+			Fires:      FireCapacity,
 			Fx:         FxCapacity,
 			Ambients:   AmbientCapacity,
 		})

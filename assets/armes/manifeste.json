@@ -75,6 +75,27 @@
       "vitesse_projectile_tuiles_s": 12.0,
       "axes": ["cadence", "portee"],
       "tirs": 6
+    },
+    "lance_flammes": {
+      "$comment": "La quatrième arme lourde, et la seule dont l'effet dure. Une charge pose une flaque de flammes sous le joueur, comme une charge pose une tourelle : elle brûle par impulsions ce qui la traverse, et s'éteint au bout de sa durée. || Ce qu'elle apporte est une nature que les trois autres n'ont pas — la grenade frappe un point, le fusil couvre une largeur, la tourelle tient une position, les flammes interdisent un passage. Elles ne dévient personne : la horde traverse et fond, ce qui se lit mieux qu'un contournement dont le joueur douterait. || cadence_ms est le rythme des impulsions, la seconde lecture de ce champ après la tourelle. Ce qui décide n'est pas ce qu'une impulsion retire mais son rapport à la vitesse de traversée : une créature lente prend plus de tics qu'une rapide sur la même flaque, ce qui punit les gros profils sans qu'aucune règle ne le dise. || duree_ms borne la flaque, là où tirs borne la tourelle : une zone qui attendrait indéfiniment ne serait plus un passage interdit mais un mur, et le joueur poserait ses deux charges au premier goulot venu. || rayon_tuiles décide du temps de traversée, donc du nombre d'impulsions qu'on y laisse : c'est lui qu'on règle et non les dégâts. À deux tuiles, un Quidam traversait six tuiles de large en une seconde trois et en ressortait vivant — la zone était un péage plutôt qu'un passage interdit. À trois, il y laisse quatre impulsions et le Vigile six, et l'écart entre un profil lent et un rapide devient lisible. || portee_tuiles n'est pas lue par l'effet, qui se pose sous le joueur ; elle reste déclarée parce que l'axe du même nom l'affectera, et elle suit le rayon pour qu'aucune des deux ne se lise comme la contredisant.",
+      "nom": "Lance-flammes",
+      "role": "lourde",
+      "objet": "lance_flammes",
+      "effet": "flammes",
+      "charges": 2,
+      "charges_max": 4,
+      "cadence_ms": 500,
+      "portee_tuiles": 3,
+      "degats_touches": 1,
+      "projectiles": 1,
+      "front_tuiles": 1.0,
+      "perforations": 0,
+      "rebonds": 0,
+      "eventail_tuiles": 0.0,
+      "vitesse_projectile_tuiles_s": 12.0,
+      "axes": ["cadence"],
+      "rayon_tuiles": 3.0,
+      "duree_ms": 5000
     }
   },
   "passifs": {

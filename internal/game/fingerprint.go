@@ -101,6 +101,12 @@ func (w *World) Fingerprint() string {
 		fmt.Fprintf(&b, "tourelle %d id=%d gen=%d x=%d y=%d arme=%d tirs=%d cadence=%d\n",
 			i, id, w.tourelles.gens[id], t.X, t.Y, t.Weapon, t.Shots, t.Cooldown)
 	}
+	for i := range w.flammes.Active() {
+		f := w.flammes.At(i)
+		id := w.flammes.IDAt(i)
+		fmt.Fprintf(&b, "flammes %d id=%d gen=%d x=%d y=%d arme=%d vie=%d impulsion=%d\n",
+			i, id, w.flammes.gens[id], f.X, f.Y, f.Weapon, f.Life, f.Pulse)
+	}
 	for i := range w.fiolesAuSol.Active() {
 		f := w.fiolesAuSol.At(i)
 		id := w.fiolesAuSol.IDAt(i)

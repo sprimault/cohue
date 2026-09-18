@@ -118,6 +118,8 @@ func (w *World) declencher(tenue *Heavy) bool {
 		return w.salve(&tenue.Weapon, vers) > 0
 	case effetTourelle:
 		return w.poserUneTourelle(&tenue.Weapon, tenue.rang)
+	case effetFlammes:
+		return w.poserDesFlammes(&tenue.Weapon, tenue.rang)
 	}
 	return false
 }
@@ -136,7 +138,7 @@ func (w *World) cibleDe(arme *Weapon) (*Enemy, bool) {
 	return w.ennemis.At(place), true
 }
 
-// emporter applique la déflagration d'une arme à la horde autour d'un point.
+// emporter retire des touches à la horde dans un rayon autour d'un point.
 //
 // **Elle n'emporte que la horde, et jamais le joueur.** L'inverse créerait une
 // décision de placement — reculer avant de lancer — que le joueur ne peut pas
@@ -145,22 +147,29 @@ func (w *World) cibleDe(arme *Weapon) (*Enemy, bool) {
 // qu'on voit venir et qu'on esquive. La question se rouvrira le jour où une arme
 // lourde deviendra dirigeable, et ce sera le bon moment.
 //
+// **Le rayon et les touches sont des paramètres et non une arme**, pour la
+// raison qui avait fait passer une origine à `salve` : deux effets appellent
+// cette géométrie avec des valeurs qu'ils ne lisent pas au même endroit — la
+// déflagration ce qu'une explosion retire, les flammes ce qu'une impulsion
+// retire. Un paramètre, pas une abstraction ; troisième fois que ce mécanisme
+// s'étend ainsi.
+//
 // La transition de mort passe par le même chemin qu'un tir : le butin, et
 // l'amorce d'une Baudruche qui explose à son tour.
-func (w *World) emporter(arme *Weapon, x, y Fixed) {
-	rayon := int64(arme.BurstRadius) * int64(arme.BurstRadius)
+func (w *World) emporter(x, y, rayon Fixed, touches int) {
+	portee := int64(rayon) * int64(rayon)
 	for i := range w.ennemis.Active() {
 		e := w.ennemis.At(i)
 		if e.Hits <= 0 {
 			continue
 		}
-		if (Vec{X: e.X - x, Y: e.Y - y}).carres() > rayon {
+		if (Vec{X: e.X - x, Y: e.Y - y}).carres() > portee {
 			continue
 		}
 
-		e.Hits -= arme.BurstHits
+		e.Hits -= touches
 		e.Flash = eclairImpact
-		w.compter(e.X, e.Y, arme.BurstHits)
+		w.compter(e.X, e.Y, touches)
 		if e.Hits <= 0 {
 			w.lacher(e)
 			w.amorcer(e)

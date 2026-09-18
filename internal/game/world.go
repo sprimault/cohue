@@ -197,6 +197,9 @@ type World struct {
 	fiolesAuSol *Pool[Vial]
 	// tourelles porte ce que le joueur a posé et qui tire sans lui.
 	tourelles *Pool[Turret]
+	// flammes porte les zones qu'une lourde a posées et qui brûlent tant qu'elles
+	// durent.
+	flammes *Pool[Fire]
 	// enAttente est le nombre de choix dus au joueur, en plus de celui qui est
 	// ouvert. Une récolte abondante en donne deux d'un coup, et les présenter
 	// l'un après l'autre est la seule façon de n'en perdre aucun.
@@ -290,6 +293,13 @@ type Capacities struct {
 	// durée : elle attend qu'une horde passe. Six debout dans une salle sont six
 	// charges déjà employées, et la suivante se voit refusée plutôt que perdue.
 	Turrets int
+	// Fires est le nombre de zones de flammes qui brûlent à la fois.
+	//
+	// **Un plafond de simultanéité et non une borne d'accumulation**, au
+	// contraire de celui des tourelles : une flaque s'éteint d'elle-même, si bien
+	// que ce qui décide du compte est la durée d'une zone rapportée au rythme
+	// auquel le joueur dépense ses charges.
+	Fires int
 	// Fx est le nombre d'effets brefs qui vivent à la fois. Le seul bassin
 	// entièrement cosmétique de la partie.
 	Fx int
@@ -344,6 +354,7 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, caiss
 		armesAuSol:  NewPool[Drop](capacites.Drops),
 		fiolesAuSol: NewPool[Vial](capacites.Vials),
 		tourelles:   NewPool[Turret](capacites.Turrets),
+		flammes:     NewPool[Fire](capacites.Fires),
 		effets:      NewPool[Fx](capacites.Fx),
 		aimants:     NewPool[Magnet](1),
 		hasard:      NewStreams(graine),
@@ -511,6 +522,12 @@ func (w *World) Step(voulu Vec) {
 	// source au même titre. Elle vient après le déplacement du joueur, ce qui lui
 	// laisse le dernier tick pour sortir de l'emprise.
 	w.detoner()
+	// **Les flammes s'appliquent avec ce qui explose, et non avec ce qui tire.**
+	// Ce qui tire au nom du joueur le fait plus bas ; une flaque ne tire pas, elle
+	// retire des touches dans une zone comme une déflagration. L'argument de place
+	// est d'ailleurs le même : venir après le déplacement laisse à ce qui traverse
+	// le dernier tick pour en sortir.
+	w.bruler()
 	w.poserAimant()
 	w.attirer()
 	w.prendreAimant()

@@ -217,6 +217,61 @@ func (w *World) BreakableKey(sorte int) string { return w.sortesObstacles[sorte]
 // le décompte seul ne dit pas d'où il part.
 func (w *World) BreakableHits(sorte int) int { return w.sortesObstacles[sorte].Hits }
 
+// abattre fait céder entiers les obstacles dont le centre tombe dans une zone.
+//
+// Le centre, comme pour une créature et comme ce que le rendu peint : une
+// emprise qui couvrirait la case d'un obstacle sans l'emporter annoncerait ce
+// qui n'arrive pas.
+//
+// **Le retrait réexamine la place libérée** : cette passe ne fait avancer
+// personne, et sauter l'obstacle que l'échange remonte le laisserait debout
+// dans la zone même qui vient de l'emporter.
+func (w *World) abattre(x, y, rayon Fixed) {
+	portee := int64(rayon) * int64(rayon)
+	for i := 0; i < w.obstacles.Len(); {
+		o := w.obstacles.At(i)
+		if (Vec{X: o.X - x, Y: o.Y - y}).carres() > portee {
+			i++
+			continue
+		}
+		w.renverser(i)
+	}
+}
+
+// renverser vide l'obstacle d'une place : sa case rendue au sol, ce qu'il
+// laisse, et sa place dans le bassin.
+//
+// **La case avant tout le reste**, pour la raison qui vaut pour la caisse : un
+// blocage laissé derrière arrêterait la horde sur un point qu'aucun pixel ne
+// montre plus.
+func (w *World) renverser(place int) {
+	o := w.obstacles.At(place)
+	w.grille.Set(o.X.Floor(), o.Y.Floor(), o.Floor)
+	w.ceder(o.X, o.Y, w.sortesObstacles[o.Kind].Key, o.Across)
+	w.obstacles.RemoveAt(place)
+}
+
+// obstacleContre rend la place de l'obstacle contre lequel le joueur se tient,
+// et dit s'il y en a un.
+//
+// **Le plus proche à portée de frappe, et à égalité le premier du bassin** :
+// deux obstacles qui se touchent — une vitrine dans un angle — ne se frappent
+// pas ensemble, sans quoi tenir contre deux diviserait le prix de chacun. C'est
+// aussi celui que vise une grenade déclenchée là : la touche et la charge
+// désignent la même chose, et le joueur n'a qu'un geste à apprendre pour dire
+// lequel.
+func (w *World) obstacleContre() (int, bool) {
+	cible, meilleur := -1, int64(porteeFrappe)*int64(porteeFrappe)
+	for i := range w.obstacles.Active() {
+		o := w.obstacles.At(i)
+		ecart := Vec{X: w.playerX - o.X, Y: w.playerY - o.Y}
+		if d := ecart.carres(); d < meilleur {
+			cible, meilleur = i, d
+		}
+	}
+	return cible, cible >= 0
+}
+
 // forcer frappe l'obstacle que le joueur tient, et vide celui qui cède.
 //
 // **Une touche à la cadence de l'arme de base au premier niveau**, celle de la
@@ -244,18 +299,8 @@ func (w *World) forcer() {
 		return
 	}
 
-	// Le plus proche à portée, et à égalité le premier du bassin : deux
-	// obstacles qui se touchent — une vitrine dans un angle — ne se frappent pas
-	// ensemble, sans quoi tenir contre deux diviserait le prix de chacun.
-	cible, meilleur := -1, int64(porteeFrappe)*int64(porteeFrappe)
-	for i := range w.obstacles.Active() {
-		o := w.obstacles.At(i)
-		ecart := Vec{X: w.playerX - o.X, Y: w.playerY - o.Y}
-		if d := ecart.carres(); d < meilleur {
-			cible, meilleur = i, d
-		}
-	}
-	if cible < 0 {
+	cible, contre := w.obstacleContre()
+	if !contre {
 		return
 	}
 
@@ -263,14 +308,7 @@ func (w *World) forcer() {
 	o := w.obstacles.At(cible)
 	o.Hits--
 	o.Flash = eclairImpact
-	if o.Hits > 0 {
-		return
+	if o.Hits <= 0 {
+		w.renverser(cible)
 	}
-
-	// La case rendue au sol avant tout le reste, pour la raison qui vaut pour la
-	// caisse : un blocage laissé derrière arrêterait la horde sur un point
-	// qu'aucun pixel ne montre plus.
-	w.grille.Set(o.X.Floor(), o.Y.Floor(), o.Floor)
-	w.ceder(o.X, o.Y, w.sortesObstacles[o.Kind].Key, o.Across)
-	w.obstacles.RemoveAt(cible)
 }

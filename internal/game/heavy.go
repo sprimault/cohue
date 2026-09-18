@@ -53,11 +53,13 @@ func (w *World) HeldHeavy(place int) (Weapon, int) {
 // l'appelant est un clavier, et une touche pressée à vide ne doit ni consommer ni
 // avertir.
 //
-// **Ce qui vise le fait dans sa branche, et non ici.** Deux des trois effets
+// **Ce qui vise le fait dans sa branche, et non ici.** Deux des quatre effets
 // exigent une cible — une grenade et une gerbe parties dans le vide se liraient
 // comme un défaut, pour la raison qui fait que la cadence ne se consomme pas à
-// vide —, mais une tourelle se pose pour tenir un passage, souvent avant que la
-// horde n'arrive. La garde vivait ici tant qu'aucun effet n'en voulait pas.
+// vide ; pour la grenade, l'obstacle contre lequel on se tient en est une. Une
+// tourelle et des flammes se posent au contraire pour tenir un passage, souvent
+// avant que la horde n'arrive. La garde vivait ici tant qu'aucun effet n'en
+// voulait pas.
 //
 // **La cadence d'une lourde n'est consultée que par ce qui tire sans le
 // joueur.** Elle ne l'était par personne tant que tout partait d'une touche —
@@ -101,12 +103,25 @@ func (w *World) declencher(tenue *Heavy) bool {
 	arme := w.lourdeDe(tenue.rang)
 	switch arme.Effect {
 	case effetDeflagration:
-		cible, trouvee := w.cibleDe(&arme)
-		if !trouvee {
-			return false
+		// **Contre un obstacle, c'est lui qu'elle vise, créatures ou non.** Le
+		// joueur ne dirige pas son lancer ; se tenir contre un obstacle et
+		// déclencher est la seule façon de dire « celui-là », et une grenade qui
+		// partirait alors vers la créature la plus proche dépenserait la charge
+		// ailleurs que là où il l'a voulue. Ce que le souffle prend autour — la
+		// horde qui le serre — vient en plus.
+		var x, y Fixed
+		if place, contre := w.obstacleContre(); contre {
+			o := w.obstacles.At(place)
+			x, y = o.X, o.Y
+		} else {
+			cible, trouvee := w.cibleDe(&arme)
+			if !trouvee {
+				return false
+			}
+			x, y = cible.X, cible.Y
 		}
 		_, ok := w.souffles.Spawn(Blast{
-			X: cible.X, Y: cible.Y,
+			X: x, Y: y,
 			Source: BlastWeapon,
 			Index:  tenue.rang,
 			Fuse:   arme.Fuse,
@@ -194,7 +209,17 @@ func (w *World) cibleDe(arme *Weapon) (*Enemy, bool) {
 //
 // La transition de mort passe par le même chemin qu'un tir : le butin, et
 // l'amorce d'une Baudruche qui explose à son tour.
+//
+// **Les obstacles fragiles pris dans la zone cèdent entiers**, quelles que
+// soient les touches qu'il leur reste. C'est un usage de plus pour une charge,
+// et il n'appartient qu'aux lourdes qui ont une zone : la grenade et les
+// flammes, les deux seules à passer par ici. Le fusil et la tourelle tirent des
+// projectiles, qui meurent sur l'obstacle comme sur un mur — une tourelle qui
+// ouvrirait un rideau de fer toute seule retirerait le prix que ses touches
+// font payer. Cette frontière tient donc au chemin et non à une condition : une
+// lourde qui voudrait emporter un obstacle sans passer ici devrait le dire.
 func (w *World) emporter(x, y, rayon Fixed, touches int) {
+	w.abattre(x, y, rayon)
 	portee := int64(rayon) * int64(rayon)
 	for i := range w.ennemis.Active() {
 		e := w.ennemis.At(i)

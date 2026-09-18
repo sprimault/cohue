@@ -81,6 +81,15 @@ publié, et explique les conventions du dépôt à qui y contribue.
   au-dessus d'elle. Sans rien, elle ne laisse que des gemmes : le détour se
   décide avant d'y aller, au lieu de casser tout ce qu'on croise.
 
+### Corrigé
+
+- **Les améliorations prises s'appliquent enfin aux armes lourdes.** Chacune
+  déclare les axes qui la concernent — la cadence pour la grenade et le
+  lance-flammes, la portée et le nombre de projectiles pour le fusil — et elle
+  les lit au moment où elle sert : une tourelle posée avant une montée de niveau
+  en profite dès son tir suivant. Sans cela, une arme trouvée à la douzième
+  minute était plus faible que le tir de base.
+
 ***
 
 ### Added
@@ -119,6 +128,15 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **A crate holding a heavy weapon shows it**, through its icon floating above.
   Bare, it holds nothing but gems: the detour is decided before you walk it,
   instead of breaking everything you pass.
+
+### Fixed
+
+- **Upgrades you have taken finally reach heavy weapons.** Each one declares the
+  axes that concern it — fire rate for the grenade and the flamethrower, range
+  and projectile count for the shotgun — and reads them at the moment it is
+  used: a turret deployed before a level-up benefits from its very next shot.
+  Without this, a weapon found in the twelfth minute was weaker than your base
+  fire.
 
 ## [0.6.1] — 2026-09-07 — La visée suit le pas
 

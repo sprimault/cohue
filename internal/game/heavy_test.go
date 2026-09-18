@@ -516,3 +516,86 @@ func TestUneSalveNeDepenseRienSansCible(t *testing.T) {
 		t.Errorf("%d projectile(s) partis sans cible", n)
 	}
 }
+
+// TestUnPalierPrisAtteintUneArmeLourde ferme le chemin de la carte à la lourde.
+//
+// **Le chapitre 9 l'exige, et rien ne l'appliquait** : `Weapon.Axes` était
+// déclaré au manifeste et contrôlé au chargement, sans qu'aucune ligne ne le
+// lise. Une arme trouvée à la douzième minute était donc plus faible que le tir
+// de base, au moment précis où elle doit impressionner.
+func TestUnPalierPrisAtteintUneArmeLourde(t *testing.T) {
+	w, _ := champDeTir(t)
+	tomber(t, w, "grenade")
+	w.ramasserUneArme()
+	avant, _ := w.HeldHeavy(0)
+
+	rang := rangAxe(t, w, AxisCadence)
+	pas := w.passifs.Axes[rang].CooldownStep
+	w.appliquer(Card{sorte: carteAxe, index: rang})
+
+	apres, _ := w.HeldHeavy(0)
+	if apres.Cooldown != avant.Cooldown-pas {
+		t.Errorf("cadence %d après un palier, attendu %d", apres.Cooldown, avant.Cooldown-pas)
+	}
+}
+
+// TestUnAxeQueLArmeNeDeclarePasNeLAtteintPas garde ce que `axes` décide.
+//
+// **Le cas monte les deux axes et n'en attend qu'un**, sans quoi il passerait
+// sur une arme que rien n'atteint jamais : ce qui discrimine n'est pas qu'une
+// portée reste en place, c'est qu'elle reste en place pendant qu'une cadence
+// bouge. La grenade ne déclare que la cadence — la portée d'un lancer n'a pas de
+// sens tant qu'on ne le dirige pas.
+func TestUnAxeQueLArmeNeDeclarePasNeLAtteintPas(t *testing.T) {
+	w, _ := champDeTir(t)
+	tomber(t, w, "grenade")
+	w.ramasserUneArme()
+	avant, _ := w.HeldHeavy(0)
+
+	monter(t, w, AxisCadence, 1)
+	monter(t, w, AxisRange, 6)
+
+	apres, _ := w.HeldHeavy(0)
+	if apres.Range != avant.Range {
+		t.Errorf("portée %d après six paliers d'un axe non déclaré, attendu %d",
+			apres.Range, avant.Range)
+	}
+	if apres.Cooldown == avant.Cooldown {
+		t.Fatal("la cadence n'a pas bougé non plus : le cas ne sépare rien")
+	}
+}
+
+// TestUneTourelleTireAvecLesPaliersPrisApresSaPose garde le choix de lire à
+// l'usage.
+//
+// **C'est le seul cas qui sépare les deux implémentations réelles.** Une copie
+// prise au ramassage laisserait cette tourelle avec la portée qu'elle avait à la
+// pose ; la dérivation la lui donne au moment où elle tire. Le cas établit
+// d'abord que la cible est hors d'atteinte, faute de quoi il passerait sur une
+// tourelle que rien n'a améliorée.
+func TestUneTourelleTireAvecLesPaliersPrisApresSaPose(t *testing.T) {
+	w, profils := champDeTir(t)
+	w.arme = Weapon{} // le socle tirerait, et ses projectiles compteraient ici
+	tomber(t, w, "tourelle")
+	w.ramasserUneArme()
+	w.Trigger(0)
+
+	// À huit tuiles : hors des sept que la tourelle porte, dans les dix que six
+	// paliers de portée lui donnent.
+	px, py := w.Player()
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "marcheur"), px+FromInt(8), py); !ok {
+		t.Fatal("créature refusée")
+	}
+
+	w.Step(Vec{})
+	if n := w.Shots().Len(); n != 0 {
+		t.Fatalf("%d projectile(s) sur une cible hors de portée : le cas ne sépare rien", n)
+	}
+
+	monter(t, w, AxisRange, 6)
+	w.Step(Vec{})
+
+	if n := w.Shots().Len(); n == 0 {
+		t.Error("la tourelle n'a pas tiré alors que les paliers mettent la cible à portée")
+	}
+}

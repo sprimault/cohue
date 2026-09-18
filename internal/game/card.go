@@ -113,21 +113,40 @@ func (w *World) appliquer(c Card) {
 		return
 	}
 
-	axe := &w.passifs.Axes[c.index]
 	w.paliers[c.index]++
-	switch axe.Axis {
-	case AxisCadence:
-		w.arme.Cooldown -= axe.CooldownStep
-	case AxisRange:
-		w.arme.Range += axe.RangeStep
-	case AxisProjectiles:
-		w.arme.Projectiles += axe.ProjectileStep
-	case AxisPierce:
-		w.arme.Pierce += axe.PierceStep
-	case AxisBounce:
-		w.arme.Bounces += axe.BounceStep
-	case AxisSpread:
-		w.arme.Spread += axe.SpreadStep
+	porter(&w.arme, &w.passifs.Axes[c.index], 1)
+}
+
+// porter applique un axe à une arme, autant de fois qu'il a été pris.
+//
+// **Le seul endroit qui relie un axe à un champ d'arme**, et c'est ce qui le
+// justifie plus que la factorisation : le socle prend ses paliers au fil des
+// choix, une lourde les lit à l'usage, et deux `switch` sur les mêmes six axes
+// seraient deux descriptions de la même règle. Le jour où l'une gagnerait un
+// axe sans l'autre, l'écart se verrait sur une arme et pas sur l'autre — c'est-
+// à-dire à l'endroit du jeu le moins susceptible d'être mesuré.
+//
+// **Le nombre de prises se répète plutôt qu'il ne multiplie**, et ce n'est pas
+// une maladresse : un facteur demanderait de convertir un compte de paliers vers
+// la virgule fixe et vers le tick, c'est-à-dire trois conversions d'entier vers
+// un type plus étroit là où il n'y a rien à convertir. Un axe porte six paliers
+// au plus, donc la répétition ne coûte rien de mesurable.
+func porter(arme *Weapon, axe *Passive, fois int) {
+	for range fois {
+		switch axe.Axis {
+		case AxisCadence:
+			arme.Cooldown -= axe.CooldownStep
+		case AxisRange:
+			arme.Range += axe.RangeStep
+		case AxisProjectiles:
+			arme.Projectiles += axe.ProjectileStep
+		case AxisPierce:
+			arme.Pierce += axe.PierceStep
+		case AxisBounce:
+			arme.Bounces += axe.BounceStep
+		case AxisSpread:
+			arme.Spread += axe.SpreadStep
+		}
 	}
 }
 

@@ -204,7 +204,7 @@ func (w *World) prendre(sol, place int) {
 	if tenue.Charges > 0 && tenue.rang == d.Weapon {
 		tenue.Charges += arme.Charges
 	} else {
-		*tenue = Heavy{Weapon: *arme, Charges: arme.Charges, rang: d.Weapon}
+		*tenue = Heavy{Charges: arme.Charges, rang: d.Weapon}
 	}
 	w.armesAuSol.RemoveAt(sol)
 }

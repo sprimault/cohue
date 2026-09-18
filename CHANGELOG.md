@@ -67,7 +67,7 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Des obstacles fragiles ferment certaines ouvertures, et Maj droite les
   force** — ou le 0 du pavé numérique. Grille de ventilation, vitrine, cloison
   et rideau de fer cèdent en
-  trois, cinq, huit et vingt touches, qu'on frappe en tenant la touche contre
+  trois, cinq, huit et douze touches, qu'on frappe en tenant la touche contre
   eux : marteler ne va pas plus vite. Ils laissent une ruine qu'on traverse, et
   les touches portées restent acquises si l'on s'écarte. La ruelle du lieu de
   démonstration en ferme quatre.
@@ -126,7 +126,7 @@ publié, et explique les conventions du dépôt à qui y contribue.
   too many stays on the ground: you come back for it once you have drunk.
 - **Fragile obstacles close some openings, and right Shift forces them** — or
   keypad 0. Ventilation grate, shop window, drywall partition and steel shutter give way
-  after three, five, eight and twenty hits, dealt by holding the key against
+  after three, five, eight and twelve hits, dealt by holding the key against
   them: mashing it is no faster. They leave a ruin you can walk over, and hits
   already dealt are kept if you step away. The alley of the demonstration level
   closes four of them.

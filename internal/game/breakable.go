@@ -86,7 +86,7 @@ type Breakable struct {
 	// Flash est ce qui reste de l'éclair de la dernière frappe, en ticks.
 	//
 	// C'est le seul retour d'une touche qui ne casse pas encore, et sans lui
-	// huit secondes contre un rideau de fer ressembleraient à une touche qui ne
+	// cinq secondes contre un rideau de fer ressembleraient à une touche qui ne
 	// fait rien.
 	Flash Tick
 }

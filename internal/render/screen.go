@@ -410,7 +410,7 @@ func (s *Screen) Update() error {
 	}
 
 	// **Au maintien, à la différence des emplacements** : on force un obstacle
-	// en tenant la touche, une frappe par cadence. Marteler vingt fois un rideau
+	// en tenant la touche, une frappe par cadence. Marteler douze fois un rideau
 	// de fer serait une corvée des doigts, pas une décision.
 	if enfonce(interaction...) {
 		s.monde.Interact()

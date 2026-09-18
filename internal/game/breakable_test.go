@@ -139,8 +139,8 @@ func TestUnObstacleCedeAuBoutDeSesTouches(t *testing.T) {
 //
 // **C'est la décision du geste qu'il protège.** Un décompte remis à zéro au
 // relâchement ferait frapper chaque appui : un joueur qui martèle forcerait un
-// rideau de fer en quarante ticks au lieu de huit secondes, et tenir la touche
-// deviendrait la mauvaise façon de jouer. Il faut donc un décompte qui descend
+// rideau de fer en vingt-quatre ticks au lieu de quatre secondes et demie, et
+// tenir la touche deviendrait la mauvaise façon de jouer. Il faut donc un décompte qui descend
 // que la touche soit tenue ou non.
 func TestMartelerNeFrappePasPlusVite(t *testing.T) {
 	tenu := tenir(t, salleAvecObstacle(t, "vitrine", 12), 1000)

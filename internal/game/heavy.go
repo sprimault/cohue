@@ -14,6 +14,7 @@ import "slices"
 // valeur d'absence qui coïncide avec une valeur valide : la conception veut
 // qu'une lourde soit **jetée à vide**, donc une arme à zéro n'existe jamais. Le
 // zéro d'un champ oublié dit alors exactement ce qu'il doit dire.
+//
 // **Un rang et aucune copie de l'arme.** Elle en portait une, prise au
 // ramassage ; les paliers se lisant maintenant à l'usage, cette copie serait la
 // seule version de l'arme qui ne les connaîtrait pas, et rien n'aurait dit

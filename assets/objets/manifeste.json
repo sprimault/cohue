@@ -25,7 +25,7 @@
         "mode": "contact",
         "delai_ms": 330,
         "ruine": "caisse_cassee",
-        "eclats": "bois",
+        "eclats": "eclats_bois",
         "cycle_appui": "caisse_appui",
         "cycle_rupture": "caisse_rupture",
         "son_appui": "caisse_appui",
@@ -118,7 +118,7 @@
         "mode": "interaction",
         "touches": 8,
         "ruine": "cloison_fragile_cassee",
-        "eclats": "platre",
+        "eclats": "eclats_platre",
         "son_rupture": "caisse_rupture"
       }
     },
@@ -163,7 +163,7 @@
         "mode": "interaction",
         "touches": 5,
         "ruine": "vitrine_cassee",
-        "eclats": "verre",
+        "eclats": "eclats_verre",
         "son_rupture": "caisse_rupture"
       }
     },
@@ -208,7 +208,7 @@
         "mode": "interaction",
         "touches": 3,
         "ruine": "grille_ventilation_cassee",
-        "eclats": "metal",
+        "eclats": "eclats_metal",
         "son_rupture": "caisse_rupture"
       }
     },
@@ -253,7 +253,7 @@
         "mode": "interaction",
         "touches": 20,
         "ruine": "rideau_fer_casse",
-        "eclats": "metal",
+        "eclats": "eclats_metal",
         "son_rupture": "caisse_rupture"
       }
     },

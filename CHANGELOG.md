@@ -71,6 +71,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
   eux : marteler ne va pas plus vite. Ils laissent une ruine qu'on traverse, et
   les touches portées restent acquises si l'on s'écarte. La ruelle du lieu de
   démonstration en ferme quatre.
+- **La grenade et le lance-flammes emportent un obstacle fragile entier**, dès
+  qu'il est pris dans leur zone : une charge dépensée ouvre un rideau de fer
+  sans le frapper douze fois. Contre un obstacle, la grenade le vise, même avec
+  la horde à portée ; le lance-flammes se pose sous vous. Le fusil et la
+  tourelle ne l'entament pas.
 - **Un lieu pose ses obstacles sous la clé `destructibles`**, chacun avec son
   `objet`, sa `position` et une `orientation` facultative, `u` ou `v`. Un
   obstacle dans un mur, ou sur une caisse, un figurant ou un autre obstacle, est
@@ -130,6 +135,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
   them: mashing it is no faster. They leave a ruin you can walk over, and hits
   already dealt are kept if you step away. The alley of the demonstration level
   closes four of them.
+- **The grenade and the flamethrower sweep away a whole fragile obstacle** as
+  soon as it lies within their area: a spent charge opens a steel shutter
+  without striking it twelve times. Standing against an obstacle, the grenade
+  targets it, even with the horde in range; the flamethrower lands under you.
+  The shotgun and the turret leave it untouched.
 - **A level places its obstacles under the `destructibles` key**, each with its
   `objet`, its `position` and an optional `orientation`, `u` or `v`. An obstacle
   inside a wall, or on a crate, an extra or another obstacle, is refused at load

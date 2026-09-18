@@ -486,7 +486,7 @@ Ce que cela établit est la cohérence entre un score et un journal, ce qui suff
 
 Le joueur casse une caisse **en la traversant**. Aucune touche, aucun conflit avec l'auto-visée, et ça le garde en mouvement.
 
-Ce que la caisse laisse est une volée de gemmes, une arme lourde de temps en temps, et une fiole sur ce qui reste. **Ce qui reste à écrire de ce chapitre est ce qu'une arme lourde emporte**, plus bas ; le délai d'appui, le ralentissement, le coût dans le champ de flux, l'annonce du contenu, les consommables et les obstacles destructibles sont livrés.
+Ce que la caisse laisse est une volée de gemmes, une arme lourde de temps en temps, et une fiole sur ce qui reste.
 
 **Elle n'est pas une cible**, et c'est la règle qui coûterait cher à rétablir plus tard. Rangée parmi les ennemis, elle détournerait la visée automatique — qui prend la plus proche sans que le joueur choisisse — et emporterait avec elle la mécanique du Secouriste ; c'est la même règle que pour le figurant, et pour la même raison.
 
@@ -560,6 +560,10 @@ Une touche ne porte que sur l'obstacle le plus proche, à moins d'une tuile de s
 **Il se pose au débouché d'une percée plutôt qu'à son entrée**, ce qui est une consigne d'auteur et non une règle du chargeur. Un mur peint plus bas à l'écran recouvre ce qui est au-dessus de lui : un panneau de trente-quatre pixels posé au fond d'un passage creusé entre des murs de soixante-quatre y disparaît entier, et un obstacle qu'on ne voit pas ne se choisit pas.
 
 Ce qui les sépare de la caisse n'est donc pas la nature du dégât mais le geste : la caisse cède à l'appui, en la traversant, et n'interrompt pas la course ; un destructible demande de s'arrêter et d'appuyer. C'est ce qui donne son prix aux douze touches du rideau de fer — douze touches immobile sous la horde, contre un tiers de seconde de ralentissement pour une caisse. Les armes lourdes, elles, emportent ce qui se trouve dans leur zone, destructibles compris : c'est un usage de plus pour une charge, et une raison d'en garder une.
+
+**Celles qui ont une zone, et elles seules** : la déflagration de la grenade et la nappe du lance-flammes emportent un obstacle entier dès que son centre y tombe, quelles que soient ses touches. Le fusil et la tourelle tirent des projectiles, qui meurent sur l'obstacle comme sur un mur — une tourelle qui ouvrirait un rideau de fer toute seule retirerait le prix que ses touches font payer. La déflagration d'une Baudruche n'emporte rien non plus : un lieu qui s'ouvrirait parce qu'une créature y est morte changerait sans que personne l'ait décidé.
+
+**Contre un obstacle, la grenade le vise, créatures ou non.** Elle ne se dirige pas et ne part pas sans cible ; se tenir contre un obstacle — à la portée où la touche le frapperait — est ce qui en désigne une, et c'est la seule façon qu'a le joueur de dire lequel. Une horde à portée ne la détourne pas : elle partirait sinon vers la créature la plus proche, loin de ce qu'on s'était arrêté pour ouvrir. Ce que le souffle prend autour de l'obstacle vient en plus. Les flammes n'en ont pas besoin, elles se posent sous le joueur.
 
 Deux conséquences reprises de la caisse : ils sont bloquants dans le champ de flux tant qu'ils tiennent, et leur destruction rend la case au sol sans appeler aucun rafraîchissement — le champ se rebâtit entier tous les six ticks, pour la raison écrite plus haut. Chacun laisse une ruine basse, franchissable, qui garde la trace de ce qui a été ouvert.
 

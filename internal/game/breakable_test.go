@@ -248,6 +248,140 @@ func TestLesTouchesPorteesNeSeRegagnentPas(t *testing.T) {
 	}
 }
 
+// TestLaGrenadeEmporteUnObstacleEntier garde ce qu'une lourde à zone ouvre, et
+// ce qu'elle laisse debout.
+//
+// **Entier, quelles que soient ses touches** : le rideau de fer est l'obstacle
+// le plus cher, et c'est sur lui que la charge dépensée doit se voir. Le second
+// obstacle, une case plus loin que le rayon, garde que la zone a un bord — une
+// déflagration qui abattrait toute la rangée ferait de la grenade une clé.
+func TestLaGrenadeEmporteUnObstacleEntier(t *testing.T) {
+	w := salleAvecObstacle(t, "rideau_fer", 5, 12)
+	loin, pres := *w.Breakables().At(0), *w.Breakables().At(1)
+	grenade := rangDeLArme(t, w, "grenade")
+	if rayon := w.lourdeDe(grenade).Radius; (Vec{X: loin.X - pres.X}).carres() <= int64(rayon)*int64(rayon) {
+		t.Fatalf("les deux obstacles tiennent dans un rayon de %d : le cas ne sépare rien", rayon)
+	}
+
+	w.souffles.Spawn(Blast{X: pres.X, Y: pres.Y + One, Source: BlastWeapon, Index: grenade})
+	w.Step(Vec{})
+
+	if n := w.Breakables().Len(); n != 1 || w.Breakables().At(0).X != loin.X {
+		t.Fatalf("%d obstacle(s) debout après la déflagration, attendu le seul hors de portée", n)
+	}
+	if got := w.grille.At(pres.X.Floor(), pres.Y.Floor()); got != pres.Floor {
+		t.Errorf("la case emportée porte %d, attendu le sol de %d", got, pres.Floor)
+	}
+	if w.Wrecks().Len() != 1 {
+		t.Errorf("%d ruine(s) après la déflagration, attendu une", w.Wrecks().Len())
+	}
+}
+
+// TestUneDeflagrationEmporteToutCeQuiEstDansSaZone garde le retrait d'une rangée.
+//
+// Deux vitrines côte à côte, toutes deux sous le souffle. La suppression par
+// échange remonte la seconde à la place de la première : une boucle qui
+// avancerait après avoir retiré la laisserait debout dans la zone même qui
+// vient de l'emporter.
+func TestUneDeflagrationEmporteToutCeQuiEstDansSaZone(t *testing.T) {
+	w := salleAvecObstacle(t, "vitrine", 11, 12)
+
+	w.souffles.Spawn(Blast{X: FromInt(12), Y: FromInt(11) + One/2,
+		Source: BlastWeapon, Index: rangDeLArme(t, w, "grenade")})
+	w.Step(Vec{})
+
+	if n := w.Breakables().Len(); n != 0 {
+		t.Errorf("%d vitrine(s) debout sous la déflagration, attendu aucune", n)
+	}
+}
+
+// TestUneGrenadeContreUnObstacleLeVise garde qu'on peut la dépenser pour ouvrir.
+//
+// Sans créature autour, la grenade ne partirait pas : elle ne se dirige pas, et
+// rien ne part sans cible. Se tenir contre un obstacle est ce qui en donne une,
+// et le souffle y part, où il l'emporte.
+func TestUneGrenadeContreUnObstacleLeVise(t *testing.T) {
+	w := salleAvecObstacle(t, "rideau_fer", 12)
+	o := *w.Breakables().At(0)
+	tomber(t, w, "grenade")
+	w.ramasserUneArme()
+
+	w.Trigger(0)
+
+	if w.Blasts().Len() != 1 || w.Blasts().At(0).X != o.X || w.Blasts().At(0).Y != o.Y {
+		t.Fatalf("aucune déflagration posée sur le rideau contre lequel on se tient")
+	}
+	for range 2 * TPS {
+		w.Step(Vec{})
+	}
+	if n := w.Breakables().Len(); n != 0 {
+		t.Errorf("%d obstacle(s) debout après la déflagration", n)
+	}
+}
+
+// TestUneGrenadeContreUnObstaclePrefereLObstacle garde la priorité, que la
+// horde ne détourne pas.
+//
+// **C'est la seule façon qu'a le joueur de dire lequel.** Une créature à portée
+// ferait sinon partir la charge vers elle, et le joueur qui s'est arrêté contre
+// un rideau pour l'ouvrir verrait sa grenade exploser ailleurs.
+func TestUneGrenadeContreUnObstaclePrefereLObstacle(t *testing.T) {
+	w := salleAvecObstacle(t, "rideau_fer", 12)
+	o := *w.Breakables().At(0)
+	px, py := w.Player()
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, w.profils, "bloqueur"), px+FromInt(3), py+FromInt(2)); !ok {
+		t.Fatal("bassin d'ennemis plein")
+	}
+	tomber(t, w, "grenade")
+	w.ramasserUneArme()
+	if _, trouvee := w.cibleDe(&w.armes.All[rangDeLArme(t, w, "grenade")]); !trouvee {
+		t.Fatal("le Vigile n'est pas à portée : le cas ne pose pas la question")
+	}
+
+	w.Trigger(0)
+
+	if w.Blasts().Len() != 1 || w.Blasts().At(0).X != o.X || w.Blasts().At(0).Y != o.Y {
+		t.Errorf("la déflagration n'est pas sur le rideau, une créature l'a détournée")
+	}
+}
+
+// TestLesFlammesEmportentUnObstacle garde la seconde lourde à zone.
+//
+// Une impulsion suffit, comme une déflagration : ce que la flaque ouvre est un
+// passage, et un rideau qui y tiendrait douze impulsions ne serait pas emporté
+// mais usé — c'est-à-dire le geste de la touche, rendu sans le joueur.
+func TestLesFlammesEmportentUnObstacle(t *testing.T) {
+	w := salleAvecObstacle(t, "rideau_fer", 12)
+	o := *w.Breakables().At(0)
+
+	w.flammes.Spawn(Fire{X: o.X, Y: o.Y + One,
+		Weapon: rangDeLArme(t, w, "lance_flammes"), Life: 10 * TPS})
+	w.Step(Vec{})
+
+	if n := w.Breakables().Len(); n != 0 {
+		t.Errorf("%d obstacle(s) debout dans la flaque, attendu aucun", n)
+	}
+}
+
+// TestLaBaudrucheNEmportePasLesObstacles garde que la règle est celle des
+// lourdes, et non de toute explosion.
+//
+// La déflagration d'une Baudruche n'emporte que le joueur : la conception le
+// veut pour la horde, et un rideau qu'une créature ouvrirait en mourant ferait
+// d'un lieu une carte qui change sans que personne l'ait décidé.
+func TestLaBaudrucheNEmportePasLesObstacles(t *testing.T) {
+	w := salleAvecObstacle(t, "vitrine", 12)
+	o := *w.Breakables().At(0)
+	w.Place(FromInt(12)+One/2, FromInt(20)+One/2)
+
+	w.souffles.Spawn(Blast{X: o.X, Y: o.Y + One, Index: indexDuProfil(t, w.profils, "eclateur")})
+	w.Step(Vec{})
+
+	if n := w.Breakables().Len(); n != 1 || w.Breakables().At(0).Hits != o.Hits {
+		t.Errorf("la vitrine a souffert d'une Baudruche : %d debout", n)
+	}
+}
+
 // TestFrapperUnObstacleNalloueRien garde le budget sur le chemin de la frappe.
 //
 // **Une frappe par exécution, et c'est ce qui rend la mesure honnête.**

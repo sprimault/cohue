@@ -85,7 +85,12 @@ func (w *World) tirerLesTourelles() {
 			continue
 		}
 
-		arme := &w.armes.All[t.Weapon]
+		// **Relue à chaque tir, et non figée à la pose.** Une tourelle tire avec ce
+		// que le joueur est au moment où elle tire : un palier pris pendant qu'elle
+		// tient un passage la sert, ce qui est la même règle que pour l'arme en
+		// main. Ce qu'elle garde de sa pose est son compte de tirs, qui est le prix
+		// d'une charge et non une valeur de tir.
+		arme := w.lourdeDe(t.Weapon)
 		cible, trouvee := w.plusProcheDe(t.X, t.Y, arme.Range, Handle{}, Vec{})
 		if !trouvee {
 			// Rien à portée : le tir n'est pas consommé, comme la cadence de
@@ -97,7 +102,7 @@ func (w *World) tirerLesTourelles() {
 
 		e := w.ennemis.At(cible)
 		vers := Vec{X: e.X - t.X, Y: e.Y - t.Y}.Direction(i)
-		if w.salveDe(arme, t.X, t.Y, vers) == 0 {
+		if w.salveDe(&arme, t.X, t.Y, vers) == 0 {
 			// Bassin de projectiles plein : le tir est perdu comme celui du
 			// socle, mais il n'est pas décompté — une tourelle ne doit pas
 			// s'épuiser sur ce que le moteur n'a pas su poser.

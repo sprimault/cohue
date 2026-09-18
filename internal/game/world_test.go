@@ -52,13 +52,13 @@ func mondeDEssai(t *testing.T, largeur, hauteur int) (*World, *Profiles) {
 	if err != nil {
 		t.Fatalf("armes livrées : %v", err)
 	}
-	// Les figurants et les caisses ont leur capacité ici plutôt qu'à zéro : un
-	// bassin vide se parcourt sans rien faire, si bien qu'un garde d'allocation
-	// traverserait leurs passes en croyant les mesurer.
+	// Les figurants, les caisses, les tourelles et les flammes ont leur capacité
+	// ici plutôt qu'à zéro : un bassin vide se parcourt sans rien faire, si bien
+	// qu'un garde d'allocation traverserait leurs passes en croyant les mesurer.
 	return NewWorld(profils, armes, progressionLivree(t), caissesLivrees(t), fiolesLivrees(t), sansVagues(),
 		g, graineDeTest,
 		Capacities{Enemies: 300, Shots: 256, EnemyShots: 64, Blasts: 32, Gems: 512,
-			Ambients: 32, Crates: 32}), profils
+			Ambients: 32, Crates: 32, Turrets: 4, Fires: 8}), profils
 }
 
 // caissesLivrees rend les règles d'une caisse, comme les manifestes livrés les
@@ -222,6 +222,21 @@ func garnirLesPassesDeLEtape4(t *testing.T, w *World, profils *Profiles) {
 		t.Fatal("bassin d'ennemis plein")
 	}
 	w.amorcer(w.ennemis.At(w.ennemis.Len() - 1))
+
+	// **La tourelle et la flaque posées à la main, pour la raison qui amorce la
+	// Baudruche ici** : elles naissent d'une charge dépensée, et attendre qu'une
+	// caisse en rende une ferait dépendre le garnissage d'un tirage. Sans elles,
+	// `tirerLesTourelles` et `bruler` parcourent un bassin vide et le garde les
+	// traverse en croyant les avoir mesurées — or chacune dérive une arme de ses
+	// paliers à chaque tick.
+	if _, ok := w.tourelles.Spawn(Turret{X: px + FromInt(2), Y: py,
+		Weapon: rangDeLArme(t, w, "tourelle"), Shots: 1 << 20}); !ok {
+		t.Fatal("bassin de tourelles plein")
+	}
+	if _, ok := w.flammes.Spawn(Fire{X: px, Y: py + FromInt(1),
+		Weapon: rangDeLArme(t, w, "lance_flammes"), Life: 1 << 20}); !ok {
+		t.Fatal("bassin de flammes plein")
+	}
 }
 
 // peupler pose des créatures sur toutes les cases franchissables d'une carte,

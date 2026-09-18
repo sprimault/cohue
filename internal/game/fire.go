@@ -87,7 +87,7 @@ func (w *World) poserDesFlammes(arme *Weapon, rang int) bool {
 func (w *World) bruler() {
 	for i := 0; i < w.flammes.Len(); {
 		f := w.flammes.At(i)
-		arme := &w.armes.All[f.Weapon]
+		arme := w.lourdeDe(f.Weapon)
 
 		if f.Pulse > 0 {
 			f.Pulse--
@@ -112,14 +112,14 @@ func (w *World) bruler() {
 // impulsions appliquent. Deux calculs de la même zone finiraient par peindre une
 // case que le feu épargne.
 func (w *World) FireBounds(f *Fire) (u0, v0, u1, v1 int) {
-	rayon := w.armes.All[f.Weapon].Radius
+	rayon := w.lourdeDe(f.Weapon).Radius
 	return (f.X - rayon).Floor(), (f.Y - rayon).Floor(),
 		(f.X + rayon).Floor(), (f.Y + rayon).Floor()
 }
 
 // FireCovers dit si le centre d'une case brûle.
 func (w *World) FireCovers(f *Fire, u, v int) bool {
-	rayon := w.armes.All[f.Weapon].Radius
+	rayon := w.lourdeDe(f.Weapon).Radius
 	ecart := Vec{X: FromInt(u) + One/2 - f.X, Y: FromInt(v) + One/2 - f.Y}
 	return ecart.carres() <= int64(rayon)*int64(rayon)
 }
@@ -131,8 +131,12 @@ func (w *World) FireCovers(f *Fire, u, v int) bool {
 // jusqu'au coup, une flaque montre ce qui brûle et faiblit en s'éteignant. Sans
 // cette opposition, deux marquages de même forme diraient deux choses contraires
 // dans la même teinte.
+// **Le rapport est juste tant qu'aucun axe ne touche la durée.** Ce qu'il
+// divise est la durée telle qu'elle est maintenant, quand `Life` porte celle
+// qui a servi à poser la flaque : le jour où un palier allongerait une zone,
+// une flaque posée avant lui rendrait un rapport sous mille sans avoir vieilli.
 func (w *World) FireLeft(f *Fire) int {
-	total := w.armes.All[f.Weapon].Duration
+	total := w.lourdeDe(f.Weapon).Duration
 	if total <= 0 {
 		return 0
 	}

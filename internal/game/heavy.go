@@ -6,18 +6,23 @@
 
 package game
 
+import "slices"
+
 // Heavy est l'arme lourde tenue, et ce qu'il lui reste de charges.
 //
 // **Zéro charge veut dire qu'aucune arme n'est tenue**, et ce n'est pas une
 // valeur d'absence qui coïncide avec une valeur valide : la conception veut
 // qu'une lourde soit **jetée à vide**, donc une arme à zéro n'existe jamais. Le
 // zéro d'un champ oublié dit alors exactement ce qu'il doit dire.
+// **Un rang et aucune copie de l'arme.** Elle en portait une, prise au
+// ramassage ; les paliers se lisant maintenant à l'usage, cette copie serait la
+// seule version de l'arme qui ne les connaîtrait pas, et rien n'aurait dit
+// laquelle des deux fait foi. Ce qui la remplace se dérive à chaque lecture et
+// ne peut donc pas se périmer.
 type Heavy struct {
-	// Weapon est la copie de l'arme, comme `World.arme` l'est du socle.
-	Weapon Weapon
 	// Charges est ce qui reste à dépenser. À zéro, l'arme est partie.
 	Charges int
-	// rang est sa place dans la table, que la déflagration désigne.
+	// rang est sa place dans la table, d'où tout le reste se dérive.
 	rang int
 }
 
@@ -35,10 +40,10 @@ const Slots = 2
 // ce que la partie modifie. Une arme vide rend une `Weapon` nulle, ce que la
 // valeur zéro de `Heavy` dit déjà — une lourde à zéro charge n'existe pas.
 func (w *World) HeldHeavy(place int) (Weapon, int) {
-	if place < 0 || place >= len(w.lourdes) {
+	if place < 0 || place >= len(w.lourdes) || w.lourdes[place].Charges <= 0 {
 		return Weapon{}, 0
 	}
-	return w.lourdes[place].Weapon, w.lourdes[place].Charges
+	return w.lourdeDe(w.lourdes[place].rang), w.lourdes[place].Charges
 }
 
 // Trigger dépense une charge et pose la déflagration de l'arme tenue.
@@ -92,9 +97,10 @@ func (w *World) Trigger(place int) {
 // déflagration s'y pose, la salve s'y dirige. La tourelle, elle, se pose sous le
 // joueur et vise plus tard, depuis là où elle se tient.
 func (w *World) declencher(tenue *Heavy) bool {
-	switch tenue.Weapon.Effect {
+	arme := w.lourdeDe(tenue.rang)
+	switch arme.Effect {
 	case effetDeflagration:
-		cible, trouvee := w.cibleDe(&tenue.Weapon)
+		cible, trouvee := w.cibleDe(&arme)
 		if !trouvee {
 			return false
 		}
@@ -102,11 +108,11 @@ func (w *World) declencher(tenue *Heavy) bool {
 			X: cible.X, Y: cible.Y,
 			Source: BlastWeapon,
 			Index:  tenue.rang,
-			Fuse:   tenue.Weapon.Fuse,
+			Fuse:   arme.Fuse,
 		})
 		return ok
 	case effetSalve:
-		cible, trouvee := w.cibleDe(&tenue.Weapon)
+		cible, trouvee := w.cibleDe(&arme)
 		if !trouvee {
 			return false
 		}
@@ -115,13 +121,44 @@ func (w *World) declencher(tenue *Heavy) bool {
 		// la cible sera n'aurait de sens que pour un projectile unique. Ce qui
 		// touche est le front, pas l'anticipation.
 		vers := Vec{X: cible.X - w.playerX, Y: cible.Y - w.playerY}.Direction(0)
-		return w.salve(&tenue.Weapon, vers) > 0
+		return w.salve(&arme, vers) > 0
 	case effetTourelle:
-		return w.poserUneTourelle(&tenue.Weapon, tenue.rang)
+		return w.poserUneTourelle(&arme, tenue.rang)
 	case effetFlammes:
-		return w.poserDesFlammes(&tenue.Weapon, tenue.rang)
+		return w.poserDesFlammes(&arme, tenue.rang)
 	}
 	return false
+}
+
+// lourdeDe rend l'arme d'un rang, telle que les paliers pris la font.
+//
+// **Dérivée à chaque lecture plutôt que tenue à jour.** Une copie prise au
+// ramassage aurait à être rafraîchie à chaque montée de niveau, pour chacun des
+// deux emplacements et pour tout ce qu'une charge a posé au sol ; celle-ci ne
+// peut pas se périmer, puisqu'il n'y a rien à tenir d'accord. C'est ce que le
+// chapitre 9 veut par ailleurs : une arme est sensible à ce qu'on a pris
+// **depuis** qu'on la tient, sans quoi une trouvaille de la douzième minute
+// serait plus faible que le tir de base.
+//
+// **Seuls les axes que l'arme déclare l'atteignent.** Cadence et portée valent
+// pour toutes, le nombre de projectiles n'a aucun sens pour une tourelle qui
+// tire seule : c'est la donnée qui décide, arme par arme, et ce champ était
+// déclaré et contrôlé sans que rien ne le lise.
+//
+// **Les fusions n'y entrent pas, et c'est une absence et non un oubli.** Une
+// recette pose un effet de tir — le rail, la gerbe — et ne se déclare nulle
+// part par arme : `axes` ne porte que la liste close des axes. Une lourde qui
+// devrait en profiter demanderait d'abord un champ pour le dire.
+func (w *World) lourdeDe(rang int) Weapon {
+	arme := w.armes.All[rang]
+	for i := range w.passifs.Axes {
+		axe := &w.passifs.Axes[i]
+		if !slices.Contains(arme.Axes, axe.Axis) {
+			continue
+		}
+		porter(&arme, axe, w.paliers[i])
+	}
+	return arme
 }
 
 // cibleDe rend la créature qu'une lourde vise depuis le joueur.

@@ -293,8 +293,14 @@ def nervures(img, pas=6, force=0.14):
     return img
 
 
-def bandeau(img, depuis_haut=3, epaisseur=2, couleur=(226, 226, 214)):
-    """Réglette d'étiquettes sur le bord des flancs, juste sous la tablette."""
+def lames(img, pas=3, force=0.22):
+    """Lignes sombres parallèles au bord haut des flancs : lames, bardage, store.
+
+    Le rang se compte depuis le haut de chaque colonne, si bien que la ligne
+    suit la pente de la face comme le fait son arête : c'est ce qui la lit
+    horizontale en isométrie, là où une rangée de pixels à y fixe la couperait
+    en biais.
+    """
     px = img.load()
     for face in ("gauche", "droite"):
         colonnes = {}
@@ -302,7 +308,31 @@ def bandeau(img, depuis_haut=3, epaisseur=2, couleur=(226, 226, 214)):
             colonnes.setdefault(x, []).append(y)
         for x, ys in colonnes.items():
             ys.sort()
-            for y in ys[depuis_haut:depuis_haut + epaisseur]:
+            for rang, y in enumerate(ys):
+                if rang % pas == pas - 1:
+                    r, v, b, a = px[x, y]
+                    px[x, y] = _melange((r, v, b), (0, 0, 0), force) + (a,)
+    return img
+
+
+def bandeau(img, depuis_haut=3, epaisseur=2, couleur=(226, 226, 214), depuis_bas=None):
+    """Réglette d'étiquettes sur le bord des flancs, juste sous la tablette.
+
+    `depuis_bas` la pose au pied des flancs plutôt que sous leur arête haute :
+    une plinthe, la barre d'un store.
+    """
+    px = img.load()
+    for face in ("gauche", "droite"):
+        colonnes = {}
+        for x, y in img.info.get(face, ()):
+            colonnes.setdefault(x, []).append(y)
+        for x, ys in colonnes.items():
+            ys.sort()
+            if depuis_bas is None:
+                prises = ys[depuis_haut:depuis_haut + epaisseur]
+            else:
+                prises = ys[max(0, len(ys) - depuis_bas - epaisseur):len(ys) - depuis_bas]
+            for y in prises:
                 px[x, y] = couleur + (255,)
     return img
 

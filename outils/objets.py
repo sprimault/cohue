@@ -38,6 +38,10 @@ TEINTES = {
     "verre": (176, 208, 216),
     "acier": (188, 194, 204),
     "acier_sombre": (108, 114, 128),
+    # L'acier galvanisé du rideau de fer, plus clair et plus bleu que le mur qui
+    # l'encadre. Le mur est un gris neutre dont les faces vont de 60 à 118 : un
+    # rideau dans cette plage et sans teinte propre se lisait comme lui.
+    "galva": (172, 190, 210),
     "feu": (232, 148, 60),
     # Le crachat de la Buse, seule teinte du catalogue à porter une obligation :
     # la conception veut que le projectile ennemi n'existe nulle part ailleurs,
@@ -500,14 +504,53 @@ def grille_ventilation_cassee(axe="u"):
 
 
 def rideau_fer(axe="u"):
-    """Rideau de boutique : le plus résistant des trois, et le plus voyant."""
-    corps = _mince("acier_sombre", 46, axe=axe)
-    prim.nervures(corps, pas=4, force=0.16)
+    """Rideau de boutique : le plus résistant des quatre, et le plus voyant.
+
+    **Il se reconnaît aux signes d'une devanture fermée, pas à sa matière
+    seule.** En acier sombre à nervures verticales, il avait le gris des murs
+    qui l'encadrent et des stries qu'on lisait comme des joints : une partie l'a
+    pris pour un bout de mur. D'où les lames horizontales, la barre basse claire
+    avec sa serrure, le coffre d'enroulement en haut, et un acier galvanisé que
+    `TEINTES` justifie contre le mur.
+    """
+    corps = _mince("galva", 46, axe=axe)
+    prim.lames(corps, pas=3, force=0.22)
+    clair = TEINTES["acier"]
+    sombre = prim.MATIERES[_matiere("_o_acier_sombre", TEINTES["acier_sombre"])][2]
+    # Le coffre prend les six premiers pixels de chaque colonne, la barre les
+    # quatre derniers : peints sur le corps plutôt qu'empilés, ils gardent son
+    # emprise, que le pivot doit retrouver retournée.
+    prim.bandeau(corps, depuis_haut=0, epaisseur=6, couleur=sombre)
+    prim.bandeau(corps, depuis_bas=0, epaisseur=4, couleur=clair)
+    _serrure(corps, sombre)
     return corps
 
 
+def _serrure(img, couleur):
+    """Deux pixels sombres au-dessus de la barre, au milieu de la grande face.
+
+    La grande face est celle qui porte le plus de colonnes : la gauche le long
+    de u, la droite le long de v. L'autre n'a que l'épaisseur du rideau, et une
+    serrure sur sa tranche ne se lirait pas.
+    """
+    px = img.load()
+    faces = {}
+    for face in ("gauche", "droite"):
+        colonnes = {}
+        for x, y in img.info.get(face, ()):
+            colonnes.setdefault(x, []).append(y)
+        faces[face] = colonnes
+    colonnes = max(faces.values(), key=len)
+    x = sorted(colonnes)[len(colonnes) // 2]
+    ys = sorted(colonnes[x])
+    for y in ys[-7:-5]:
+        px[x, y] = couleur + (255,)
+
+
 def rideau_fer_casse(axe="u"):
-    corps = _mince("acier_sombre", 14, axe=axe)
+    """Après rupture : le rideau tombé, dans son acier, qui garde la trace."""
+    corps = _mince("galva", 14, axe=axe)
+    prim.lames(corps, pas=3, force=0.22)
     return prim.eventrer(corps, densite=0.24, graine=64)
 
 
@@ -793,7 +836,7 @@ DESTRUCTION = {
     "grille_ventilation": {"mode": "interaction", "touches": 3,
                            "ruine": "grille_ventilation_cassee",
                            "eclats": "eclats_metal", "son_rupture": "caisse_rupture"},
-    "rideau_fer": {"mode": "interaction", "touches": 20, "ruine": "rideau_fer_casse",
+    "rideau_fer": {"mode": "interaction", "touches": 12, "ruine": "rideau_fer_casse",
                    "eclats": "eclats_metal", "son_rupture": "caisse_rupture"},
 }
 

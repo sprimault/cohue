@@ -119,7 +119,7 @@
       "position": [81, 45]
     },
     {
-      "$comment": "Le rideau de fer ferme la percée sud, la seconde moitié du raccourci : forcer les deux coûte près de dix secondes sous la horde, ce qui fait du trajet par les marges un vrai choix.",
+      "$comment": "Le rideau de fer ferme la percée sud, la seconde moitié du raccourci : forcer les deux coûte plus de six secondes sous la horde, ce qui fait du trajet par les marges un vrai choix.",
       "objet": "rideau_fer",
       "position": [75, 52]
     },

@@ -257,7 +257,7 @@
       "bloquant": true,
       "destruction": {
         "mode": "interaction",
-        "touches": 20,
+        "touches": 12,
         "ruine": "rideau_fer_casse",
         "eclats": "eclats_metal",
         "son_rupture": "caisse_rupture"

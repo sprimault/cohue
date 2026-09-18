@@ -22,7 +22,7 @@ caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
 caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
 frappe 0
 obstacle 0 id=0 gen=1 sorte=3 x=5341184 y=2981888 touches=5
-obstacle 1 id=1 gen=1 sorte=2 x=4947968 y=3440640 touches=20
+obstacle 1 id=1 gen=1 sorte=2 x=4947968 y=3440640 touches=12
 obstacle 2 id=2 gen=1 sorte=0 x=4816896 y=2981888 touches=8
 obstacle 3 id=3 gen=1 sorte=1 x=5865472 y=3440640 touches=3
 flux vagues=905137858 positions=847631723 butin=983279043 cartes=812551215
@@ -58,7 +58,7 @@ caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
 caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
 frappe 0
 obstacle 0 id=0 gen=1 sorte=3 x=5341184 y=2981888 touches=5
-obstacle 1 id=1 gen=1 sorte=2 x=4947968 y=3440640 touches=20
+obstacle 1 id=1 gen=1 sorte=2 x=4947968 y=3440640 touches=12
 obstacle 2 id=2 gen=1 sorte=0 x=4816896 y=2981888 touches=8
 obstacle 3 id=3 gen=1 sorte=1 x=5865472 y=3440640 touches=3
 aimant 0 id=0 gen=1 x=4816896 y=884736
@@ -95,7 +95,7 @@ caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
 caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
 frappe 0
 obstacle 0 id=0 gen=1 sorte=3 x=5341184 y=2981888 touches=5
-obstacle 1 id=1 gen=1 sorte=2 x=4947968 y=3440640 touches=20
+obstacle 1 id=1 gen=1 sorte=2 x=4947968 y=3440640 touches=12
 obstacle 2 id=2 gen=1 sorte=0 x=4816896 y=2981888 touches=8
 obstacle 3 id=3 gen=1 sorte=1 x=5865472 y=3440640 touches=3
 aimant 0 id=0 gen=1 x=4816896 y=884736
@@ -149,7 +149,7 @@ caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
 caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
 frappe 0
 obstacle 0 id=0 gen=1 sorte=3 x=5341184 y=2981888 touches=5
-obstacle 1 id=1 gen=1 sorte=2 x=4947968 y=3440640 touches=20
+obstacle 1 id=1 gen=1 sorte=2 x=4947968 y=3440640 touches=12
 obstacle 2 id=2 gen=1 sorte=0 x=4816896 y=2981888 touches=8
 obstacle 3 id=3 gen=1 sorte=1 x=5865472 y=3440640 touches=3
 aimant 0 id=0 gen=1 x=4816896 y=884736

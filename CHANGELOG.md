@@ -42,6 +42,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+## [0.7.0] — 2026-09-18 — Ressources et caisses
+
 ### Ajouté
 
 - **Un lance-flammes pose une nappe de feu qui dure cinq secondes.** Quatrième
@@ -67,9 +69,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
   trop reste au sol : on revient la chercher une fois qu'on a bu.
 - **Des obstacles fragiles ferment certaines ouvertures, et Maj droite les
   force** — ou le 0 du pavé numérique. Grille de ventilation, vitrine, cloison
-  et rideau de fer cèdent en
-  trois, cinq, huit et douze touches, qu'on frappe en tenant la touche contre
-  eux : marteler ne va pas plus vite. Ils laissent une ruine qu'on traverse, et
+  et rideau de fer cèdent en trois, cinq, huit et douze touches, qu'on frappe en
+  tenant la touche contre eux : marteler ne va pas plus vite. Ils laissent une ruine qu'on traverse, et
   les touches portées restent acquises si l'on s'écarte. La ruelle du lieu de
   démonstration en ferme quatre.
 - **La grenade et le lance-flammes emportent un obstacle fragile entier**, dès
@@ -94,8 +95,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Deux caisses posées sur la même case sont refusées au chargement**, avec les
   deux rangs en cause : la première cassée rendrait la case au sol sous la
   seconde.
-- **Une caisse qui contient une arme lourde le montre**, par son icône posée
-  au-dessus d'elle. Sans rien, elle ne laisse que des gemmes : le détour se
+- **Une caisse qui contient une arme lourde ou une fiole le montre**, par son
+  icône posée au-dessus d'elle. Sans rien, elle ne laisse que des gemmes : le détour se
   décide avant d'y aller, au lieu de casser tout ce qu'on croise.
 
 ### Corrigé
@@ -132,9 +133,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **A vial is picked up by walking over it**, like a heavy weapon, and the one
   too many stays on the ground: you come back for it once you have drunk.
 - **Fragile obstacles close some openings, and right Shift forces them** — or
-  keypad 0. Ventilation grate, shop window, drywall partition and steel shutter give way
-  after three, five, eight and twelve hits, dealt by holding the key against
-  them: mashing it is no faster. They leave a ruin you can walk over, and hits
+  keypad 0. Ventilation grate, shop window, drywall partition and steel shutter
+  give way after three, five, eight and twelve hits, dealt by holding the key
+  against them: mashing it is no faster. They leave a ruin you can walk over, and hits
   already dealt are kept if you step away. The alley of the demonstration level
   closes four of them.
 - **The grenade and the flamethrower sweep away a whole fragile obstacle** as
@@ -158,7 +159,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
   broken, leaving its wreck where it stood.
 - **Two crates on the same tile are refused at load time**, naming both entries:
   the first one broken would hand the tile back to the floor under the second.
-- **A crate holding a heavy weapon shows it**, through its icon floating above.
+- **A crate holding a heavy weapon or a vial shows it**, through its icon
+  floating above.
   Bare, it holds nothing but gems: the detour is decided before you walk it,
   instead of breaking everything you pass.
 

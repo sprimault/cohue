@@ -48,10 +48,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
   arme lourde : elle brûle deux fois par seconde ce qui la traverse, sans dévier
   personne et sans vous atteindre. La horde passe au travers et fond — ce qui la
   traverse lentement y laisse plus que ce qui la franchit d'un pas.
-- **Une tourelle se pose là où l'on se tient, et tire sans vous.** Troisième arme
-  lourde : une charge la dépose, elle abat ce qui passe à sept tuiles, et elle
-  disparaît une fois ses six tirs dépensés. Posée dans un couloir vide, elle
-  attend — un tir ne part jamais sans cible, donc aucun ne se perd.
+- **Une tourelle se pose là où l'on se tient, et mitraille sans vous.** Troisième
+  arme lourde : une charge la dépose, elle arrose en balayant ce qui passe à sept
+  tuiles, dix tirs par seconde, et elle disparaît une fois ses cinquante tirs
+  dépensés. Posée dans un couloir vide, elle attend — un tir ne part jamais sans
+  cible, donc aucun ne se perd.
 - **Un fusil à pompe sort des caisses, et tire une gerbe de sept plombs.**
   Seconde arme lourde : portée courte, front large, huit charges. Là où la
   grenade frappe un point, il couvre une largeur — et il faut aller au contact
@@ -114,10 +115,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
   weapon: it burns whatever crosses it twice a second, deflecting no one and
   never reaching you. The horde walks straight through and melts — whatever
   crosses it slowly leaves more behind than whatever clears it in one stride.
-- **A turret drops where you stand, and fires without you.** Third heavy weapon:
-  one charge deploys it, it shoots down whatever passes within seven tiles, and
-  it vanishes once its six shots are spent. Left in an empty corridor, it waits —
-  a shot never leaves without a target, so none is wasted.
+- **A turret drops where you stand, and machine-guns without you.** Third heavy
+  weapon: one charge deploys it, it sweeps its fire across whatever passes
+  within seven tiles, ten shots a second, and it vanishes once its fifty shots
+  are spent. Left in an empty corridor, it waits — a shot never leaves without a
+  target, so none is wasted.
 - **A pump shotgun comes out of crates, firing a spray of seven pellets.**
   Second heavy weapon: short range, wide front, eight charges. Where the grenade
   strikes a point, it covers a width — and you have to close in for it to reach.

@@ -166,6 +166,10 @@ type Weapon struct {
 	// centrée : c'est la synergie « projectiles plus éventail » prise par l'autre
 	// bout. La carte reste offerte à qui n'a pas encore de front — les cartes ne
 	// s'auto-censurent pas —, et c'est son libellé qui doit le dire.
+	//
+	// **Une tourelle la lit dans le temps plutôt que dans la salve** : c'est la
+	// largeur que son canon balaie à la portée, d'un tir au suivant. Même unité,
+	// même point visé décalé — seul l'instant où l'écart s'applique change.
 	Spread Fixed
 	// Rail dit que le tir ne s'arrête plus sur rien de vivant, et Spray que la
 	// salve converge au point visé au lieu de s'en écarter.

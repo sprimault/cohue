@@ -91,6 +91,81 @@ func TestUneTourelleGardeSesTirsSansCible(t *testing.T) {
 	}
 }
 
+// TestLeBalayageVaDUnBordALAutre garde l'amplitude du va-et-vient.
+//
+// **Les deux bords atteints, et rien au-delà** : un balayage qui n'irait qu'à
+// mi-course arroserait un secteur deux fois plus étroit que ce que le manifeste
+// annonce, et un balayage qui déborderait tirerait dans le décor. Le cas parcourt
+// un aller-retour complet du rang de tir, ce qui est tout ce que l'écart lit.
+func TestLeBalayageVaDUnBordALAutre(t *testing.T) {
+	w, _ := champDeTir(t)
+	arme := w.lourdeDe(rangDeLArme(t, w, "tourelle"))
+	if arme.Spread == 0 {
+		t.Fatal("la tourelle livrée ne balaie pas : le cas ne pose pas la question")
+	}
+	n := int(balayage / arme.Cooldown)
+
+	bas, haut := Fixed(0), Fixed(0)
+	for k := range n {
+		e := balayer(&arme, k)
+		if e.Abs() > arme.Spread/2 {
+			t.Fatalf("écart %d au rang %d, au-delà de la demi-largeur %d", e, k, arme.Spread/2)
+		}
+		bas, haut = min(bas, e), max(haut, e)
+	}
+	if bas != -arme.Spread/2 || haut != arme.Spread/2 {
+		t.Errorf("le balayage va de %d à %d, attendu de %d à %d",
+			bas, haut, -arme.Spread/2, arme.Spread/2)
+	}
+}
+
+// TestLaTourelleArroseDesDeuxCotes garde le balayage dans le tir lui-même.
+//
+// **De part et d'autre de la cible, et pas seulement dessus** : c'est ce qui
+// sépare une mitrailleuse d'un tireur qui vise vite. Le côté se lit au sinus de
+// l'écart entre la course d'un tir et la direction de la cible, relevé au tick
+// où il part.
+//
+// **Au-delà de dix degrés, et le seuil n'est pas décoratif** : la cible bouge
+// entre la visée et le relevé, et ce bruit seul donnait des tirs des deux côtés
+// sur une tourelle qui ne balayait pas — la première version comptait le signe
+// et passait sans balayage.
+func TestLaTourelleArroseDesDeuxCotes(t *testing.T) {
+	w, profils := champDeTir(t)
+	w.arme = Weapon{}
+	tomber(t, w, "tourelle")
+	w.ramasserUneArme()
+	w.Trigger(0)
+	px, py := w.Player()
+	if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "bloqueur"), px+FromInt(5), py+One/3); !ok {
+		t.Fatal("créature refusée")
+	}
+
+	gauche, droite := 0, 0
+	for range balayage {
+		avant := w.Turrets().At(0).Shots
+		w.Step(Vec{})
+		if w.Turrets().Len() == 0 || w.Turrets().At(0).Shots == avant || w.Enemies().Len() == 0 {
+			continue
+		}
+		tir := w.Shots().At(w.Shots().Len() - 1)
+		tr, e := w.Turrets().At(0), w.Enemies().At(0)
+		vers := Vec{X: e.X - tr.X, Y: e.Y - tr.Y}
+		cote := float64(int64(tir.Step.X)*int64(vers.Y)-int64(tir.Step.Y)*int64(vers.X)) /
+			float64(One) / float64(One)
+		sinus := cote / tir.Step.Len().Float() / vers.Len().Float()
+		switch {
+		case sinus > 0.17:
+			gauche++
+		case sinus < -0.17:
+			droite++
+		}
+	}
+	if gauche == 0 || droite == 0 {
+		t.Errorf("%d tir(s) d'un côté, %d de l'autre : la tourelle ne balaie pas", gauche, droite)
+	}
+}
+
 // TestUneTourelleEpuiseeDisparait garde la fin de sa vie.
 //
 // Sans ce cas, une tourelle qui ne se retirerait jamais tiendrait sa place dans

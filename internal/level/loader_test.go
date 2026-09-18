@@ -59,8 +59,16 @@ var profils = &game.Profiles{Enemies: []game.EnemyProfile{{Key: "marcheur"}}}
 // généreuse évite qu'ils échouent pour une raison qui n'est pas la leur.
 const reportDeTest = 3 * game.TPS
 
+// obstaclesDeTest sont les obstacles fragiles que ces cas peuvent citer.
+//
+// Fournis plutôt que lus, comme les profils : ce qui se vérifie ici est qu'un nom
+// se résout ou se refuse, pas ce que le catalogue livré en dit.
+var obstaclesDeTest = []game.BreakableKind{{Key: "vitrine", Hits: 5}}
+
 // chargeur monte un chargeur de test sur un système de fichiers.
-func chargeur(fsys fs.FS) *Loader { return NewLoader(fsys, decorDeTest, profils, reportDeTest) }
+func chargeur(fsys fs.FS) *Loader {
+	return NewLoader(fsys, decorDeTest, profils, reportDeTest, obstaclesDeTest)
+}
 
 // chargeurDeTest monte un chargeur sur les fichiers de testdata.
 //

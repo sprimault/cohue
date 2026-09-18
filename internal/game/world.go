@@ -93,8 +93,9 @@ type World struct {
 	// qu'elles laissent : elles ne s'attirent pas, ne s'éteignent pas, et ne se
 	// ramassent pas — elles se cassent.
 	caisses *Pool[Crate]
-	// epaves sont les caisses cédées. Cosmétique, hors empreinte, et borné par le
-	// semis lui-même : chaque épave remplace la caisse qui l'a produite.
+	// epaves sont les caisses et les obstacles cédés. Cosmétique, hors
+	// empreinte, et borné par le semis lui-même : chaque épave remplace ce qui
+	// l'a produite.
 	epaves *Pool[Wreck]
 	// appuiCaisse est le temps de contact avant qu'une caisse cède, en ticks.
 	//
@@ -102,6 +103,19 @@ type World struct {
 	// n'en retient que cette moitié : le coût de traversée, l'autre moitié des
 	// mêmes règles, est écrit dans la grille avant que le monde existe.
 	appuiCaisse Tick
+	// cleCaisse est le nom de la caisse au catalogue, que son épave porte.
+	cleCaisse string
+	// obstacles sont les obstacles fragiles posés par le lieu, debout.
+	obstacles *Pool[Breakable]
+	// sortesObstacles est la table de ce qu'ils peuvent être, triée par nom.
+	sortesObstacles []BreakableKind
+	// frapper dit que le joueur tient la touche d'interaction à ce tick. Une
+	// entrée comme la direction voulue, consommée par le tick qui la lit.
+	frapper bool
+	// frappe est ce qui reste à attendre avant la frappe suivante. Il descend
+	// que la touche soit tenue ou non, et c'est ce qui empêche de frapper plus
+	// vite en la relâchant.
+	frappe Tick
 	// effets porte ce qui reste à l'écran d'une chose qui n'existe plus : les
 	// éclats d'une caisse, l'onde d'une déflagration. Entièrement cosmétique,
 	// donc hors de l'empreinte — et le seul bassin dont rien ne dépend.
@@ -279,6 +293,11 @@ type Capacities struct {
 	Gems int
 	// Crates est le nombre de caisses qu'un lieu peut porter.
 	Crates int
+	// Breakables est le nombre d'obstacles fragiles qu'un lieu peut porter.
+	//
+	// Le bassin des épaves se dimensionne sur la somme des deux : chaque épave
+	// remplace une caisse ou un obstacle, jamais rien d'autre.
+	Breakables int
 	// Drops est le nombre d'armes lourdes qui peuvent attendre au sol.
 	//
 	// Petit par nature : une arme ne s'efface pas, mais le joueur qui en laisse
@@ -324,13 +343,17 @@ type Capacities struct {
 // qu'il y trouve, et un coût apparu après coup casserait l'invariant de la file
 // de Dial, qui exige un seau de plus que la plus grande arête. La seconde moitié
 // de la règle est ce qui la rend durable — **en cours de partie un coût ne fait
-// que baisser** : une caisse cassée rend sa case au sol, et une ruine remplacera
-// un bloquant. Aucun des deux ne touche au compte des seaux.
+// que baisser** : une caisse cassée rend sa case au sol, un obstacle fragile
+// aussi. Aucun des deux ne touche au compte des seaux.
+//
+// Les obstacles fragiles tombent sous la même condition : leur case est déjà
+// bloquée dans la grille reçue, et `Erect` ne fait que poser les entités.
 func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, caisses CrateRules,
 	fioles VialRules, scenario *Scenario, grille *CostGrid, graine uint64,
 	capacites Capacities) *World {
 	return &World{
 		appuiCaisse: caisses.Press,
+		cleCaisse:   caisses.Key,
 		fiole:       fioles,
 		profils:     profils,
 		arme:        armes.Base,
@@ -350,7 +373,8 @@ func NewWorld(profils *Profiles, armes *Weapons, progression *Progression, caiss
 		ambiants:    NewPool[Ambient](capacites.Ambients),
 		gemmes:      NewPool[Gem](capacites.Gems),
 		caisses:     NewPool[Crate](capacites.Crates),
-		epaves:      NewPool[Wreck](capacites.Crates),
+		epaves:      NewPool[Wreck](capacites.Crates + capacites.Breakables),
+		obstacles:   NewPool[Breakable](capacites.Breakables),
 		armesAuSol:  NewPool[Drop](capacites.Drops),
 		fiolesAuSol: NewPool[Vial](capacites.Vials),
 		tourelles:   NewPool[Turret](capacites.Turrets),
@@ -548,6 +572,9 @@ func (w *World) Step(voulu Vec) {
 	// image au sol au moins, la durée de vie, l'aimant —, ce qui est ce que la
 	// conception attend d'un butin.
 	w.casser()
+	// Les obstacles fragiles cèdent avec les caisses et pour la même raison :
+	// ce qu'ils laissent entre au sol avant la récolte du tick suivant.
+	w.forcer()
 	w.tirer()
 	// **Ce qui tire au nom du joueur tire avec lui**, et c'est la règle plutôt
 	// que le cas : la prochaine chose qui tirera sans qu'il appuie — un piège, ce
@@ -566,6 +593,7 @@ func (w *World) Step(voulu Vec) {
 	w.retirerLesMorts()
 	w.franchir()
 
+	w.frapper = false
 	w.tick++
 }
 

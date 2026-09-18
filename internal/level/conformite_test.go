@@ -69,7 +69,15 @@ func TestLieuLivre(t *testing.T) {
 	if err != nil {
 		t.Fatalf("progression livrée : %v", err)
 	}
-	charge, err := NewLoader(cohue.Assets, decor, profils, progression.CarryOver).
+	objets, err := game.LoadObjects(cohue.Assets, "assets/objets/manifeste.json")
+	if err != nil {
+		t.Fatalf("objets livrés : %v", err)
+	}
+	obstacles, err := objets.Breakables()
+	if err != nil {
+		t.Fatalf("obstacles livrés : %v", err)
+	}
+	charge, err := NewLoader(cohue.Assets, decor, profils, progression.CarryOver, obstacles).
 		Load("assets/campagnes/demonstration/place")
 	if err != nil {
 		t.Fatalf("chargement du lieu : %v", err)

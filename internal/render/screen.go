@@ -341,6 +341,16 @@ var emplacement3 = []ebiten.Key{ebiten.Key3, ebiten.KeyNumpad3}
 // de sortes de consommables, et la seconde case arrivera avec la seconde sorte.
 var emplacement4 = []ebiten.Key{ebiten.Key4, ebiten.KeyNumpad4}
 
+// interaction est la touche qui force un obstacle fragile.
+//
+// **Sous la main droite, que le déplacement laisse libre.** E a été essayé et
+// écarté par une partie : en ZQSD l'index repose sur D, et tenir E l'en retire —
+// on frappe, mais on ne décroche plus sans relâcher d'abord, au moment précis où
+// la horde arrive. Maj droite se tient sans rien lâcher, et le 0 du pavé
+// numérique est la seconde place, à côté des emplacements que la même main y
+// tient déjà.
+var interaction = []ebiten.Key{ebiten.KeyShiftRight, ebiten.KeyNumpad0}
+
 // Update avance la simulation d'un pas, puis recadre.
 //
 // Un pas par appel et rien qui lise l'horloge : Ebitengine appelle cette méthode
@@ -397,6 +407,13 @@ func (s *Screen) Update() error {
 
 	if presse(repere) {
 		s.poserRepere()
+	}
+
+	// **Au maintien, à la différence des emplacements** : on force un obstacle
+	// en tenant la touche, une frappe par cadence. Marteler vingt fois un rideau
+	// de fer serait une corvée des doigts, pas une décision.
+	if enfonce(interaction...) {
+		s.monde.Interact()
 	}
 
 	s.monde.Step(voulu())
@@ -798,6 +815,8 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteEpave:
 			w := s.monde.Wrecks().At(e.place)
 			t = s.peindreEpave(ecran, w, e.identite)
+		case sorteObstacle:
+			t = s.peindreObstacle(ecran, s.monde.Breakables().At(e.place), e.identite)
 		case sorteCaisse:
 			c := s.monde.Crates().At(e.place)
 			// **La déformation dit qu'on est en train de casser**, et c'est tout
@@ -1159,8 +1178,10 @@ func (s *Screen) annoncerLeContenu(ecran *ebiten.Image, c *game.Crate) {
 	ecran.DrawImage(icone, &s.op)
 }
 
-// peindreEpave pose ce qu'une caisse a laissé : sa rupture tant qu'elle se
-// déroule, l'épave au sol ensuite.
+// peindreEpave pose ce qu'un objet cédé a laissé : sa rupture tant qu'elle se
+// déroule, sa ruine au sol ensuite. Un objet sans cycle de rupture — les
+// obstacles fragiles — passe directement à sa ruine, ses éclats disant la
+// rupture à sa place.
 //
 // **L'avancement se prend sur l'âge et non sur un décompte**, à l'inverse de
 // toutes les autres animations de ce fichier. La règle générale ancre sur la fin
@@ -1169,12 +1190,31 @@ func (s *Screen) annoncerLeContenu(ecran *ebiten.Image, c *game.Crate) {
 // cycle est chargé. Le reste s'en déduit, et `Once` retrouve son régime
 // habituel.
 func (s *Screen) peindreEpave(ecran *ebiten.Image, e *game.Wreck, identite int) trace {
-	rupture := s.objets.caisse.BreakCycle
-	if age, duree := s.monde.WreckAge(e), s.objets.duree(rupture); age < duree {
-		objet, img := s.objets.effet(rupture, duree-age)
+	d := s.objets.cassable(e.Object)
+	if age, duree := s.monde.WreckAge(e), s.objets.duree(d.BreakCycle); age < duree {
+		objet, img := s.objets.effet(d.BreakCycle, duree-age)
 		return s.poserObjet(ecran, objet, img, e.X, e.Y, nil)
 	}
-	return s.peindreObjet(ecran, s.objets.caisse.Ruin, e.X, e.Y, identite, nil)
+	return s.peindreObjet(ecran, s.objets.sens(d.Ruin, e.Across), e.X, e.Y, identite, nil)
+}
+
+// peindreObstacle pose un obstacle fragile debout, éclairé quand une touche
+// vient de porter.
+//
+// **L'éclair est le seul retour d'une touche qui ne casse pas encore.** Huit
+// secondes contre un rideau de fer sans lui ressembleraient à une touche qui ne
+// fait rien, et c'est ce qui sépare un prix qu'on paie d'un blocage qu'on subit.
+// C'est l'éclair des créatures, ajouté par-dessus le dessin et non multiplié.
+func (s *Screen) peindreObstacle(ecran *ebiten.Image, o *game.Breakable, identite int) trace {
+	nom := s.objets.sens(s.monde.BreakableKey(o.Kind), o.Across)
+	objet, img := s.objets.image(nom, s.monde.Tick(), identite)
+	t := s.poserObjet(ecran, objet, img, o.X, o.Y, nil)
+	if img != nil && o.Flash > 0 {
+		s.eclairer(ecran, img, teinteImpact)
+	}
+	i := sprite.Loop(objet.cycle, s.monde.Tick(), identite)
+	t.masque, t.forme, t.cache = objet.masque(i), objet.forme(i), objet.cache
+	return t
 }
 
 // peindreTrainee relie un tir à la place qu'il occupait au tick précédent.
@@ -1253,8 +1293,8 @@ func (s *Screen) peindreEffets(ecran *ebiten.Image) {
 		case game.FxBlast:
 			objet, img := s.objets.effet(objetSouffle, e.Life)
 			s.poserObjet(ecran, objet, img, e.X, e.Y, nil)
-		case game.FxCrate:
-			s.peindreVolee(ecran, s.objets.caisse.Shards, e.X, e.Y, age, e.Total)
+		case game.FxBreak:
+			s.peindreVolee(ecran, s.objets.cassable(e.Object).Shards, e.X, e.Y, age, e.Total)
 		case game.FxDamage:
 			s.peindreChiffre(ecran, e, age)
 		}

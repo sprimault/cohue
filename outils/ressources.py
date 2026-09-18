@@ -538,9 +538,25 @@ def manifestes(sortie):
             eclats = contenu.get(destruction.get("eclats") or "")
             if eclats and eclats.get("famille") != "particule":
                 defauts.append((nom, f"éclats « {destruction['eclats']} » : pas une particule"))
+
+            # Un pivot est le même objet le long de l'autre axe : son emprise est
+            # la sienne retournée, sans quoi le lieu poserait un panneau qu'on ne
+            # contourne pas où il est dessiné.
+            if "pivote" in info:
+                pivot = contenu.get(info["pivote"])
+                if pivot is None:
+                    defauts.append((nom, f"pivote renvoie à « {info['pivote']} », absent du manifeste"))
+                elif pivot.get("emprise") != list(reversed(info.get("emprise", []))):
+                    defauts.append((nom, f"pivote « {info['pivote']} » : emprise "
+                                         f"{pivot.get('emprise')}, attendu l'inverse de "
+                                         f"{info.get('emprise')}"))
+                elif pivot.get("bloquant") != info.get("bloquant"):
+                    defauts.append((nom, f"pivote « {info['pivote']} » : ne bloque pas comme lui"))
             if destruction.get("mode") == "interaction" and "touches" not in destruction:
                 defauts.append((nom, "destructible sans nombre de touches"))
             ruine = contenu.get(destruction.get("ruine") or "", {})
+            if ruine and "pivote" in info and "pivote" not in ruine:
+                defauts.append((nom, "pivote dans les deux sens, mais sa ruine dans un seul"))
             if ruine.get("bloquant"):
                 defauts.append((nom, "sa ruine bloque encore : casser n'ouvre rien"))
             # Une ruine plus haute ou aussi haute que son original signale une

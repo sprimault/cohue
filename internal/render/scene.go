@@ -26,6 +26,10 @@ const (
 	// pile au centre de la case qu'elle foule se peint alors devant elle, ce qui
 	// est le bon sens d'un trottoir sous des pieds.
 	sorteDecor sorte = iota
+	// sorteObstacle est un obstacle fragile debout. Il vient avec le décor, dont
+	// il a la nature tant qu'il tient : sa case bloque, et ce qui la longe se
+	// départage avec lui comme avec un mur.
+	sorteObstacle
 	// sorteEpave est ce qu'une caisse a laissé. Elle vient juste après le décor,
 	// donc elle passe sous tout ce qui partage sa profondeur : c'est l'exception
 	// que la conception donne aux cadavres, et pour la même raison — une trace
@@ -193,6 +197,7 @@ func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 	aimants := monde.Magnets()
 	caisses := monde.Crates()
 	epaves := monde.Wrecks()
+	obstacles := monde.Breakables()
 	armesAuSol := monde.Drops()
 	fiolesAuSol := monde.Vials()
 	tourelles := monde.Turrets()
@@ -265,6 +270,12 @@ func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 			for i := range caisses.Active() {
 				c := caisses.At(i)
 				s.ajouter(c.X, c.Y, caisses.IDAt(i), sorteCaisse, i)
+			}
+		}},
+		{obstacles.Cap(), func(s *scene) {
+			for i := range obstacles.Active() {
+				o := obstacles.At(i)
+				s.ajouter(o.X, o.Y, obstacles.IDAt(i), sorteObstacle, i)
 			}
 		}},
 		{armesAuSol.Cap(), func(s *scene) {

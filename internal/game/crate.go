@@ -313,8 +313,7 @@ func (w *World) casser() {
 		w.grille.Set(c.X.Floor(), c.Y.Floor(), c.Floor)
 		w.lacherEn(c.X, c.Y, w.progression.CrateGems)
 		w.lacherLeButin(c)
-		w.emettre(c.X, c.Y, FxCrate)
-		w.epaves.Spawn(Wreck{X: c.X, Y: c.Y, Born: w.tick})
+		w.ceder(c.X, c.Y, w.cleCaisse, false)
 		w.caisses.RemoveAt(i)
 		// **La place libérée n'est pas réexaminée**, à la différence de ce que
 		// faisait cette boucle quand une caisse n'avait pas d'état : la

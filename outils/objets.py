@@ -437,25 +437,33 @@ def caisse_cassee():
 # des obstacles ordinaires, la topologie reste donc validable — c'est ce qui
 # distingue une ouverture prévue d'un mur qui s'effondre sous la pression.
 
-def _mince(teinte, elevation, epaisseur=0.18, longueur=1.0):
-    return prim.volume(tx=longueur, ty=epaisseur, elevation=elevation,
+def _mince(teinte, elevation, epaisseur=0.18, longueur=1.0, axe="u"):
+    """Un panneau qui court le long d'un axe du lieu.
+
+    **L'autre axe se dessine, il ne se retourne pas.** Un miroir horizontal pose
+    la bonne géométrie — il échange u et v — mais garde l'ombrage : la grande
+    face claire se retrouverait du côté que le décor ombre, à côté du mur même
+    qui l'encadre.
+    """
+    tx, ty = (longueur, epaisseur) if axe == "u" else (epaisseur, longueur)
+    return prim.volume(tx=tx, ty=ty, elevation=elevation,
                        matiere=_matiere(f"_o_{teinte}", TEINTES[teinte]), bandes=2)
 
 
-def cloison_fragile():
+def cloison_fragile(axe="u"):
     """Placo : haute mais légère, deux montants apparents."""
-    corps = _mince("platre", 40)
+    corps = _mince("platre", 40, axe=axe)
     prim.nervures(corps, pas=9, force=0.10)
     return corps
 
 
-def cloison_fragile_cassee():
+def cloison_fragile_cassee(axe="u"):
     """Après rupture : un moignon bas, franchissable, qui garde la trace."""
-    corps = _mince("platre", 10)
+    corps = _mince("platre", 10, axe=axe)
     return prim.eventrer(corps, densite=0.26, graine=61)
 
 
-def vitrine():
+def vitrine(axe="u"):
     """Verre : le seul obstacle destructible qu'on voit à travers.
 
     Par `empiler` et non par un canevas monté à la main : la composition
@@ -463,8 +471,9 @@ def vitrine():
     quart de tuile — celle d'une fiole, pour une cloison mince que le champ de
     flux doit contourner sur toute sa longueur.
     """
-    cadre = _mince("acier_sombre", 34)
-    verre = prim.volume(tx=0.86, ty=0.10, elevation=26,
+    cadre = _mince("acier_sombre", 34, axe=axe)
+    tx, ty = (0.86, 0.10) if axe == "u" else (0.10, 0.86)
+    verre = prim.volume(tx=tx, ty=ty, elevation=26,
                         matiere=_matiere("_o_verre", TEINTES["verre"]), bandes=2)
     verre.putalpha(verre.getchannel("A").point(lambda v: 150 if v else 0))
     return prim.empiler((cadre, 0, 0),
@@ -472,34 +481,42 @@ def vitrine():
                          cadre.height - verre.height - 4))
 
 
-def vitrine_cassee():
+def vitrine_cassee(axe="u"):
     """Après rupture : le châssis bas, qui garde la trace de la devanture."""
-    cadre = _mince("acier_sombre", 12)
+    cadre = _mince("acier_sombre", 12, axe=axe)
     return prim.eventrer(cadre, densite=0.30, graine=62)
 
 
-def grille_ventilation():
+def grille_ventilation(axe="u"):
     """Bouche d'aération : basse, elle se casse vite et ouvre un raccourci."""
-    corps = _mince("acier", 22, epaisseur=0.16, longueur=0.7)
+    corps = _mince("acier", 22, epaisseur=0.16, longueur=0.7, axe=axe)
     prim.nervures(corps, pas=3, force=0.22)
     return corps
 
 
-def grille_ventilation_cassee():
-    corps = _mince("acier", 8, epaisseur=0.16, longueur=0.7)
+def grille_ventilation_cassee(axe="u"):
+    corps = _mince("acier", 8, epaisseur=0.16, longueur=0.7, axe=axe)
     return prim.eventrer(corps, densite=0.32, graine=63)
 
 
-def rideau_fer():
+def rideau_fer(axe="u"):
     """Rideau de boutique : le plus résistant des trois, et le plus voyant."""
-    corps = _mince("acier_sombre", 46)
+    corps = _mince("acier_sombre", 46, axe=axe)
     prim.nervures(corps, pas=4, force=0.16)
     return corps
 
 
-def rideau_fer_casse():
-    corps = _mince("acier_sombre", 14)
+def rideau_fer_casse(axe="u"):
+    corps = _mince("acier_sombre", 14, axe=axe)
     return prim.eventrer(corps, densite=0.24, graine=64)
+
+
+# Les panneaux qui se posent dans les deux sens, et le nom de leur dessin le long
+# de v. **Le renvoi s'écrit au manifeste, sous `pivote`** : le moteur le lit
+# comme il lit une ruine, sans savoir comment le nom se construit.
+PIVOTES = {nom: f"{nom}_v" for nom in (
+    "cloison_fragile", "cloison_fragile_cassee", "vitrine", "vitrine_cassee",
+    "grille_ventilation", "grille_ventilation_cassee", "rideau_fer", "rideau_fer_casse")}
 
 
 
@@ -784,6 +801,7 @@ DESTRUCTION = {
 # l'intérêt d'avoir cassé quelque chose.
 BLOQUANTS = {"palette", "cloison_fragile", "vitrine",
              "grille_ventilation", "rideau_fer"}
+BLOQUANTS |= {PIVOTES[nom] for nom in BLOQUANTS if nom in PIVOTES}
 
 # Ce qui se franchit en payant, et le prix en pas.
 #
@@ -908,7 +926,11 @@ def main():
     o.sortie.mkdir(parents=True, exist_ok=True)
     manifeste = {}
 
-    for nom, fabrique in CATALOGUE.items():
+    fabriques = dict(CATALOGUE)
+    for nom, pivote in PIVOTES.items():
+        fabriques[pivote] = lambda f=CATALOGUE[nom]: f(axe="v")
+
+    for nom, fabrique in fabriques.items():
         brut = fabrique()
         # Une emprise absente n'est pas une petite emprise. Elle se perd dès
         # qu'une forme recompose ses volumes dans une image neuve, et un défaut
@@ -959,6 +981,8 @@ def main():
             manifeste[nom]["taille_icone"] = list(icone.size)
         if nom in DESTRUCTION:
             manifeste[nom]["destruction"] = DESTRUCTION[nom]
+        if nom in PIVOTES:
+            manifeste[nom]["pivote"] = PIVOTES[nom]
         if nom in SONS:
             manifeste[nom]["son"] = SONS[nom]
         if nom in FAMILLES_SONS:

@@ -64,6 +64,17 @@ publié, et explique les conventions du dépôt à qui y contribue.
   autrement que par la soupape d'une montée de niveau.
 - **Une fiole se ramasse en marchant dessus**, comme une arme lourde, et celle de
   trop reste au sol : on revient la chercher une fois qu'on a bu.
+- **Des obstacles fragiles ferment certaines ouvertures, et Maj droite les
+  force** — ou le 0 du pavé numérique. Grille de ventilation, vitrine, cloison
+  et rideau de fer cèdent en
+  trois, cinq, huit et vingt touches, qu'on frappe en tenant la touche contre
+  eux : marteler ne va pas plus vite. Ils laissent une ruine qu'on traverse, et
+  les touches portées restent acquises si l'on s'écarte. La ruelle du lieu de
+  démonstration en ferme quatre.
+- **Un lieu pose ses obstacles sous la clé `destructibles`**, chacun avec son
+  `objet`, sa `position` et une `orientation` facultative, `u` ou `v`. Un
+  obstacle dans un mur, ou sur une caisse, un figurant ou un autre obstacle, est
+  refusé au chargement.
 
 ### Modifié
 
@@ -113,6 +124,16 @@ publié, et explique les conventions du dépôt à qui y contribue.
   level-up relief card.
 - **A vial is picked up by walking over it**, like a heavy weapon, and the one
   too many stays on the ground: you come back for it once you have drunk.
+- **Fragile obstacles close some openings, and right Shift forces them** — or
+  keypad 0. Ventilation grate, shop window, drywall partition and steel shutter give way
+  after three, five, eight and twenty hits, dealt by holding the key against
+  them: mashing it is no faster. They leave a ruin you can walk over, and hits
+  already dealt are kept if you step away. The alley of the demonstration level
+  closes four of them.
+- **A level places its obstacles under the `destructibles` key**, each with its
+  `objet`, its `position` and an optional `orientation`, `u` or `v`. An obstacle
+  inside a wall, or on a crate, an extra or another obstacle, is refused at load
+  time.
 
 ### Changed
 

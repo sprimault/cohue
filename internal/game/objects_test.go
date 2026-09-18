@@ -135,7 +135,7 @@ func TestUnePassabiliteQuiSeContreditEstRefusee(t *testing.T) {
 			"cassé au contact sans coût",
 			`"caisse": {"famille": "monde", "bloquant": false,
 			 "destruction": {"mode": "contact", "delai_ms": 330,
-			  "ruine": "epave", "eclats": "bois"}}`,
+			  "ruine": "epave", "eclats": "eclats_bois"}}`,
 			"sans cout_traversee",
 		},
 		{

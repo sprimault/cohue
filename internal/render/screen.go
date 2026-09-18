@@ -1254,7 +1254,7 @@ func (s *Screen) peindreEffets(ecran *ebiten.Image) {
 			objet, img := s.objets.effet(objetSouffle, e.Life)
 			s.poserObjet(ecran, objet, img, e.X, e.Y, nil)
 		case game.FxCrate:
-			s.peindreVolee(ecran, objetEclatsCaisse, e.X, e.Y, age, e.Total)
+			s.peindreVolee(ecran, s.objets.caisse.Shards, e.X, e.Y, age, e.Total)
 		case game.FxDamage:
 			s.peindreChiffre(ecran, e, age)
 		}

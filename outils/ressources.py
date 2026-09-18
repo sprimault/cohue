@@ -529,13 +529,15 @@ def manifestes(sortie):
             # Un renvoi qui ne pointe nulle part casse le jeu au moment précis
             # où l'objet est détruit, c'est-à-dire le plus tard possible.
             destruction = info.get("destruction", {})
-            for cle in ("ruine", "cycle_appui", "cycle_rupture"):
+            for cle in ("ruine", "eclats", "cycle_appui", "cycle_rupture"):
                 cible = destruction.get(cle)
                 if cible and cible not in contenu:
                     defauts.append((nom, f"{cle} renvoie à « {cible} », absent du manifeste"))
-            matiere = destruction.get("eclats")
-            if matiere and f"eclats_{matiere}" not in contenu:
-                defauts.append((nom, f"éclats « {matiere} » sans particules générées"))
+            # Le nom ne garantit plus la nature, depuis qu'il n'est plus bâti sur
+            # la matière : une ruine désignée par erreur serait volée en éclats.
+            eclats = contenu.get(destruction.get("eclats") or "")
+            if eclats and eclats.get("famille") != "particule":
+                defauts.append((nom, f"éclats « {destruction['eclats']} » : pas une particule"))
             if destruction.get("mode") == "interaction" and "touches" not in destruction:
                 defauts.append((nom, "destructible sans nombre de touches"))
             ruine = contenu.get(destruction.get("ruine") or "", {})

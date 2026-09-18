@@ -760,20 +760,24 @@ def caisse_rupture(images=3):
 #
 # `touches` est en touches de l'arme de base au premier niveau, même unité que
 # la résistance des créatures.
+#
+# `eclats` nomme l'objet à projeter, comme `ruine` et les cycles nomment le
+# leur : la matière est dans ce nom, et le moteur lit le renvoi sans avoir à
+# savoir comment on le construit.
 DESTRUCTION = {
     "caisse": {"mode": "contact", "delai_ms": 330, "ruine": "caisse_cassee",
-               "eclats": "bois", "cycle_appui": "caisse_appui",
+               "eclats": "eclats_bois", "cycle_appui": "caisse_appui",
                "cycle_rupture": "caisse_rupture",
                "son_appui": "caisse_appui", "son_rupture": "caisse_rupture"},
     "cloison_fragile": {"mode": "interaction", "touches": 8, "ruine": "cloison_fragile_cassee",
-                        "eclats": "platre", "son_rupture": "caisse_rupture"},
+                        "eclats": "eclats_platre", "son_rupture": "caisse_rupture"},
     "vitrine": {"mode": "interaction", "touches": 5, "ruine": "vitrine_cassee",
-                "eclats": "verre", "son_rupture": "caisse_rupture"},
+                "eclats": "eclats_verre", "son_rupture": "caisse_rupture"},
     "grille_ventilation": {"mode": "interaction", "touches": 3,
                            "ruine": "grille_ventilation_cassee",
-                           "eclats": "metal", "son_rupture": "caisse_rupture"},
+                           "eclats": "eclats_metal", "son_rupture": "caisse_rupture"},
     "rideau_fer": {"mode": "interaction", "touches": 20, "ruine": "rideau_fer_casse",
-                   "eclats": "metal", "son_rupture": "caisse_rupture"},
+                   "eclats": "eclats_metal", "son_rupture": "caisse_rupture"},
 }
 
 # Ce qui arrête un déplacement. Les ruines ne bloquent plus : c'est tout

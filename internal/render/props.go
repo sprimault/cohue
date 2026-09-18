@@ -43,13 +43,9 @@ const (
 	// dessin taillé pour lui se périmerait au premier réglage — et il ne suivrait
 	// plus la zone que les impulsions appliquent.
 	objetFlammes = "flammes"
-	// La matière d'une caisse. **C'est le rendu qui la sait**, parce que c'est
-	// lui qui lit le manifeste où elle est déclarée : la simulation dit qu'une
-	// caisse a cédé, ce qui est un fait de jeu, et s'arrête là.
-	objetEclatsCaisse = "eclats_bois"
-	// La matière d'une déflagration : rien ne vole d'une Baudruche qui explose,
-	// l'onde suffit. Le jour où elle laissera des éclats de chair, c'est ici que
-	// leur nom s'écrira.
+	// Rien ne vole d'une Baudruche qui explose, l'onde suffit. Le jour où elle
+	// laissera des éclats de chair, leur nom viendra de son profil, comme celui
+	// d'une caisse vient de sa clé `destruction` — pas d'une constante ici.
 )
 
 // Stage porte les objets d'une partie, convertis une fois.
@@ -68,8 +64,8 @@ type Stage struct {
 	// qui les détache d'un sol clair. Le bandeau n'en a pas besoin : ses cases
 	// sont sombres, et c'est pour elles que les icônes ont été dessinées.
 	bordsDIcone map[string]*ebiten.Image
-	// caisse porte ce que le manifeste attache à la caisse : ses deux cycles et
-	// sa ruine.
+	// caisse porte ce que le manifeste attache à la caisse : ses deux cycles, sa
+	// ruine et ses éclats.
 	//
 	// **Lus au catalogue plutôt qu'écrits ici**, à la différence des noms
 	// ci-dessus, et la nuance tient à qui choisit. Le rendu décide qu'une gemme
@@ -151,12 +147,13 @@ func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, 
 	// pose celle que le monde lui donne. Les nommer en dur demanderait d'y revenir
 	// à chaque arme ajoutée.
 	//
-	// Les trois dessins d'une caisse qui cède viennent du catalogue pour la même
+	// Les quatre dessins d'une caisse qui cède viennent du catalogue pour la même
 	// raison : sa clé `destruction` les nomme déjà.
 	noms := append([]string{
 		objetGemme, objetAimant, objetCaisse, objetFiole, objetTir, objetTirHorde,
-		objetEtincelle, objetSouffle, objetFlammes, objetEclatsCaisse,
+		objetEtincelle, objetSouffle, objetFlammes,
 		scene.caisse.PressCycle, scene.caisse.BreakCycle, scene.caisse.Ruin,
+		scene.caisse.Shards,
 	}, catalogue.Weapons()...)
 
 	for _, nom := range noms {

@@ -424,7 +424,7 @@ Point de départ proposé : **100 de vie, plafond à 20 par seconde, fiole à 30
 
 La règle qui compte plus que les valeurs : **la vie ne se régénère pas seule**. Elle ne revient que par les fioles trouvées dans les caisses. Sans cela, attendre devient une stratégie et le joueur prudent finit par jouer un autre jeu que celui qu'on a écrit — or ici la seule ressource véritablement rare doit être la vie.
 
-Une fiole ne dépasse jamais le maximum : le surplus est perdu, ce qui donne au joueur une raison de ne pas la boire tout de suite et fait de ses deux emplacements de consommables une petite décision de plus.
+Une fiole ne dépasse jamais le maximum : le surplus est perdu, ce qui donne au joueur une raison de ne pas la boire tout de suite et fait de chaque fiole tenue une petite décision de plus.
 
 **Le plafond ne couvre que le contact continu.** La charge du Molosse et l'explosion de la Baudruche s'y ajoutent sans en relever. C'est le contact qui rend la mort illisible en masse — trente corps collés dont on ne distingue pas la contribution —, alors qu'une charge télégraphée ou un anneau qui s'élargit sont deux choses qu'on a vues venir et qu'on n'a pas esquivées. Les plafonner ensemble ferait qu'une meute de trois Molosses infligerait ce qu'un seul inflige, et le télégraphe n'annoncerait plus rien.
 
@@ -486,7 +486,7 @@ Ce que cela établit est la cohérence entre un score et un journal, ce qui suff
 
 Le joueur casse une caisse **en la traversant**. Aucune touche, aucun conflit avec l'auto-visée, et ça le garde en mouvement.
 
-Ce que la caisse laisse est une volée de gemmes, une arme lourde de temps en temps, et une fiole sur ce qui reste. **Ce qui reste à écrire de ce chapitre sont les obstacles destructibles**, plus bas ; le délai d'appui, le ralentissement, le coût dans le champ de flux, l'annonce du contenu et les consommables sont livrés.
+Ce que la caisse laisse est une volée de gemmes, une arme lourde de temps en temps, et une fiole sur ce qui reste. **Ce qui reste à écrire de ce chapitre est ce qu'une arme lourde emporte**, plus bas ; le délai d'appui, le ralentissement, le coût dans le champ de flux, l'annonce du contenu, les consommables et les obstacles destructibles sont livrés.
 
 **Elle n'est pas une cible**, et c'est la règle qui coûterait cher à rétablir plus tard. Rangée parmi les ennemis, elle détournerait la visée automatique — qui prend la plus proche sans que le joueur choisisse — et emporterait avec elle la mécanique du Secouriste ; c'est la même règle que pour le figurant, et pour la même raison.
 
@@ -498,7 +498,7 @@ Trois règles rendent la mécanique juste :
 
 **Un temps de contact.** Pas de destruction au frôlement : la caisse cède après environ un tiers de seconde d'appui, avec une déformation visible pendant le délai. On ne casse pas en passant, on casse en décidant d'y aller.
 
-Ce délai a ses propres images : un cycle d'appui qui boucle tant que le joueur pousse — la caisse s'écrase en s'élargissant —, puis un cycle de rupture qui ne boucle pas et s'achève sur l'épave au sol. Sans ces images, le joueur ne sait pas qu'il casse quelque chose et croit à un blocage.
+Ce délai a ses propres images : un cycle d'appui qui se dérive du décompte — la caisse s'écrase en s'élargissant, et l'écrasement se complète à l'instant où elle cède —, puis un cycle de rupture qui s'achève sur l'épave au sol. Sans ces images, le joueur ne sait pas qu'il casse quelque chose et croit à un blocage. **L'appui ne boucle pas** : cadencé sur le tick, sa phase n'aurait aucun rapport avec la poussée, et l'on toucherait une caisse déjà écrasée qui se redresserait ensuite.
 
 **Un ralentissement pendant le contact.** C'est le vrai coût de la ressource, et le seul qui compte : ramasser, c'est perdre du terrain. Sans ça, il n'y a plus de choix, on ramasse tout, tout le temps.
 
@@ -549,9 +549,19 @@ En revanche, l'auteur d'un niveau peut poser des **obstacles fragiles**, prévus
 
 Ils se cassent **sur une touche d'interaction**, en se tenant contre eux, et jamais sous le tir de base — qui ne cible que des ennemis et ne saurait pas distinguer un rideau de fer d'une créature.
 
+**La touche se tient, elle ne se martèle pas.** Tenue, elle frappe une touche à la cadence de l'arme de base au premier niveau — celle de la table, que les paliers ne montent pas : un rideau de fer qui céderait plus vite à la dixième minute mesurerait la build au lieu du prix de l'ouverture. Relâcher ne remet pas la cadence à zéro, sans quoi marteler irait plus vite que tenir, et vingt appuis seraient une corvée des doigts plutôt qu'une décision. Chaque touche éclaire l'obstacle, seul retour d'une frappe qui ne casse pas encore. **Elle est sous la main droite** — Maj droite, ou le 0 du pavé numérique — parce que la gauche tient le déplacement : une touche voisine de ZQSD en retire un doigt, et l'on ne décroche plus sans la relâcher d'abord, au moment précis où la horde arrive.
+
+Une touche ne porte que sur l'obstacle le plus proche, à moins d'une tuile de son centre. **Une tuile, parce que la géométrie la fixe** : l'obstacle bloque sa case, si bien que le joueur s'en approche au mieux à une demi-tuile de face et à sept dixièmes par un coin — une portée posée sur l'une de ces bornes paraîtrait marcher et ne toucherait jamais. Et **rien ne se remet à neuf quand on s'écarte**, à l'inverse de l'appui d'une caisse : revenir finir un rideau entamé est une décision que le jeu doit payer, pas effacer.
+
+**Un obstacle se pose dans un sens**, le long de `u` par défaut, le long de `v` quand le lieu le dit. Trois des quatre sont des panneaux d'une case sur un cinquième, et sans le sens une vitrine ne fermerait que les murs qui courent dans une direction. L'autre sens est **dessiné et non retourné** : un miroir horizontal échange bien les deux axes, mais il garde l'ombrage, et la grande face claire se retrouverait du côté que le décor ombre — à côté du mur même qui l'encadre.
+
+**Il se pose au débouché d'une percée plutôt qu'à son entrée**, ce qui est une consigne d'auteur et non une règle du chargeur. Un mur peint plus bas à l'écran recouvre ce qui est au-dessus de lui : un panneau de trente-quatre pixels posé au fond d'un passage creusé entre des murs de soixante-quatre y disparaît entier, et un obstacle qu'on ne voit pas ne se choisit pas.
+
 Ce qui les sépare de la caisse n'est donc pas la nature du dégât mais le geste : la caisse cède à l'appui, en la traversant, et n'interrompt pas la course ; un destructible demande de s'arrêter et d'appuyer. C'est ce qui donne son prix aux vingt touches du rideau de fer — vingt touches immobile sous la horde, contre un tiers de seconde de ralentissement pour une caisse. Les armes lourdes, elles, emportent ce qui se trouve dans leur zone, destructibles compris : c'est un usage de plus pour une charge, et une raison d'en garder une.
 
-Deux conséquences reprises de la caisse : ils sont bloquants dans le champ de flux tant qu'ils tiennent, et leur destruction déclenche un rafraîchissement local du champ, pas un BFS complet. Chacun laisse une ruine basse, franchissable, qui garde la trace de ce qui a été ouvert.
+Deux conséquences reprises de la caisse : ils sont bloquants dans le champ de flux tant qu'ils tiennent, et leur destruction rend la case au sol sans appeler aucun rafraîchissement — le champ se rebâtit entier tous les six ticks, pour la raison écrite plus haut. Chacun laisse une ruine basse, franchissable, qui garde la trace de ce qui a été ouvert.
+
+**Ils ne se posent que là où l'on passe, et jamais sur ce qu'ils emmureraient.** Une case de mur est refusée — un obstacle ferme une ouverture, et dans un mur il ne fermerait rien —, comme une case que porte déjà une caisse, un figurant ou un autre obstacle : ce qui s'y trouverait deviendrait inatteignable. Ce que chacun encaisse ne s'écrit pas dans le lieu, pour la raison qui garde le butin d'une caisse hors du lieu : une vitrine signifie la même chose partout.
 
 L'intérêt de jeu est le prix : casser un rideau de fer coûte des secondes pendant lesquelles la horde arrive. Fuir par là est un choix, pas une porte de sortie gratuite.
 
@@ -565,7 +575,7 @@ Ce ne sont pas des animations mais des **particules** : trois formes par matièr
 
 Deux conséquences assumées. Les éclats d'une même volée **retombent ensemble**, là où des durées propres les auraient échelonnés : à un tiers de seconde et huit fragments de huit pixels, l'œil ne fait pas la différence. Et **aucun ne tourne sur lui-même** : la rotation demanderait de dessiner chaque forme sous plusieurs angles ou de la faire pivoter au rendu, ce qui casse le pixel entier. Ce que les trois formes par matière apportent tient déjà lieu de variété.
 
-**Le bassin est le premier entièrement cosmétique**, celui que le chapitre 15 décrit pour les cadavres : il n'entre dans aucune empreinte, ne consomme aucun tirage, et une run simulée sans rendu peut ne pas l'alimenter. Ce qu'il enregistre est un fait de jeu — une caisse a cédé ici, une déflagration est partie là —, jamais une matière : celle-ci se lit dans le manifeste des objets, que le rendu est seul à ouvrir.
+**Le bassin est le premier entièrement cosmétique**, celui que le chapitre 15 décrit pour les cadavres : il n'entre dans aucune empreinte, ne consomme aucun tirage, et une run simulée sans rendu peut ne pas l'alimenter. Ce qu'il enregistre est un fait de jeu — telle vitrine a cédé ici, une déflagration est partie là —, jamais une matière : le rendu lit dans le manifeste les éclats et la ruine de l'objet nommé. La caisse et l'obstacle fragile passent donc par le même chemin, et ce qui les distingue à l'écran n'est écrit que dans le fichier.
 
 Deux effets font exception et sont bien des animations, parce qu'ils ont une géométrie propre. L'**étincelle** d'impact, trois images très courtes, qui ne dit pas ce qui a été touché mais que le tir a porté : c'est le retour qui manque le plus quand on tire sans le voir. Et le **souffle** de la Baudruche, cinq images d'anneaux qui s'élargissent et s'étalent dans le plan du sol — francs, jamais dégradés, un fondu lissé virerait à la tache brune une fois quantifié.
 
@@ -1080,11 +1090,12 @@ Un dossier de lieu se reconnaît alors sans être ouvert, et renommer un lieu se
   },
   "ambiance": [{ "profil": "civil", "position": [45, 45] }],
   "caisses": [{ "position": [35, 35] }],
+  "destructibles": [{ "objet": "vitrine", "position": [81, 45], "orientation": "u" }],
   "sortie": { "position": [97, 49], "abattus": 100 }
 }
 ```
 
-**Les axes sont `u` et `v`**, ceux que ce document pose plus haut ; un lieu écrit avec `x` et `y` est refusé, le décodage n'admettant aucune clé inconnue. Les quatre derniers champs sont facultatifs : un lieu sans `vagues` ne fait rien apparaître, un lieu sans `sortie` ne se gagne pas.
+**Les axes sont `u` et `v`**, ceux que ce document pose plus haut ; un lieu écrit avec `x` et `y` est refusé, le décodage n'admettant aucune clé inconnue. Les cinq derniers champs sont facultatifs : un lieu sans `vagues` ne fait rien apparaître, un lieu sans `sortie` ne se gagne pas. Un obstacle destructible nomme un objet du catalogue, et `orientation` dit le long de quel axe il court — `u` quand elle est absente.
 
 **Ce qui manque encore à cet exemple attend son étape**, et rien de plus : `empreinte_jeu_pieces`, que l'étape 12 apporte avec le partage ; `pieces_personnalisees`, que le mode tuiles remplira à l'étape 14. La rotation des pièces n'y manque pas : elle est entérinée absente jusqu'à l'étape 11, et un champ que rien ne lit ne reste pas dans un format qui circule.
 
@@ -1301,11 +1312,11 @@ Côté **sons** : durée, gain, bouclage, et une **catégorie de mixage** — le
 
 Côté **objets** : emprise, élévation, catégorie et masquage — les trois mêmes que le décor, et pour la même raison, un rideau de fer culmine à 46 pixels et masque un personnage —, ce qui bloque et ce que la traversée coûte, ce qui détruit, ce qui est projeté, ce qui est entendu, et les valeurs de jeu qui restent — soin d'une fiole, charges d'une arme lourde.
 
-Le couple `bloquant` et `cout_traversee` y suit la règle du décor — le fait porte le booléen, la valeur ne se déclare que quand il est faux — mais **la moitié qui exige un coût sur ce qui se franchit ne s'y transpose pas** : la plupart des objets ne sont sur aucune grille, et la leur réclamer leur inventerait une passabilité. Ce qui prend sa place est le mode de destruction : **ce qu'on casse en le traversant doit pouvoir se traverser et coûter**, faute de quoi le délai s'écoule pendant qu'on est déjà de l'autre côté. Un bloc `destruction` porte le mode — `contact` pour la caisse, où le délai est la mécanique elle-même, `interaction` pour les obstacles fragiles —, le nombre de touches, le nom de la ruine et celui des éclats — `eclats_verre` et non `verre` : un renvoi nomme un objet du catalogue, comme la ruine, et la matière n'a pas à se reconstruire en le lisant —, les cycles d'appui et de rupture, et les clés de sons. Le moteur ne code donc rien en dur : un futur obstacle se déclare dans une table.
+Le couple `bloquant` et `cout_traversee` y suit la règle du décor — le fait porte le booléen, la valeur ne se déclare que quand il est faux — mais **la moitié qui exige un coût sur ce qui se franchit ne s'y transpose pas** : la plupart des objets ne sont sur aucune grille, et la leur réclamer leur inventerait une passabilité. Ce qui prend sa place est le mode de destruction : **ce qu'on casse en le traversant doit pouvoir se traverser et coûter**, faute de quoi le délai s'écoule pendant qu'on est déjà de l'autre côté. Un bloc `destruction` porte le mode — `contact` pour la caisse, où le délai est la mécanique elle-même, `interaction` pour les obstacles fragiles —, le nombre de touches, le nom de la ruine et celui des éclats — `eclats_verre` et non `verre` : un renvoi nomme un objet du catalogue, comme la ruine, et la matière n'a pas à se reconstruire en le lisant —, les cycles d'appui et de rupture, et les clés de sons. Un objet qui se pose dans les deux sens nomme sous `pivote` son dessin le long de `v`, et sa ruine fait de même. Le moteur ne code donc rien en dur : un futur obstacle se déclare dans une table.
 
 Un renvoi de son dit **s'il nomme un fichier ou une famille**. `son` désigne l'un, `famille_sons` une suite de degrés — `gemme_0` à `gemme_7` — que le moteur parcourt en avançant d'un cran à chaque déclenchement rapproché, et qu'il reprend au premier après un silence. Deux clés plutôt qu'une seule à interpréter : sans la distinction, le contrôle ne peut que comparer des préfixes, et accepte alors « gem » et « g » aussi bien que « gemme ».
 
-Le contrôle vérifie la cohérence de ces renvois — une ruine qui n'existe pas, des éclats sans particules générées, un destructible sans nombre de touches, une ruine qui bloque encore, **une ruine qui n'est pas plus basse que son original**, un son introuvable au nom exact, **une famille de sons dont la suite de degrés a un trou**. Ce sont des défauts qui ne se manifestent qu'au moment de la destruction, c'est-à-dire le plus tard possible et souvent chez un joueur.
+Le contrôle vérifie la cohérence de ces renvois — une ruine qui n'existe pas, des éclats qui ne sont pas des particules, un pivot dont l'emprise n'est pas la sienne retournée, une ruine qui ne pivote pas avec son objet, un destructible sans nombre de touches, une ruine qui bloque encore, **une ruine qui n'est pas plus basse que son original**, un son introuvable au nom exact, **une famille de sons dont la suite de degrés a un trou**. Ce sont des défauts qui ne se manifestent qu'au moment de la destruction, c'est-à-dire le plus tard possible et souvent chez un joueur.
 
 Deux de ces contrôles ont été écrits après coup, sur des défauts que la liste promettait de couvrir et ne couvrait pas : une vitrine dont la ruine culminait aussi haut que la devanture intacte, et un renvoi de son que la comparaison par préfixe validait par accident. Un contrôle qui passe par accident est pire qu'absent — on se croit couvert.
 

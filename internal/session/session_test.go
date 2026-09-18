@@ -293,6 +293,53 @@ func TestLaRelanceReposeLesCaisses(t *testing.T) {
 	}
 }
 
+// TestLaRelanceRedresseLesObstacles garde ce que la salle redevient après une
+// mort.
+//
+// **L'entité et sa case, et c'est la seconde qui se perdrait.** Un obstacle
+// forcé rend sa case au sol ; un montage qui redresserait l'entité sans rebloquer
+// la case laisserait un obstacle debout à l'écran et franchissable pour tous, et
+// rien ne dirait lequel des deux ment. Que la carte du lieu reste intacte, elle,
+// est gardé par `TestUnePartieNecritPasDansLaCarteDuLieu`.
+func TestLaRelanceRedresseLesObstacles(t *testing.T) {
+	partie, err := Open(cohue.Assets, cohue.StartingCampaign, graineDeTest)
+	if err != nil {
+		t.Fatalf("montage de la partie livrée : %v", err)
+	}
+	semis := partie.World.Breakables().Len()
+	if semis == 0 {
+		t.Fatal("le lieu livré ne pose aucun obstacle : ce cas ne garde rien")
+	}
+
+	// Le joueur est posé contre le premier plutôt que promené jusqu'à lui, pour
+	// la raison qui pose le joueur sur une caisse ci-dessus.
+	o := *partie.World.Breakables().At(0)
+	u, v := o.X.Floor(), o.Y.Floor()
+	if partie.Grid.Passable(u, v) {
+		t.Fatalf("la case (%d, %d) d'un obstacle debout se franchit", u, v)
+	}
+	partie.World.Place(o.X, o.Y+game.One*7/10)
+	for partie.World.Breakables().Len() == semis {
+		if !partie.World.Alive() {
+			t.Fatal("mort sans avoir forcé un seul obstacle")
+		}
+		partie.World.Interact()
+		partie.World.Step(game.Vec{})
+	}
+	if !partie.Grid.Passable(u, v) {
+		t.Fatalf("la case (%d, %d) reste bloquée après que l'obstacle a cédé", u, v)
+	}
+
+	partie.Restart()
+
+	if got := partie.World.Breakables().Len(); got != semis {
+		t.Errorf("%d obstacle(s) après la relance, attendu le semis de %d", got, semis)
+	}
+	if partie.Grid.Passable(u, v) {
+		t.Errorf("la case (%d, %d) se franchit sous un obstacle redressé", u, v)
+	}
+}
+
 // TestLaSuiteDesRunsDescendDeLaGraineDeDepart garde ce que la relance fait de la
 // graine, et non ce qu'elle en calcule.
 //

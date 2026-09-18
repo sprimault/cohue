@@ -89,6 +89,17 @@ func (w *World) Fingerprint() string {
 		fmt.Fprintf(&b, "caisse %d id=%d gen=%d x=%d y=%d appui=%d butin=%d,%d\n",
 			i, id, w.caisses.gens[id], c.X, c.Y, c.Press, c.Content.Kind, c.Content.Index)
 	}
+	// Les obstacles fragiles pour la même raison que les caisses : les touches
+	// qui leur restent décident du tick où une case s'ouvre, donc du chemin de
+	// toute la horde. Le décompte de frappe avec eux, puisqu'il décide de la
+	// touche suivante. L'éclair n'y est pas : il ne décide de rien.
+	fmt.Fprintf(&b, "frappe %d\n", w.frappe)
+	for i := range w.obstacles.Active() {
+		o := w.obstacles.At(i)
+		id := w.obstacles.IDAt(i)
+		fmt.Fprintf(&b, "obstacle %d id=%d gen=%d sorte=%d x=%d y=%d touches=%d\n",
+			i, id, w.obstacles.gens[id], o.Kind, o.X, o.Y, o.Hits)
+	}
 	for i := range w.armesAuSol.Active() {
 		d := w.armesAuSol.At(i)
 		id := w.armesAuSol.IDAt(i)

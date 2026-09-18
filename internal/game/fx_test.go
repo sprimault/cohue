@@ -23,8 +23,9 @@ func TestUneCaisseCasseeLaisseUnEffet(t *testing.T) {
 		t.Fatalf("%d effet(s) après la casse, attendu un", effets.Len())
 	}
 	e := effets.At(0)
-	if e.Kind != FxCrate {
-		t.Errorf("sorte %d, attendu celle d'une caisse", e.Kind)
+	if e.Kind != FxBreak || e.Object != w.cleCaisse {
+		t.Errorf("sorte %d pour « %s », attendu ce qui cède pour « %s »",
+			e.Kind, e.Object, w.cleCaisse)
 	}
 	if e.X != x || e.Y != y {
 		t.Errorf("effet posé en (%d, %d), la caisse était en (%d, %d)", e.X, e.Y, x, y)
@@ -76,13 +77,13 @@ func TestUnBassinDeffetsPleinPerdLeSuivant(t *testing.T) {
 	w, x, y := salleAvecCaisse(t)
 	w.effets = NewPool[Fx](1)
 
-	w.emettre(x, y, FxCrate)
+	w.emettre(x, y, FxBreak)
 	w.emettre(x, y, FxBlast)
 
 	if n := w.Fxs().Len(); n != 1 {
 		t.Fatalf("%d effet(s) dans un bassin d'un seul", n)
 	}
-	if sorte := w.Fxs().At(0).Kind; sorte != FxCrate {
+	if sorte := w.Fxs().At(0).Kind; sorte != FxBreak {
 		t.Errorf("sorte %d retenue : le second a chassé le premier", sorte)
 	}
 }

@@ -8,18 +8,23 @@ package game
 
 // FxKind dit ce qu'un effet marque.
 //
-// **Ce que l'événement était, jamais ce qu'il faut dessiner.** Une caisse qui
-// cède crache du bois, une déflagration une onde : ces deux phrases appartiennent
-// au rendu, qui a le manifeste où la matière d'un objet est déclarée. La
-// simulation, elle, sait qu'une caisse a cédé — c'est un fait de jeu, et il se
+// **Ce que l'événement était, jamais ce qu'il faut dessiner.** Une vitrine qui
+// cède crache du verre, une déflagration une onde : ces deux phrases
+// appartiennent au rendu, qui lit dans le manifeste les éclats d'un objet. La
+// simulation, elle, sait qu'une vitrine a cédé — c'est un fait de jeu, et il se
 // nomme comme tel.
 type FxKind uint8
 
-// Ce qui produit un effet aujourd'hui. Les destructibles et la mort d'une
-// créature s'y ajouteront avec leur mécanisme.
+// Ce qui produit un effet aujourd'hui. La mort d'une créature s'y ajoutera avec
+// son mécanisme.
 const (
-	// FxCrate est une caisse qui vient de céder.
-	FxCrate FxKind = iota
+	// FxBreak est un objet qui vient de céder : une caisse ou un obstacle
+	// fragile, que `Fx.Object` nomme.
+	//
+	// **Une sorte pour les deux**, parce que ce qui les distingue au rendu — la
+	// matière des éclats — est déjà dans le manifeste de chacun : deux sortes
+	// feraient dire au code ce que le fichier dit.
+	FxBreak FxKind = iota
 	// FxBlast est une déflagration qui vient de partir.
 	FxBlast
 	// FxDamage est un coup qui vient de porter, et ce qu'il a retiré.
@@ -88,6 +93,10 @@ type Fx struct {
 	// teinte — est une lecture, et deux runs d'une même graine les produisent
 	// identiques sans que l'empreinte ait à les porter.
 	Amount int
+	// Object est la clé de catalogue de ce qui a cédé, vide pour les sortes qui
+	// ne cassent rien. Le même raisonnement qu'`Amount` : un champ qui ne vaut
+	// que pour une sorte.
+	Object string
 }
 
 // Fxs rend le bassin des effets brefs, que le rendu parcourt.
@@ -130,6 +139,19 @@ func (w *World) compter(x, y Fixed, montant int) {
 		Total:  dureeChiffre,
 		Amount: montant,
 	})
+}
+
+// ceder laisse ce qu'un objet laisse en cédant : sa volée d'éclats et sa ruine.
+//
+// **Les deux ensemble, pour la caisse comme pour l'obstacle fragile**, parce
+// que ce qui les distingue — la matière, le dessin de la ruine — est dans le
+// manifeste de chacun et nulle part ici. Le bassin des effets plein perd la
+// volée, celui des épaves ne peut pas l'être : il est borné par le semis même
+// dont chaque ruine remplace un objet.
+func (w *World) ceder(x, y Fixed, objet string, travers bool) {
+	w.effets.Spawn(Fx{X: x, Y: y, Kind: FxBreak, Life: dureeEclats, Total: dureeEclats,
+		Object: objet})
+	w.epaves.Spawn(Wreck{X: x, Y: y, Born: w.tick, Object: objet, Across: travers})
 }
 
 // vieillirEffets fait vivre les effets et retire ceux qui ont fini.

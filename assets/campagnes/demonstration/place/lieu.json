@@ -112,6 +112,28 @@
     { "position": [49, 30] },
     { "position": [49, 68] }
   ],
+  "destructibles": [
+    {
+      "$comment": "Les quatre dans la ruelle, parce que c'est la seule pièce du jeu qui perce ses murs d'une case : un obstacle ferme une ouverture, et un espace ouvert n'en a pas. Ils sont sur le chemin de la porte sans le barrer — les marges de la ruelle restent libres, si bien que forcer est un raccourci qu'on paie et jamais un passage obligé. || **Chacun au débouché sud de sa percée, jamais au nord**, et c'est la vue qui l'a décidé : les passages sont creusés sur cinq cases entre des murs de soixante-quatre pixels, et un mur peint plus bas à l'écran recouvre ce qui est au-dessus de lui. Posée à l'entrée nord, la vitrine disparaissait entière derrière le reste du passage. || La vitrine ferme la percée nord : cinq touches, et l'on voit à travers ce qu'elle ouvre.",
+      "objet": "vitrine",
+      "position": [81, 45]
+    },
+    {
+      "$comment": "Le rideau de fer ferme la percée sud, la seconde moitié du raccourci : forcer les deux coûte près de dix secondes sous la horde, ce qui fait du trajet par les marges un vrai choix.",
+      "objet": "rideau_fer",
+      "position": [75, 52]
+    },
+    {
+      "$comment": "La cloison ferme le recoin nord : une réserve, un mur qui n'en était pas un.",
+      "objet": "cloison_fragile",
+      "position": [73, 45]
+    },
+    {
+      "$comment": "La grille ferme le recoin creusé au pied du bloc sud, trois touches à peine : ce qu'elle apprend est le geste, avant qu'un rideau le fasse payer. Le recoin ouvert au nord ne convenait pas, pour la raison qui pose les autres au débouché sud.",
+      "objet": "grille_ventilation",
+      "position": [89, 52]
+    }
+  ],
   "sortie": {
     "$comment": "La porte se pose dans l'enceinte, à mi-hauteur du bord est : elle est donc infranchissable, ce que le chargement exige — une sortie posée sur du sol libre se traverserait avant d'être gagnée. || Le compte est celui d'une horde qu'on a affrontée sans l'avoir épuisée : assez pour que partir se mérite, assez peu pour que le choix se pose pendant que la courbe monte encore. Le joueur qui l'atteint choisit alors quand partir, ce que ce lieu existe pour faire sentir.",
     "position": [97, 49],

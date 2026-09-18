@@ -52,13 +52,14 @@ func mondeDEssai(t *testing.T, largeur, hauteur int) (*World, *Profiles) {
 	if err != nil {
 		t.Fatalf("armes livrées : %v", err)
 	}
-	// Les figurants, les caisses, les tourelles et les flammes ont leur capacité
-	// ici plutôt qu'à zéro : un bassin vide se parcourt sans rien faire, si bien
-	// qu'un garde d'allocation traverserait leurs passes en croyant les mesurer.
+	// Les figurants, les caisses, les obstacles, les tourelles et les flammes ont
+	// leur capacité ici plutôt qu'à zéro : un bassin vide se parcourt sans rien
+	// faire, si bien qu'un garde d'allocation traverserait leurs passes en
+	// croyant les mesurer.
 	return NewWorld(profils, armes, progressionLivree(t), caissesLivrees(t), fiolesLivrees(t), sansVagues(),
 		g, graineDeTest,
 		Capacities{Enemies: 300, Shots: 256, EnemyShots: 64, Blasts: 32, Gems: 512,
-			Ambients: 32, Crates: 32, Turrets: 4, Fires: 8}), profils
+			Ambients: 32, Crates: 32, Breakables: 4, Turrets: 4, Fires: 8}), profils
 }
 
 // caissesLivrees rend les règles d'une caisse, comme les manifestes livrés les
@@ -149,7 +150,7 @@ const graineDeTest uint64 = 1
 // d'ici, pour la raison qui vaut déjà pour la graine.
 var capacitesDeTest = Capacities{
 	Enemies: 16, Shots: 64, EnemyShots: 16, Blasts: 8, Ambients: 16, Gems: 32,
-	Fx: 8, Crates: 8, Drops: 4, Vials: 4, Turrets: 4, Fires: 4,
+	Fx: 8, Crates: 8, Breakables: 4, Drops: 4, Vials: 4, Turrets: 4, Fires: 4,
 }
 
 // indexDuProfil rend la place d'un profil dans la table, ou arrête le test.
@@ -237,6 +238,11 @@ func garnirLesPassesDeLEtape4(t *testing.T, w *World, profils *Profiles) {
 		Weapon: rangDeLArme(t, w, "lance_flammes"), Life: 1 << 20}); !ok {
 		t.Fatal("bassin de flammes plein")
 	}
+
+	// Un obstacle debout, pour que `forcer` parcoure un bassin qui n'est pas
+	// vide. La frappe elle-même a son garde, `TestFrapperUnObstacleNalloueRien` :
+	// le joueur de ce cas marche, et un obstacle ne le suit pas.
+	w.Erect(obstaclesLivres(t), []BreakablePlacement{{Kind: 0, X: px - FromInt(4), Y: py}})
 }
 
 // peupler pose des créatures sur toutes les cases franchissables d'une carte,

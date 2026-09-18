@@ -74,8 +74,7 @@ type Object struct {
 	manifest.Commentable
 	// Family range l'entrée, et décide de ce qu'elle doit porter.
 	Family string `json:"famille"`
-	// Blocking dit si l'objet arrête ce qui s'y présente. Rien ne le lit encore :
-	// les quatre destructibles attendent le lot qui les posera.
+	// Blocking dit si l'objet arrête ce qui s'y présente.
 	Blocking bool `json:"bloquant"`
 	// Cost est le prix de traversée de sa case, en pas.
 	//
@@ -92,6 +91,14 @@ type Object struct {
 	Elevation int        `json:"elevation,omitempty"`
 	Category  string     `json:"categorie,omitempty"`
 	Masking   bool       `json:"masquant,omitempty"`
+	// Pivot nomme le même objet dessiné le long de v, absent de ce qui ne se
+	// pose que dans un sens.
+	//
+	// **Un dessin et non un miroir.** Retourner l'image échangerait bien u et v,
+	// mais garderait l'ombrage : la face claire se retrouverait du côté que le
+	// décor ombre. La simulation ne le lit pas — une case bloquée l'est dans les
+	// deux sens —, c'est le rendu qui le suit.
+	Pivot string `json:"pivote,omitempty"`
 	// Twinkle est la boucle qui dit qu'un objet se ramasse, absente sinon.
 	Twinkle *Twinkle `json:"scintillement,omitempty"`
 
@@ -145,13 +152,15 @@ type Twinkle struct {
 	Loop bool `json:"boucle"`
 }
 
-// ModeContact est le mode de destruction de ce qui cède à l'appui, en le
-// traversant : la caisse, et elle seule aujourd'hui.
-//
-// Le mode de l'obstacle fragile — on s'arrête contre lui et on presse la touche
-// d'interaction — n'a pas sa constante : rien ne le lit, et une valeur écrite
-// d'avance dans un paquet est une déclaration que personne n'exerce.
-const ModeContact = "contact"
+// Les deux façons de casser, et c'est le geste qui les sépare, pas la nature du
+// dégât.
+const (
+	// ModeContact est ce qui cède à l'appui, en le traversant : la caisse.
+	ModeContact = "contact"
+	// ModeInteraction est ce qui cède à la touche d'interaction, en se tenant
+	// contre lui : les obstacles fragiles.
+	ModeInteraction = "interaction"
+)
 
 // Destruction est ce qu'un objet cassable déclare.
 type Destruction struct {
@@ -241,6 +250,9 @@ func (o Object) cout() (Cost, string) {
 // nom d'asset dans la boucle de mise à jour — avec, en prime, une résolution qui
 // peut échouer là où plus rien ne saurait quoi en dire.
 type CrateRules struct {
+	// Key est son nom au catalogue, que l'épave et la volée portent pour que le
+	// rendu y lise ce qu'elle laisse.
+	Key string
 	// Press est le temps d'appui avant rupture, en ticks.
 	Press Tick
 	// Cost est le prix de traversée de sa case, tant qu'elle tient.
@@ -272,7 +284,7 @@ func (o *Objects) Crate(nom string) (CrateRules, error) {
 	if defaut != "" {
 		return CrateRules{}, fmt.Errorf("objets : caisse « %s » : %s", nom, defaut)
 	}
-	return CrateRules{Press: appui, Cost: cout}, nil
+	return CrateRules{Key: nom, Press: appui, Cost: cout}, nil
 }
 
 // VialRules est ce que la simulation tient d'une fiole : ce qu'elle rend, et
@@ -310,4 +322,38 @@ func (o *Objects) Vial(nom string) (VialRules, error) {
 				"prise", nom, objet.Stock)
 	}
 	return VialRules{Heal: objet.Heal, Stock: objet.Stock}, nil
+}
+
+// BreakableKind est ce que la simulation tient d'une sorte d'obstacle fragile.
+type BreakableKind struct {
+	// Key est son nom au catalogue, que le lieu cite et que le rendu résout.
+	Key string
+	// Hits est ce qu'il encaisse avant de céder, en touches — l'unité de la
+	// résistance des créatures, l'arme de base au premier niveau.
+	Hits int
+}
+
+// Breakables rend les obstacles fragiles du catalogue, triés par nom.
+//
+// **Triés, parce que leur rang est ce qu'une entité retient** et qu'une table
+// par clé n'a pas d'ordre : deux lancements rangeraient autrement la même
+// vitrine, et l'empreinte d'une run changerait sans que rien ait bougé.
+//
+// **Zéro touche est refusé**, et c'est l'autre bout du contrôle des ressources,
+// qui exige le champ : un obstacle qui cède à la première frappe serait écrit à
+// zéro par omission, et rien à l'écran ne le distinguerait d'un choix.
+func (o *Objects) Breakables() ([]BreakableKind, error) {
+	var sortes []BreakableKind
+	for _, nom := range slices.Sorted(maps.Keys(o.Items)) {
+		d := o.Items[nom].Destruction
+		if d == nil || d.Mode != ModeInteraction {
+			continue
+		}
+		if d.Hits < 1 {
+			return nil, fmt.Errorf("objets : « %s » : %d touche, un obstacle fragile en "+
+				"encaisse au moins une", nom, d.Hits)
+		}
+		sortes = append(sortes, BreakableKind{Key: nom, Hits: d.Hits})
+	}
+	return sortes, nil
 }

@@ -87,17 +87,24 @@ type Loader struct {
 	// scénario qui est mal formé, quelle que soit la partie qui le monte —, donc
 	// il se fait ici plutôt qu'au montage.
 	report game.Tick
+	// obstacles sont les sortes d'obstacles fragiles du catalogue des objets,
+	// qu'un lieu cite par leur nom. Elles entrent pour la raison des profils :
+	// refuser un nom inconnu fait partie de la validation du fichier.
+	obstacles []game.BreakableKind
 }
 
-// NewLoader monte un chargeur sur un système de fichiers et les deux catalogues
-// qu'un lieu cite : les formes du décor et les profils de créatures.
-func NewLoader(fsys fs.FS, decor *Decor, profils *game.Profiles, report game.Tick) *Loader {
+// NewLoader monte un chargeur sur un système de fichiers et les catalogues
+// qu'un lieu cite : les formes du décor, les profils de créatures et les
+// obstacles fragiles.
+func NewLoader(fsys fs.FS, decor *Decor, profils *game.Profiles, report game.Tick,
+	obstacles []game.BreakableKind) *Loader {
 	return &Loader{
-		fsys:    fsys,
-		decor:   decor,
-		couts:   decor.Costs(),
-		profils: profils,
-		report:  report,
+		fsys:      fsys,
+		decor:     decor,
+		couts:     decor.Costs(),
+		profils:   profils,
+		report:    report,
+		obstacles: obstacles,
 	}
 }
 
@@ -165,16 +172,19 @@ func (l *Loader) Load(dossier string) (*Loaded, error) {
 	ambiance, ecartsAmbiance := game.CompileAmbient(lieu.Ambient, l.profils, grille)
 	sortie, ecartsSortie := game.CompileExit(lieu.Exit, grille)
 	caisses, ecartsCaisses := game.CompileCrates(lieu.Crates, grille)
+	obstacles, ecartsObstacles := game.CompileBreakables(lieu.Breakables, l.obstacles,
+		grille, caisses, ambiance)
 	manques := append(valider(nom, lieu, jeu, pieces, l.decor), ecarts...)
 	manques = append(manques, ecartsAmbiance...)
 	manques = append(manques, ecartsSortie...)
 	manques = append(manques, ecartsCaisses...)
+	manques = append(manques, ecartsObstacles...)
 	if len(manques) > 0 {
 		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
 	return &Loaded{
 		Grid: grille, Tiles: tuiles, Scenario: scenario, Ambient: ambiance,
-		Exit: sortie, Crates: caisses,
+		Exit: sortie, Crates: caisses, Breakables: obstacles,
 	}, nil
 }
 
@@ -203,6 +213,9 @@ type Loaded struct {
 	Exit *game.Exit
 	// Crates sont les caisses posées, vides quand le lieu n'en a pas.
 	Crates []game.CratePlacement
+	// Breakables sont les obstacles fragiles posés, vides quand le lieu n'en a
+	// pas.
+	Breakables []game.BreakablePlacement
 }
 
 // cuire assemble les pièces posées en une seule carte de formes.

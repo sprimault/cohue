@@ -9,6 +9,8 @@ package render
 import (
 	"fmt"
 	"io/fs"
+	"maps"
+	"slices"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -64,8 +66,15 @@ type Stage struct {
 	// qui les détache d'un sol clair. Le bandeau n'en a pas besoin : ses cases
 	// sont sombres, et c'est pour elles que les icônes ont été dessinées.
 	bordsDIcone map[string]*ebiten.Image
-	// caisse porte ce que le manifeste attache à la caisse : ses deux cycles, sa
-	// ruine et ses éclats.
+	// cassables porte ce que le manifeste attache à chaque objet qui se casse :
+	// ses cycles, sa ruine et ses éclats. Le monde nomme ce qui a cédé, et c'est
+	// ici qu'on lit ce qu'il laisse.
+	cassables map[string]game.Destruction
+	// pivots nomme, pour ce qui se pose dans les deux sens, son dessin le long
+	// de v.
+	pivots map[string]string
+	// caisse porte ce que le manifeste attache à la caisse, dont le cycle
+	// d'appui que la caisse est seule à jouer.
 	//
 	// **Lus au catalogue plutôt qu'écrits ici**, à la différence des noms
 	// ci-dessus, et la nuance tient à qui choisit. Le rendu décide qu'une gemme
@@ -86,6 +95,18 @@ func (s *Stage) duree(nom string) game.Tick {
 	// #nosec G115 -- le nombre d'images est celui d'une bande découpée, donc
 	// borné par la largeur de l'image que le chargement a lue
 	return objet.cycle.Duration * game.Tick(objet.cycle.Frames)
+}
+
+// cassable rend ce que le manifeste attache à un objet qui se casse.
+func (s *Stage) cassable(nom string) game.Destruction { return s.cassables[nom] }
+
+// sens rend le dessin d'un objet dans le sens où il est posé : le sien le long
+// de u, celui que `pivote` nomme le long de v.
+func (s *Stage) sens(nom string, travers bool) string {
+	if pivot, connu := s.pivots[nom]; travers && connu {
+		return pivot
+	}
+	return nom
 }
 
 // Icon rend l'icône d'une arme lourde, nulle si le catalogue n'en a pas.
@@ -117,9 +138,9 @@ type prop struct {
 
 // NewStage résout le catalogue d'objets en images posables.
 //
-// Il ne retient que ce que le rendu pose : les armes au sol, les particules et
-// les ruines attendent le mécanisme qui les fera exister, et les charger d'avance
-// serait payer des textures pour ce que rien ne dessine.
+// Il ne retient que ce que le rendu pose : ce que le monde peut nommer, et ce
+// que le manifeste attache à ce qui se casse. Charger le reste serait payer des
+// textures pour ce que rien ne dessine.
 //
 // `source` est le manifeste à citer dans un manquement, jamais un fichier à
 // ouvrir : le catalogue arrive décodé.
@@ -139,6 +160,8 @@ func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, 
 		icones:      map[string]*ebiten.Image{},
 		bordsDIcone: map[string]*ebiten.Image{},
 		caisse:      *caisse.Destruction,
+		cassables:   map[string]game.Destruction{},
+		pivots:      map[string]string{},
 	}
 
 	// **Les armes viennent du catalogue et non d'une liste écrite ici**, à la
@@ -146,17 +169,37 @@ func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, 
 	// `gemme`, mais une arme lourde est désignée par la table des armes, et il
 	// pose celle que le monde lui donne. Les nommer en dur demanderait d'y revenir
 	// à chaque arme ajoutée.
-	//
-	// Les quatre dessins d'une caisse qui cède viennent du catalogue pour la même
-	// raison : sa clé `destruction` les nomme déjà.
 	noms := append([]string{
 		objetGemme, objetAimant, objetCaisse, objetFiole, objetTir, objetTirHorde,
 		objetEtincelle, objetSouffle, objetFlammes,
-		scene.caisse.PressCycle, scene.caisse.BreakCycle, scene.caisse.Ruin,
-		scene.caisse.Shards,
 	}, catalogue.Weapons()...)
 
+	// Ce qui se casse vient du catalogue pour la même raison : la clé
+	// `destruction` de chaque objet nomme déjà ses cycles, sa ruine et ses
+	// éclats, et `pivote` son dessin le long de v. Le monde désigne ce qui a
+	// cédé par son nom, et c'est ici qu'on lit ce que ce nom laisse.
+	for _, nom := range slices.Sorted(maps.Keys(objets.Items)) {
+		d := objets.Items[nom].Destruction
+		if d == nil {
+			continue
+		}
+		scene.cassables[nom] = *d
+		for _, cle := range []string{nom, d.Ruin, d.Shards, d.PressCycle, d.BreakCycle} {
+			if cle == "" {
+				continue
+			}
+			noms = append(noms, cle)
+			if pivot := objets.Items[cle].Pivot; pivot != "" {
+				scene.pivots[cle] = pivot
+				noms = append(noms, pivot)
+			}
+		}
+	}
+
 	for _, nom := range noms {
+		if _, chargee := scene.objets[nom]; chargee {
+			continue
+		}
 		objet, connu := catalogue.Prop(nom)
 		if !connu {
 			return nil, fmt.Errorf("objets : « %s » n'est pas au catalogue", nom)

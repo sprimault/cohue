@@ -296,6 +296,20 @@ type vue struct {
 	// légitime et non l'absence de choix : une vue qui l'omettrait chercherait une
 	// caisse vide, et n'en trouverait que si la graine du jour en a laissé une.
 	butinAnnonce game.LootKind
+	// contreUnObstacle pose le joueur contre le premier obstacle fragile du lieu
+	// et tient la touche d'interaction à chaque pas.
+	//
+	// **Elle retient le pilote, comme la caisse et pour la même raison** : la
+	// frappe ne va au bout que si l'on reste, et le tour d'octogone emporterait
+	// le joueur hors de portée au deuxième pas.
+	contreUnObstacle bool
+	// dresseLesSens pose chaque obstacle du catalogue dans les deux sens, en
+	// deux rangées près du joueur.
+	//
+	// **Le lieu livré n'en pose aucun le long de v** : ses seules percées d'une
+	// case sont nord-sud. Sans cette pose, les dessins de `pivote` seraient
+	// générés, contrôlés et chargés sans qu'une image les montre jamais en jeu.
+	dresseLesSens bool
 	// poseUneBaudruche en fait apparaître une au pied du joueur, que son arme
 	// abat aussitôt : c'est le seul chemin qui produise une déflagration sans
 	// forger un état que la partie ne connaît pas.
@@ -355,6 +369,14 @@ type vue struct {
 	// millisecondes — le jour où cette bande s'allonge, ce nombre suit, sinon la
 	// vue montre une caisse en train d'éclater là où elle promet une épave.
 	jusquALepave bool
+	// jusquAMiForce s'arrête quand un obstacle a perdu la moitié de ses touches,
+	// à l'instant où une frappe porte.
+	//
+	// **Sur l'éclair et non sur le compte**, parce que c'est lui que la vue donne
+	// à relire : le seul retour d'une touche qui ne casse pas encore. Arrêtée
+	// entre deux frappes, elle montrerait un obstacle intact et rien ne dirait
+	// qu'on le force.
+	jusquAMiForce bool
 	// jusquAuDanger s'arrête au franchissement du seuil d'alerte.
 	//
 	// Ni la mêlée ni la mort ne montrent la vignette : la première s'arrête à
@@ -519,7 +541,7 @@ var vues = []vue{
 	// l'explosion part. La horde est retirée dans les deux cas — ce qui est jugé
 	// est un effet, pas ce qui l'entoure.
 	{nom: "eclats", ticks: 30 * game.TPS, videLaHorde: true,
-		surUneCaisse: true, jusquAlEffet: &effetCaisse, butinAnnonce: game.LootHeavy},
+		surUneCaisse: true, jusquAlEffet: &effetRupture, butinAnnonce: game.LootHeavy},
 
 	// **Les deux moments d'une caisse qui cède, que rien ne montrait.** Le délai
 	// d'appui n'a de sens que s'il se voit : sans la déformation, un joueur
@@ -543,6 +565,16 @@ var vues = []vue{
 		surUneCaisse: true, jusquAMiAppui: true, butinAnnonce: game.LootHeavy},
 	{nom: "caisse-epave", ticks: 30 * game.TPS, videLaHorde: true,
 		surUneCaisse: true, jusquALepave: true, butinAnnonce: game.LootHeavy},
+	// **Les trois états d'un obstacle fragile, et le lieu livré les montre en
+	// place** : la ruelle et ses quatre percées fermées, la vitrine entamée sous
+	// l'éclair d'une frappe, puis sa rupture — le verre qui vole et le châssis
+	// qui reste. La troisième pose les quatre dans les deux sens, que le lieu ne
+	// donne pas.
+	{nom: "obstacle-force", ticks: 30 * game.TPS, videLaHorde: true,
+		contreUnObstacle: true, jusquAMiForce: true},
+	{nom: "obstacle-rupture", ticks: 30 * game.TPS, videLaHorde: true,
+		contreUnObstacle: true, jusquAlEffet: &effetRupture},
+	{nom: "obstacle-sens", videLaHorde: true, dresseLesSens: true},
 	// **Celle-ci ne vide pas la horde**, contrairement à sa voisine : le
 	// dégagement tourne à chaque pas, et il emportait la Baudruche avant que
 	// l'arme ait eu le temps de l'abattre. Les premières secondes de la courbe
@@ -675,6 +707,18 @@ func (p *planche) vue(v vue) error {
 		}
 		partie.World.Place(c.X-ecart, c.Y-ecart)
 	}
+	if v.contreUnObstacle {
+		obstacles := partie.World.Breakables()
+		if obstacles.Len() == 0 {
+			return fmt.Errorf("vue %s : le lieu ne pose aucun obstacle fragile", v.nom)
+		}
+		// **Au nord, derrière lui dans le tri**, à sept dixièmes de son centre :
+		// dans la case voisine et sous la portée de frappe. Posé au sud, le
+		// personnage se peignait devant la vitrine, et ses quarante-huit pixels
+		// recouvraient les trente-quatre de ce que la vue venait montrer.
+		o := obstacles.At(0)
+		partie.World.Place(o.X, o.Y-game.One*7/10)
+	}
 	if v.poseUneBaudruche {
 		if err := poserUneBaudruche(partie); err != nil {
 			return err
@@ -719,6 +763,11 @@ func (p *planche) vue(v vue) error {
 			partie.World.Step(game.Vec{})
 			continue
 		}
+		if v.contreUnObstacle {
+			partie.World.Interact()
+			partie.World.Step(game.Vec{})
+			continue
+		}
 		partie.World.Step(session.Pilot(game.Tick(tick)))
 	}
 	if v.videLaHorde {
@@ -733,6 +782,11 @@ func (p *planche) vue(v vue) error {
 	}
 	if v.chargeLAimant {
 		partie.World.Charge()
+	}
+	if v.dresseLesSens {
+		if err := dresserLesSens(partie); err != nil {
+			return err
+		}
 	}
 
 	// **Une tenue et une au sol**, parce que ce sont deux choses distinctes à
@@ -1006,10 +1060,34 @@ func run() error {
 // Les deux sortes d'effet que les vues attendent, prises en variables parce
 // qu'une table d'entrées ne peut pas prendre l'adresse d'une constante.
 var (
-	effetCaisse  = game.FxCrate
+	effetRupture = game.FxBreak
 	effetSouffle = game.FxBlast
 	effetChiffre = game.FxDamage
 )
+
+// dresserLesSens pose chaque obstacle du catalogue le long de u, puis le long de
+// v une rangée plus bas, au nord-est du joueur.
+//
+// **Directement dans le monde, sans bloquer leurs cases** : ce que la vue juge
+// est le dessin de chaque sens côte à côte, et la grille n'y change rien. C'est
+// le même ordre de mise de côté que la horde retirée — ce qui empêche d'arriver
+// à l'état montré, jamais l'état lui-même.
+func dresserLesSens(partie *session.Session) error {
+	sortes, err := partie.Objects.Breakables()
+	if err != nil {
+		return err
+	}
+	px, py := partie.World.Player()
+	poses := make([]game.BreakablePlacement, 0, 2*len(sortes))
+	for i := range sortes {
+		x := px + game.FromInt(2+2*i)
+		poses = append(poses,
+			game.BreakablePlacement{Kind: i, X: x, Y: py - game.FromInt(3)},
+			game.BreakablePlacement{Kind: i, X: x, Y: py - game.FromInt(1), Across: true})
+	}
+	partie.World.Erect(sortes, poses)
+	return nil
+}
 
 // poserUneBaudruche en fait apparaître une à deux tuiles du joueur.
 //
@@ -1233,6 +1311,14 @@ func (v vue) arrive(monde *game.World) bool {
 		epaves := monde.Wrecks()
 		for i := range epaves.Active() {
 			if monde.WreckAge(epaves.At(i)) >= dureeDeRupture {
+				return true
+			}
+		}
+	case v.jusquAMiForce:
+		obstacles := monde.Breakables()
+		for i := range obstacles.Active() {
+			o := obstacles.At(i)
+			if o.Flash > 0 && o.Hits*2 <= monde.BreakableHits(o.Kind) {
 				return true
 			}
 		}

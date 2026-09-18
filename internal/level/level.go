@@ -67,6 +67,14 @@ type Level struct {
 	//
 	// Champ facultatif, donc `version_format` ne bouge pas.
 	Crates game.CrateSpec `json:"caisses,omitempty"`
+	// Breakables sont les obstacles fragiles posés, absents le plus souvent.
+	//
+	// Ce que chacun encaisse ne s'écrit pas ici, pour la raison qui garde le
+	// butin des caisses hors du lieu : une vitrine doit signifier la même chose
+	// d'un lieu à l'autre, et c'est le catalogue qui la dit.
+	//
+	// Champ facultatif, donc `version_format` ne bouge pas.
+	Breakables game.BreakableSpec `json:"destructibles,omitempty"`
 	// Exit est la porte de sortie, absente d'un lieu qui n'en a pas.
 	//
 	// **Elle vit à côté des vagues plutôt que dedans**, comme le peuplement : une

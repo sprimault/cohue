@@ -95,6 +95,13 @@ const GemCapacity = 512
 // devenir le sol.
 const CrateCapacity = 32
 
+// BreakableCapacity plafonne les obstacles fragiles d'un lieu.
+//
+// Un semis écrit comme les caisses, et plus rare qu'elles : chacun ferme une
+// ouverture que l'auteur a voulue, et seize raccourcis dans une salle de trois
+// minutes en feraient un gruyère plutôt qu'un choix.
+const BreakableCapacity = 16
+
 // DropCapacity plafonne les armes lourdes qui attendent au sol.
 //
 // Quatre, soit deux fois ce que le joueur peut tenir : au-delà, il a déjà refusé
@@ -199,6 +206,11 @@ type Session struct {
 	// caisses est le semis du lieu, reposé entier à chaque relance : une salle
 	// dont les caisses resteraient cassées après une mort ne serait pas la même.
 	caisses []game.CratePlacement
+	// sortes est la table des obstacles fragiles du catalogue, triée par nom.
+	sortes []game.BreakableKind
+	// obstacles est leur semis, redressé entier à chaque relance comme les
+	// caisses.
+	obstacles []game.BreakablePlacement
 }
 
 // Restart rejoue le même lieu, sans rien redemander.
@@ -238,6 +250,7 @@ func (s *Session) monter() {
 	// qu'il trouve, et un coût posé après lui n'aurait pas de seau où entrer.
 	s.Grid = s.carte.Clone()
 	game.StampCrates(s.Grid, s.caisses, s.caisse)
+	game.StampBreakables(s.Grid, s.obstacles)
 
 	s.World = game.NewWorld(s.profils, s.armes, s.progression, s.caisse, s.fiole,
 		s.scenario, s.Grid, s.Seed,
@@ -248,6 +261,7 @@ func (s *Session) monter() {
 			Blasts:     BlastCapacity,
 			Gems:       GemCapacity,
 			Crates:     CrateCapacity,
+			Breakables: BreakableCapacity,
 			Drops:      DropCapacity,
 			Vials:      VialCapacity,
 			Turrets:    TurretCapacity,
@@ -259,6 +273,7 @@ func (s *Session) monter() {
 	s.World.Populate(s.ambiance)
 	s.World.SetExit(s.sortie)
 	s.World.Stock(s.caisses)
+	s.World.Erect(s.sortes, s.obstacles)
 }
 
 // Open monte une partie sur la campagne donnée, à son lieu de départ.
@@ -315,7 +330,20 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		return nil, err
 	}
 
-	charge, err := level.NewLoader(fsys, decor, profils, progression.CarryOver).Load(lieu)
+	// **Les objets précèdent le lieu, pour la raison des profils** : un lieu
+	// cite ses obstacles fragiles par leur nom, et le refus d'un nom inconnu
+	// appartient à la validation du fichier.
+	objets, err := game.LoadObjects(fsys, cohue.ObjectManifest)
+	if err != nil {
+		return nil, err
+	}
+	obstacles, err := objets.Breakables()
+	if err != nil {
+		return nil, err
+	}
+
+	charge, err := level.NewLoader(fsys, decor, profils, progression.CarryOver, obstacles).
+		Load(lieu)
 	if err != nil {
 		return nil, err
 	}
@@ -323,18 +351,13 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 	slog.Info("lieu chargé", "campaign", graphe.ID, "name", lieu,
 		"width", grille.Width(), "height", grille.Height(), "phases", len(scenario.Phases),
 		"ambient", len(charge.Ambient), "exit", charge.Exit != nil,
-		"crates", len(charge.Crates))
+		"crates", len(charge.Crates), "breakables", len(charge.Breakables))
 
 	armes, err := game.LoadWeapons(fsys, cohue.WeaponManifest)
 	if err != nil {
 		return nil, err
 	}
 	slog.Info("armes chargées", "base", armes.Base.Key)
-
-	objets, err := game.LoadObjects(fsys, cohue.ObjectManifest)
-	if err != nil {
-		return nil, err
-	}
 
 	// Le renvoi d'un manifeste vers l'autre se résout ici, comme les formes et
 	// les profils qu'un lieu cite : c'est le seul endroit qui tient les deux
@@ -365,6 +388,8 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		ambiance:    charge.Ambient,
 		sortie:      charge.Exit,
 		caisses:     charge.Crates,
+		sortes:      obstacles,
+		obstacles:   charge.Breakables,
 	}
 	partie.monter()
 	slog.Info("partie montée", "seed", graine)

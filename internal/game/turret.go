@@ -64,6 +64,38 @@ func (w *World) poserUneTourelle(arme *Weapon, rang int) bool {
 	return ok
 }
 
+// balayage est la durée d'un aller-retour du canon d'une tourelle, en ticks.
+//
+// **Une durée et non un nombre de tirs**, pour qu'un palier de cadence ajoute
+// des tirs au balayage sans l'accélérer : le secteur arrosé se lit au même
+// rythme, il est seulement plus dense.
+const balayage = TPS
+
+// balayer rend l'écart de côté où vise un tir, à la portée de l'arme, selon ce
+// qu'il reste de tirs à la tourelle.
+//
+// **Une dent de scie repliée sur le rang du tir, et non sur le tick** : la
+// tourelle qui attend faute de cible reprend son balayage là où elle l'avait
+// laissé, au lieu de sauter d'un bord à l'autre. L'écart va d'un bord de
+// l'éventail à l'autre en un demi-balayage et revient, en entiers — aucun angle,
+// donc aucune trigonométrie dont le dernier bit varierait d'une machine à
+// l'autre.
+//
+// Une cadence qui ne tiendrait pas deux tirs par balayage le ramène à zéro : un
+// va-et-vient d'un seul tir ne balaie rien.
+func balayer(arme *Weapon, reste int) Fixed {
+	n := int(balayage / max(arme.Cooldown, 1))
+	if n < 2 {
+		return 0
+	}
+	k := reste % n
+	quart := 4*k - n
+	if 2*k >= n {
+		quart = 3*n - 4*k
+	}
+	return borner(int64(arme.Spread/2) * int64(quart) / int64(n))
+}
+
 // tirerLesTourelles fait tirer ce que le joueur a posé, et retire ce qui est
 // épuisé.
 //
@@ -102,6 +134,12 @@ func (w *World) tirerLesTourelles() {
 
 		e := w.ennemis.At(cible)
 		vers := Vec{X: e.X - t.X, Y: e.Y - t.Y}.Direction(i)
+		if arme.Spread != 0 {
+			// Le point visé est à la portée, décalé de côté du balayage : c'est ce
+			// qui fait pivoter le canon sans jamais écrire d'angle, comme
+			// l'éventail du fusil.
+			vers = vers.Scale(arme.Range).Add(vers.Perp().Scale(balayer(&arme, t.Shots))).Direction(i)
+		}
 		if w.salveDe(&arme, t.X, t.Y, vers) == 0 {
 			// Bassin de projectiles plein : le tir est perdu comme celui du
 			// socle, mais il n'est pas décompté — une tourelle ne doit pas

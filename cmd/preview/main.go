@@ -1188,13 +1188,18 @@ func attendreUnGrosChiffre(monde *game.World) {
 }
 
 // attendreUnTirDeTourelle écarte le joueur de ce qu'il vient de poser, puis
-// avance jusqu'à ce que la tourelle ait tiré.
+// avance jusqu'à ce que la tourelle ait tiré un demi-balayage.
 //
 // **Elle s'arrête sur le tir et non sur un compte de pas**, ce que la première
 // version avait manqué : le pilote tourne, il emmène la horde avec lui, et la
 // vue montrait une tourelle posée que rien n'approchait plus. Ce qu'elle doit
 // donner à relire est une chose qui agit sans le joueur, donc elle attend
 // l'acte.
+//
+// **Un demi-balayage et non un tir**, depuis que la tourelle mitraille : un tir
+// seul ne se distingue pas du coup par coup, et c'est l'éventail des tirs en vol
+// — d'un bord à l'autre du secteur — que la vue doit montrer. Il se compte en
+// tirs, que la cadence de l'arme dit par seconde.
 //
 // **L'écart est bref et dans une seule direction.** Posée sous lui, la tourelle
 // disparaît sous un sprite quatre fois plus grand ; au-delà de sa portée, elle
@@ -1210,8 +1215,9 @@ func attendreUnTirDeTourelle(monde *game.World) {
 		return
 	}
 	plein := tourelles.At(0).Shots
+	demi := int(game.TPS / max(2*monde.TurretWeapon(tourelles.At(0)).Cooldown, 1))
 	for range 10 * game.TPS {
-		if tourelles.Len() == 0 || tourelles.At(0).Shots < plein {
+		if tourelles.Len() == 0 || plein-tourelles.At(0).Shots >= max(demi, 1) {
 			return
 		}
 		monde.Step(game.Vec{})

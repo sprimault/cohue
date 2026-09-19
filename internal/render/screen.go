@@ -782,7 +782,7 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		case sorteAmbiance:
 			a := s.monde.Ambients().At(e.place)
 			f := s.troupe.ambiants[a.Profile]
-			t = s.peindreCreature(ecran, f, f.posePersonnage(a.Step, a.Step, 0),
+			t = s.peindreCreature(ecran, f, f.posePersonnage(a.Step, a.Step, a.Variant),
 				a.X, a.Y, e.identite, nil)
 		case sorteTir:
 			p := s.monde.Shots().At(e.place)

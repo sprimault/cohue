@@ -134,6 +134,9 @@ type Ambient struct {
 	// Step est le déplacement que le tick précédent lui a appliqué. Le rendu s'en
 	// sert comme de celui d'une créature ; rien d'autre ne le lit.
 	Step Vec
+	// Variant est son dessin parmi ceux que son profil déclare — le Passant en a
+	// deux, un homme et une femme —, tiré à la pose comme celui d'une créature.
+	Variant int
 }
 
 // errer déplace les figurants et leur fait changer de cap de temps en temps.
@@ -197,11 +200,15 @@ func (w *World) Populate(figurants []AmbientPlacement) {
 	}
 }
 
-// SpawnAmbient pose un figurant, sa première direction tirée au cosmétique.
+// SpawnAmbient pose un figurant, sa première direction et son dessin tirés au
+// cosmétique.
 //
 // Le palier de départ est tiré comme les suivants : sans cela, tous les
 // figurants d'un lieu changeraient de cap au même tick, et une foule censée
 // paraître quelconque marcherait au pas.
+//
+// Le dessin se tire en dernier, les champs d'un littéral s'évaluant dans l'ordre :
+// ajouté avant, il aurait décalé le cap et le palier de chaque figurant.
 func (w *World) SpawnAmbient(profil int, x, y Fixed) (Handle, bool) {
 	return w.ambiants.Spawn(Ambient{
 		Profile: profil,
@@ -209,6 +216,7 @@ func (w *World) SpawnAmbient(profil int, x, y Fixed) (Handle, bool) {
 		Y:       y,
 		Heading: w.hasard.Cosmetic.Pick(paliersErrance),
 		Until:   w.palierDErrance(),
+		Variant: w.hasard.Cosmetic.Pick(w.profils.Ambient[profil].Figure.Variants),
 	})
 }
 

@@ -42,6 +42,20 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Modifié
+
+- **Le Survivant est redessiné** : veste bleue, pantalon clair, et une marche
+  où le pied posé tient au sol pendant que l'autre passe, bras en opposition.
+  Dans les huit directions, il se détache mieux du décor et de la horde.
+
+***
+
+### Changed
+
+- **The Survivor is redrawn**: blue jacket, light trousers, and a walk where the
+  planted foot holds the ground while the other passes, arms swinging opposite.
+  In all eight directions, it stands out better from the scenery and the horde.
+
 ## [0.7.0] — 2026-09-18 — Ressources et caisses
 
 ### Ajouté

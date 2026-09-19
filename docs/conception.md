@@ -1243,6 +1243,18 @@ rejeux de la même graine divergent.
 ne l'est pas : c'est ce qui rend les créatures **contribuables**, et ce qui évite
 toute question de licence sur ce qui entre dans le jeu.
 
+**Un profil peut être dessiné plutôt que généré**, et le Survivant l'est : ses
+bandes sont des dessins tenus à la main, sous la licence du dépôt, avec un
+`LICENSE.txt` dans leur dossier. Le générateur en garde l'entrée de manifeste —
+cycles, cadences, appui, valeurs de jeu —, si bien que le moteur ne voit aucune
+différence, et le contrôle des images s'y applique comme au reste. Les ennemis
+suivront le même chemin, un profil à la fois ; la figurine reste en attendant ce
+qui les dessine.
+
+Un dessin ne se refait pas à l'identique, et c'est ce qui le range à part : il
+n'est pas comparé à une régénération, comme la table d'armes, que l'on règle à
+la main.
+
 ### Les outils de fabrication
 
 Tous déterministes — relancés, ils produisent des fichiers identiques, donc versionnables.
@@ -1356,7 +1368,7 @@ Jusqu'à l'étape 5, des capsules colorées avec ombre au sol, une couleur par a
 
 ### Les crédits
 
-Un fichier `CREDITS.md` à la racine du dépôt, tenu **dès la première ressource tierce** et jamais à la fin — retrouver la provenance d'une tuile six mois plus tard est impossible. Décor et personnages étant générés, il ne porte pour l'instant que la mention de la référence ayant servi à la mise au point.
+Un fichier `CREDITS.md` à la racine du dépôt, tenu **dès la première ressource tierce** et jamais à la fin — retrouver la provenance d'une tuile six mois plus tard est impossible. Il porte la police, seule ressource tierce, et la licence des personnages dessinés.
 
 Une ligne par paquet : nom du paquet, auteur, URL, licence, date de récupération. La CC0 n'exige pas l'attribution mais elle est appréciée ; la CC-BY l'exige. Conserver aussi le fichier de licence original dans le dossier de l'asset.
 

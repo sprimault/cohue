@@ -55,7 +55,8 @@ make sons        # les bruitages, par synthèse
 Décor et personnages sont **générés et versionnés** : ils sortent des mêmes
 primitives isométriques, ne dépendent d'aucune source tierce, et les images sont
 embarquées dans l'exécutable. Un dépôt fraîchement cloné compile sans rien
-installer de plus.
+installer de plus. Le Survivant fait exception : il est dessiné, et ses bandes
+sont versionnées telles quelles, sous la licence du dépôt.
 
 C'est aussi ce qui rend les créatures contribuables : changer les proportions
 d'un profil ou ajouter un gabarit se fait dans du code relisible en pull

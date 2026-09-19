@@ -55,6 +55,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
   avant qu'il ne bouche le couloir.
 - **Le Secouriste est redessiné** : un médecin revenant en blouse blanche, le
   plus clair de la horde, qui lève les mains quand il soigne.
+- **Le Passant est redessiné, et en deux dessins** : un homme en manteau brun
+  et casquette, une femme en veste bordeaux. Les figurants d'un lieu mêlent les
+  deux, vivants et sombres parmi les revenants.
 
 ***
 
@@ -71,6 +74,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
   the corridor.
 - **The Secouriste is redrawn**: an undead doctor in a white coat, the lightest
   figure in the horde, who raises its hands while it heals.
+- **The Passant is redrawn, in two looks**: a man in a brown coat and flat cap,
+  a woman in a burgundy jacket. A place's extras mix both, living and dark among
+  the undead.
 
 ## [0.7.0] — 2026-09-18 — Ressources et caisses
 

@@ -198,7 +198,7 @@ BOUCLENT = {"repos", "marche"}
 #
 # L'aperçu les dessine encore : la figurine reste le repère des proportions
 # quand un dessin est repris.
-DESSINES = {"joueur", "marcheur", "bloqueur", "soigneur"}
+DESSINES = {"joueur", "marcheur", "bloqueur", "soigneur", "civil"}
 
 # Corps, teinte de vêtement, cycles. Le nombre d'images par cycle est ce que le
 # manifeste annonce au moteur : le changer ici change l'animation en jeu.
@@ -253,6 +253,10 @@ PROFILS = {
     # et 4,4 de ΔE la laissait passer. L'habit seul plafonnait à 9,1, la peau
     # étant commune aux deux, d'où les deux teintes.
     "civil":     {"nom": "Passant", "habit": (112, 100, 84), "peau": (150, 108, 78), "carrure": 0.95,
+                  # Deux dessins et non deux teintes : un homme en manteau brun,
+                  # une femme en veste bordeaux. Chaque figurant tire le sien à la
+                  # pose ; la teinte ne sert plus qu'à la figurine de l'aperçu.
+                  "variantes": [(112, 100, 84), (110, 40, 52)],
                   "cycles": {"repos": 1, "marche": 4, "mort": 2}},
 }
 

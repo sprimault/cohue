@@ -42,6 +42,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+## [0.7.1] — 2026-09-19 — La horde dessinée
+
 ### Modifié
 
 - **Le Survivant est redessiné** : veste bleue, pantalon clair, et une marche

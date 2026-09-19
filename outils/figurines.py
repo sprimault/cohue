@@ -198,7 +198,7 @@ BOUCLENT = {"repos", "marche"}
 #
 # L'aperçu les dessine encore : la figurine reste le repère des proportions
 # quand un dessin est repris.
-DESSINES = {"joueur", "marcheur", "bloqueur"}
+DESSINES = {"joueur", "marcheur", "bloqueur", "soigneur"}
 
 # Corps, teinte de vêtement, cycles. Le nombre d'images par cycle est ce que le
 # manifeste annonce au moteur : le changer ici change l'animation en jeu.

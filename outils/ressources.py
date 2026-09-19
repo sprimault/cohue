@@ -33,6 +33,7 @@ OUTILS = Path(__file__).parent
 # et c'est celle-ci qu'on oublierait de changer en retouchant le dessin.
 sys.path.insert(0, str(OUTILS))
 import objets as objets_iso  # noqa: E402  — après l'ajout au chemin, faute de paquet
+import decor_iso  # noqa: E402  — pour la liste des formes dessinées
 import figurines  # noqa: E402  — pour la liste des profils dessinés
 
 GENERATEURS = (
@@ -514,6 +515,34 @@ def formes(sortie):
     return defauts
 
 
+def dessins(sortie):
+    """Exige que chaque forme tenue à la main soit déclarée, et sa licence posée.
+
+    **L'image manquante n'est pas contrôlée ici**, et ce n'est pas un oubli :
+    `manifestes` la signale déjà comme annoncée au manifeste sans fichier, et un
+    second message sur le même défaut serait une seconde description de la même
+    règle. Ce qui reste à couvrir est l'autre sens — une forme ajoutée à
+    `DESSINES` sans que le manifeste ait été régénéré, auquel cas elle n'existe
+    pour personne et rien ne le dit.
+
+    Le `LICENSE.txt` du dossier entre dans le même contrôle : c'est lui qui
+    rattache ces images à la licence du dépôt, et rien d'autre ne le porte.
+    """
+    defauts = []
+    racine = sortie / "decors"
+    if not racine.exists() or not decor_iso.DESSINES:
+        return defauts
+
+    if not (racine / "LICENSE.txt").exists():
+        defauts.append(("decors", "LICENSE.txt absent, alors que des formes y sont dessinées"))
+    catalogue = racine / "manifeste.json"
+    declarees = _entrees(catalogue) if catalogue.exists() else {}
+    for nom in sorted(decor_iso.DESSINES):
+        if nom not in declarees:
+            defauts.append((nom, "dessinée mais absente du manifeste"))
+    return defauts
+
+
 def manifestes(sortie):
     """Vérifie que chaque manifeste décrit bien ce qui est sur le disque."""
     defauts = []
@@ -734,11 +763,21 @@ def _engendre(chemin):
     laisserait sinon son image versionnée, elle partirait dans le binaire par
     `go:embed`, et personne ne la verrait.
 
-    Seule exception au dossier : un profil dessiné, dans `personnages/`. Le
-    générateur en écrit le manifeste mais plus les bandes, qui sont tenues à la
-    main comme la table d'armes ; le contrôle des images, lui, les voit encore.
+    Deux exceptions au dossier, de même nature : un profil dessiné dans
+    `personnages/` et une forme dessinée dans `decors/`. Leur générateur en
+    écrit le manifeste mais plus l'image, tenue à la main comme la table
+    d'armes ; le contrôle des images, lui, les voit encore.
+
+    Un `LICENSE.txt` n'est produit par aucun générateur, où qu'il se trouve.
+    Celui d'un profil sortait déjà par le dossier de celui-ci ; celui du décor
+    voisine avec des formes générées, et se serait annoncé comme n'étant plus
+    produit — ce qu'il n'a jamais été.
     """
+    if chemin.name == "LICENSE.txt":
+        return False
     if len(chemin.parts) > 1 and chemin.parts[0] == "personnages" and chemin.parts[1] in figurines.DESSINES:
+        return False
+    if chemin.parts and chemin.parts[0] == "decors" and chemin.stem in decor_iso.DESSINES:
         return False
     return bool(chemin.parts) and chemin.parts[0] in {d for _, _, d in GENERATEURS}
 
@@ -827,6 +866,7 @@ def main():
     defauts += teinte_reservee(options.sortie)
     defauts += renvois_d_objets(options.sortie)
     defauts += formes(options.sortie)
+    defauts += dessins(options.sortie)
     defauts += police(options.sortie)
     defauts += icones(options.sortie)
     defauts += controler_sons(options.sortie)

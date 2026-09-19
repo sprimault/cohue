@@ -62,6 +62,14 @@ fichiers à dessin inchangé, et le diff devient illisible.
 Le décor est produit par `outils/decor_iso.py` et **versionné** : il ne dépend
 d'aucune source tierce.
 
+**Quelques formes y sont dessinées**, et `DESSINES` les énumère dans
+`outils/decor_iso.py` : les textures de sol, qu'un générateur de volumes ne sait
+pas rendre. Le script en écrit l'entrée de manifeste — taille, ancrage,
+élévation et couverture se mesurent sur le dessin livré — mais plus l'image, et
+`make ressources-verif` ne les compare pas. Elles se remplacent en déposant un
+nouveau PNG, jamais en régénérant, et le dossier porte son `LICENSE.txt` comme
+celui d'un profil.
+
 **Les personnages sont dessinés**, et `DESSINES` les énumère tous dans
 `outils/figurines.py`. Leurs bandes sont des dessins tenus à la main, avec un
 `LICENSE.txt` dans leur dossier, comme la police. Le générateur n'écrit plus que

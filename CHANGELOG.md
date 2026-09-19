@@ -53,6 +53,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Le Vigile est redessiné** : un colosse en gilet noir et épaulières grises,
   deux fois plus large qu'un Quidam, qu'on repère d'un coup d'œil dans la horde
   avant qu'il ne bouche le couloir.
+- **Le Secouriste est redessiné** : un médecin revenant en blouse blanche, le
+  plus clair de la horde, qui lève les mains quand il soigne.
 
 ***
 
@@ -67,6 +69,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **The Vigile is redrawn**: a giant in a black vest and grey shoulder pads,
   twice as wide as a Quidam, spotted at a glance in the horde before it blocks
   the corridor.
+- **The Secouriste is redrawn**: an undead doctor in a white coat, the lightest
+  figure in the horde, who raises its hands while it heals.
 
 ## [0.7.0] — 2026-09-18 — Ressources et caisses
 

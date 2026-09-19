@@ -67,6 +67,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **L'Arpenteur est redessiné** : une araignée violette au corps rond, sur six
   longues pattes qui dépassent de loin. Elle avance trois pattes à la fois, et
   se ramasse avant de bondir.
+- **Le Molosse est redessiné** : un chien brun massif, épaules lourdes, qui
+  trotte ses pattes par paires. Avec lui, les neuf créatures sont dessinées.
 
 ***
 
@@ -94,6 +96,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **The Arpenteur is redrawn**: a purple spider with a round body, on six long
   legs that reach far out. It moves three legs at a time, and crouches before
   it pounces.
+- **The Molosse is redrawn**: a massive brown dog with heavy shoulders, trotting
+  its legs in pairs. With it, all nine creatures are drawn.
 
 ## [0.7.0] — 2026-09-18 — Ressources et caisses
 

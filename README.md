@@ -46,20 +46,21 @@ fixed in the script, never in the PNG.
 
 ```
 make decors      # the places, six themes
-make figurines   # the creatures, six body types, colour variants
+make figurines   # the creatures' manifest
 make objets      # what gets picked up or fired
 make sons        # the sound effects, by synthesis
 ```
 
-Scenery and characters are **generated and versioned**: they come from the same
-isometric primitives, depend on no third-party source, and the images are
-embedded in the executable. A fresh clone builds with nothing else to install.
-The Survivor, the Quidam, the Vigile, the Secouriste, the Passant, the Buse, the Baudruche and the Arpenteur are the exception: they are drawn, and their strips
-are versioned as they are, under the repository's licence.
+Scenery is **generated and versioned**: it comes from isometric primitives,
+depends on no third-party source, and the images are embedded in the
+executable. A fresh clone builds with nothing else to install.
 
-That is also what makes the creatures contributable: changing a profile's
-proportions or adding a body type happens in code reviewable in a pull request,
-not in a PNG.
+That is also what makes the scenery contributable: changing a shape happens in
+code reviewable in a pull request, not in a PNG.
+
+Characters, on the other hand, are **drawn**: their strips are versioned as they
+are, under the repository's licence, and the generator only writes their
+manifest.
 
 ## Levels and sharing
 

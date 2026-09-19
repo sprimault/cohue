@@ -47,20 +47,21 @@ forme se corrige dans le script, jamais dans le PNG.
 
 ```
 make decors      # les lieux, six thèmes
-make figurines   # les créatures, six gabarits, variantes de teinte
+make figurines   # le manifeste des créatures
 make objets      # ce qui se ramasse ou se tire
 make sons        # les bruitages, par synthèse
 ```
 
-Décor et personnages sont **générés et versionnés** : ils sortent des mêmes
-primitives isométriques, ne dépendent d'aucune source tierce, et les images sont
-embarquées dans l'exécutable. Un dépôt fraîchement cloné compile sans rien
-installer de plus. Le Survivant, le Quidam, le Vigile, le Secouriste, le Passant, la Buse, la Baudruche et l'Arpenteur font exception : ils sont dessinés,
-et leurs bandes sont versionnées telles quelles, sous la licence du dépôt.
+Le décor est **généré et versionné** : il sort de primitives isométriques, ne
+dépend d'aucune source tierce, et les images sont embarquées dans l'exécutable.
+Un dépôt fraîchement cloné compile sans rien installer de plus.
 
-C'est aussi ce qui rend les créatures contribuables : changer les proportions
-d'un profil ou ajouter un gabarit se fait dans du code relisible en pull
-request, pas dans un PNG.
+C'est aussi ce qui rend le décor contribuable : changer une forme se fait dans
+du code relisible en pull request, pas dans un PNG.
+
+Les personnages, eux, sont **dessinés** : leurs bandes sont versionnées telles
+quelles, sous la licence du dépôt, et le générateur n'en écrit que le
+manifeste.
 
 ## Niveaux et partage
 

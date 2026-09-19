@@ -760,7 +760,7 @@ Une option reste ouverte si le tir manuel manque au jalon 3 : garder l'automatiq
 
 ### Les directions
 
-`figurines.py` produit 8 directions, ce qui lève la contrainte initiale de 4 poses. Si un archétype devait un jour être dessiné à la main, la solution de repli tient toujours : quatre orientations sur les diagonales écran (NE, SE, SO, NO), dont deux obtenues par miroir horizontal — on ne dessine alors que dos et face.
+Les personnages ont 8 directions, ce qui lève la contrainte initiale de 4 poses. Les trois de l'est sont le miroir de celles de l'ouest — juste en vue isométrique pour un corps symétrique —, si bien qu'un profil se dessine en cinq vues : face, dos, profil et les deux trois-quarts de l'ouest.
 
 Dans tous les cas : orienter le sprite sur la direction de **visée**, pas de déplacement. Le joueur recule en tirant vers l'avant, et ça se lit immédiatement.
 
@@ -1221,38 +1221,27 @@ Règle qui vaudra encore si le jeu passe un jour à du pixel art dessiné : une 
 
 ### Les personnages
 
-**Générés, comme le décor**, par `outils/figurines.py` : une créature est un
-empilement de volumes isométriques, et rien d'autre. Six gabarits donnent des
-silhouettes distinctes — bipède, quadrupède, rampant, bulbe, colosse, gonflé —
-parce que recolorer ne suffit pas : un joueur doit lire sa horde d'un coup
-d'œil. Le colosse est celui du Vigile, dont le chapitre 4 dit qu'il se
-reconnaît à ses épaules ; sur un bipède ordinaire il ne bouchait pas un couloir
-à l'œil, seulement dans la grille.
+**Dessinés, contrairement au décor.** Les neuf profils ont leurs bandes tenues
+à la main, sous la licence du dépôt, avec un `LICENSE.txt` dans leur dossier.
+`outils/figurines.py` n'en écrit plus que l'entrée de manifeste — cycles,
+cadences, appui, valeurs de jeu —, si bien que le moteur ne voit aucune
+différence, et le contrôle des images s'y applique comme au reste. Un dessin se
+remplace en déposant ses bandes, jamais en régénérant.
 
-Les huit orientations viennent de la place des membres et du regard, pas d'une
-rotation des volumes : à cette taille un torse pivoté ne se lit pas, alors qu'un
-bras avancé se lit tout de suite. Un corps composé de blocs enfilés sur le
-vecteur du regard s'oriente donc sans qu'aucun volume ne tourne — c'est ce qui a
-réglé le chien, dont la tête sortait du corps dès qu'il changeait de direction.
+Six familles de silhouettes restent distinctes — bipède, quadrupède, rampant,
+bulbe, colosse, gonflé — parce que recolorer ne suffit pas : un joueur doit lire
+sa horde d'un coup d'œil. Le colosse est celui du Vigile, dont le chapitre 4 dit
+qu'il se reconnaît à ses épaules ; sur un bipède ordinaire il ne bouchait pas un
+couloir à l'œil, seulement dans la grille.
 
-Un profil peut déclarer plusieurs **teintes de vêtement**. La variante est tirée
-à l'apparition depuis la graine de la run, jamais depuis l'horloge, sinon deux
-rejeux de la même graine divergent.
+Un profil peut déclarer plusieurs **dessins** : le Quidam en a six, un par
+teinte de chemise, le Passant deux, un homme et une femme. Le dessin est tiré à
+l'apparition depuis la graine de la run — dans le flux cosmétique pour un
+figurant —, jamais depuis l'horloge, sinon deux rejeux de la même graine
+divergent.
 
-**Aucune ressource tierce.** Un générateur est relisible en pull request, un PNG
-ne l'est pas : c'est ce qui rend les créatures **contribuables**, et ce qui évite
-toute question de licence sur ce qui entre dans le jeu.
-
-**Un profil peut être dessiné plutôt que généré**, et le Survivant, le Quidam,
-le Vigile, le Secouriste, le Passant, la Buse, la Baudruche et l'Arpenteur le sont — le Quidam dans ses six teintes
-de chemise, le Passant en deux dessins, un homme et une femme, que chaque
-figurant tire à la pose dans le flux cosmétique : leurs
-bandes sont des dessins tenus à la main, sous la licence du dépôt, avec un
-`LICENSE.txt` dans leur dossier. Le générateur en garde l'entrée de manifeste —
-cycles, cadences, appui, valeurs de jeu —, si bien que le moteur ne voit aucune
-différence, et le contrôle des images s'y applique comme au reste. Les ennemis
-suivront le même chemin, un profil à la fois ; la figurine reste en attendant ce
-qui les dessine.
+**Aucune ressource tierce** : les dessins sont originaux, ce qui évite toute
+question de licence sur ce qui entre dans le jeu.
 
 Un dessin ne se refait pas à l'identique, et c'est ce qui le range à part : il
 n'est pas comparé à une régénération, comme la table d'armes, que l'on règle à
@@ -1273,7 +1262,7 @@ Composition : `poser` place un objet **en coordonnées de tuile**, pas en pixels
 
 `MATIERES` est le point d'entrée unique de la palette : trois teintes par matière, dessus et deux flancs.
 
-**`figurines.py`** génère les créatures : six gabarits, neuf profils, variantes de teinte, une bande horizontale par cycle et par direction.
+**`figurines.py`** écrit le manifeste des créatures : neuf profils, leurs cycles et leurs valeurs de jeu. Leurs bandes, une par cycle et par direction, sont dessinées.
 
 **`objets.py`** génère ce qui se ramasse ou se tire : caisse et ses cycles d'appui et de rupture, gemme, fiole, projectiles, armes lourdes en version posée au sol et en icône d'interface. Une caisse se casse et se ramasse — elle appartient au jeu, pas au lieu, même si elle est posée sur la grille comme un mur.
 
@@ -1583,7 +1572,7 @@ Fait :
 
 - Le format de pièces et la géométrie 2:1, validés au pixel : la tuile carrèle sans couture ni joint double.
 - Le générateur de décor, une soixantaine de formes avec manifeste, extensible en quelques lignes par forme.
-- Le générateur de personnages : six gabarits, neuf profils, huit orientations, et les valeurs de jeu dans le même manifeste que le rendu.
+- Les personnages : neuf profils dessinés, huit orientations, et les valeurs de jeu dans le même manifeste que le rendu.
 - Les objets et les bruitages, générés et contrôlés au même titre : caisse et ses cycles, gemme, fiole, projectiles, armes lourdes, éclats par matière.
 - Le test de projection : personnages et tuiles s'alignent.
 

@@ -198,7 +198,7 @@ BOUCLENT = {"repos", "marche"}
 #
 # L'aperçu les dessine encore : la figurine reste le repère des proportions
 # quand un dessin est repris.
-DESSINES = {"joueur", "marcheur", "bloqueur", "soigneur", "civil", "cracheur", "eclateur", "flanqueur"}
+DESSINES = {"joueur", "marcheur", "bloqueur", "soigneur", "civil", "cracheur", "eclateur", "flanqueur", "sprinteur"}
 
 # Corps, teinte de vêtement, cycles. Le nombre d'images par cycle est ce que le
 # manifeste annonce au moteur : le changer ici change l'animation en jeu.
@@ -781,6 +781,9 @@ def main():
         suffixe = f"  {len(variantes)} variantes" if len(variantes) > 1 else ""
         print(f"{profil:11} {total:4} images{suffixe}")
 
+    # Tous les profils dessinés, aucune bande n'a créé le dossier : la
+    # vérification régénère dans un répertoire vide.
+    o.sortie.mkdir(parents=True, exist_ok=True)
     ecrire_manifeste(o.sortie / "manifeste.json", "figurines.py",
                      {"version_format": 1, "profils": manifeste})
     print(f"\n{len(manifeste)} profils au manifeste dans {o.sortie}")

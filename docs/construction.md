@@ -62,13 +62,8 @@ fichiers à dessin inchangé, et le diff devient illisible.
 Le décor est produit par `outils/decor_iso.py` et **versionné** : il ne dépend
 d'aucune source tierce.
 
-Les personnages sortent de `outils/figurines.py`, sur le même principe : des
-volumes isométriques composés, avec un gabarit par famille — bipède, quadrupède,
-rampant, bulbe, colosse, gonflé — et des variantes de teinte par profil.
-
-**Sauf les profils dessinés**, que `DESSINES` énumère dans le même fichier :
-aujourd'hui le Survivant, le Quidam, le Vigile, le Secouriste, le Passant, la
-Buse, la Baudruche et l'Arpenteur. Leurs bandes sont des dessins tenus à la main, avec un
+**Les personnages sont dessinés**, et `DESSINES` les énumère tous dans
+`outils/figurines.py`. Leurs bandes sont des dessins tenus à la main, avec un
 `LICENSE.txt` dans leur dossier, comme la police. Le générateur n'écrit plus que
 leur entrée de manifeste, `make ressources-verif` ne les compare pas, et le
 contrôle des images les voit comme les autres. Un dessin se remplace en
@@ -152,15 +147,13 @@ le fichier ne casse rien.
 
 ## Les ressources et les contributions
 
-Décor et personnages sortent des mêmes primitives isométriques, et les deux sont
-versionnés. **Une forme se corrige dans le script, jamais dans le PNG** : une
-retouche manuelle serait écrasée à la prochaine génération sans que personne ne
-le voie.
+Le décor, les objets et les sons sortent de générateurs, et sont versionnés.
+**Une forme se corrige dans le script, jamais dans le PNG** : une retouche
+manuelle serait écrasée à la prochaine génération sans que personne ne le voie.
 
-C'est aussi ce qui rend les créatures contribuables : `outils/figurines.py` est
-du code relisible en pull request, là où un PNG ne l'est pas. Changer les
-proportions d'un profil, ajouter un gabarit ou une variante de teinte se fait
-dans ce fichier, puis :
+C'est aussi ce qui les rend contribuables : un générateur est du code relisible
+en pull request, là où un PNG ne l'est pas. Changer une forme se fait dans son
+script, puis :
 
 ```
 make ressources        # tous les générateurs, puis le contrôle
@@ -176,7 +169,6 @@ autonome et accepte ses propres options.
 ```
 python outils/decor_iso.py --theme parking --sortie assets/decors
 python outils/decor_iso.py voiture camion --sortie assets/decors
-python outils/figurines.py --apercu            # planches dans .tmp/controle/
 python outils/objets.py --sortie assets/objets
 python outils/interface.py --sortie assets/interface
 python outils/ressources.py --controle        # sans rien régénérer

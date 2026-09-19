@@ -36,7 +36,8 @@ DISPENSES = {
 
 # Le Markdown s'adresse à un lecteur ; les binaires ne portent pas de
 # commentaire et c'est le manifeste de leur lot qui porte la mention pour eux.
-SUFFIXES_DISPENSES = {".md", ".png", ".jpg", ".wav", ".ogg", ".zip", ".gz"}
+SUFFIXES_DISPENSES = {".md", ".png", ".jpg", ".webp", ".gif", ".wav", ".ogg",
+                      ".zip", ".gz"}
 
 # Une fonte tierce ne se modifie pas sans cesser d'être la copie qu'on déclare :
 # la mention vit dans son manifeste et dans CREDITS, jamais dans le fichier. Le
@@ -59,7 +60,7 @@ RACINE_RESSOURCES = "assets"
 # Ce qui porte la mention à la place d'un binaire : le manifeste de son lot, ou
 # la licence déposée dans son dossier.
 PORTEURS = {"manifeste.json", "LICENSE.txt"}
-SUFFIXES_BINAIRES = {".png", ".jpg", ".wav", ".ogg"}
+SUFFIXES_BINAIRES = {".png", ".jpg", ".webp", ".gif", ".wav", ".ogg"}
 
 
 def versionnes(racine):

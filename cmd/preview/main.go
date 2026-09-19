@@ -32,6 +32,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"image"
 	"image/png"
 	"os"
 	"path/filepath"
@@ -197,6 +198,22 @@ type vue struct {
 	nom   string
 	ou    repere
 	ticks int
+	// pilote est le plafond de ticks joués au pilote automatique avant de
+	// dessiner, cartes de montée prises au passage.
+	//
+	// **Ce n'est pas `ticks` sous un autre nom** : celui-là joue avec une
+	// direction nulle et sert à amener un état — une créature au contact, un tir
+	// en vol. Celui-ci joue une partie, et ce qu'il cherche est la densité que
+	// seul le temps apporte.
+	//
+	// **Un plafond et non une cible** : l'enregistrement s'achève au dernier
+	// instant où le joueur est vivant, et le pilote meurt vers la quatrième
+	// minute. Viser un instant fixe rendait trois secondes d'écran de mort, la
+	// simulation continuant de tourner après elle.
+	pilote int
+	// anime est la durée du GIF écrit à la suite, en secondes. Zéro n'en écrit
+	// aucun, ce qui est le cas de toutes les vues sauf une.
+	anime int
 	// videLaHorde retire les créatures à chaque pas.
 	//
 	// **À chaque pas et non une fois avant**, depuis que le spawner existe : la
@@ -434,6 +451,24 @@ var vues = []vue{
 	{nom: "mur-sud-ouest", ou: murSudOuest},
 
 	{nom: "melee", ticks: 300 * game.TPS, jusquAuxDegats: true},
+
+	// **La seule vue qui bouge, et la seule qui se regarde sans être comparée.**
+	// Ce qu'elle donne à relire ne tient dans aucune image : une horde qui
+	// converge, une salve qui s'élargit d'un palier à l'autre, deux cents gemmes
+	// qui partent d'un coup. La planche montre ce qu'on a pensé à montrer, à un
+	// instant ; celle-ci montre le jeu.
+	//
+	// **Trois minutes, et non les sept de la bascule de puissance.** La
+	// conception place celle-ci entre la septième et la onzième minute, mais le
+	// pilote est médiocre par construction et meurt vers la quatrième : viser
+	// sept minutes rendait les dernières secondes d'un joueur à six points de
+	// vie, vignette d'alerte allumée, puis son écran de mort. À trois minutes il
+	// est vivant, l'arme a ses paliers et la horde est là.
+	//
+	// Le plafond ne sert que si le pilote survit au-delà ; l'enregistrement
+	// s'achève de toute façon au dernier instant vivant. Le jour où le pilote
+	// jouera mieux, ce chiffre montera sans que rien d'autre ne bouge.
+	{nom: "partie", pilote: 3 * 60 * game.TPS, anime: 6, hud: true},
 
 	// **Le tir du joueur n'avait aucune vue**, et c'est ce qui l'a laissé
 	// invisible jusqu'à ce qu'une partie jouée le signale : les projectiles sont
@@ -880,8 +915,21 @@ func (p *planche) vue(v vue) error {
 	if err != nil {
 		return err
 	}
-	render.NewScreen(partie.World, partie.Grid, sol, p.troupe, p.objets).
-		WithHUD(p.hud).Draw(p.tampon)
+	pilote := &pilotage{partie: partie}
+	if v.pilote > 0 {
+		// L'enregistrement s'achève au dernier instant où le joueur est vivant,
+		// et le plafond ne sert que s'il survit au-delà : ce que la vue montre
+		// est une partie, pas un écran de mort.
+		fin, err := ticksAvantLaMort(cohue.Assets, cohue.StartingCampaign, graine, v.pilote)
+		if err != nil {
+			return err
+		}
+		pilote.avancer(max(0, fin-v.anime*game.TPS))
+	}
+
+	ecran := render.NewScreen(partie.World, partie.Grid, sol, p.troupe, p.objets).
+		WithHUD(p.hud)
+	ecran.Draw(p.tampon)
 	if v.texte {
 		p.poser()
 	}
@@ -918,7 +966,41 @@ func (p *planche) vue(v vue) error {
 		return fmt.Errorf("%s: %w", chemin, err)
 	}
 	fmt.Println(chemin)
+
+	// L'image fixe sert de vignette à l'animation, et elle est écrite d'abord :
+	// un GIF qui échouerait laisse au moins de quoi voir où la partie en était.
+	if v.anime > 0 {
+		images, err := p.enregistrer(ecran, pilote, v.anime)
+		if err != nil {
+			return err
+		}
+		return ecrireGIF(filepath.Join(sortie, v.nom+".gif"),
+			image.Pt(render.Width, render.Height), images)
+	}
 	return nil
+}
+
+// enregistrer joue la suite de la partie en dessinant, et rend les images lues.
+//
+// **Le tampon est lu et non l'agrandi** : un GIF de pixel art se regarde au
+// facteur du lecteur, et quadrupler chaque point quadruplerait un fichier que
+// rien n'allège ensuite. La cadence tombe à un tick sur trois, ce que l'œil ne
+// distingue pas d'une animation à soixante sur du pixel art qui bouge.
+func (p *planche) enregistrer(ecran *render.Screen, pilote *pilotage, secondes int) ([][]byte, error) {
+	images := make([][]byte, 0, secondes*imagesParSeconde)
+	for range secondes * imagesParSeconde {
+		// **On dessine avant d'avancer.** L'inverse place la dernière image un
+		// pas au-delà de ce qu'on visait, et quand ce qu'on vise est le dernier
+		// instant vivant, ce pas de trop est l'écran de mort.
+		ecran.Follow()
+		ecran.Draw(p.tampon)
+		pixels := make([]byte, 4*render.Width*render.Height)
+		p.tampon.ReadPixels(pixels)
+		images = append(images, pixels)
+
+		pilote.avancer(game.TPS / imagesParSeconde)
+	}
+	return images, nil
 }
 
 // poser écrit les échantillons sur la scène déjà dessinée.

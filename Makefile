@@ -19,7 +19,7 @@ PYTHON    ?= python3
 # directement perd ces variables, et l'échec est intermittent.
 -include makefile.local
 
-.PHONY: build run test race fmt lint vulncheck sec notices cover binary binaries clean tools ressources ressources-verif decors figurines objets sons interface controle entetes sommaire apercus
+.PHONY: build run test race fmt lint vulncheck sec notices cover binary binaries clean tools ressources ressources-verif decors figurines objets sons interface controle entetes sommaire apercus anime
 
 build:
 	go build -trimpath -ldflags "$(LDFLAGS)" -o $(SORTIE)/$(BINAIRE) ./cmd/cohue
@@ -33,6 +33,12 @@ run:
 # continue — c'est une planche, pas un contrôle.
 apercus:
 	go run ./cmd/preview
+
+# L'aperçu animé en WebP : le même contenu que le GIF que `apercus` écrit, douze
+# fois plus léger, pour ce qui se publie. Le GIF reste la sortie du générateur,
+# qui n'écrit qu'avec la bibliothèque standard.
+anime: apercus
+	$(PYTHON) outils/anime.py .tmp/apercus/partie.gif .tmp/apercus/partie.webp
 
 # Aucun test ne doit ouvrir de fenêtre : les runners sont sans écran, et un test
 # qui exigerait xvfb n'a rien à faire dans la suite par défaut.

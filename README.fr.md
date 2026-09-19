@@ -6,6 +6,8 @@ Un action-roguelite urbain en vue isométrique, sous pression de horde. Des
 salles enchaînées, du tir automatique, une build qui se compose en quinze
 minutes.
 
+![Six secondes de jeu, à la troisième minute](docs/images/partie.webp)
+
 Apache 2.0 — [`LICENSE`](LICENSE), et [`CREDITS.md`](CREDITS.md) pour les
 ressources graphiques.
 
@@ -26,8 +28,13 @@ loin, celle qu'on ne traverse pas, celle qui explose, celle qui soigne les
 autres. Des passants vont et viennent sans attaquer personne. Les gemmes font
 monter de niveau, chaque montée offre trois cartes, et des caisses se cassent en
 les traversant. La porte s'ouvre une fois abattu ce que le lieu demande : venir
-contre elle suffit à partir. Le décor est fait de rectangles colorés — les images
-existent, mais rien ne les charge encore.
+contre elle suffit à partir. Les créatures sont dessinées, le décor porte une
+matière, et les murs sont en pierre appareillée.
+
+L'animation en tête est six secondes d'une vraie partie, à la troisième minute,
+menée par le pilote du test de déterminisme. `make anime` la réécrit depuis le
+code : elle vieillit donc avec le jeu, et non avec le jour où on l'aurait
+capturée.
 
 Le projet suit une feuille de route en seize étapes, publiée à chacune. **Ce qui
 est fait et ce qui reste ne se lisent pas ici** : les deux listes vivraient à

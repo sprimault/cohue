@@ -421,6 +421,15 @@ func (s *Screen) Update() error {
 	return nil
 }
 
+// Follow recadre la caméra sur le joueur.
+//
+// **`Update` le fait déjà, et cette méthode est pour ce qui n'y passe pas.** La
+// planche de relecture avance le monde elle-même — elle n'a ni touches à lire
+// ni pause à tenir — puis dessine ; sans ce recadrage, sa caméra reste où le
+// montage l'a posée et le joueur sort du champ au bout de quelques pas.
+// L'aperçu animé l'a montré en soixante images où le décor ne bougeait pas.
+func (s *Screen) Follow() { s.cam.suivre(s.monde.Player()) }
+
 // Draw peint le tampon interne : le sol, ce qui s'y tient en profondeur, puis
 // l'interface par-dessus.
 func (s *Screen) Draw(ecran *ebiten.Image) {

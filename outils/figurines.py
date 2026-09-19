@@ -198,7 +198,7 @@ BOUCLENT = {"repos", "marche"}
 #
 # L'aperçu les dessine encore : la figurine reste le repère des proportions
 # quand un dessin est repris.
-DESSINES = {"joueur"}
+DESSINES = {"joueur", "marcheur"}
 
 # Corps, teinte de vêtement, cycles. Le nombre d'images par cycle est ce que le
 # manifeste annonce au moteur : le changer ici change l'animation en jeu.
@@ -216,7 +216,11 @@ PROFILS = {
                   # elle qu'on reconnaît son propre personnage dans la mêlée.
                   "variantes": [(120, 148, 116), (112, 104, 96), (146, 122, 96),
                                 (132, 108, 120), (104, 132, 128), (150, 140, 108)],
-                  "cycles": {"repos": 1, "marche": 5, "attaque": 3, "degat": 1, "mort": 3}},
+                  # Quatre images de marche, comme le joueur : contact, passage,
+                  # contact, passage. Le dessin tient le pied posé au sol d'une
+                  # image à l'autre, et un cycle impair n'a pas de place pour
+                  # la cinquième.
+                  "cycles": {"repos": 1, "marche": 4, "attaque": 3, "degat": 1, "mort": 3}},
     "sprinteur": {"nom": "Molosse", "habit": (112, 88, 72),   "peau": (150, 118, 88),  "carrure": 1.0,
                   "gabarit": "quadrupede",
                   "cycles": {"marche": 8, "mort": 2}},

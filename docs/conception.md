@@ -1243,7 +1243,8 @@ rejeux de la même graine divergent.
 ne l'est pas : c'est ce qui rend les créatures **contribuables**, et ce qui évite
 toute question de licence sur ce qui entre dans le jeu.
 
-**Un profil peut être dessiné plutôt que généré**, et le Survivant l'est : ses
+**Un profil peut être dessiné plutôt que généré**, et le Survivant comme le
+Quidam le sont — le Quidam dans ses six teintes de chemise : leurs
 bandes sont des dessins tenus à la main, sous la licence du dépôt, avec un
 `LICENSE.txt` dans leur dossier. Le générateur en garde l'entrée de manifeste —
 cycles, cadences, appui, valeurs de jeu —, si bien que le moteur ne voit aucune

@@ -47,6 +47,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Le Survivant est redessiné** : veste bleue, pantalon clair, et une marche
   où le pied posé tient au sol pendant que l'autre passe, bras en opposition.
   Dans les huit directions, il se détache mieux du décor et de la horde.
+- **Le Quidam est redessiné** : employé de bureau infecté, peau gris-vert,
+  chemise dans l'une de ses six teintes. Il marche comme le Survivant, et
+  tasse le buste quand un tir le touche.
 
 ***
 
@@ -55,6 +58,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **The Survivor is redrawn**: blue jacket, light trousers, and a walk where the
   planted foot holds the ground while the other passes, arms swinging opposite.
   In all eight directions, it stands out better from the scenery and the horde.
+- **The Quidam is redrawn**: an infected office worker, grey-green skin, shirt
+  in one of its six colours. It walks like the Survivor, and sags when a shot
+  hits it.
 
 ## [0.7.0] — 2026-09-18 — Ressources et caisses
 

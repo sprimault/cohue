@@ -11,9 +11,10 @@ Générés par `outils/decor_iso.py` et `outils/figurines.py`. Aucune source
 tierce : ils suivent la licence du dépôt.
 
 Sauf les profils dessinés, que `DESSINES` énumère dans `outils/figurines.py` :
-aujourd'hui le Survivant. Ses bandes sont des dessins originaux, tenus à la main
-et non régénérés, sous licence Apache 2.0 comme le reste du dépôt ; le texte en
-est conservé dans `assets/personnages/joueur/LICENSE.txt`.
+aujourd'hui le Survivant et le Quidam. Leurs bandes sont des dessins originaux,
+tenus à la main et non régénérés, sous licence Apache 2.0 comme le reste du
+dépôt ; le texte en est conservé dans le `LICENSE.txt` de chaque dossier,
+`assets/personnages/joueur/` et `assets/personnages/marcheur/`.
 
 ## Police
 

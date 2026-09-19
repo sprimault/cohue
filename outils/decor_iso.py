@@ -55,6 +55,10 @@ FRANCHISSABLES = {
     "sol_fissure": 2, "sol_sale": 2, "flaque": 2,
     "bouche_egout": 1, "fleche_sol": 1, "trottoir": 1, "quai": 1, "rail": 1,
     "porte_ouverte": 1, "chaussee": 1,
+    "herbe": 1, "passage_pieton": 1, "moquette": 1, "bande_eveil": 1,
+    # Le ballast est le premier ralentisseur d'un thème : il rend la voie
+    # pénible à traverser, ce qui est ce qu'une voie doit être.
+    "ballast": 2,
 }
 
 # Les revêtements qu'on peint sans les cerner : un liseré y doublerait le joint
@@ -76,6 +80,7 @@ FRANCHISSABLES = {
 REVETEMENTS = {
     "sol", "sol_use", "sol_carrele", "sol_fissure", "sol_sale", "sol_parking",
     "trottoir", "quai", "rail",
+    "herbe", "passage_pieton", "moquette", "ballast", "bande_eveil",
 }
 
 
@@ -234,6 +239,25 @@ def barriere():
 
 # --- Quartier --------------------------------------------------------------
 
+def herbe():
+    # **Calmée, et c'est une exigence de lisibilité et non de goût.** Brute, la
+    # texture donne un vert qui accroche l'œil avant la horde ; tirée vers le
+    # gris et assombrie, elle garde ses brins et reste au second plan, où un sol
+    # doit être.
+    return joint(volume(peinture=nuance(texture("herbe"), facteur=0.82,
+                                        vers=(96, 104, 84), force=0.30)))
+
+
+def passage_pieton():
+    # Les bandes suivent `v`, donc un axe du monde, et quatre demi-bandes par
+    # case se raccordent d'une case à la suivante : posées en file, elles
+    # dessinent un passage continu.
+    enrobe = texture("bitume")
+    def zebres(u, v):
+        return MARQUAGE if int(v * 4) % 2 else enrobe(u, v)
+    return joint(volume(matiere="bitume", peinture=zebres))
+
+
 def trottoir():
     # Le grain vient d'une texture, le relief et les flancs du volume : c'est la
     # répartition qui vaut pour tous les revêtements, la matière d'un côté et la
@@ -267,6 +291,14 @@ def jardiniere():
 
 # --- Cinéma ----------------------------------------------------------------
 
+def moquette():
+    # Le cinéma n'avait aucun sol à lui et empruntait le carrelage du
+    # supermarché. Son motif se répète d'une case à l'autre, et c'est ce qu'on
+    # attend d'une moquette — comme d'un appareil de pierre, et à la différence
+    # d'une tache.
+    return joint(volume(peinture=texture("moquette")))
+
+
 def rangee_fauteuils():
     assise = nervures(volume(tx=2, ty=0.8, elevation=10, matiere="tissu"), pas=11)
     dossier = volume(tx=2, ty=0.2, elevation=12, matiere="tissu")
@@ -291,10 +323,34 @@ def comptoir_confiserie():
 
 # --- Station ---------------------------------------------------------------
 
+def ballast():
+    # **Réduite en moyenne et non au plus proche voisin**, à l'inverse des
+    # autres : un gravier dont les grains sont plus fins que le pas
+    # d'échantillonnage donne du bruit qui grouille, là où la moyenne rend la
+    # masse qu'on voit à trois mètres. Le coût de deux est ce qui rend la voie
+    # pénible à traverser, sa fonction même.
+    return joint(volume(peinture=texture("ballast")))
+
+
 def quai():
+    # **La bande d'éveil n'est plus ici, et c'est un défaut corrigé.** Chaque
+    # case en portait une : un quai de trois cases de large était rayé de jaune
+    # sur toute sa profondeur, alors que la bande borde un quai et ne le pave
+    # pas. Elle a sa forme, que l'auteur pose sur la seule rangée de bord.
+    return joint(volume(elevation=10, matiere="beton",
+                        peinture=texture("beton_clair")))
+
+
+def bande_eveil():
+    # Les plots alternés sont ce qui distingue une bande podotactile d'un simple
+    # marquage : ils se comptent en pixels de tuile, comme le damier du
+    # carrelage, et restent nets là où une texture les aurait dilués.
     beton = texture("beton_clair")
+    sombre = tuple(int(c * 0.78) for c in BANDE_JAUNE)
     def bande(u, v):
-        return BANDE_JAUNE if v > 0.86 else beton(u, v)
+        if v <= 0.62:
+            return beton(u, v)
+        return sombre if (int(u * 10) + int(v * 10)) % 2 else BANDE_JAUNE
     return joint(volume(elevation=10, matiere="beton", peinture=bande))
 
 
@@ -649,7 +705,8 @@ THEMES = {
         "voiture_epave": voiture_epave, "ambulance": ambulance,
     },
     "quartier": {
-        "trottoir": trottoir, "banc": banc, "poubelle": poubelle,
+        "trottoir": trottoir, "herbe": herbe, "passage_pieton": passage_pieton,
+        "banc": banc, "poubelle": poubelle,
         "lampadaire": lampadaire, "jardiniere": jardiniere,
         "bus": bus, "scooter": scooter,
         "immeuble_petit": immeuble_petit, "immeuble_haut": immeuble_haut,
@@ -657,11 +714,13 @@ THEMES = {
         "feu_tricolore": feu_tricolore,
     },
     "cinema": {
+        "moquette": moquette,
         "rangee_fauteuils": rangee_fauteuils, "ecran": ecran,
         "poteau_cordon": poteau_cordon, "comptoir_confiserie": comptoir_confiserie,
     },
     "station": {
-        "quai": quai, "tourniquet": tourniquet, "distributeur": distributeur,
+        "quai": quai, "bande_eveil": bande_eveil, "ballast": ballast,
+        "tourniquet": tourniquet, "distributeur": distributeur,
         "rail": rail, "wagon": wagon, "wagon_tete": wagon_tete,
         "panneau_horaires": panneau_horaires,
     },

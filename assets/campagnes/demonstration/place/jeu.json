@@ -8,6 +8,8 @@
     ".": "sol",
     ",": "trottoir",
     "r": "chaussee",
+    "p": "passage_pieton",
+    "h": "herbe",
     "~": "flaque",
     "x": "sol_fissure",
     "#": "mur",

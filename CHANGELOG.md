@@ -44,6 +44,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Cinq revêtements comblent les trous du catalogue** : de l'herbe et un
+  passage piéton au quartier — que la place pose désormais le long de son
+  avenue —, une moquette au cinéma, qui n'avait aucun sol à lui, du ballast et
+  une bande d'éveil à la station. Le ballast ralentit qui le traverse, comme la
+  voie qu'il porte.
 - **Une chaussée de bitume** entre au décor du quartier, qui n'avait que son
   trottoir, et les trois avenues de la place la posent le long du leur. C'est la
   première texture de sol dessinée : le générateur n'en écrit plus que l'entrée
@@ -73,6 +78,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **Five ground surfaces fill the catalogue's gaps**: grass and a pedestrian
+  crossing for the neighbourhood — which the square now lays along its avenue —,
+  a carpet for the cinema, which had no floor of its own, ballast and a tactile
+  warning strip for the station. Ballast slows whoever crosses it, like the
+  track it carries.
 - **An asphalt roadway** joins the neighbourhood scenery, which until now had
   only its pavement, and the square's three avenues now lay it along theirs. It
   is the first hand-drawn ground texture: the generator only writes its manifest

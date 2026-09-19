@@ -54,7 +54,7 @@ make sons        # the sound effects, by synthesis
 Scenery and characters are **generated and versioned**: they come from the same
 isometric primitives, depend on no third-party source, and the images are
 embedded in the executable. A fresh clone builds with nothing else to install.
-The Survivor and the Quidam are the exception: they are drawn, and their strips
+The Survivor, the Quidam and the Vigile are the exception: they are drawn, and their strips
 are versioned as they are, under the repository's licence.
 
 That is also what makes the creatures contributable: changing a profile's

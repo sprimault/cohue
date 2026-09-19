@@ -29,9 +29,9 @@ from primitives_iso import (HAUTEUR_PERSONNAGE, LARGEUR_TUILE, MATIERES,
                             PLAFOND_OBSTACLE_BAS, TRANSPARENT, aligner,
                             bandeau, carrelage, categorie, contour, couvre,
                             creuser, decalque, elevation_reelle, empiler,
-                            eventrer, fenetres, grain, joint, nervures,
+                            eventrer, fenetres, grain, joint, nervures, nuance,
                             position, poser, reduire, rivets, surface, tache,
-                            volume)
+                            texture, volume)
 
 MARQUAGE = (232, 232, 224)
 BANDE_JAUNE = (222, 186, 74)
@@ -81,16 +81,21 @@ REVETEMENTS = {
 # --- Décor commun ----------------------------------------------------------
 
 def sol():
-    return joint(grain(volume(), densite=0.14, graine=1))
+    return joint(volume(peinture=texture("beton")))
 
 
 def sol_use():
-    return joint(grain(volume(matiere="beton_sombre"), densite=0.22, force=0.22, graine=2))
+    return joint(volume(peinture=nuance(texture("beton"), facteur=0.82)))
 
 
 def sol_carrele():
+    # Le damier reste au code : il alterne deux carreaux par case, donc son pas
+    # suit la grille et non la matière. La texture donne la céramique, l'écart
+    # de valeur donne les carreaux.
+    ceramique = texture("carrelage")
+    sombre = nuance(ceramique, facteur=0.86)
     def damier(u, v):
-        return MARQUAGE if (int(u * 2) + int(v * 2)) % 2 else None
+        return sombre(u, v) if (int(u * 2) + int(v * 2)) % 2 else ceramique(u, v)
     return joint(volume(peinture=damier))
 
 
@@ -165,8 +170,9 @@ def caddie():
 # --- Parking ---------------------------------------------------------------
 
 def sol_parking():
+    enrobe = texture("bitume")
     def marquage(u, v):
-        return MARQUAGE if v < 0.06 or v > 0.94 else None
+        return MARQUAGE if v < 0.06 or v > 0.94 else enrobe(u, v)
     return joint(volume(matiere="bitume", peinture=marquage))
 
 
@@ -198,7 +204,11 @@ def barriere():
 # --- Quartier --------------------------------------------------------------
 
 def trottoir():
-    return joint(volume(elevation=6, matiere="beton"))
+    # Le grain vient d'une texture, le relief et les flancs du volume : c'est la
+    # répartition qui vaut pour tous les revêtements, la matière d'un côté et la
+    # géométrie de l'autre. Le joint de case reste au code — une rainure est un
+    # tracé, et un tracé doit rester net au pixel.
+    return joint(volume(elevation=6, matiere="beton", peinture=texture("beton_clair")))
 
 
 def banc():
@@ -251,8 +261,9 @@ def comptoir_confiserie():
 # --- Station ---------------------------------------------------------------
 
 def quai():
+    beton = texture("beton_clair")
     def bande(u, v):
-        return BANDE_JAUNE if v > 0.86 else None
+        return BANDE_JAUNE if v > 0.86 else beton(u, v)
     return joint(volume(elevation=10, matiere="beton", peinture=bande))
 
 
@@ -302,24 +313,44 @@ def porte_ouverte():
 # --- Variantes de sol et marquages -----------------------------------------
 
 def sol_fissure():
-    return joint(tache(grain(volume(), densite=0.16, graine=11),
-                       (60, 60, 66), densite=0.10, graine=12))
+    # La matière vient de la texture, les fissures restent tracées : ce sont
+    # elles qui disent que la case coûte à traverser, et un motif de texture ne
+    # se placerait pas là où on le veut.
+    #
+    # **Elles sont franches, et c'est ce qui a manqué au premier essai.** La
+    # texture ayant donné son grain au sol ordinaire, un fissuré qui partageait
+    # sa valeur et ses marques pâles ne se distinguait plus de lui : la zone
+    # coûteuse devenait invisible, alors qu'un ralentissement qu'on ne voit pas
+    # ne se règle jamais. Le léger assombrissement accompagne les marques ; seul,
+    # il doublerait le sol usé.
+    return joint(tache(volume(peinture=nuance(texture("beton"), facteur=0.94)),
+                       (46, 46, 52), densite=0.28, graine=12))
 
 
 def sol_sale():
-    return joint(tache(grain(volume(matiere="beton_sombre"), densite=0.20, graine=13),
-                       (72, 64, 48), densite=0.22, graine=14))
+    return joint(volume(peinture=nuance(texture("beton"), facteur=0.86,
+                                        vers=(96, 82, 58), force=0.35)))
 
 
 def flaque():
-    # Un aplat uni se lirait comme un trou sur un sol qu'on ne connaît plus
-    # d'avance : le reflet est ce qui dit que c'est une surface d'eau.
+    # **L'eau couvre sa case plutôt que de s'y inscrire en ovale**, et c'est ce
+    # qui la fait lire comme une flaque. Un disque par case donnait autant de
+    # ronds séparés qu'un lieu en posait — six cases d'affilée faisaient six
+    # pastilles, jamais une étendue. Couvrante, elle s'étale sur ce que le lieu
+    # lui donne, et les reflets en stries disent la surface.
+    #
+    # **Elle laisse voir le sol au travers**, en plus sombre et plus froid : la
+    # matière est celle du sol, assombrie et tirée vers le bleu, et le grain qui
+    # transparaît fait le reste — un aplat uni se lisait comme un trou.
+    #
+    # Le bord est rongé, et la flaque n'est pas cernée : un liseré en referait
+    # un objet posé là, alors qu'elle altère le sol.
+    fond = nuance(texture("beton"), facteur=0.52, vers=(42, 66, 84), force=0.55)
+    reflet = nuance(texture("beton"), facteur=0.86, vers=(96, 126, 146), force=0.62)
+
     def eau(u, v):
-        d = ((u - 0.5) ** 2 + (v - 0.5) ** 2) ** 0.5
-        if d >= 0.30:
-            return None
-        return (98, 120, 132) if 0.74 < u + v < 0.92 else (58, 74, 84)
-    return decalque(eau)
+        return reflet(u, v) if 0.60 < u + v < 0.78 or 1.30 < u + v < 1.42 else fond(u, v)
+    return eventrer(decalque(eau, cerne=False), densite=0.14, graine=17)
 
 
 def bouche_egout():
@@ -757,7 +788,7 @@ def main():
         # réduction, qui reseuille le même masque.
         couvrant = couvre(img, emprise)
         if not tenue:
-            if nom not in REVETEMENTS:
+            if nom not in REVETEMENTS and img.info.get("cerner", True):
                 img = contour(img)
             img = reduire(img)
             # Les roues agrandissent le canevas d'une marge qu'elles n'occupent

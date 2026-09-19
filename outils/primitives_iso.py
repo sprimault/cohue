@@ -13,10 +13,16 @@ connaissent le contenu.
 """
 
 import random
+from pathlib import Path
 
 from PIL import Image
 
 LARGEUR_TUILE = 64
+# Les textures carrées jointives, entrée versionnée des matières qu'un
+# générateur de volumes ne sait pas produire. Elles vivent auprès des outils et
+# non dans `assets/`, que `go:embed` embarque en entier : ce sont des sources,
+# pas des ressources du jeu.
+TEXTURES = Path(__file__).parent / "textures"
 TRANSPARENT = (0, 0, 0, 0)
 
 # Un personnage fait 64 pixels de haut ; ce qui dépasse 24 en masque un et
@@ -131,6 +137,53 @@ def categorie(bloquant, elevation):
     return "obstacle_bas" if elevation <= PLAFOND_OBSTACLE_BAS else "haut"
 
 
+def texture(nom, dossier=TEXTURES):
+    """Rend une peinture qui lit une texture carrée jointive.
+
+    C'est ce qui fait entrer une matière dans un volume sans rien lui retirer :
+    la face supérieure prend le grain de la texture, les flancs et l'arête
+    gardent la palette de leur matière. Un trottoir garde donc son relief, ce
+    qu'une tuile plate dessinée ne saurait pas rendre.
+
+    **La lecture est périodique**, en coordonnées de tuile : deux cases voisines
+    lisent les bords opposés de la texture, comme deux carrés voisins d'un
+    pavage carré, et le raccord d'une texture jointive survit à la projection.
+    C'est aussi ce qui permet à une emprise de plusieurs tuiles de la répéter au
+    lieu de l'étirer.
+
+    Le fichier est une entrée versionnée, donc la forme reste reproductible à
+    l'identique — ce qui la distingue d'une image tenue à la main, que rien ne
+    régénère.
+    """
+    chemin = Path(dossier) / f"{nom}.png"
+    with Image.open(chemin) as fichier:
+        fichier.load()
+        image = fichier.convert("RGB")
+    px, largeur, hauteur = image.load(), image.width, image.height
+
+    def peinture(u, v):
+        return px[int(u * largeur) % largeur, int(v * hauteur) % hauteur]
+    return peinture
+
+
+def nuance(peinture, facteur=1.0, vers=None, force=0.0):
+    """Décline une peinture sans changer son grain.
+
+    Une même matière habille plusieurs revêtements — un béton neuf, un béton
+    usé, un béton sali —, et ce qui les sépare est une valeur et une teinte, pas
+    un dessin. Les décliner ici plutôt que de générer une texture par nuance
+    garde un grain dont on sait qu'il se répète sans se voir : c'est la tache
+    identifiable qui trahit un pavage, jamais le moucheté.
+    """
+    def teintee(u, v):
+        r, v_, b = peinture(u, v)
+        r, v_, b = int(r * facteur), int(v_ * facteur), int(b * facteur)
+        if vers is not None:
+            r, v_, b = (int(c + (t - c) * force) for c, t in zip((r, v_, b), vers))
+        return min(255, max(0, r)), min(255, max(0, v_)), min(255, max(0, b))
+    return teintee
+
+
 def volume(tx=1, ty=1, elevation=0, matiere="beton", largeur_tuile=LARGEUR_TUILE,
            bandes=3, arete=True, peinture=None):
     """Volume isométrique : face supérieure, deux flancs, arête haute éclairée.
@@ -190,7 +243,7 @@ def volume(tx=1, ty=1, elevation=0, matiere="beton", largeur_tuile=LARGEUR_TUILE
     return img
 
 
-def decalque(peinture, tx=1, ty=1, largeur_tuile=LARGEUR_TUILE):
+def decalque(peinture, tx=1, ty=1, largeur_tuile=LARGEUR_TUILE, cerne=True):
     """Marque posée à plat sur une case, sans matière dessous.
 
     Le sol appartient au lieu et non à la marque : une bouche d'égout se pose
@@ -201,6 +254,12 @@ def decalque(peinture, tx=1, ty=1, largeur_tuile=LARGEUR_TUILE):
     **L'image garde le cadre de la case et ne se recadre pas.** Le rendu pose
     son bas-centre sur le sommet bas du losange : une marque rognée à son motif
     descendrait d'autant qu'on lui aurait retiré de creux.
+
+    **`cerne` sépare deux natures qu'on confondrait.** Ce qu'on pose sur le sol
+    — une grille de fonte, un marquage peint — se cerne, faute de quoi rien ne
+    le détache d'un revêtement qu'il ne connaît pas. Ce qui *altère* le sol —
+    une flaque, une tache — ne se cerne pas : un liseré en ferait un objet posé
+    là, et c'est exactement ce qui fait lire une flaque comme une pastille.
     """
     points, largeur, hauteur = surface(tx, ty, largeur_tuile)
     img = Image.new("RGBA", (largeur, hauteur), TRANSPARENT)
@@ -217,6 +276,7 @@ def decalque(peinture, tx=1, ty=1, largeur_tuile=LARGEUR_TUILE):
     img.info["ty"] = ty
     img.info["largeur_tuile"] = largeur_tuile
     img.info["decalque"] = True
+    img.info["cerner"] = cerne
     for face in ("dessus", "gauche", "droite"):
         img.info[face] = set()
     return img
@@ -266,7 +326,7 @@ def reduire(img, couleurs=24):
     plat = img.convert("RGB").quantize(colors=couleurs, dither=Image.NONE).convert("RGB")
     plat.putalpha(alpha)
     for cle in ("hauteur_dessus", "dessus", "gauche", "droite", "tx", "ty",
-                "largeur_tuile", "emprise", "decalque"):
+                "largeur_tuile", "emprise", "decalque", "cerner"):
         if cle in img.info:
             plat.info[cle] = img.info[cle]
     return plat

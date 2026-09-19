@@ -62,9 +62,15 @@ fichiers à dessin inchangé, et le diff devient illisible.
 Le décor est produit par `outils/decor_iso.py` et **versionné** : il ne dépend
 d'aucune source tierce.
 
-**Quelques formes y sont dessinées**, et `DESSINES` les énumère dans
-`outils/decor_iso.py` : les textures de sol, qu'un générateur de volumes ne sait
-pas rendre. Le script en écrit l'entrée de manifeste — taille, ancrage,
+**La matière des revêtements vient de `outils/textures/`**, des images carrées
+jointives que le générateur applique sur la face supérieure d'un volume. Elles
+sont des sources et non des ressources du jeu — elles vivent donc auprès des
+outils, que `go:embed` n'embarque pas —, et le catalogue reste comparable à sa
+régénération. Une matière se corrige en remplaçant sa texture, un tracé dans le
+script.
+
+**Quelques formes sont dessinées en entier**, et `DESSINES` les énumère dans
+`outils/decor_iso.py` : ce qu'aucun volume ne saurait rendre. Le script en écrit l'entrée de manifeste — taille, ancrage,
 élévation et couverture se mesurent sur le dessin livré — mais plus l'image, et
 `make ressources-verif` ne les compare pas. Elles se remplacent en déposant un
 nouveau PNG, jamais en régénérant, et le dossier porte son `LICENSE.txt` comme

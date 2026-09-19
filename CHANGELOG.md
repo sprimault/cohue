@@ -49,6 +49,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
   première texture de sol dessinée : le générateur n'en écrit plus que l'entrée
   de manifeste, et elle se remplace en déposant une image.
 
+### Modifié
+
+- **Les huit revêtements ont une matière** : le béton, le béton usé, le béton
+  sali, le carrelage, l'enrobé du parking, le trottoir et le quai portent un
+  grain d'agrégat au lieu d'un aplat uni, et gardent leur relief, leurs
+  marquages et la rainure qui sépare deux cases.
+
 ### Corrigé
 
 - **La flèche au sol est lisible** : elle dessinait une tache blanche dont on ne
@@ -67,6 +74,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
   only its pavement, and the square's three avenues now lay it along theirs. It
   is the first hand-drawn ground texture: the generator only writes its manifest
   entry, and it is replaced by dropping in an image.
+
+### Changed
+
+- **The eight ground surfaces now have a material**: concrete, worn concrete,
+  grimy concrete, tiling, car-park asphalt, pavement and platform carry an
+  aggregate grain instead of a flat fill, and keep their relief, their markings
+  and the groove between two tiles.
 
 ### Fixed
 

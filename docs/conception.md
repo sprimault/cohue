@@ -1228,9 +1228,15 @@ Les chiffres de dégâts jaillissent au-dessus de n'importe quoi — décor clai
 
 Un générateur donne une cohérence gratuite là où assembler des dessins d'auteurs différents mélange les palettes et les conventions d'angle. Et une forme se corrige dans le script, pas dans le PNG.
 
-**Sauf les textures de sol, qui se dessinent.** Une forme composée de volumes est ce qu'un générateur fait bien ; une matière ne l'est pas — un bitume, une herbe, des pavés demandent un grain que `grain()` ne sait pas produire, et le sol est la surface la plus vue du jeu. Elles suivent donc le régime des personnages : `DESSINES` les énumère dans `decor_iso.py`, qui n'en écrit plus que l'entrée de manifeste, et leur image se remplace en la déposant.
+**Sauf la matière des revêtements, qui se dessine.** Une forme composée de volumes est ce qu'un générateur fait bien ; une matière ne l'est pas — un bitume, une herbe, des pavés demandent un grain que `grain()` ne sait pas produire, et le sol est la surface la plus vue du jeu.
 
-**Ce qui s'en déduit reste mesuré sur le dessin** — taille, ancrage, élévation, catégorie, couverture —, si bien que le moteur ne voit aucune différence. L'emprise seule se déclare, parce qu'aucune image ne la porte : la largeur d'un losange dit la somme de ses deux côtés, jamais lequel est lequel.
+**Ce qui entre alors dans le dépôt est la texture, pas la tuile.** Une image carrée jointive vit auprès des outils, et la face supérieure du volume la lit en coordonnées de tuile ; le relief, les flancs, l'arête éclairée et la rainure de case restent calculés. Un trottoir garde donc sa bordure de six pixels, ce qu'une tuile plate posée telle quelle lui aurait retirée — et le catalogue reste reproductible à l'identique, puisque la texture est une entrée versionnée et la tuile un produit.
+
+**Le tracé ne vient jamais de la texture.** Joints de dalles, damier d'un carrelage, bande de quai, lignes d'un parking, fissures : ce sont des marques dont la place suit la grille, et le pas d'une texture ne s'y accorderait pas. Elles restent peintes par le générateur, par-dessus la matière.
+
+**Une même matière se décline plutôt qu'elle ne se régénère.** Un béton neuf, usé ou sali partagent leur grain et ne diffèrent que par une valeur et une teinte. C'est aussi ce qui garde le pavage discret : une tache identifiable trahit la répétition d'une case à l'autre, un moucheté non.
+
+**Ce qu'aucun volume ne rend passe encore par une image entière**, que `DESSINES` énumère dans `decor_iso.py` : le générateur n'en écrit alors que l'entrée de manifeste, tout s'y mesurant sur le dessin livré — taille, ancrage, élévation, catégorie, couverture. L'emprise seule se déclare, parce qu'aucune image ne la porte : la largeur d'un losange dit la somme de ses deux côtés, jamais lequel est lequel.
 
 **Et une texture de sol isométrique doit être isotrope.** En projection 2:1, toute direction de la texture devient une diagonale à l'écran, que la répétition transforme en rayage régulier. La direction n'est admise qu'alignée sur un axe du monde, où elle est voulue — un appareil de pavés, un carrelage.
 

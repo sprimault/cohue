@@ -6,9 +6,10 @@
     python outils/figurines.py --sortie assets/personnages
     python outils/figurines.py --apercu           # planches de contrôle
 
-Ce sont les personnages définitifs du jeu, versionnés au même titre que le
-décor. Ils se modifient dans ce fichier, ce qui les rend relisibles en pull
-request là où un PNG ne l'est pas.
+Ce sont les personnages du jeu, versionnés au même titre que le décor. Ils se
+modifient dans ce fichier, ce qui les rend relisibles en pull request là où un
+PNG ne l'est pas — sauf les profils de `DESSINES`, dont les bandes sont des
+dessins tenus à la main et dont ce script n'écrit que le manifeste.
 
 Le corps est bâti avec les primitives du décor : une créature est un empilement
 de volumes isométriques, et rien d'autre. Six gabarits — bipède, quadrupède,
@@ -188,6 +189,16 @@ JEU = {
 
 CADENCES = {"repos": 200, "marche": 100, "attaque": 80, "degat": 120, "mort": 120}
 BOUCLENT = {"repos", "marche"}
+
+# Les profils dont les bandes sont dessinées et non générées. Ce script en écrit
+# toujours l'entrée de manifeste — cycles, cadences, appui : ce que le moteur
+# lit ne change pas de source —, mais plus les images, que `make figurines`
+# écraserait. `ressources.py` lit la même liste pour ne pas les comparer à une
+# régénération qui ne les produit plus. Chaque dossier porte son `LICENSE.txt`.
+#
+# L'aperçu les dessine encore : la figurine reste le repère des proportions
+# quand un dessin est repris.
+DESSINES = {"joueur"}
 
 # Corps, teinte de vêtement, cycles. Le nombre d'images par cycle est ce que le
 # manifeste annonce au moteur : le changer ici change l'animation en jeu.
@@ -726,7 +737,7 @@ def main():
     manifeste = {}
     for profil, reglages in PROFILS.items():
         variantes = reglages.get("variantes", [reglages["habit"]])
-        for indice in range(len(variantes)):
+        for indice in range(0 if profil in DESSINES else len(variantes)):
             # Une seule teinte : pas de sous-dossier, le chargeur n'a rien à
             # savoir des variantes qui n'existent pas.
             dossier = o.sortie / profil
@@ -742,7 +753,7 @@ def main():
             "variantes": len(variantes),
             "gabarit": reglages.get("gabarit", "bipede"),
             **JEU.get(profil, {}),
-            "origine": "figurine générée",
+            "origine": "dessin" if profil in DESSINES else "figurine générée",
             "cote": COTE,
             "appui": list(APPUI),
             "directions": DIRECTIONS,
@@ -750,13 +761,16 @@ def main():
                            "boucle": c in BOUCLENT}
                        for c, n in reglages["cycles"].items()},
         }
+        if profil in DESSINES:
+            print(f"{profil:11} dessiné, manifeste seul")
+            continue
         total = sum(reglages["cycles"].values()) * 8 * len(variantes)
         suffixe = f"  {len(variantes)} variantes" if len(variantes) > 1 else ""
         print(f"{profil:11} {total:4} images{suffixe}")
 
     ecrire_manifeste(o.sortie / "manifeste.json", "figurines.py",
                      {"version_format": 1, "profils": manifeste})
-    print(f"\n{len(manifeste)} profils générés dans {o.sortie}")
+    print(f"\n{len(manifeste)} profils au manifeste dans {o.sortie}")
 
 
 if __name__ == "__main__":

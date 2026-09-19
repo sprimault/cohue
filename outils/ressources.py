@@ -33,6 +33,7 @@ OUTILS = Path(__file__).parent
 # et c'est celle-ci qu'on oublierait de changer en retouchant le dessin.
 sys.path.insert(0, str(OUTILS))
 import objets as objets_iso  # noqa: E402  — après l'ajout au chemin, faute de paquet
+import figurines  # noqa: E402  — pour la liste des profils dessinés
 
 GENERATEURS = (
     ("décor", "decor_iso.py", "decors"),
@@ -707,7 +708,13 @@ def _engendre(chemin):
     que plus rien ne produit reste une anomalie. Une forme retirée d'un script
     laisserait sinon son image versionnée, elle partirait dans le binaire par
     `go:embed`, et personne ne la verrait.
+
+    Seule exception au dossier : un profil dessiné, dans `personnages/`. Le
+    générateur en écrit le manifeste mais plus les bandes, qui sont tenues à la
+    main comme la table d'armes ; le contrôle des images, lui, les voit encore.
     """
+    if len(chemin.parts) > 1 and chemin.parts[0] == "personnages" and chemin.parts[1] in figurines.DESSINES:
+        return False
     return bool(chemin.parts) and chemin.parts[0] in {d for _, _, d in GENERATEURS}
 
 

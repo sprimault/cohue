@@ -10,6 +10,11 @@ concernés quand la licence l'exige.
 Générés par `outils/decor_iso.py` et `outils/figurines.py`. Aucune source
 tierce : ils suivent la licence du dépôt.
 
+Sauf les profils dessinés, que `DESSINES` énumère dans `outils/figurines.py` :
+aujourd'hui le Survivant. Ses bandes sont des dessins originaux, tenus à la main
+et non régénérés, sous licence Apache 2.0 comme le reste du dépôt ; le texte en
+est conservé dans `assets/personnages/joueur/LICENSE.txt`.
+
 ## Police
 
 **Pixel Operator 8**, de Jayvee Enaguas (HarvettFox96), version 2018.10.04-1,

@@ -1228,6 +1228,12 @@ Les chiffres de dégâts jaillissent au-dessus de n'importe quoi — décor clai
 
 Un générateur donne une cohérence gratuite là où assembler des dessins d'auteurs différents mélange les palettes et les conventions d'angle. Et une forme se corrige dans le script, pas dans le PNG.
 
+**Sauf les textures de sol, qui se dessinent.** Une forme composée de volumes est ce qu'un générateur fait bien ; une matière ne l'est pas — un bitume, une herbe, des pavés demandent un grain que `grain()` ne sait pas produire, et le sol est la surface la plus vue du jeu. Elles suivent donc le régime des personnages : `DESSINES` les énumère dans `decor_iso.py`, qui n'en écrit plus que l'entrée de manifeste, et leur image se remplace en la déposant.
+
+**Ce qui s'en déduit reste mesuré sur le dessin** — taille, ancrage, élévation, catégorie, couverture —, si bien que le moteur ne voit aucune différence. L'emprise seule se déclare, parce qu'aucune image ne la porte : la largeur d'un losange dit la somme de ses deux côtés, jamais lequel est lequel.
+
+**Et une texture de sol isométrique doit être isotrope.** En projection 2:1, toute direction de la texture devient une diagonale à l'écran, que la répétition transforme en rayage régulier. La direction n'est admise qu'alignée sur un axe du monde, où elle est voulue — un appareil de pavés, un carrelage.
+
 Règle qui vaudra encore si le jeu passe un jour à du pixel art dessiné : une seule taille de tuile, une seule projection, une seule palette.
 
 ### Les personnages

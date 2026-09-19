@@ -7,8 +7,11 @@ concernés quand la licence l'exige.
 
 ## Décor et personnages
 
-Le décor est généré par `outils/decor_iso.py`. Aucune source tierce : il suit
-la licence du dépôt.
+Le décor est généré par `outils/decor_iso.py`, à l'exception de quelques
+textures de sol qui sont des dessins originaux, tenus à la main et non
+régénérés — le générateur n'en écrit que l'entrée de manifeste. Aucune source
+tierce : tout suit la licence du dépôt, dont le texte est conservé dans
+`assets/decors/LICENSE.txt`.
 
 Les personnages sont des dessins originaux, tenus à la main et non régénérés,
 sous licence Apache 2.0 comme le reste du dépôt ; le texte en est conservé dans

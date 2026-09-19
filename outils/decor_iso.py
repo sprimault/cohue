@@ -53,7 +53,7 @@ FRANCHISSABLES = {
     "sol": 1, "sol_use": 1, "sol_carrele": 1, "sol_parking": 1,
     "sol_fissure": 2, "sol_sale": 2, "flaque": 2,
     "bouche_egout": 1, "fleche_sol": 1, "trottoir": 1, "quai": 1, "rail": 1,
-    "porte_ouverte": 1,
+    "porte_ouverte": 1, "chaussee": 1,
 }
 
 # Les revêtements qu'on peint sans les cerner : un liseré y doublerait le joint
@@ -68,6 +68,10 @@ FRANCHISSABLES = {
 # liseré est tout ce qui leur garantit un contraste sur un sol de thème qu'ils
 # ne connaissent pas. Un revêtement est franchissable par nature, ce que le
 # générateur vérifie contre la table ci-dessus.
+#
+# Une forme dessinée n'y figure pas, fût-elle un revêtement : on ne retouche
+# rien de ce qui est tenu à la main, donc la question du contour ne se pose
+# pas pour elle.
 REVETEMENTS = {
     "sol", "sol_use", "sol_carrele", "sol_fissure", "sol_sale", "sol_parking",
     "trottoir", "quai", "rail",
@@ -603,8 +607,30 @@ THEMES = {
     },
 }
 
+# Les formes dont l'image est tenue à la main, et le thème auquel elles
+# appartiennent. Ce script en écrit toujours l'entrée de manifeste — taille,
+# ancrage, élévation, catégorie, couverture se mesurent sur le dessin livré,
+# comme elles se mesuraient sur le volume qu'il remplace —, mais plus l'image,
+# que `make decors` écraserait.
+#
+# **L'emprise est la seule chose qu'un dessin ne porte pas.** Tout le reste se
+# lit dans ses pixels ; elle, non : la largeur d'un losange dit la somme de ses
+# deux côtés, jamais lequel est lequel.
+#
+# Une texture ne se régénère pas à l'identique — c'est ce qui range ces formes
+# à part, comme les personnages, et leur vaut le `LICENSE.txt` du dossier.
+DESSINES = {
+    "chaussee": {"theme": "quartier", "emprise": (1.0, 1.0)},
+}
+
 CATALOGUE = {nom: fn for formes in THEMES.values() for nom, fn in formes.items()}
 THEME_DE = {nom: theme for theme, formes in THEMES.items() for nom in formes}
+
+# Un nom ne peut pas relever des deux tables : la seconde gagnerait en silence,
+# et l'on croirait régénérer une forme que plus rien ne dessine.
+if _deux := sorted(set(DESSINES) & set(THEME_DE)):
+    raise SystemExit(f"à la fois dessinée et générée : {', '.join(_deux)}")
+THEME_DE |= {nom: quoi["theme"] for nom, quoi in DESSINES.items()}
 
 
 def planche(images, echelle=3):
@@ -623,6 +649,32 @@ def planche(images, echelle=3):
         fond.alpha_composite(e, (x + (pas - 10 - e.width) // 2, hauteur - 16 - e.height))
         x += pas
     return fond.resize((fond.width * echelle, fond.height * echelle), Image.NEAREST)
+
+
+def dessin(dossier, nom):
+    """Charge l'image tenue à la main d'une forme de `DESSINES`.
+
+    Elle est lue là où elle est versionnée et jamais dans le dossier de sortie :
+    la vérification régénère à côté, dans un répertoire vide, et y chercher le
+    dessin ferait échouer le contrôle au lieu de comparer les manifestes.
+
+    Son absence est une erreur et non un passage en silence — sans le fichier,
+    il n'y a ni taille, ni élévation, ni couverture à mesurer, et une entrée de
+    manifeste écrite sur des valeurs par défaut serait pire que pas d'entrée.
+
+    La hauteur du dessus se dérive de l'emprise, seule chose que le dessin ne
+    porte pas : c'est la hauteur qu'aurait le losange, et c'est d'elle que se
+    déduit l'élévation.
+    """
+    ex, ey = DESSINES[nom]["emprise"]
+    chemin = Path(dossier) / DESSINES[nom]["theme"] / f"{nom}.png"
+    if not chemin.exists():
+        raise SystemExit(f"{chemin} : dessin absent, {nom} est tenue à la main")
+    img = Image.open(chemin).convert("RGBA")
+    img.load()
+    img.info["hauteur_dessus"] = round((ex + ey) * LARGEUR_TUILE / 4)
+    img.info["emprise"] = (ex, ey)
+    return img
 
 
 def sur_les_sols(marquages, sols, echelle=3):
@@ -658,22 +710,29 @@ def main():
     # pas. `assets/` part dans le binaire par `go:embed`, qui ne sait pas
     # exclure, et une planche oubliée là s'y retrouverait.
     analyseur.add_argument("--controles", default=Path(".tmp/controle"), type=Path)
+    # Là où les dessins tenus à la main sont versionnés, et non `--sortie` : la
+    # vérification régénère dans un répertoire vide, où ils n'existent pas.
+    analyseur.add_argument("--dessins", default=Path("assets/decors"), type=Path)
     analyseur.add_argument("--liste", action="store_true")
     options = analyseur.parse_args()
 
     if options.liste:
         for theme, formes in THEMES.items():
-            print(f"{theme:14} {' '.join(sorted(formes))}")
+            dessinees = [n for n, q in DESSINES.items() if q["theme"] == theme]
+            marque = "".join(f" {n}*" for n in sorted(dessinees))
+            print(f"{theme:14} {' '.join(sorted(formes))}{marque}")
+        print("\n* tenue à la main : le manifeste seul est écrit")
         return
 
     if options.formes:
         noms = options.formes
     elif options.theme:
-        noms = sorted(THEMES[options.theme])
+        noms = sorted(set(THEMES[options.theme])
+                      | {n for n, q in DESSINES.items() if q["theme"] == options.theme})
     else:
-        noms = sorted(CATALOGUE)
+        noms = sorted(set(CATALOGUE) | set(DESSINES))
 
-    inconnus = [n for n in noms if n not in CATALOGUE]
+    inconnus = [n for n in noms if n not in CATALOGUE and n not in DESSINES]
     if inconnus:
         analyseur.error(f"forme inconnue : {', '.join(inconnus)}")
 
@@ -690,26 +749,30 @@ def main():
     produites = {}
 
     for nom in noms:
-        img = CATALOGUE[nom]()
-        emprise = list(img.info.get("emprise", (1.0, 1.0)))
+        tenue = nom in DESSINES
+        img = dessin(options.dessins, nom) if tenue else CATALOGUE[nom]()
+        emprise = list(img.info["emprise"] if tenue
+                       else img.info.get("emprise", (1.0, 1.0)))
         # Mesurée avant le contour, qui ne touche à aucun alpha, et avant la
         # réduction, qui reseuille le même masque.
         couvrant = couvre(img, emprise)
-        if nom not in REVETEMENTS:
-            img = contour(img)
-        img = reduire(img)
-        # Les roues agrandissent le canevas d'une marge qu'elles n'occupent pas
-        # toujours : sans recadrage, le manifeste annonce une taille fausse et
-        # l'objet se pose décalé. Un décalque en est dispensé — son cadre est
-        # celui de la case, et le rogner descendrait la marque d'autant.
-        boite = None if img.info.get("decalque") else img.getbbox()
-        if boite and boite != (0, 0, img.width, img.height):
-            info = dict(img.info)
-            img = img.crop(boite)
-            img.info.update(info)
-        dossier = options.sortie / THEME_DE[nom]
-        dossier.mkdir(exist_ok=True)
-        img.save(dossier / f"{nom}.png")
+        if not tenue:
+            if nom not in REVETEMENTS:
+                img = contour(img)
+            img = reduire(img)
+            # Les roues agrandissent le canevas d'une marge qu'elles n'occupent
+            # pas toujours : sans recadrage, le manifeste annonce une taille
+            # fausse et l'objet se pose décalé. Un décalque en est dispensé —
+            # son cadre est celui de la case, et le rogner descendrait la marque
+            # d'autant.
+            boite = None if img.info.get("decalque") else img.getbbox()
+            if boite and boite != (0, 0, img.width, img.height):
+                info = dict(img.info)
+                img = img.crop(boite)
+                img.info.update(info)
+            dossier = options.sortie / THEME_DE[nom]
+            dossier.mkdir(exist_ok=True)
+            img.save(dossier / f"{nom}.png")
         produites[nom] = img
 
         haut = elevation_reelle(img)
@@ -746,6 +809,8 @@ def main():
             "masquant": haut > PLAFOND_OBSTACLE_BAS,
         }
         alerte = "" if haut <= PLAFOND_OBSTACLE_BAS else "   masque le joueur"
+        if tenue:
+            alerte = "   dessinée, manifeste seul"
         print(f"{THEME_DE[nom]:12} {nom:22} {img.width:3}x{img.height:<3} "
               f"élévation {haut:2}{alerte}")
 

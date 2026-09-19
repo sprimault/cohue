@@ -211,14 +211,19 @@ func TestLaHauteurDuSolSuitCeQuOnMarche(t *testing.T) {
 	}
 }
 
-// TestLeCatalogueLivreNaQueDeuxSolsSurelevees épingle ce que le correctif du
+// TestLesSolsSurelevesDuCatalogueSontEpingles garde ce que le correctif du
 // télégraphe suppose du décor.
 //
 // Le marquage d'une explosion monte à `GroundHeight`, et cette hauteur ne vaut
-// que pour une forme couvrante. Le jour où le générateur en ajoute une
-// troisième, ou change l'élévation de l'une des deux, c'est ici qu'on l'apprend
-// plutôt que sur une capture d'écran.
-func TestLeCatalogueLivreNaQueDeuxSolsSurelevees(t *testing.T) {
+// que pour une forme couvrante. Le jour où le générateur en ajoute un, ou change
+// l'élévation de l'un d'eux, c'est ici qu'on l'apprend plutôt que sur une
+// capture d'écran.
+//
+// **Il a déjà servi**, à l'arrivée de la bande d'éveil : elle borde un quai,
+// donc elle en partage l'élévation, et le test l'a signalée au lieu de la
+// laisser passer. La liste est nommée et non comptée — un nombre dans le nom du
+// test aurait menti au premier ajout légitime.
+func TestLesSolsSurelevesDuCatalogueSontEpingles(t *testing.T) {
 	decor, err := level.LoadDecor(cohue.Assets, decorLivre)
 	if err != nil {
 		t.Fatal(err)
@@ -242,7 +247,7 @@ func TestLeCatalogueLivreNaQueDeuxSolsSurelevees(t *testing.T) {
 		}
 	}
 
-	attendu := map[string]int{"trottoir": 6, "quai": 10}
+	attendu := map[string]int{"trottoir": 6, "quai": 10, "bande_eveil": 10}
 	if !maps.Equal(hauteurs, attendu) {
 		t.Errorf("sols surélevés %v, attendu %v", hauteurs, attendu)
 	}

@@ -46,6 +46,27 @@
       "bloquant": true,
       "masquant": true
     },
+    "ballast": {
+      "theme": "station",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "sol",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "couvrant": true,
+      "bloquant": false,
+      "cout_traversee": 2,
+      "masquant": false
+    },
     "banc": {
       "theme": "quartier",
       "taille": [
@@ -64,6 +85,27 @@
       ],
       "couvrant": false,
       "bloquant": true,
+      "masquant": false
+    },
+    "bande_eveil": {
+      "theme": "station",
+      "taille": [
+        64,
+        42
+      ],
+      "ancrage": [
+        32,
+        41
+      ],
+      "elevation": 10,
+      "categorie": "sol",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "couvrant": true,
+      "bloquant": false,
+      "cout_traversee": 1,
       "masquant": false
     },
     "barriere": {
@@ -510,6 +552,27 @@
       "bloquant": true,
       "masquant": false
     },
+    "herbe": {
+      "theme": "quartier",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "sol",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "couvrant": true,
+      "bloquant": false,
+      "cout_traversee": 1,
+      "masquant": false
+    },
     "immeuble_haut": {
       "theme": "quartier",
       "taille": [
@@ -589,6 +652,27 @@
       "couvrant": false,
       "bloquant": true,
       "masquant": true
+    },
+    "moquette": {
+      "theme": "cinema",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "sol",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "couvrant": true,
+      "bloquant": false,
+      "cout_traversee": 1,
+      "masquant": false
     },
     "mur": {
       "theme": "commun",
@@ -729,6 +813,27 @@
       "couvrant": false,
       "bloquant": true,
       "masquant": true
+    },
+    "passage_pieton": {
+      "theme": "quartier",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "sol",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "couvrant": true,
+      "bloquant": false,
+      "cout_traversee": 1,
+      "masquant": false
     },
     "pilier": {
       "theme": "commun",

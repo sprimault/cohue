@@ -246,7 +246,7 @@
       "degats_tir": 6,
       "vitesse_projectile_tuiles_s": 7.0,
       "cadence_tir_ms": 1600,
-      "origine": "figurine générée",
+      "origine": "dessin",
       "cote": 64,
       "appui": [
         32,

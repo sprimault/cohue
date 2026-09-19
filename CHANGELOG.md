@@ -58,6 +58,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Le Passant est redessiné, et en deux dessins** : un homme en manteau brun
   et casquette, une femme en veste bordeaux. Les figurants d'un lieu mêlent les
   deux, vivants et sombres parmi les revenants.
+- **La Buse est redessinée** : un bulbe ocre posé au sol, bouche béante tournée
+  vers sa cible. Elle glisse sans balancer, le corps qui respire, et se tasse
+  avant de cracher.
 
 ***
 
@@ -77,6 +80,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **The Passant is redrawn, in two looks**: a man in a brown coat and flat cap,
   a woman in a burgundy jacket. A place's extras mix both, living and dark among
   the undead.
+- **The Buse is redrawn**: an ochre bulb resting on the ground, gaping mouth
+  turned toward its target. It glides without swaying, its body breathing, and
+  squats before it spits.
 
 ## [0.7.0] — 2026-09-18 — Ressources et caisses
 

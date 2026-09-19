@@ -126,6 +126,47 @@ func TestUnFigurantChangeDeCap(t *testing.T) {
 	}
 }
 
+// TestUnFigurantTireSonDessin vérifie qu'un figurant prend l'un des dessins que
+// son profil déclare, et chacun à son tour.
+//
+// Le rendu passait la variante 0 en dur : un profil à deux dessins n'en aurait
+// montré qu'un, sans que rien ne le dise. Le cas déclare donc deux dessins au
+// profil du Passant et exige qu'un bassin plein de figurants les porte tous deux,
+// jamais un troisième ; et qu'avec un seul déclaré, tous portent le premier.
+func TestUnFigurantTireSonDessin(t *testing.T) {
+	for _, declares := range []int{1, 2} {
+		profils, err := LoadProfiles(cohue.Assets, manifestePersonnages)
+		if err != nil {
+			t.Fatalf("profils livrés : %v", err)
+		}
+		armes, err := LoadWeapons(cohue.Assets, manifesteArmes)
+		if err != nil {
+			t.Fatalf("armes livrées : %v", err)
+		}
+		profils.Ambient[0].Figure.Variants = declares
+		w := NewWorld(profils, armes, progressionLivree(t), caissesLivrees(t), fiolesLivrees(t), sansVagues(),
+			NewCostGrid(32, 32), graineDeTest, capacitesDeTest)
+
+		vus := map[int]int{}
+		for range w.Ambients().Cap() {
+			h, ok := w.SpawnAmbient(0, FromInt(16), FromInt(16))
+			if !ok {
+				t.Fatal("bassin des figurants plein")
+			}
+			place, _ := w.Ambients().Slot(h)
+			vus[w.Ambients().At(place).Variant]++
+		}
+		for v := range vus {
+			if v < 0 || v >= declares {
+				t.Errorf("%d dessins déclarés, un figurant porte le dessin %d", declares, v)
+			}
+		}
+		if len(vus) != declares {
+			t.Errorf("%d dessins déclarés, les figurants n'en portent que %d : %v", declares, len(vus), vus)
+		}
+	}
+}
+
 // TestUnPeuplementMalEcritEstRefuse vérifie que le chargement dit ce qui cloche.
 //
 // **Les deux derniers cas sont ceux qui justifient d'écrire les positions.** Un

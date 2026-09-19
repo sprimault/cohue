@@ -57,12 +57,25 @@ type Shape struct {
 	// Footprint est l'emprise au sol en tuiles.
 	//
 	// **Le rendu la lit, le chargeur pas encore.** Elle dit où poser l'image sur
-	// sa case et si la forme couvre le losange ; ce qui bloque reste la seule
-	// case d'ancrage, si bien qu'une gondole de deux tuiles n'en bloquerait
-	// qu'une. **Aucune pièce ne doit donc poser une forme de plus d'une tuile**
+	// sa case, et rien de plus : ce qu'elle couvre est désormais `Covering`, qui
+	// se mesure. Ce qui bloque reste la seule case d'ancrage, si bien qu'une
+	// gondole de deux tuiles n'en bloquerait qu'une. **Aucune pièce ne doit donc poser une forme de plus d'une tuile**
 	// tant que la passabilité l'ignore, et c'est pourquoi le lieu livré n'en
 	// emploie aucune.
 	Footprint [2]float64 `json:"emprise"`
+	// Covering dit que la forme peint tout le losange de sa case, donc qu'il n'y
+	// a rien à combler dessous.
+	//
+	// **C'est la question que le sol d'un thème existe pour résoudre.** Elle se
+	// déduisait de l'emprise, ce qui était vrai tant qu'un volume peignait tout
+	// son dessus : une emprise pleine valait un losange plein. Un marquage au
+	// sol les sépare — il occupe sa case, donc son emprise en vaut une, et n'en
+	// cache rien. Le générateur la mesure désormais sur les pixels.
+	//
+	// Le champ absent vaut `false`, et c'est le sens sûr : croire qu'une forme
+	// couvre laisse un trou à l'écran, croire l'inverse coûte un blit que rien
+	// ne voit.
+	Covering bool `json:"couvrant"`
 	// Blocking dit si la forme arrête ce qui s'y présente.
 	Blocking bool `json:"bloquant"`
 	// Cost est le prix de la traversée, en pas. Un pointeur, et non un entier
@@ -142,16 +155,6 @@ func (d *Decor) Costs() map[string]game.Cost {
 	}
 	return couts
 }
-
-// Covers dit si la forme remplit le losange de sa case.
-//
-// **C'est la question que le sol d'un thème existe pour résoudre.** Trente-huit
-// formes sur soixante et une n'y répondent pas — un pilier, une cloison mince,
-// un banc —, et ce qu'elles laissent nu appartient au lieu et non à l'image :
-// le même banc se pose sur du carrelage dans un supermarché et sur du bitume
-// dans un parking. Le prédicat vit ici plutôt qu'aux deux endroits qui le
-// posent, le chargeur pour refuser et le rendu pour combler.
-func (s Shape) Covers() bool { return s.Footprint[0] >= 1 && s.Footprint[1] >= 1 }
 
 // cout rend le prix de traversée de la forme, ou ce qui l'empêche de l'avoir.
 //

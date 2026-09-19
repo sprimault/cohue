@@ -94,7 +94,7 @@ func LoadTiles(fsys fs.FS, racine string, decor *level.Decor) (*Tileset, error) 
 			Image:        img,
 			Offset:       coin(forme, decor.Tile),
 			Elevation:    forme.Elevation,
-			Covers:       forme.Covers(),
+			Covers:       forme.Covering,
 			GroundHeight: hauteurSol(forme),
 			Masking:      forme.Masking,
 			Occludes:     occulte(forme),
@@ -180,10 +180,11 @@ func coin(f level.Shape, tuile [2]int) [2]int {
 //
 // **Une forme qui ne couvre pas sa case n'en est pas la surface.** Un rail
 // traverse le sol du thème sans le remplacer, une porte ouverte monte à
-// quarante-huit pixels et se franchit à zéro : ce qu'on y marche est le sol peint
-// dessous, et un marquage posé à leur élévation flotterait.
+// quarante-huit pixels et se franchit à zéro, une flèche au sol occupe sa case
+// entière sans rien en peindre : ce qu'on y marche est le sol dessous, et un
+// marquage posé à leur élévation flotterait.
 func hauteurSol(f level.Shape) int {
-	if !f.Covers() {
+	if !f.Covering {
 		return 0
 	}
 	return f.Elevation

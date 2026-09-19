@@ -122,7 +122,7 @@ func TestUnThemeSansSolQuiEmploieUneFormeNueEstRefuse(t *testing.T) {
 	if err == nil {
 		t.Fatal("un thème qui pose un pilier sans déclarer de sol se charge")
 	}
-	for _, attendu := range []string{"pilier", "0.5×0.5", "sol"} {
+	for _, attendu := range []string{"pilier", "sol"} {
 		if !strings.Contains(err.Error(), attendu) {
 			t.Errorf("le refus ne dit pas « %s » : %v", attendu, err)
 		}

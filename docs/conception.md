@@ -1003,11 +1003,20 @@ Ce qu'on y perd est le commentaire, et `$comment` le rend : il est **autorisé p
 ```
 
 **Le thème déclare son sol, et c'est ce qui rend une forme plus petite qu'une
-case posable.** Une case porte une forme et une seule ; trente-huit du catalogue
-ne remplissent pas son losange — un pilier en occupe un quart, une cloison mince
-un cinquième, un banc moins encore. Sans rien dessous, ce qui reste nu laisse
-voir le fond, ce que le rendu en aplats masquait en peignant toujours un losange
-plein.
+case posable.** Une case porte une forme et une seule ; quarante-six du
+catalogue ne remplissent pas son losange — un pilier en occupe un quart, une
+cloison mince un cinquième, un banc moins encore. Sans rien dessous, ce qui
+reste nu laisse voir le fond, ce que le rendu en aplats masquait en peignant
+toujours un losange plein.
+
+**La couverture se mesure sur les pixels, elle ne se déduit pas de l'emprise.**
+Les deux ont longtemps coïncidé parce qu'un volume peint tout son dessus, si
+bien qu'une emprise pleine valait un losange plein. Un marquage au sol les
+sépare : une flaque, une bouche d'égout, une flèche occupent leur case entière
+— leur coût de traversée porte sur elle — et n'en peignent qu'une part. Le
+manifeste porte donc `couvrant`, mesuré à la génération, et le sens du doute est
+sûr : croire qu'une forme couvre laisse un trou à l'écran, croire l'inverse
+coûte un dessin que personne ne voit.
 
 **Le sol appartient au lieu et non à la forme.** Le même banc se pose sur du
 carrelage dans un supermarché et sur du bitume dans un parking : le dessiner sur
@@ -1026,8 +1035,10 @@ remplir sa case, faute de quoi combler n'aurait pas de fin ; et **un thème qui
 emploie une forme non couvrante sans déclarer de sol est refusé**. Sans ce
 dernier, le mécanisme serait correct et un thème pourrait simplement ne pas
 l'employer : le trou reviendrait, aussi silencieux qu'avant. Le message nomme la
-forme fautive et son emprise, parce qu'il s'adresse à un auteur de thème — « sol
-manquant » l'enverrait ouvrir les soixante et une formes du catalogue.
+forme fautive, parce qu'il s'adresse à un auteur de thème — « sol manquant »
+l'enverrait ouvrir les soixante et une formes du catalogue. Il ne cite pas son
+emprise, qui ne dit plus rien de la couverture depuis qu'un marquage au sol
+occupe sa case sans la peindre.
 
 ### Une campagne
 
@@ -1282,7 +1293,7 @@ Chaque manifeste porte un **en-tête** : `version_format`, et pour le décor la 
 
 **Mais il n'y sert pas à ce qu'il sert dans un niveau**, et la nuance mérite d'être écrite avant que quelqu'un l'aligne dans un sens ou dans l'autre. Un niveau circule entre joueurs, donc son numéro dit à un binaire quoi faire d'un fichier qu'il n'a pas produit. Un manifeste, lui, est embarqué par `go:embed` : il voyage avec son lecteur et ne peut pas en être désynchronisé. Ce qu'il accorde n'est pas deux machines mais **deux chaînes d'outils** — des scripts Python qui écrivent, du Go qui lit — et c'est pour cela qu'il en porte un quand même. D'où deux réflexes à ne pas avoir : incrémenter par symétrie avec les niveaux quand un champ disparaît, ou retirer le champ en constatant qu'aucune migration ne l'attend.
 
-Côté **décor** : taille, ancrage, élévation, catégorie, thème, et quatre champs qui commandent le moteur — `bloquant` et `cout_traversee`, dont le chargeur tire la grille de coûts, `emprise` en tuiles, sans laquelle une gondole de deux tuiles n'en bloquerait qu'une, et le drapeau qui signale ce qui dépasse 24 pixels, donc masque un personnage. Rien de tout cela ne se devine : un trottoir et un quai dépassent du sol et se marchent, une flaque est plate et se traverse, alors qu'un muret de même hauteur qu'un trottoir arrête tout.
+Côté **décor** : taille, ancrage, élévation, catégorie, thème, et cinq champs qui commandent le moteur — `bloquant` et `cout_traversee`, dont le chargeur tire la grille de coûts, `emprise` en tuiles, sans laquelle une gondole de deux tuiles n'en bloquerait qu'une, `couvrant`, qui dit s'il faut peindre le sol du thème avant la forme, et le drapeau qui signale ce qui dépasse 24 pixels, donc masque un personnage. Rien de tout cela ne se devine : un trottoir et un quai dépassent du sol et se marchent, une flaque est plate et se traverse, alors qu'un muret de même hauteur qu'un trottoir arrête tout.
 
 `cout_traversee` est exigé sur ce qui se franchit et refusé sur ce qui bloque. Deux champs plutôt qu'un entier où une valeur réservée vaudrait l'infini : une sentinelle laisse `bloquant` et un coût fini coexister dans le même fichier, et quelqu'un finit par l'écrire. Contrôlé dans les deux sens, l'état absurde n'est pas exprimable — et un coût orphelin sur un mur, jamais lu, ne fait croire à aucun réglage.
 

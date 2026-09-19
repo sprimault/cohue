@@ -83,6 +83,36 @@ def elevation_reelle(img):
     return max(0, img.height - img.info["hauteur_dessus"])
 
 
+def couvre(img, emprise, largeur_tuile=LARGEUR_TUILE):
+    """Dit si la forme peint entièrement le losange de sa case.
+
+    C'est la question que le sol d'un thème existe pour résoudre, et elle se
+    pose sur les pixels et non sur l'emprise. Les deux ont longtemps coïncidé
+    parce qu'un volume peint tout son dessus : une emprise pleine valait un
+    losange plein. Un marquage au sol les sépare — il occupe sa case, donc son
+    emprise en vaut une, et n'en cache rien.
+
+    Le losange se place là où le rendu pose l'image, c'est-à-dire en refaisant
+    son calcul de coin : l'emprise se centre sur la case, si bien que le
+    bas-centre d'une image ne retombe sur le sommet bas du losange que pour une
+    emprise carrée. Le mesurer sans cela rendrait un comptoir de deux tuiles
+    non couvrant, en cherchant son losange huit pixels trop bas.
+    """
+    points, _, _ = surface(1, 1, largeur_tuile)
+    demi = largeur_tuile / 2
+    ex, ey = emprise
+    dx = round((ex - ey) * demi / 2)
+    dy = round((2 + ex + ey) * (demi / 2) / 2)
+    ax, ay = img.width // 2, img.height - 1
+
+    px = img.load()
+    for sx, sy in points:
+        x, y = sx - largeur_tuile // 2 - dx + ax, sy - dy + 1 + ay
+        if not (0 <= x < img.width and 0 <= y < img.height) or px[x, y][3] == 0:
+            return False
+    return True
+
+
 def categorie(bloquant, elevation):
     """Range une forme parmi les trois hauteurs de la vue de dessus.
 
@@ -160,6 +190,38 @@ def volume(tx=1, ty=1, elevation=0, matiere="beton", largeur_tuile=LARGEUR_TUILE
     return img
 
 
+def decalque(peinture, tx=1, ty=1, largeur_tuile=LARGEUR_TUILE):
+    """Marque posée à plat sur une case, sans matière dessous.
+
+    Le sol appartient au lieu et non à la marque : une bouche d'égout se pose
+    sur du bitume comme sur du carrelage, et un losange plein lui ferait
+    emporter le sien. `peinture` ne peint donc que ce qu'elle nomme, et le reste
+    de la case reste transparent — c'est le thème qui le comble.
+
+    **L'image garde le cadre de la case et ne se recadre pas.** Le rendu pose
+    son bas-centre sur le sommet bas du losange : une marque rognée à son motif
+    descendrait d'autant qu'on lui aurait retiré de creux.
+    """
+    points, largeur, hauteur = surface(tx, ty, largeur_tuile)
+    img = Image.new("RGBA", (largeur, hauteur), TRANSPARENT)
+    px = img.load()
+    for (x, y), (u, v) in points.items():
+        teinte = peinture(u, v)
+        if teinte is not None:
+            px[x, y] = teinte + (255,)
+
+    img.info["hauteur_dessus"] = hauteur
+    echelle = largeur_tuile / LARGEUR_TUILE
+    img.info["emprise"] = (round(tx * echelle, 3), round(ty * echelle, 3))
+    img.info["tx"] = tx
+    img.info["ty"] = ty
+    img.info["largeur_tuile"] = largeur_tuile
+    img.info["decalque"] = True
+    for face in ("dessus", "gauche", "droite"):
+        img.info[face] = set()
+    return img
+
+
 def empiler(*couches):
     largeur = max(c.width + dx for c, dx, _ in couches)
     hauteur = max(c.height + dy for c, _, dy in couches)
@@ -204,7 +266,7 @@ def reduire(img, couleurs=24):
     plat = img.convert("RGB").quantize(colors=couleurs, dither=Image.NONE).convert("RGB")
     plat.putalpha(alpha)
     for cle in ("hauteur_dessus", "dessus", "gauche", "droite", "tx", "ty",
-                "largeur_tuile", "emprise"):
+                "largeur_tuile", "emprise", "decalque"):
         if cle in img.info:
             plat.info[cle] = img.info[cle]
     return plat

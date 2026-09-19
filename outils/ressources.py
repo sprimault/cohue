@@ -152,6 +152,30 @@ def _cotes_de_grille(sortie):
     return cotes
 
 
+def _marges_voulues(sortie):
+    """Les formes du décor qu'on n'exige pas recadrées.
+
+    Un marquage au sol occupe sa case et n'en peint qu'une part : son image
+    garde le cadre du losange, parce que le rendu pose son bas-centre sur le
+    sommet bas de la case et qu'une marque rognée descendrait d'autant.
+
+    Le critère se dérive du manifeste plutôt que de lister des noms : une
+    emprise d'au moins une tuile qui ne couvre pas la case est exactement ce
+    cas-là. Il attrape aussi quelques formes composées — un mur en té, un
+    comptoir — que le générateur recadre bel et bien ; tolérer des marges n'en
+    impose aucune, et la liste de noms qu'il faudrait sinon tenir coûterait
+    plus que ce qu'elle éviterait.
+    """
+    voulues = set()
+    for chemin in sortie.rglob("manifeste.json"):
+        for nom, info in _entrees(chemin).items():
+            emprise, theme = info.get("emprise"), info.get("theme")
+            if theme and emprise and not info.get("couvrant", True) \
+                    and emprise[0] >= 1 and emprise[1] >= 1:
+                voulues.add(chemin.parent / theme / f"{nom}.png")
+    return voulues
+
+
 def controler_sons(sortie):
     """Niveau, saturation, coupure brutale : les trois défauts audibles.
 
@@ -188,6 +212,7 @@ def controler(sortie, pentes=False):
     defauts = []
     controlees = 0
     grilles = _cotes_de_grille(sortie)
+    marges = _marges_voulues(sortie)
 
     for chemin in sorted(sortie.rglob("*.png")):
         image = Image.open(chemin).convert("RGBA")
@@ -202,7 +227,7 @@ def controler(sortie, pentes=False):
 
         # Icônes d'interface et bandes d'objets : leur case est fixe et leurs
         # marges sont voulues, comme pour les créatures.
-        case_fixe = cote is not None or chemin.stem.endswith(
+        case_fixe = cote is not None or chemin in marges or chemin.stem.endswith(
             ("_icone", "_scintille", "_appui", "_rupture")) or chemin.stem in (
             "etincelle", "souffle", "flammes") or chemin.stem.startswith("eclats_")
 

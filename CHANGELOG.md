@@ -42,6 +42,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+## [0.7.2] — 2026-09-19 — Le décor prend matière
+
 ### Ajouté
 
 - **Cinq revêtements comblent les trous du catalogue** : de l'herbe et un

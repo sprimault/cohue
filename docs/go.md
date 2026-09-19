@@ -180,7 +180,7 @@ défaut sans rien dire — et `$comment` est la seule clé exemptée de ce refus
 | `go.mod`, `go.sum` | réécrits par la chaîne Go, qui n'y préserverait rien |
 | `LICENSE`, `NOTICE`, `THIRD-PARTY-NOTICES` | ce sont les mentions de licence, elles ne s'en préfixent pas |
 | les documents Markdown | ils s'adressent à un lecteur, pas à un compilateur ; la licence du dépôt est déclarée en tête du `README` et dans `LICENSE` |
-| les images et les sons | un format binaire ne porte pas de commentaire ; le manifeste de leur lot porte la mention pour eux |
+| les images et les sons | un format binaire ne porte pas de commentaire ; le manifeste de leur lot, ou le `LICENSE.txt` de leur dossier, porte la mention pour eux — et `make entetes` exige ce porteur, faute de quoi la dispense se prendrait sans contrepartie |
 | une ressource tierce qu'on ne peut pas modifier sans l'altérer, et le texte de licence qui l'accompagne | y ajouter deux lignes en ferait une copie modifiée, qui n'est plus celle que `CREDITS` déclare — et que la licence interdit parfois de redistribuer comme telle. C'est le fichier qui est dispensé, pas sa catégorie : ni « les binaires », ni « les ressources tierces » en général, sans quoi un JSON tenu à la main viendrait s'y ranger un jour |
 
 Tout le reste en porte un, y compris un fichier d'une ligne. `make entetes` le

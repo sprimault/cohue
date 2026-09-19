@@ -56,6 +56,11 @@ NOMS_LICENCE_TIERCE = {"LICENSE.txt", "COPYING", "COPYING.txt"}
 SUFFIXES_JSON = {".json"}
 RACINE_RESSOURCES = "assets"
 
+# Ce qui porte la mention à la place d'un binaire : le manifeste de son lot, ou
+# la licence déposée dans son dossier.
+PORTEURS = {"manifeste.json", "LICENSE.txt"}
+SUFFIXES_BINAIRES = {".png", ".jpg", ".wav", ".ogg"}
+
 
 def versionnes(racine):
     """Rend ce que git publierait, relatif à la racine du dépôt.
@@ -97,9 +102,38 @@ def controler(racine):
     return manquants
 
 
+def sans_porteur(racine, fichiers):
+    """Rend les dossiers de binaires qu'aucune mention ne rattache à la licence.
+
+    **La dispense des binaires est accordée parce qu'autre chose porte la
+    mention pour eux** — le manifeste de leur lot, ou la licence déposée dans
+    leur dossier. Un dossier qui n'a ni l'un ni l'autre la prend donc sans
+    contrepartie, et le contrôle passe au vert sur des fichiers que rien ne
+    rattache au dépôt.
+
+    Ce n'est pas une précaution : les textures de décor sont entrées ainsi,
+    versionnées hors de `assets/` où le manifeste joue ce rôle, et sept images
+    y sont restées sans mention sans qu'aucune commande ne le dise.
+    """
+    nus = []
+    for dossier in sorted({f.parent for f in fichiers
+                           if f.suffix in SUFFIXES_BINAIRES}):
+        chemins = [dossier, *dossier.parents]
+        if not any((racine / c / nom).exists() for c in chemins for nom in PORTEURS):
+            nus.append(dossier)
+    return nus
+
+
 def main():
     """Contrôle le dépôt et sort en échec dès qu'une mention manque."""
     racine = Path(__file__).resolve().parent.parent
+    nus = sans_porteur(racine, versionnes(racine))
+    if nus:
+        print(f"{len(nus)} dossier(s) de binaires sans manifeste ni licence :")
+        for n in nus:
+            print(f"  {n.as_posix()}")
+        raise SystemExit(1)
+
     manquants = controler(racine)
     if manquants:
         print(f"{len(manquants)} fichier(s) sans mention de licence :")

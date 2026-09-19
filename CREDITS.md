@@ -11,7 +11,8 @@ Le décor est généré par `outils/decor_iso.py`. La matière de ses revêtemen
 vient de textures originales, versionnées dans `outils/textures/`, que le
 générateur applique ; quelques formes sont dessinées en entier, et le générateur
 n'en écrit alors que l'entrée de manifeste. Aucune source tierce : tout suit la
-licence du dépôt, dont le texte est conservé dans `assets/decors/LICENSE.txt`.
+licence du dépôt, dont le texte est conservé dans `assets/decors/LICENSE.txt`
+pour les formes et dans `outils/textures/LICENSE.txt` pour les matières.
 
 Les personnages sont des dessins originaux, tenus à la main et non régénérés,
 sous licence Apache 2.0 comme le reste du dépôt ; le texte en est conservé dans

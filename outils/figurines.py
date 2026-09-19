@@ -198,7 +198,7 @@ BOUCLENT = {"repos", "marche"}
 #
 # L'aperçu les dessine encore : la figurine reste le repère des proportions
 # quand un dessin est repris.
-DESSINES = {"joueur", "marcheur"}
+DESSINES = {"joueur", "marcheur", "bloqueur"}
 
 # Corps, teinte de vêtement, cycles. Le nombre d'images par cycle est ce que le
 # manifeste annonce au moteur : le changer ici change l'animation en jeu.
@@ -232,7 +232,8 @@ PROFILS = {
                   "cycles": {"repos": 1, "attaque": 1, "marche": 4, "mort": 2}},
     "bloqueur":  {"nom": "Vigile", "habit": (96, 96, 104),   "peau": (140, 172, 128), "carrure": 1.35,
                   "gabarit": "colosse",
-                  "cycles": {"repos": 1, "attaque": 2, "marche": 5, "degat": 1, "mort": 3}},
+                  # Quatre images de marche, le cycle du dessin — voir le Quidam.
+                  "cycles": {"repos": 1, "attaque": 2, "marche": 4, "degat": 1, "mort": 3}},
     "eclateur":  {"nom": "Baudruche", "habit": (176, 92, 52),   "peau": (222, 152, 96),  "carrure": 1.0,
                   "gabarit": "gonfle",
                   "cycles": {"repos": 1, "marche": 5, "attaque": 3, "degat": 1, "mort": 3}},

@@ -302,7 +302,7 @@
       "corps_bloquant": true,
       "degats_contact_s": 10,
       "gemmes": 1,
-      "origine": "figurine générée",
+      "origine": "dessin",
       "cote": 64,
       "appui": [
         32,
@@ -330,7 +330,7 @@
           "boucle": false
         },
         "marche": {
-          "images": 5,
+          "images": 4,
           "duree_ms": 100,
           "boucle": true
         },

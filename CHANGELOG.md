@@ -50,6 +50,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Le Quidam est redessiné** : employé de bureau infecté, peau gris-vert,
   chemise dans l'une de ses six teintes. Il marche comme le Survivant, et
   tasse le buste quand un tir le touche.
+- **Le Vigile est redessiné** : un colosse en gilet noir et épaulières grises,
+  deux fois plus large qu'un Quidam, qu'on repère d'un coup d'œil dans la horde
+  avant qu'il ne bouche le couloir.
 
 ***
 
@@ -61,6 +64,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **The Quidam is redrawn**: an infected office worker, grey-green skin, shirt
   in one of its six colours. It walks like the Survivor, and sags when a shot
   hits it.
+- **The Vigile is redrawn**: a giant in a black vest and grey shoulder pads,
+  twice as wide as a Quidam, spotted at a glance in the horde before it blocks
+  the corridor.
 
 ## [0.7.0] — 2026-09-18 — Ressources et caisses
 

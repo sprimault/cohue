@@ -55,7 +55,16 @@ jobs:
           # mode web n'est pas au programme. La cible reste ici parce qu'elle est
           # ce qui empêche une dépendance d'introduire du cgo sans qu'on le voie.
           - { os: js, arch: wasm, cgo: 0, runner: ubuntu-latest, ext: .wasm, publier: false }
-          - { os: linux, arch: amd64, cgo: 1, runner: ubuntu-latest, ext: "", publier: true }
+          # **La version du runner est la glibc minimale exigée chez le joueur**,
+          # le binaire Linux étant lié à elle faute de construction statique. Une
+          # image épinglée plutôt que `ubuntu-latest`, qui migrera : compilé sur
+          # plus récent, l'exécutable cesse de démarrer sur les systèmes un peu
+          # anciens, et personne ne l'apprend avant le rapport d'un joueur.
+          #
+          # C'est aussi ce qui accorde les deux architectures, dont l'une était
+          # déjà épinglée : sans cela, les deux binaires Linux d'une même version
+          # n'auraient pas le même plancher.
+          - { os: linux, arch: amd64, cgo: 1, runner: ubuntu-24.04, ext: "", publier: true }
           - { os: linux, arch: arm64, cgo: 1, runner: ubuntu-24.04-arm, ext: "", publier: true }
           - { os: darwin, arch: arm64, cgo: 1, runner: macos-latest, ext: "", publier: true }
           # macos-15-intel est la dernière image x86_64 des runners, annoncée

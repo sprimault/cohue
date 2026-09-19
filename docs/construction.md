@@ -170,6 +170,24 @@ macOS exigent du natif. D'où la matrice multi-runners de `release.yml`.
 La cible reste dans la matrice parce qu'elle est ce qui empêche une dépendance
 d'introduire du cgo sans qu'on le voie.
 
+**Les deux cibles Linux sont épinglées sur une image nommée**, jamais
+`ubuntu-latest`. Le binaire y est lié à la glibc, faute de construction
+statique : **la version du runner est donc le plancher exigé chez le joueur**, et
+une image qui migre le relève sans prévenir — l'exécutable cesse de démarrer sur
+les distributions un peu anciennes, ce qu'on apprend par un rapport de joueur.
+
+Le choix est asymétrique, et c'est ce qui le tranche : compiler sur une glibc
+ancienne ne coûte rien, le binaire tournant aussi sur les systèmes récents, quand
+compiler sur une récente exclut les anciens. Le jeu n'emploie aucune API système
+nouvelle, donc la dernière image n'apporte rien. Ceux qu'elle écarterait sont les
+distributions au long support, c'est-à-dire le public qui ne s'occupe pas de son
+système.
+
+Ce que l'épinglage coûte : une image finit par être retirée, et ce jour-là le job
+échoue franchement. C'est préférable à un binaire qui cesse silencieusement de
+démarrer. La même règle vaut déjà pour `macos-15-intel`, dernière image x86_64
+des runners, dont la ligne porte sa date de péremption.
+
 ## Les assets dans le binaire
 
 Embarqués par `go:embed` depuis `assets/`. L'archive publiée ne contient que

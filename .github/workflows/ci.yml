@@ -174,7 +174,11 @@ jobs:
         include:
           - { os: windows, arch: amd64, cgo: 0, runner: ubuntu-latest }
           - { os: js, arch: wasm, cgo: 0, runner: ubuntu-latest }
-          - { os: linux, arch: amd64, cgo: 1, runner: ubuntu-latest }
+          # Les deux cibles Linux prennent l'image que la publication emploie :
+          # une compilation qui ne se fait pas sur le même système que la release
+          # ne vérifie plus ce qui sera publié, et c'est là que la glibc décide.
+          # Les cibles sans cgo n'en dépendent pas et restent sur `latest`.
+          - { os: linux, arch: amd64, cgo: 1, runner: ubuntu-24.04 }
           - { os: linux, arch: arm64, cgo: 1, runner: ubuntu-24.04-arm }
           - { os: darwin, arch: arm64, cgo: 1, runner: macos-latest }
           - { os: darwin, arch: amd64, cgo: 1, runner: macos-15-intel }

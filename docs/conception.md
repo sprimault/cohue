@@ -1244,7 +1244,7 @@ ne l'est pas : c'est ce qui rend les créatures **contribuables**, et ce qui év
 toute question de licence sur ce qui entre dans le jeu.
 
 **Un profil peut être dessiné plutôt que généré**, et le Survivant, le Quidam,
-le Vigile, le Secouriste, le Passant, la Buse et la Baudruche le sont — le Quidam dans ses six teintes
+le Vigile, le Secouriste, le Passant, la Buse, la Baudruche et l'Arpenteur le sont — le Quidam dans ses six teintes
 de chemise, le Passant en deux dessins, un homme et une femme, que chaque
 figurant tire à la pose dans le flux cosmétique : leurs
 bandes sont des dessins tenus à la main, sous la licence du dépôt, avec un

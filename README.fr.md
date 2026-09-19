@@ -55,7 +55,7 @@ make sons        # les bruitages, par synthèse
 Décor et personnages sont **générés et versionnés** : ils sortent des mêmes
 primitives isométriques, ne dépendent d'aucune source tierce, et les images sont
 embarquées dans l'exécutable. Un dépôt fraîchement cloné compile sans rien
-installer de plus. Le Survivant, le Quidam, le Vigile, le Secouriste, le Passant, la Buse et la Baudruche font exception : ils sont dessinés,
+installer de plus. Le Survivant, le Quidam, le Vigile, le Secouriste, le Passant, la Buse, la Baudruche et l'Arpenteur font exception : ils sont dessinés,
 et leurs bandes sont versionnées telles quelles, sous la licence du dépôt.
 
 C'est aussi ce qui rend les créatures contribuables : changer les proportions

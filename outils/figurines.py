@@ -198,7 +198,7 @@ BOUCLENT = {"repos", "marche"}
 #
 # L'aperçu les dessine encore : la figurine reste le repère des proportions
 # quand un dessin est repris.
-DESSINES = {"joueur", "marcheur", "bloqueur", "soigneur", "civil", "cracheur"}
+DESSINES = {"joueur", "marcheur", "bloqueur", "soigneur", "civil", "cracheur", "eclateur"}
 
 # Corps, teinte de vêtement, cycles. Le nombre d'images par cycle est ce que le
 # manifeste annonce au moteur : le changer ici change l'animation en jeu.
@@ -236,7 +236,9 @@ PROFILS = {
                   "cycles": {"repos": 1, "attaque": 2, "marche": 4, "degat": 1, "mort": 3}},
     "eclateur":  {"nom": "Baudruche", "habit": (176, 92, 52),   "peau": (222, 152, 96),  "carrure": 1.0,
                   "gabarit": "gonfle",
-                  "cycles": {"repos": 1, "marche": 5, "attaque": 3, "degat": 1, "mort": 3}},
+                  # Quatre images : elle se dandine d'une jambe sur l'autre, un
+                  # cycle pair, comme la marche des bipèdes dessinés.
+                  "cycles": {"repos": 1, "marche": 4, "attaque": 3, "degat": 1, "mort": 3}},
     # Le Secouriste est le seul profil qui crée une priorité de cible : tant
     # qu'il vit, il annule le nettoyage. Les six autres cassent le kiting par la
     # position, aucun ne rend un ennemi plus urgent qu'un autre.

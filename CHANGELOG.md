@@ -61,6 +61,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **La Buse est redessinée** : un bulbe ocre posé au sol, bouche béante tournée
   vers sa cible. Elle glisse sans balancer, le corps qui respire, et se tasse
   avant de cracher.
+- **La Baudruche est redessinée** : un corps rouge sombre gonflé à éclater,
+  couvert de pustules orange, sur deux jambes courtes. Elle se dandine, et
+  enfle avant d'exploser.
 
 ***
 
@@ -83,6 +86,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **The Buse is redrawn**: an ochre bulb resting on the ground, gaping mouth
   turned toward its target. It glides without swaying, its body breathing, and
   squats before it spits.
+- **The Baudruche is redrawn**: a dark red body swollen to bursting, covered in
+  orange boils, on two short legs. It waddles, and swells before it explodes.
 
 ## [0.7.0] — 2026-09-18 — Ressources et caisses
 

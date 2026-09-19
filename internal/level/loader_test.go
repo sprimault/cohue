@@ -37,9 +37,9 @@ var decorDeTest = &Decor{
 	Tile: [2]int{64, 32},
 	Shapes: map[string]Shape{
 		"sol": {Theme: "commun", Size: [2]int{64, 32}, Anchor: [2]int{32, 31},
-			Footprint: [2]float64{1, 1}, Cost: prix(int(game.Free))},
+			Footprint: [2]float64{1, 1}, Covering: true, Cost: prix(int(game.Free))},
 		"mur": {Theme: "commun", Size: [2]int{64, 96}, Anchor: [2]int{32, 95},
-			Elevation: 64, Footprint: [2]float64{1, 1}, Blocking: true},
+			Elevation: 64, Footprint: [2]float64{1, 1}, Covering: true, Blocking: true},
 		"pilier": {Theme: "commun", Size: [2]int{32, 80}, Anchor: [2]int{16, 79},
 			Elevation: 64, Footprint: [2]float64{0.5, 0.5}, Blocking: true},
 	},

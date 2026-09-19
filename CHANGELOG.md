@@ -42,6 +42,27 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Corrigé
+
+- **La flèche au sol est lisible** : elle dessinait une tache blanche dont on ne
+  tirait aucune direction.
+- **Flaque, bouche d'égout et flèche au sol emportaient leur béton** et ne se
+  posaient donc que sur du béton. Elles se peignent maintenant sur le sol du
+  thème, quel qu'il soit.
+- **Le mur en té, le mur d'angle et le portique antivol laissaient voir le fond**
+  autour d'eux : ils étaient réputés remplir leur case sans la remplir.
+
+***
+
+### Fixed
+
+- **The floor arrow is legible**: it drew a white blot that gave no direction.
+- **Puddle, manhole and floor arrow carried their own concrete**, so they only
+  fit on concrete. They are now painted over the theme's own ground, whatever it
+  is.
+- **The T-wall, corner wall and security gate showed the backdrop** around them:
+  they claimed to fill their tile without filling it.
+
 ## [0.7.1] — 2026-09-19 — La horde dessinée
 
 ### Modifié

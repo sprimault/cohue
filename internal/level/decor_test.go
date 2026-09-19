@@ -36,7 +36,7 @@ func forme(bloquant, cout string) string {
 	}
 	return `{"theme": "commun", "taille": [64, 32], "ancrage": [32, 31],
 		"elevation": 0, "categorie": "sol", "emprise": [1.0, 1.0],
-		"bloquant": ` + bloquant + `, "masquant": false` + cout + `}`
+		"couvrant": true, "bloquant": ` + bloquant + `, "masquant": false` + cout + `}`
 }
 
 // TestDecorRefuseLesCoutsContradictoires vérifie le contrôle dans les deux sens.

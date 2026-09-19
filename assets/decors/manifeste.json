@@ -22,6 +22,7 @@
         1.6,
         0.7
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -41,6 +42,7 @@
         2.2,
         0.91
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -60,6 +62,7 @@
         1.4,
         0.5
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -79,6 +82,7 @@
         1.0,
         0.12
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -98,6 +102,7 @@
         0.25,
         0.25
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -117,6 +122,7 @@
         1.0,
         1.0
       ],
+      "couvrant": false,
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": false
@@ -137,6 +143,7 @@
         2.0,
         1.4
       ],
+      "couvrant": true,
       "bloquant": true,
       "masquant": true
     },
@@ -156,6 +163,7 @@
         2.6,
         0.8
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -175,6 +183,7 @@
         0.5,
         0.5
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -194,6 +203,7 @@
         2.9,
         0.91
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -213,6 +223,7 @@
         2.4,
         0.91
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -232,6 +243,7 @@
         2.1,
         0.88
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -251,6 +263,7 @@
         1.0,
         0.18
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -270,6 +283,7 @@
         2.0,
         1.0
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -289,6 +303,7 @@
         2.0,
         1.0
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -308,6 +323,7 @@
         1.0,
         0.7
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -327,6 +343,7 @@
         0.469,
         0.469
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -346,6 +363,7 @@
         2.4,
         0.15
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -365,6 +383,7 @@
         0.125,
         0.125
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -384,6 +403,7 @@
         1.0,
         1.0
       ],
+      "couvrant": false,
       "bloquant": false,
       "cout_traversee": 2,
       "masquant": false
@@ -404,6 +424,7 @@
         1.0,
         1.0
       ],
+      "couvrant": false,
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": false
@@ -424,6 +445,7 @@
         1.0,
         1.0
       ],
+      "couvrant": true,
       "bloquant": true,
       "masquant": false
     },
@@ -443,6 +465,7 @@
         2.0,
         0.7
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -462,6 +485,7 @@
         1.0,
         0.7
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -481,6 +505,7 @@
         2.0,
         2.0
       ],
+      "couvrant": true,
       "bloquant": true,
       "masquant": true
     },
@@ -500,6 +525,7 @@
         2.0,
         2.0
       ],
+      "couvrant": true,
       "bloquant": true,
       "masquant": true
     },
@@ -519,6 +545,7 @@
         0.625,
         0.625
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -538,6 +565,7 @@
         0.125,
         0.125
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -557,6 +585,7 @@
         1.0,
         1.0
       ],
+      "couvrant": true,
       "bloquant": true,
       "masquant": true
     },
@@ -576,6 +605,7 @@
         1.0,
         1.0
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -595,6 +625,7 @@
         1.0,
         0.2
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -614,6 +645,7 @@
         1.0,
         1.0
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -633,6 +665,7 @@
         1.0,
         1.0
       ],
+      "couvrant": true,
       "bloquant": true,
       "masquant": false
     },
@@ -652,6 +685,7 @@
         0.125,
         0.125
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -671,6 +705,7 @@
         0.125,
         0.125
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -690,6 +725,7 @@
         0.5,
         0.5
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -709,6 +745,7 @@
         0.188,
         0.188
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -728,6 +765,7 @@
         1.0,
         0.2
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -747,6 +785,7 @@
         1.0,
         0.2
       ],
+      "couvrant": false,
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": true
@@ -767,6 +806,7 @@
         1.0,
         0.2
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -786,6 +826,7 @@
         1.0,
         1.0
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -805,6 +846,7 @@
         0.219,
         0.219
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -824,6 +866,7 @@
         0.406,
         0.406
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -843,6 +886,7 @@
         1.0,
         1.0
       ],
+      "couvrant": true,
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": false
@@ -863,6 +907,7 @@
         2.0,
         0.1
       ],
+      "couvrant": false,
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": false
@@ -883,6 +928,7 @@
         2.0,
         0.8
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -902,6 +948,7 @@
         0.8,
         0.3
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -921,6 +968,7 @@
         1.0,
         1.0
       ],
+      "couvrant": true,
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": false
@@ -941,6 +989,7 @@
         1.0,
         1.0
       ],
+      "couvrant": true,
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": false
@@ -961,6 +1010,7 @@
         1.0,
         1.0
       ],
+      "couvrant": true,
       "bloquant": false,
       "cout_traversee": 2,
       "masquant": false
@@ -981,6 +1031,7 @@
         1.0,
         1.0
       ],
+      "couvrant": true,
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": false
@@ -1001,6 +1052,7 @@
         1.0,
         1.0
       ],
+      "couvrant": true,
       "bloquant": false,
       "cout_traversee": 2,
       "masquant": false
@@ -1021,6 +1073,7 @@
         1.0,
         1.0
       ],
+      "couvrant": true,
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": false
@@ -1041,6 +1094,7 @@
         1.7,
         0.78
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -1060,6 +1114,7 @@
         1.0,
         1.0
       ],
+      "couvrant": true,
       "bloquant": true,
       "masquant": false
     },
@@ -1079,6 +1134,7 @@
         0.531,
         0.531
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -1098,6 +1154,7 @@
         1.0,
         1.0
       ],
+      "couvrant": true,
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": false
@@ -1118,6 +1175,7 @@
         1.7,
         0.78
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -1137,6 +1195,7 @@
         1.7,
         0.78
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -1156,6 +1215,7 @@
         3.05,
         0.94
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     },
@@ -1175,6 +1235,7 @@
         2.45,
         0.94
       ],
+      "couvrant": false,
       "bloquant": true,
       "masquant": true
     }

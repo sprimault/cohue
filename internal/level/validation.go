@@ -95,8 +95,10 @@ func valider(nom string, lieu *Level, jeu *Set, pieces []*Room, decor *Decor) []
 // pouvoir le payer — ni le profil ni la pression ne sont invalides, leur
 // rapprochement l'est.
 //
-// Le message nomme la forme et son emprise, parce qu'il s'adresse à un auteur de
+// Le message nomme la forme fautive, parce qu'il s'adresse à un auteur de
 // thème : « sol manquant » l'enverrait chercher laquelle de ses tuiles l'exige.
+// Il ne cite plus son emprise, qui ne dit plus rien de la couverture depuis
+// qu'un marquage au sol occupe sa case sans la peindre.
 func validerPalette(jeu *Set, decor *Decor) []string {
 	var manques []string
 	dire := func(format string, args ...any) {
@@ -110,9 +112,8 @@ func validerPalette(jeu *Set, decor *Decor) []string {
 		switch {
 		case !connue:
 			dire("%s.palette[« %s »] : « %s », forme absente du décor", jeu.ID, cle, nom)
-		case !forme.Covers():
-			nues = append(nues, fmt.Sprintf("« %s » (emprise %g×%g)",
-				nom, forme.Footprint[0], forme.Footprint[1]))
+		case !forme.Covering:
+			nues = append(nues, fmt.Sprintf("« %s »", nom))
 		}
 	}
 
@@ -123,9 +124,9 @@ func validerPalette(jeu *Set, decor *Decor) []string {
 	case jeu.Ground == "":
 	case !connu:
 		dire("%s.sol : « %s », forme absente du décor", jeu.ID, jeu.Ground)
-	case !sol.Covers():
-		dire("%s.sol : « %s » a une emprise de %g×%g et ne remplit pas sa case, "+
-			"ce qu'un sol doit faire", jeu.ID, jeu.Ground, sol.Footprint[0], sol.Footprint[1])
+	case !sol.Covering:
+		dire("%s.sol : « %s » ne remplit pas sa case, ce qu'un sol doit faire",
+			jeu.ID, jeu.Ground)
 	}
 	return manques
 }

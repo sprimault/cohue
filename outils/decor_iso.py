@@ -27,10 +27,11 @@ from PIL import Image
 from manifestes import ecrire_manifeste
 from primitives_iso import (HAUTEUR_PERSONNAGE, LARGEUR_TUILE, MATIERES,
                             PLAFOND_OBSTACLE_BAS, TRANSPARENT, aligner,
-                            bandeau, carrelage, categorie, contour, creuser,
-                            elevation_reelle, empiler, eventrer, fenetres,
-                            grain, joint, nervures, position, poser, reduire,
-                            rivets, surface, tache, volume)
+                            bandeau, carrelage, categorie, contour, couvre,
+                            creuser, decalque, elevation_reelle, empiler,
+                            eventrer, fenetres, grain, joint, nervures,
+                            position, poser, reduire, rivets, surface, tache,
+                            volume)
 
 MARQUAGE = (232, 232, 224)
 BANDE_JAUNE = (222, 186, 74)
@@ -53,6 +54,23 @@ FRANCHISSABLES = {
     "sol_fissure": 2, "sol_sale": 2, "flaque": 2,
     "bouche_egout": 1, "fleche_sol": 1, "trottoir": 1, "quai": 1, "rail": 1,
     "porte_ouverte": 1,
+}
+
+# Les revêtements qu'on peint sans les cerner : un liseré y doublerait le joint
+# au raccord et dessinerait la grille du jeu sur toute la surface.
+#
+# Une table plutôt que le préfixe de nom qui en tenait lieu. « sol », « quai »,
+# « trottoir », « rail » attrapaient exactement ces neuf-là, et n'attraperaient
+# ni une herbe, ni des pavés, ni du ballast : le préfixe ne deviendrait pas
+# faux, il cesserait d'attraper, ce qui ne se voit sur aucune planche.
+#
+# Ce qui se pose *sur* un revêtement est cerné, marquages au sol compris : le
+# liseré est tout ce qui leur garantit un contraste sur un sol de thème qu'ils
+# ne connaissent pas. Un revêtement est franchissable par nature, ce que le
+# générateur vérifie contre la table ci-dessus.
+REVETEMENTS = {
+    "sol", "sol_use", "sol_carrele", "sol_fissure", "sol_sale", "sol_parking",
+    "trottoir", "quai", "rail",
 }
 
 
@@ -290,28 +308,39 @@ def sol_sale():
 
 
 def flaque():
-    def forme(u, v):
+    # Un aplat uni se lirait comme un trou sur un sol qu'on ne connaît plus
+    # d'avance : le reflet est ce qui dit que c'est une surface d'eau.
+    def eau(u, v):
         d = ((u - 0.5) ** 2 + (v - 0.5) ** 2) ** 0.5
-        return (58, 74, 84) if d < 0.30 else None
-    return volume(peinture=forme)
+        if d >= 0.30:
+            return None
+        return (98, 120, 132) if 0.74 < u + v < 0.92 else (58, 74, 84)
+    return decalque(eau)
 
 
 def bouche_egout():
+    # La fonte cerne la grille : sans elle, les barreaux posés à même le sol du
+    # thème flottent au lieu d'être encastrés.
     def grille(u, v):
-        if max(abs(u - 0.5), abs(v - 0.5)) > 0.22:
+        ecart = max(abs(u - 0.5), abs(v - 0.5))
+        if ecart > 0.24:
             return None
-        return (52, 52, 58) if int(v * 22) % 2 else (86, 86, 92)
-    return joint(volume(matiere="beton_sombre", peinture=grille))
+        if ecart > 0.19:
+            return (64, 64, 70)
+        return (44, 44, 50) if int(v * 22) % 2 else (92, 92, 98)
+    return decalque(grille)
 
 
 def fleche_sol():
+    # Hampe fine et pointe courte : dessinée en coordonnées de tuile, une flèche
+    # est écrasée de moitié par la projection, et celle d'avant s'y perdait.
     def marque(u, v):
-        if abs(v - 0.5) < 0.10 and 0.2 < u < 0.8:
+        if 0.16 < u < 0.60 and abs(v - 0.5) < 0.07:
             return MARQUAGE
-        if abs(u - 0.62) < 0.18 and abs(v - 0.5) < (0.62 + 0.18 - u):
+        if 0.60 <= u <= 0.86 and abs(v - 0.5) <= 0.22 * (0.86 - u) / 0.26:
             return MARQUAGE
         return None
-    return joint(volume(matiere="beton_sombre", peinture=marque))
+    return decalque(marque)
 
 
 def immeuble_petit():
@@ -596,6 +625,30 @@ def planche(images, echelle=3):
     return fond.resize((fond.width * echelle, fond.height * echelle), Image.NEAREST)
 
 
+def sur_les_sols(marquages, sols, echelle=3):
+    """Croise les marques au sol avec les revêtements qui les portent.
+
+    C'est la seule vue où leur défaut se voit : une marque qui emporte son
+    propre sol paraît juste sur le revêtement dont elle vient, et fausse partout
+    ailleurs. Une planche par thème ne la montre jamais, chacune ne posant ses
+    formes que sur le béton de commun.
+
+    Les images s'alignent par le haut, où se trouve la face supérieure : c'est
+    elle qu'on marque, qu'elle soit au niveau du sol ou en haut d'un trottoir.
+    """
+    pas = LARGEUR_TUILE + 8
+    hauteur = max(s.height for s in sols) + 8
+    planche = Image.new("RGBA", (pas * len(marquages) + 8, hauteur * len(sols) + 8),
+                        (26, 26, 32, 255))
+    for j, sol_ in enumerate(sols):
+        for i, marque in enumerate(marquages):
+            x, y = 8 + i * pas, 8 + j * hauteur
+            planche.alpha_composite(sol_, (x, y))
+            planche.alpha_composite(marque, (x, y))
+    return planche.resize((planche.width * echelle, planche.height * echelle),
+                          Image.NEAREST)
+
+
 def main():
     analyseur = argparse.ArgumentParser(description=__doc__)
     analyseur.add_argument("formes", nargs="*")
@@ -624,20 +677,32 @@ def main():
     if inconnus:
         analyseur.error(f"forme inconnue : {', '.join(inconnus)}")
 
+    # Les deux tables portent deux questions sur les mêmes objets — ce qui se
+    # traverse, ce qui ne se cerne pas —, et rien ne les tiendrait d'accord :
+    # un revêtement qu'on ne pourrait pas fouler serait une contradiction, et
+    # elle ne se verrait qu'à l'œil, sur une planche que personne n'ouvre.
+    hors = sorted(REVETEMENTS - set(FRANCHISSABLES))
+    if hors:
+        analyseur.error(f"revêtement que rien ne traverse : {', '.join(hors)}")
+
     options.sortie.mkdir(parents=True, exist_ok=True)
     manifeste = {}
     produites = {}
 
     for nom in noms:
         img = CATALOGUE[nom]()
-        if not nom.startswith(("sol", "quai", "trottoir", "rail")):
-            img = contour(img)
         emprise = list(img.info.get("emprise", (1.0, 1.0)))
+        # Mesurée avant le contour, qui ne touche à aucun alpha, et avant la
+        # réduction, qui reseuille le même masque.
+        couvrant = couvre(img, emprise)
+        if nom not in REVETEMENTS:
+            img = contour(img)
         img = reduire(img)
         # Les roues agrandissent le canevas d'une marge qu'elles n'occupent pas
         # toujours : sans recadrage, le manifeste annonce une taille fausse et
-        # l'objet se pose décalé.
-        boite = img.getbbox()
+        # l'objet se pose décalé. Un décalque en est dispensé — son cadre est
+        # celui de la case, et le rogner descendrait la marque d'autant.
+        boite = None if img.info.get("decalque") else img.getbbox()
         if boite and boite != (0, 0, img.width, img.height):
             info = dict(img.info)
             img = img.crop(boite)
@@ -662,6 +727,13 @@ def main():
             # couvertes, pas seulement celle de l'ancrage. Sans elle, une gondole
             # de deux tuiles n'en bloquerait qu'une.
             "emprise": emprise,
+            # Si la forme peint tout le losange de sa case, donc s'il faut
+            # peindre le sol du thème avant elle. Le rendu le déduisait de
+            # l'emprise, ce qui était vrai tant qu'un volume peignait tout son
+            # dessus : une marque au sol occupe sa case sans rien en cacher, et
+            # sépare les deux. Le sens du doute est sûr — croire qu'une forme
+            # couvre laisse un trou à l'écran, croire l'inverse coûte un blit.
+            "couvrant": couvrant,
             # Le chargeur en tire la grille de passabilité : c'est la seule
             # source, et elle est déclarée plutôt que devinée.
             "bloquant": nom not in FRANCHISSABLES,
@@ -690,6 +762,14 @@ def main():
 
     if "sol" in produites:
         carrelage(produites["sol"]).save(options.controles / "controle_carrelage.png")
+
+    marquages = [produites[n] for n in noms
+                 if n in produites and produites[n].info.get("decalque")]
+    revetements = [produites[n] for n in noms
+                   if n in produites and manifeste[n]["couvrant"] and n in FRANCHISSABLES]
+    if marquages and revetements:
+        sur_les_sols(marquages, revetements).save(
+            options.controles / "controle_marquages.png")
 
 
 if __name__ == "__main__":

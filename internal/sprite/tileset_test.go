@@ -27,6 +27,7 @@ func formeDEssai() level.Shape {
 		Size:      [2]int{64, 32},
 		Anchor:    [2]int{32, 31},
 		Footprint: [2]float64{1, 1},
+		Covering:  true,
 	}
 }
 
@@ -186,20 +187,23 @@ func TestUnAncrageHorsDeLImageEstRefuse(t *testing.T) {
 func TestLaHauteurDuSolSuitCeQuOnMarche(t *testing.T) {
 	cas := []struct {
 		nom       string
-		emprise   [2]float64
+		couvrant  bool
 		elevation int
 		attend    int
 	}{
-		{nom: "sol", emprise: [2]float64{1, 1}, elevation: 0, attend: 0},
-		{nom: "trottoir", emprise: [2]float64{1, 1}, elevation: 6, attend: 6},
-		{nom: "quai", emprise: [2]float64{1, 1}, elevation: 10, attend: 10},
-		{nom: "rail", emprise: [2]float64{2, 0.1}, elevation: 4, attend: 0},
-		{nom: "porte_ouverte", emprise: [2]float64{1, 0.2}, elevation: 48, attend: 0},
+		{nom: "sol", couvrant: true, elevation: 0, attend: 0},
+		{nom: "trottoir", couvrant: true, elevation: 6, attend: 6},
+		{nom: "quai", couvrant: true, elevation: 10, attend: 10},
+		{nom: "rail", couvrant: false, elevation: 4, attend: 0},
+		{nom: "porte_ouverte", couvrant: false, elevation: 48, attend: 0},
+		// Un marquage au sol : il occupe sa case sans la peindre, et c'est le
+		// cas que l'emprise ne savait pas dire — la sienne vaut une tuile.
+		{nom: "fleche_sol", couvrant: false, elevation: 0, attend: 0},
 	}
 
 	for _, c := range cas {
 		forme := formeDEssai()
-		forme.Footprint = c.emprise
+		forme.Covering = c.couvrant
 		forme.Elevation = c.elevation
 		if got := hauteurSol(forme); got != c.attend {
 			t.Errorf("%s : hauteur de sol %d, attendu %d", c.nom, got, c.attend)

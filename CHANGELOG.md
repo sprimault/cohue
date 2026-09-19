@@ -64,6 +64,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **La Baudruche est redessinée** : un corps rouge sombre gonflé à éclater,
   couvert de pustules orange, sur deux jambes courtes. Elle se dandine, et
   enfle avant d'exploser.
+- **L'Arpenteur est redessiné** : une araignée violette au corps rond, sur six
+  longues pattes qui dépassent de loin. Elle avance trois pattes à la fois, et
+  se ramasse avant de bondir.
 
 ***
 
@@ -88,6 +91,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
   squats before it spits.
 - **The Baudruche is redrawn**: a dark red body swollen to bursting, covered in
   orange boils, on two short legs. It waddles, and swells before it explodes.
+- **The Arpenteur is redrawn**: a purple spider with a round body, on six long
+  legs that reach far out. It moves three legs at a time, and crouches before
+  it pounces.
 
 ## [0.7.0] — 2026-09-18 — Ressources et caisses
 

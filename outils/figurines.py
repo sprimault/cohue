@@ -198,7 +198,7 @@ BOUCLENT = {"repos", "marche"}
 #
 # L'aperçu les dessine encore : la figurine reste le repère des proportions
 # quand un dessin est repris.
-DESSINES = {"joueur", "marcheur", "bloqueur", "soigneur", "civil", "cracheur", "eclateur"}
+DESSINES = {"joueur", "marcheur", "bloqueur", "soigneur", "civil", "cracheur", "eclateur", "flanqueur"}
 
 # Corps, teinte de vêtement, cycles. Le nombre d'images par cycle est ce que le
 # manifeste annonce au moteur : le changer ici change l'animation en jeu.
@@ -226,7 +226,9 @@ PROFILS = {
                   "cycles": {"marche": 8, "mort": 2}},
     "flanqueur": {"nom": "Arpenteur", "habit": (108, 76, 132),  "peau": (168, 132, 196), "carrure": 0.9,
                   "gabarit": "rampant",
-                  "cycles": {"repos": 1, "attaque": 2, "marche": 5, "degat": 1, "mort": 3}},
+                  # Quatre images : deux trépieds qui alternent, chacun levé une
+                  # fois entre deux appuis complets.
+                  "cycles": {"repos": 1, "attaque": 2, "marche": 4, "degat": 1, "mort": 3}},
     "cracheur":  {"nom": "Buse", "habit": (168, 140, 72),  "peau": (120, 100, 52),  "carrure": 0.95,
                   "gabarit": "bulbe",
                   "cycles": {"repos": 1, "attaque": 1, "marche": 4, "mort": 2}},

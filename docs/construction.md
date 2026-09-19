@@ -68,7 +68,7 @@ rampant, bulbe, colosse, gonflé — et des variantes de teinte par profil.
 
 **Sauf les profils dessinés**, que `DESSINES` énumère dans le même fichier :
 aujourd'hui le Survivant, le Quidam, le Vigile, le Secouriste, le Passant, la
-Buse et la Baudruche. Leurs bandes sont des dessins tenus à la main, avec un
+Buse, la Baudruche et l'Arpenteur. Leurs bandes sont des dessins tenus à la main, avec un
 `LICENSE.txt` dans leur dossier, comme la police. Le générateur n'écrit plus que
 leur entrée de manifeste, `make ressources-verif` ne les compare pas, et le
 contrôle des images les voit comme les autres. Un dessin se remplace en

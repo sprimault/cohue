@@ -471,13 +471,13 @@
     },
     "civil": {
       "nom": "Passant",
-      "variantes": 1,
+      "variantes": 2,
       "gabarit": "bipede",
       "role": "ambiance",
       "comportement": "va_et_vient",
       "vitesse_relative": 0.75,
       "rayon_tuiles": 0.109,
-      "origine": "figurine générée",
+      "origine": "dessin",
       "cote": 64,
       "appui": [
         32,

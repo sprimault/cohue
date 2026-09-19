@@ -6,6 +6,7 @@
 make build      # binaire dans .tmp/
 make run
 make apercus    # les vues du rendu, dans .tmp/apercus/
+make anime      # l'aperçu animé en WebP, pour ce qui se publie
 make test
 make race
 make fmt
@@ -31,6 +32,22 @@ Ebitengine initialise GLFW, qui panique sans écran. La planche pilote le rendu 
 jeu et non une scène montée à côté, et elle est déterministe : c'est ce qui permet
 de comparer une image d'avant et d'après un changement. Elle exige un écran, donc
 elle ne tourne pas en intégration continue.
+
+**Une des vues n'est pas une image.** `partie.gif` montre six secondes de jeu à
+la troisième minute, jouées par le pilote du test de déterminisme : ce qui ne se
+relit qu'en mouvement — une horde qui converge, une salve qui s'élargit, des
+gemmes qui partent — n'a aucune place sur une planche. Elle s'achève au dernier
+instant où le joueur est vivant, parce qu'un artefact s'arrête sur l'événement
+qu'il montre et non sur un compte de pas.
+
+`make anime` y ajoute `partie.webp`, treize fois plus léger à contenu
+identique : c'est le format de ce qui se publie, et c'est lui que le `README`
+montre depuis `docs/images/`. **La copie s'y fait à la main**, parce qu'une
+cible qui écrirait dans le dépôt salirait `git status` à chaque exécution —
+on ne publie pas à chaque relecture. **Sans perte, et ce n'est pas
+un scrupule** — le mode avec perte est ici le plus lourd, étant fait pour des
+dégradés quand le pixel art n'est qu'arêtes franches et aplats. Le GIF reste la
+sortie du générateur, qui n'écrit qu'avec la bibliothèque standard.
 
 `makefile.local` porte ce qui est propre au poste — `GOTMPDIR`, `GOCACHE` — et
 n'est pas versionné. Passer par le Makefile plutôt que d'appeler `go` à la main :

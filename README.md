@@ -5,6 +5,8 @@ Français : [README.fr.md](README.fr.md)
 An urban isometric action-roguelite under horde pressure. Chained rooms,
 automatic fire, a build you assemble in fifteen minutes.
 
+![Six seconds of play, at the third minute](docs/images/partie.webp)
+
 Apache 2.0 — [`LICENSE`](LICENSE), and [`CREDITS.md`](CREDITS.md) for graphic
 assets.
 
@@ -25,8 +27,12 @@ afar, the one you cannot walk through, the one that explodes, the one that heals
 the others. Bystanders come and go without attacking anyone. Gems raise your
 level, every level up offers three cards, and crates break when you walk through
 them. The door opens once you have killed what the place asks for: touching it is
-enough to leave. The scenery is coloured rectangles — the images exist, but
-nothing loads them yet.
+enough to leave. Creatures are drawn, scenery carries a material, and walls are
+built of dressed stone.
+
+The animation above is six seconds of a real game at the third minute, driven by
+the same pilot as the determinism test. `make anime` writes it again from the
+code, so it ages with the game rather than with the day it was captured.
 
 The project follows a sixteen-step roadmap, published at each one. **What is done
 and what remains are not listed here**: both lists would live beside the

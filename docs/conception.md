@@ -1234,6 +1234,10 @@ Un générateur donne une cohérence gratuite là où assembler des dessins d'au
 
 **Le tracé ne vient jamais de la texture.** Joints de dalles, damier d'un carrelage, bande de quai, lignes d'un parking, fissures : ce sont des marques dont la place suit la grille, et le pas d'une texture ne s'y accorderait pas. Elles restent peintes par le générateur, par-dessus la matière.
 
+**Un mur se voit par ses flancs**, soixante-quatre pixels contre une bande de face supérieure, et la texture ne s'y lit pas dans le même repère : un flanc est un plan vertical que la projection ne parcourt pas. Ce qu'on y applique est l'écart de la texture à sa moyenne, en facteur, si bien que l'ombrage par bandes du volume survit et que seule la matière s'ajoute.
+
+**Et la maçonnerie est la seule matière dont la répétition soit un motif.** Une tuile de mur est la même image à chaque case, donc une tache s'y répète de façon criante — c'est ce qui rend le béton intraitable par cette voie. Un appareil de pierre est fait pour se répéter. Trois trames séparent alors trois tailles d'obstacle qui se touchent souvent : grand appareil pour un mur plein, moellon pour un muret de vingt-deux pixels, parpaing pour un pilier qui n'occupe qu'un quart de case. C'est une décision de lisibilité — la même trame partout ferait lire un massif unique là où il y a trois obstacles.
+
 **Une même matière se décline plutôt qu'elle ne se régénère.** Un béton neuf, usé ou sali partagent leur grain et ne diffèrent que par une valeur et une teinte. C'est aussi ce qui garde le pavage discret : une tache identifiable trahit la répétition d'une case à l'autre, un moucheté non.
 
 **Ce qu'aucun volume ne rend passe encore par une image entière**, que `DESSINES` énumère dans `decor_iso.py` : le générateur n'en écrit alors que l'entrée de manifeste, tout s'y mesurant sur le dessin livré — taille, ancrage, élévation, catégorie, couverture. L'emprise seule se déclare, parce qu'aucune image ne la porte : la largeur d'un losange dit la somme de ses deux côtés, jamais lequel est lequel.

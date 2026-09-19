@@ -400,6 +400,43 @@ def grain(img, densite=0.10, force=0.16, graine=0, faces=("dessus",)):
     return img
 
 
+def grener(img, peinture, faces=("gauche", "droite"), force=0.55):
+    """Porte une matière sur les flancs d'un volume, sans toucher à leur ombre.
+
+    **Un mur se voit par ses flancs, pas par son dessus** — soixante-quatre
+    pixels d'élévation contre une bande de face supérieure —, et `volume` ne
+    sait peindre que celle-ci. La texture ne peut donc pas y entrer comme elle
+    entre dans un sol.
+
+    Ce qui est appliqué est **l'écart de la texture à sa moyenne**, en facteur :
+    l'ombrage par bandes du volume survit intact, et seul le grain s'ajoute. Le
+    remplacement pur aurait aplati les deux flancs et le dégradé avec eux.
+
+    La lecture se fait en pixels d'écran et non en coordonnées de tuile : un
+    flanc est un plan vertical, que la projection ne parcourt pas. Le raccord
+    entre deux cases voisines tient tant que la texture mesure la largeur de
+    tuile ou un de ses diviseurs.
+    """
+    px = img.load()
+    lire = peinture
+    # Moyenne de la texture, prise une fois : c'est elle qui fait du grain un
+    # écart plutôt qu'une teinte, donc ce qui laisse l'ombrage intact.
+    echantillons = [lire(x / LARGEUR_TUILE, y / LARGEUR_TUILE)
+                    for x in range(LARGEUR_TUILE) for y in range(LARGEUR_TUILE)]
+    moyenne = sum(sum(c) / 3 for c in echantillons) / len(echantillons) or 1
+
+    for face in faces:
+        for x, y in sorted(img.info.get(face, ())):
+            r, v, b, a = px[x, y]
+            grise = sum(lire((x % LARGEUR_TUILE) / LARGEUR_TUILE,
+                             (y % LARGEUR_TUILE) / LARGEUR_TUILE)) / 3
+            facteur = 1.0 + (grise / moyenne - 1.0) * force
+            px[x, y] = (min(255, max(0, int(r * facteur))),
+                        min(255, max(0, int(v * facteur))),
+                        min(255, max(0, int(b * facteur))), a)
+    return img
+
+
 def nervures(img, pas=6, force=0.14):
     """Lignes verticales claires sur les flancs : tôle, montants, cannelures."""
     px = img.load()

@@ -51,6 +51,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Modifié
 
+- **Les murs sont en pierre appareillée** : grand appareil pour les murs pleins
+  et les cloisons, moellon pour les murets, parpaing pour les piliers. Trois
+  trames qui se distinguent d'un coup d'œil, là où tout était un aplat de béton.
 - **Les huit revêtements ont une matière** : le béton, le béton usé, le béton
   sali, le carrelage, l'enrobé du parking, le trottoir et le quai portent un
   grain d'agrégat au lieu d'un aplat uni, et gardent leur relief, leurs
@@ -77,6 +80,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Changed
 
+- **Walls are built of dressed stone**: large bond for solid walls and
+  partitions, rubble for low walls, breeze blocks for pillars. Three patterns
+  told apart at a glance, where everything used to be flat concrete.
 - **The eight ground surfaces now have a material**: concrete, worn concrete,
   grimy concrete, tiling, car-park asphalt, pavement and platform carry an
   aggregate grain instead of a flat fill, and keep their relief, their markings

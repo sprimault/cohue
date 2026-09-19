@@ -29,7 +29,8 @@ from primitives_iso import (HAUTEUR_PERSONNAGE, LARGEUR_TUILE, MATIERES,
                             PLAFOND_OBSTACLE_BAS, TRANSPARENT, aligner,
                             bandeau, carrelage, categorie, contour, couvre,
                             creuser, decalque, elevation_reelle, empiler,
-                            eventrer, fenetres, grain, joint, nervures, nuance,
+                            eventrer, fenetres, grain, grener, joint, nervures,
+                            nuance,
                             position, poser, reduire, rivets, surface, tache,
                             texture, volume)
 
@@ -99,23 +100,53 @@ def sol_carrele():
     return joint(volume(peinture=damier))
 
 
+def maconnerie(tx=1, ty=1, elevation=64, largeur_tuile=LARGEUR_TUILE,
+               matiere="pierre"):
+    """Un volume de pierre : appareil de face sur les flancs, projeté au-dessus.
+
+    **Les deux lectures ne se font pas dans le même repère**, et c'est ce qui
+    les sépare : un flanc est un plan vertical, que la projection ne parcourt
+    pas, quand le dessus est un losange en coordonnées de tuile. Le même
+    appareil, lu des deux façons, donne des pierres de face et des pierres vues
+    de dessus.
+
+    **La répétition d'une case à l'autre est ici le motif et non un défaut.**
+    Une tache trahit un pavage ; un appareil de maçonnerie est fait pour se
+    répéter, et c'est ce qui rend la pierre traitable là où le béton ne l'était
+    pas — une tuile de mur étant la même image à chaque case.
+    """
+    appareil = texture(matiere)
+    return grener(volume(tx=tx, ty=ty, elevation=elevation,
+                         largeur_tuile=largeur_tuile, peinture=appareil),
+                  appareil, force=1.3)
+
+
 def mur():
-    return contour(grain(volume(elevation=64), densite=0.10, graine=3,
-                         faces=("dessus", "gauche", "droite")))
+    return contour(maconnerie())
 
 
 def muret():
-    return contour(grain(volume(elevation=22), densite=0.12, graine=4,
-                         faces=("dessus", "gauche", "droite")))
+    # Du moellon plutôt que l'appareil des murs, pour la raison qui met du
+    # parpaing sur un pilier : vingt-deux pixels de haut ne montreraient qu'une
+    # assise et demie du grand appareil, et le muret passerait pour un mur
+    # tronqué. De petites pierres serrées lui donnent sa propre trame.
+    return contour(maconnerie(elevation=22, matiere="caillou"))
 
 
 def pilier():
-    return contour(rivets(volume(elevation=64, matiere="beton_sombre",
-                                 largeur_tuile=32), pas=6))
+    # **Du parpaing et non la pierre des murs**, et ce n'est pas qu'une
+    # variation : un pilier n'occupe qu'un quart de case, si bien que le même
+    # appareil n'y montrerait que deux ou trois pierres et le ferait lire comme
+    # un bout de mur. Des blocs petits et réguliers le distinguent par leur
+    # trame plutôt que par leur valeur — un moellon sombre en aurait fait une
+    # tache au milieu du sol, là où c'est la horde qui doit accrocher l'œil.
+    #
+    # Les rivets sont partis avec le béton coulé qu'ils disaient.
+    return contour(maconnerie(largeur_tuile=32, matiere="parpaing"))
 
 
 def cloison():
-    return volume(tx=1, ty=0.18, elevation=48, matiere="beton")
+    return maconnerie(ty=0.18, elevation=48)
 
 
 def panneau():
@@ -287,17 +318,15 @@ def rail():
 # --- Murs et ouvertures ----------------------------------------------------
 
 def mur_angle():
-    return aligner(volume(tx=1, ty=0.2, elevation=64),
-                   volume(tx=0.2, ty=1, elevation=64))
+    return aligner(maconnerie(ty=0.2), maconnerie(tx=0.2))
 
 
 def mur_te():
-    return aligner(volume(tx=1, ty=0.2, elevation=64),
-                   volume(tx=0.2, ty=0.6, elevation=64))
+    return aligner(maconnerie(ty=0.2), maconnerie(tx=0.2, ty=0.6))
 
 
 def mur_ouverture():
-    return creuser(volume(tx=1, ty=0.2, elevation=64), depuis_haut=26, hauteur=38)
+    return creuser(maconnerie(ty=0.2), depuis_haut=26, hauteur=38)
 
 
 def porte_fermee():

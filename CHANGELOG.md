@@ -44,6 +44,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Ajouté
 
+- **Une pièce peut poser sur son terrain au lieu de le remplacer.** Sa grille
+  garde le revêtement — sol, chaussée, herbe, mur — et le champ `couches` porte
+  ce qui s'y tient : marquages, mobilier, véhicules, bâtiments. Un véhicule garé
+  laisse donc voir la chaussée sous lui, là où il en prenait la case et faisait
+  apparaître le sol du thème à sa place. Le champ est facultatif, et une pièce
+  qui s'en passe se charge comme avant.
 - **Le quartier a des véhicules et des immeubles dessinés** : un bus, un
   minibus, un fourgon, un scooter, et trois bâtiments qui se distinguent par
   leur hauteur — une boutique basse, un immeuble de rapport, une façade de
@@ -68,6 +74,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Added
 
+- **A room can now place things on its terrain instead of replacing it.** Its
+  grid keeps the surface — floor, roadway, grass, wall — and the new `couches`
+  field carries what stands on it: markings, street furniture, vehicles,
+  buildings. A parked vehicle therefore leaves the roadway visible beneath it,
+  where it used to take over the cell and reveal the theme's floor instead. The
+  field is optional, and a room without it loads as before.
 - **The neighbourhood has drawn vehicles and buildings**: a bus, a minibus, a
   van, a scooter, and three buildings told apart by their height — a low shop, a
   tenement, a brick front. The first four park along the square's avenues, the

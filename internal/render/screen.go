@@ -513,6 +513,20 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 			}
 		}
 	}
+
+	// **Les couches viennent après tout le terrain, et non case par case.** Une
+	// couche posée dans la même passe se ferait recouvrir par le revêtement de
+	// la case suivante, dont l'image déborde vers le sud : c'est la raison qui
+	// fait déjà peindre le sol par rangées plutôt que par colonne.
+	for couche := range s.sol.Couches() {
+		for v := v0; v <= v1; v++ {
+			for u := u0; u <= u1; u++ {
+				if f, posee := s.sol.coucheDe(couche, u, v); posee && !f.triee {
+					s.poserCase(ecran, u, v, f)
+				}
+			}
+		}
+	}
 }
 
 // poserCase pose l'image d'une case, à l'ancrage que son manifeste lui donne, le
@@ -777,8 +791,12 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 		var t trace
 		switch e.sorte {
 		case sorteDecor:
-			u, v := e.place%largeur, e.place/largeur
+			couche, place := coucheEtCase(e.place, largeur*s.sol.carte.Height())
+			u, v := place%largeur, place/largeur
 			f, _ := s.sol.formeDe(u, v)
+			if couche >= 0 {
+				f, _ = s.sol.coucheDe(couche, u, v)
+			}
 			t = s.poserCase(ecran, u, v, f)
 		case sorteEnnemi:
 			c := s.monde.Enemies().At(e.place)

@@ -32,6 +32,22 @@ type Tilemap struct {
 	// losange, vide quand le thème n'en déclare pas. Elle ne figure dans aucune
 	// case : ce qu'elle comble n'est pas ce qu'une case porte.
 	sol string
+	// couches porte ce qui se pose sur le terrain, de la plus basse à la plus
+	// haute : moins un là où une couche ne met rien.
+	//
+	// **Le terrain se remplit par couches, et une case dit donc plusieurs
+	// choses.** Les mêler en une seule faisait disparaître ce qui était
+	// dessous : un bus posé sur une chaussée la remplaçait, et le comblement,
+	// ne sachant plus ce que la case était, peignait le sol du thème — un carré
+	// de béton clair sous chaque véhicule garé. Une flaque sur cette même
+	// chaussée aurait fait exactement pareil.
+	//
+	// Leur nombre n'est pas borné parce que rien ne le demande : un revêtement,
+	// ce qui le marque, ce qui s'y tient font trois, et le jour où il en faudra
+	// une quatrième elle ne coûtera qu'une ligne de plus au fichier. Les index
+	// sont ceux de la même table que `cases` : ce sont les mêmes tuiles, et
+	// deux tables donneraient deux résolutions pour un seul dessin.
+	couches [][]int
 	// index rend la place d'un nom déjà rencontré, le temps de l'assemblage.
 	index            map[string]int
 	largeur, hauteur int
@@ -52,6 +68,15 @@ func newTilemap(largeur, hauteur int) *Tilemap {
 		cases[i] = -1
 	}
 	return &Tilemap{index: map[string]int{}, largeur: largeur, hauteur: hauteur, cases: cases}
+}
+
+// vide rend une couche dont aucune case ne porte rien.
+func vide(n int) []int {
+	couche := make([]int, n)
+	for i := range couche {
+		couche[i] = -1
+	}
+	return couche
 }
 
 // Shapes rend les noms des formes employées, dans l'ordre où les index les
@@ -85,18 +110,57 @@ func (t *Tilemap) At(u, v int) int {
 	return t.cases[v*t.largeur+u]
 }
 
-// set pose une forme sur une case, en la nommant si c'est la première fois.
+// set pose une forme sur le terrain d'une case, en la nommant si c'est la
+// première fois.
 func (t *Tilemap) set(u, v int, forme string) {
 	if u < 0 || v < 0 || u >= t.largeur || v >= t.hauteur {
 		return
 	}
+	t.cases[v*t.largeur+u] = t.nommer(forme)
+}
+
+// poser met une forme sur une case, à la couche donnée, en ouvrant les couches
+// manquantes.
+//
+// Les couches s'ouvrent à la demande plutôt qu'au dimensionnement : un lieu
+// dont une seule pièce en emploie deux n'a pas à payer la seconde sur toute son
+// étendue, et rien ne dit leur nombre avant d'avoir lu les pièces.
+func (t *Tilemap) poser(u, v, couche int, forme string) {
+	if u < 0 || v < 0 || u >= t.largeur || v >= t.hauteur {
+		return
+	}
+	for len(t.couches) <= couche {
+		t.couches = append(t.couches, vide(t.largeur*t.hauteur))
+	}
+	t.couches[couche][v*t.largeur+u] = t.nommer(forme)
+}
+
+// Layers rend le nombre de couches posées sur le terrain.
+func (t *Tilemap) Layers() int { return len(t.couches) }
+
+// LayerAt rend l'index de ce qu'une couche met sur une case, et moins un quand
+// elle n'y met rien.
+func (t *Tilemap) LayerAt(couche, u, v int) int {
+	if couche < 0 || couche >= len(t.couches) ||
+		u < 0 || v < 0 || u >= t.largeur || v >= t.hauteur {
+		return -1
+	}
+	return t.couches[couche][v*t.largeur+u]
+}
+
+// nommer rend l'index d'une forme, en l'ajoutant si c'est la première fois.
+//
+// Sols et formes partagent la même table : ce sont les mêmes tuiles, et deux
+// tables donneraient deux index pour un seul dessin — donc deux résolutions
+// pour la même image au montage du rendu.
+func (t *Tilemap) nommer(forme string) int {
 	i, connue := t.index[forme]
 	if !connue {
 		i = len(t.formes)
 		t.formes = append(t.formes, forme)
 		t.index[forme] = i
 	}
-	t.cases[v*t.largeur+u] = i
+	return i
 }
 
 // couts dérive la grille que la simulation lit.
@@ -135,22 +199,35 @@ func (t *Tilemap) couts(catalogue map[string]Footing) *game.CostGrid {
 	grille := game.NewCostGrid(t.largeur, t.hauteur)
 	for v := range t.hauteur {
 		for u := range t.largeur {
-			i := t.cases[v*t.largeur+u]
-			if i < 0 {
-				continue
-			}
-			assise, connue := catalogue[t.formes[i]]
-			if !connue {
-				assise = Footing{Cost: game.Blocked, Block: [2]int{1, 1}}
-			}
-			for dv := range assise.Block[1] {
-				for du := range assise.Block[0] {
-					if assise.Cost > grille.At(u+du, v+dv) {
-						grille.Set(u+du, v+dv, assise.Cost)
-					}
-				}
+			t.peindre(grille, catalogue, u, v, t.cases[v*t.largeur+u])
+			for couche := range t.couches {
+				t.peindre(grille, catalogue, u, v, t.couches[couche][v*t.largeur+u])
 			}
 		}
 	}
 	return grille
+}
+
+// peindre écrit le coût d'une forme sur le bloc qu'elle ferme, sans jamais le
+// faire baisser.
+//
+// **Les couches passent par le même chemin que le terrain**, et l'arbitrage par
+// le maximum leur suffit : une flaque posée sur un sol libre le renchérit, un
+// véhicule sur une chaussée la ferme, et rien de ce qui est dessous ne rouvre
+// ce qui est dessus.
+func (t *Tilemap) peindre(grille *game.CostGrid, catalogue map[string]Footing, u, v, i int) {
+	if i < 0 {
+		return
+	}
+	assise, connue := catalogue[t.formes[i]]
+	if !connue {
+		assise = Footing{Cost: game.Blocked, Block: [2]int{1, 1}}
+	}
+	for dv := range assise.Block[1] {
+		for du := range assise.Block[0] {
+			if assise.Cost > grille.At(u+du, v+dv) {
+				grille.Set(u+du, v+dv, assise.Cost)
+			}
+		}
+	}
 }

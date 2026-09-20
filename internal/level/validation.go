@@ -229,5 +229,31 @@ func validerGrille(ou string, piece *Room, jeu *Set) []string {
 			}
 		}
 	}
+
+	// **Une couche se contrôle comme la grille, à l'espace près.** Elle a la
+	// même géométrie, sans quoi ce qu'elle pose tomberait ailleurs que là où son
+	// auteur l'a écrit ; et l'espace y dit « rien ici », le seul caractère qu'on
+	// ne cherche pas dans la palette. Sans ce contrôle, une couche plus courte
+	// que sa pièce perdrait ses dernières rangées en silence, ce que le décalage
+	// d'une seule ligne suffit à produire.
+	for couche, lignes := range piece.Layers {
+		if len(lignes) != hauteur {
+			dire("%s.couches[%d] : %d ligne(s) pour une taille qui en annonce %d",
+				ou, couche, len(lignes), hauteur)
+		}
+		for v, ligne := range lignes {
+			jetons := []rune(ligne)
+			if len(jetons) != largeur {
+				dire("%s.couches[%d][%d] : %d caractère(s) pour une largeur de %d",
+					ou, couche, v, len(jetons), largeur)
+			}
+			for u, jeton := range jetons {
+				if _, connu := jeu.Palette[string(jeton)]; !connu && jeton != ' ' {
+					dire("%s.couches[%d][%d][%d] : « %c » absent de la palette de « %s »",
+						ou, couche, v, u, jeton, jeu.ID)
+				}
+			}
+		}
+	}
 	return manques
 }

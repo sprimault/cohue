@@ -242,6 +242,19 @@ func assembler(lieu *Level, pieces []*Room, jeu *Set) *Tilemap {
 				tuiles.set(pose.U+u, pose.V+v, jeu.Palette[string(jeton)])
 			}
 		}
+		// Les couches viennent après le terrain de la même pièce, et l'espace
+		// y laisse la case telle qu'elle est : c'est ce qui permet d'en poser
+		// une pour trois véhicules sans redire le revêtement partout ailleurs.
+		for couche, lignes := range pieces[i].Layers {
+			for v, ligne := range lignes {
+				for u, jeton := range []rune(ligne) {
+					if jeton == ' ' {
+						continue
+					}
+					tuiles.poser(pose.U+u, pose.V+v, couche, jeu.Palette[string(jeton)])
+				}
+			}
+		}
 	}
 	return tuiles
 }

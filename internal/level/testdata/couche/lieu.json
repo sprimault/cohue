@@ -1,0 +1,9 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · un lieu qui pose une forme sur le terrain plutôt qu'à sa place, ce que « bloc » ne fait pas",
+  "version_format": 1,
+  "identifiant": "couche",
+  "jeu_pieces": "commun",
+  "pieces": [
+    { "id": "rayon", "u": 0, "v": 0 }
+  ]
+}

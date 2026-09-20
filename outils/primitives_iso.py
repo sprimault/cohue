@@ -53,7 +53,7 @@ MARQUAGE = (232, 232, 224)
 BANDE_JAUNE = (222, 186, 74)
 
 
-def _appui(tx, largeur_tuile, hauteur):
+def appui(tx, largeur_tuile, hauteur):
     """Point d'appui d'une emprise dans sa propre image : x depuis le bord
     gauche, y sur la dernière rangée.
 
@@ -246,7 +246,7 @@ def volume(tx=1, ty=1, elevation=0, matiere="beton", largeur_tuile=LARGEUR_TUILE
     # moins qu'une tuile entière, et un wagon en occupe trois.
     echelle = largeur_tuile / LARGEUR_TUILE
     img.info["emprise"] = (round(tx * echelle, 3), round(ty * echelle, 3))
-    img.info["appui"] = _appui(tx, largeur_tuile, img.height)
+    img.info["appui"] = appui(tx, largeur_tuile, img.height)
     img.info["tx"] = tx
     img.info["ty"] = ty
     img.info["largeur_tuile"] = largeur_tuile
@@ -285,7 +285,7 @@ def decalque(peinture, tx=1, ty=1, largeur_tuile=LARGEUR_TUILE, cerne=True):
     img.info["hauteur_dessus"] = hauteur
     echelle = largeur_tuile / LARGEUR_TUILE
     img.info["emprise"] = (round(tx * echelle, 3), round(ty * echelle, 3))
-    img.info["appui"] = _appui(tx, largeur_tuile, img.height)
+    img.info["appui"] = appui(tx, largeur_tuile, img.height)
     img.info["tx"] = tx
     img.info["ty"] = ty
     img.info["largeur_tuile"] = largeur_tuile
@@ -385,8 +385,8 @@ def poser(base, *objets):
         # dans sa propre image est le sommet bas du losange, en tx * lt / 2 —
         # pas au milieu de l'image dès que l'emprise n'est pas carrée.
         x, y = position(base, u + tx_o / 2, v + ty_o / 2)
-        appui = round(tx_o * base.info["largeur_tuile"] / 2) if tx_o else objet.width // 2
-        canevas.alpha_composite(objet, (x - appui, marge + y - objet.height + 1))
+        pivot = appui(tx_o, base.info["largeur_tuile"], objet.height)[0] if tx_o else objet.width // 2
+        canevas.alpha_composite(objet, (x - pivot, marge + y - objet.height + 1))
 
     boite = canevas.getbbox()
     resultat = canevas.crop(boite)

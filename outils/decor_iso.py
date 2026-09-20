@@ -26,7 +26,7 @@ from PIL import Image
 
 from manifestes import ecrire_manifeste
 from primitives_iso import (HAUTEUR_PERSONNAGE, LARGEUR_TUILE, MATIERES,
-                            PLAFOND_OBSTACLE_BAS, TRANSPARENT, aligner,
+                            PLAFOND_OBSTACLE_BAS, TRANSPARENT, aligner, appui,
                             bandeau, carrelage, categorie, contour, couvre,
                             creuser, decalque, elevation_reelle, empiler,
                             eventrer, fenetres, grain, grener, joint, nervures,
@@ -463,19 +463,6 @@ def fleche_sol():
     return decalque(marque)
 
 
-def immeuble_petit():
-    corps = volume(tx=2, ty=2, elevation=72, matiere="beton")
-    return fenetres(corps, pas=12, largeur=5, depuis_haut=8, hauteur=8, graine=21)
-
-
-def immeuble_haut():
-    corps = volume(tx=2, ty=2, elevation=120, matiere="beton_sombre")
-    for etage in range(0, 96, 18):
-        fenetres(corps, pas=12, largeur=5, depuis_haut=8, hauteur=8,
-                 etage=etage, graine=22 + etage)
-    return corps
-
-
 def boutique():
     corps = volume(tx=2, ty=1.4, elevation=44, matiere="peinture")
     return creuser(fenetres(corps, pas=14, largeur=6, depuis_haut=6, hauteur=6,
@@ -625,15 +612,6 @@ def vehicule(tx, ty, hauteur, caisse, cabine, part_cabine=0.30, graine=0,
                  essieux=essieux)
 
 
-def bus():
-    """Même construction que le wagon : châssis, caisse, bandeau, fenêtres."""
-    chassis = _train_roulant(2.6)
-    caisse_ = volume(tx=2.6, ty=0.8, elevation=24, matiere="vert")
-    fenetres(caisse_, pas=10, largeur=6, depuis_haut=4, hauteur=8, graine=41)
-    bandeau(caisse_, depuis_haut=14, epaisseur=1, couleur=(228, 228, 218))
-    return poser(chassis, (caisse_, 1.3, 0.4))
-
-
 def camion():
     return vehicule(2.8, 0.85, 26, "metal", "rouge", part_cabine=0.26,
                     graine=42, cannelures=6)
@@ -674,15 +652,6 @@ def ambulance():
     return poser(base, (gyrophare, 0.55, 0.30))
 
 
-def scooter():
-    chassis = _train_roulant(0.8, ty=0.3, hauteur=4)
-    selle = volume(tx=0.7, ty=0.3, elevation=8, matiere="peinture")
-    guidon = volume(tx=0.14, ty=0.3, elevation=12, matiere="acier_sombre")
-    corps = poser(chassis, (selle, 0.4, 0.15))
-    return roues(poser(corps, (guidon, 0.12, 0.15)),
-                 essieux=(0.15, 0.85), largeur=5, hauteur=3)
-
-
 THEMES = {
     "commun": {
         "sol": sol, "sol_use": sol_use, "sol_carrele": sol_carrele,
@@ -708,8 +677,6 @@ THEMES = {
         "trottoir": trottoir, "herbe": herbe, "passage_pieton": passage_pieton,
         "banc": banc, "poubelle": poubelle,
         "lampadaire": lampadaire, "jardiniere": jardiniere,
-        "bus": bus, "scooter": scooter,
-        "immeuble_petit": immeuble_petit, "immeuble_haut": immeuble_haut,
         "boutique": boutique, "abribus": abribus, "conteneur": conteneur,
         "feu_tricolore": feu_tricolore,
     },
@@ -740,6 +707,22 @@ THEMES = {
 # à part, comme les personnages, et leur vaut le `LICENSE.txt` du dossier.
 DESSINES = {
     "chaussee": {"theme": "quartier", "emprise": (1.0, 1.0)},
+    # **Les véhicules dessinés sont couchés le long de `v`**, quand ceux que
+    # `vehicule` compose le sont le long de `u`. Ce n'est pas un choix de
+    # cadrage : le modèle ne rend que cette diagonale, et le format prévoit les
+    # deux sens depuis que les obstacles fragiles se posent dans l'un ou dans
+    # l'autre. Le catalogue y gagne ce qu'il n'avait pas — une rue où les
+    # véhicules ne sont pas tous garés dans le même sens.
+    "bus": {"theme": "quartier", "emprise": (0.8, 2.6)},
+    "minibus": {"theme": "quartier", "emprise": (0.8, 2.6)},
+    "fourgon": {"theme": "quartier", "emprise": (0.8, 2.0)},
+    "scooter": {"theme": "quartier", "emprise": (0.3, 0.8)},
+    # Trois hauteurs qui se distinguent d'un coup d'œil : une boutique basse,
+    # un immeuble de rapport, une façade de brique. Leur emprise est carrée,
+    # donc leur sens ne se pose pas.
+    "immeuble_petit": {"theme": "quartier", "emprise": (2.0, 2.0)},
+    "immeuble_haut": {"theme": "quartier", "emprise": (2.0, 2.0)},
+    "immeuble_brique": {"theme": "quartier", "emprise": (2.0, 2.0)},
 }
 
 CATALOGUE = {nom: fn for formes in THEMES.values() for nom, fn in formes.items()}
@@ -784,6 +767,13 @@ def dessin(dossier, nom):
     La hauteur du dessus se dérive de l'emprise, seule chose que le dessin ne
     porte pas : c'est la hauteur qu'aurait le losange, et c'est d'elle que se
     déduit l'élévation.
+
+    **Le point d'appui s'en dérive aussi, et il le faut dès qu'une forme
+    dessinée n'est pas carrée.** Sans lui, l'entrée de manifeste retombe sur le
+    bas-centre de l'image, qui n'est le sommet bas du losange que lorsque les
+    deux côtés de l'emprise sont égaux — le défaut que le générateur a corrigé
+    pour les volumes, et qui reviendrait par cette porte. Il ne s'est pas vu
+    tant que la seule forme dessinée était un sol d'une tuile.
     """
     ex, ey = DESSINES[nom]["emprise"]
     chemin = Path(dossier) / DESSINES[nom]["theme"] / f"{nom}.png"
@@ -793,6 +783,7 @@ def dessin(dossier, nom):
     img.load()
     img.info["hauteur_dessus"] = round((ex + ey) * LARGEUR_TUILE / 4)
     img.info["emprise"] = (ex, ey)
+    img.info["appui"] = appui(ex, LARGEUR_TUILE, img.height)
     return img
 
 

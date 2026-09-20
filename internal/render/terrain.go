@@ -141,3 +141,16 @@ func (t *Terrain) formeDe(u, v int) (forme, bool) {
 	}
 	return t.formes[i], true
 }
+
+// coucheDe rend ce qu'une couche pose sur une case, et faux quand elle n'y pose
+// rien.
+func (t *Terrain) coucheDe(couche, u, v int) (forme, bool) {
+	i := t.carte.LayerAt(couche, u, v)
+	if i < 0 {
+		return forme{}, false
+	}
+	return t.formes[i], true
+}
+
+// Couches rend le nombre de couches posées sur le terrain.
+func (t *Terrain) Couches() int { return t.carte.Layers() }

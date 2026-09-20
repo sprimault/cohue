@@ -1,0 +1,13 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · le même jeu que « bloc » : ce qui change est que la gondole s'y pose en couche et non dans la grille",
+  "version_format": 1,
+  "identifiant": "commun",
+  "nom": "Commun",
+  "sol": "sol",
+  "palette": {
+    ".": "sol",
+    "#": "mur",
+    "O": "pilier",
+    "G": "gondole"
+  }
+}

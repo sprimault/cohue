@@ -29,6 +29,21 @@ type Room struct {
 	// vers le sud-est et `v` vers le sud-ouest, et la case (0, 0) est le sommet
 	// du losange.
 	Rows []string `json:"grille"`
+	// Layers porte ce qui se pose **sur** le terrain, de la plus basse à la plus
+	// haute : marquages, mobilier, véhicules, bâtiments. Chaque couche a la
+	// géométrie de `Rows`, et l'espace y laisse la case telle qu'elle est.
+	//
+	// **Le terrain se remplit par couches, et c'est ce que la grille seule ne
+	// savait pas dire.** Elle mêlait le revêtement et ce qui se tient dessus,
+	// si bien qu'un bus posé sur une chaussée la remplaçait : le comblement, ne
+	// sachant plus ce que la case était, peignait le sol du thème et laissait
+	// un carré de béton clair sous chaque véhicule garé. C'est déjà ainsi que
+	// le jeu pose tout le reste — créatures, caisses et figurants ont leurs
+	// positions à part, et aucun n'a jamais effacé le sol.
+	//
+	// Facultatif, donc `version_format` ne bouge pas : une pièce sans couche se
+	// charge comme avant, et c'est le cas de tout ce qui est écrit jusqu'ici.
+	Layers [][]string `json:"couches,omitempty"`
 	// Anchors sont les emplacements que le lieu déclare — apparition,
 	// signalétique, caisse.
 	Anchors []Anchor `json:"ancrages,omitempty"`

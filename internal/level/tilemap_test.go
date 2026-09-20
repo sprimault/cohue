@@ -223,3 +223,72 @@ func TestUneFormeLargeFermeSonBloc(t *testing.T) {
 		t.Error("(2,2) bloquée : une emprise de sept dixièmes ferme deux cases en v")
 	}
 }
+
+// TestUneCoucheNEffacePasLeTerrain garde ce que le calque existe pour donner.
+//
+// **Poser et remplacer ne sont pas le même geste, et la grille seule ne savait
+// dire que le second.** Un véhicule posé sur une chaussée en prenait la case,
+// si bien que le rendu, ne sachant plus ce qu'elle était, comblait avec le sol
+// du thème — un carré de béton clair sous chaque véhicule garé. La couche pose
+// par-dessus : la case reste ce qu'elle était, et ce qui s'y tient s'ajoute.
+//
+// Le test regarde les deux à la fois, parce que l'un sans l'autre ne prouve
+// rien : le terrain doit être resté du sol, et son coût doit être celui de la
+// gondole. Un calque qui écraserait la carte passerait la seconde moitié.
+func TestUneCoucheNEffacePasLeTerrain(t *testing.T) {
+	charge, err := chargeurDeTest(t).Load("couche")
+	if err != nil {
+		t.Fatalf("chargement : %v", err)
+	}
+
+	if nom := charge.Tiles.Shapes()[charge.Tiles.At(2, 1)]; nom != "sol" {
+		t.Errorf("le terrain de (2,1) porte « %s », la couche a mangé son sol", nom)
+	}
+	if i := charge.Tiles.LayerAt(0, 2, 1); i < 0 {
+		t.Error("(2,1) ne porte rien à la couche 0 : la gondole n'a pas été posée")
+	} else if nom := charge.Tiles.Shapes()[i]; nom != "gondole" {
+		t.Errorf("la couche de (2,1) porte « %s », attendu la gondole", nom)
+	}
+
+	// Le coût vient de la couche, bloc compris : une gondole ferme les deux
+	// cases qu'elle couvre, quel que soit le calque qui la porte.
+	if charge.Grid.Passable(2, 1) || charge.Grid.Passable(3, 1) {
+		t.Error("la gondole d'une couche ne ferme pas son bloc")
+	}
+	if !charge.Grid.Passable(4, 1) {
+		t.Error("(4,1) bloquée : le bloc d'une couche déborde d'une case de trop")
+	}
+}
+
+// TestUneCoucheMalDimensionneeEstRefusee garde ce qu'une ligne de moins coûte.
+//
+// Une couche plus courte que sa pièce perdrait ses dernières rangées sans un
+// mot, et un décalage d'une seule ligne suffit à le produire : ce qui devait se
+// poser au sud se poserait une case plus haut, sur une carte que la validation
+// vient d'accepter.
+func TestUneCoucheMalDimensionneeEstRefusee(t *testing.T) {
+	fsys := fstest.MapFS{
+		"x/lieu.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "x", "jeu_pieces": "commun",
+			"pieces": [{"id": "salle", "u": 0, "v": 0}]
+		}`)},
+		"x/jeu.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "commun", "sol": "sol",
+			"palette": {".": "sol", "#": "mur", "G": "gondole"}
+		}`)},
+		"x/pieces/salle.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "salle", "jeu": "commun",
+			"taille": [4, 3],
+			"grille": ["####", "#..#", "####"],
+			"couches": [[" G  ", "    "]]
+		}`)},
+	}
+
+	_, err := chargeur(fsys).Load("x")
+	if err == nil {
+		t.Fatal("une couche de deux lignes pour une pièce de trois s'est chargée")
+	}
+	if !strings.Contains(err.Error(), "couches[0]") {
+		t.Errorf("le refus ne nomme pas la couche fautive : %v", err)
+	}
+}

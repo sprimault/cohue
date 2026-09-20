@@ -156,6 +156,19 @@ type source struct {
 	relever  func(s *scene)
 }
 
+// placeDecor encode la couche et la case d'une forme du décor en un seul
+// nombre, et coucheEtCase le décode.
+//
+// **Le tri ne transporte qu'une place, et il en faut deux depuis les couches** :
+// un véhicule et le revêtement sous lui sont deux formes triables de la même
+// case, que la seule case ne distingue plus. Le terrain garde le rang zéro, ce
+// qui laisse les places inchangées pour un lieu sans couche.
+func placeDecor(couche, place, cases int) int { return (couche+1)*cases + place }
+
+// coucheEtCase rend la couche et la case d'une place encodée, la couche valant
+// moins un pour le terrain.
+func coucheEtCase(place, cases int) (int, int) { return place/cases - 1, place % cases }
+
 // nouvelleScene dimensionne les seaux sur l'étendue d'un lieu et les bassins.
 //
 // La profondeur d'un point du lieu va de zéro, au sommet du losange, à la somme
@@ -206,21 +219,27 @@ func sources(monde *game.World, sol *Terrain, cam *camera) []source {
 	fenetre := min(cam.casesMax(), largeur*sol.carte.Height())
 
 	return []source{
-		{fenetre, func(s *scene) {
+		{fenetre * (1 + sol.Couches()), func(s *scene) {
 			u0, v0, u1, v1 := cam.casesVisibles()
-			for v := v0; v <= v1; v++ {
-				for u := u0; u <= u1; u++ {
-					f, posee := sol.formeDe(u, v)
-					if !posee || !f.triee {
-						continue
+			for couche := -1; couche < sol.Couches(); couche++ {
+				for v := v0; v <= v1; v++ {
+					for u := u0; u <= u1; u++ {
+						f, posee := sol.formeDe(u, v)
+						if couche >= 0 {
+							f, posee = sol.coucheDe(couche, u, v)
+						}
+						if !posee || !f.triee {
+							continue
+						}
+						// Le centre de la case, comme une créature se tient au
+						// centre de la sienne : c'est ce qui met les deux sur le
+						// même point de comparaison. Le sommet bas de l'emprise,
+						// qui est pourtant le point où l'image se pose, mettrait un
+						// mur et la créature qui le longe à égalité.
+						place := placeDecor(couche, v*largeur+u, largeur*sol.carte.Height())
+						s.ajouter(game.FromInt(u)+game.One/2, game.FromInt(v)+game.One/2,
+							place, sorteDecor, place)
 					}
-					// Le centre de la case, comme une créature se tient au
-					// centre de la sienne : c'est ce qui met les deux sur le
-					// même point de comparaison. Le sommet bas de l'emprise,
-					// qui est pourtant le point où l'image se pose, mettrait un
-					// mur et la créature qui le longe à égalité.
-					s.ajouter(game.FromInt(u)+game.One/2, game.FromInt(v)+game.One/2,
-						v*largeur+u, sorteDecor, v*largeur+u)
 				}
 			}
 		}},

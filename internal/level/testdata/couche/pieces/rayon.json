@@ -1,0 +1,24 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · la même pièce que celle du lieu « bloc », à ceci près que la gondole est posée sur le terrain au lieu de le remplacer : la case (2,1) reste du sol",
+  "version_format": 1,
+  "identifiant": "rayon",
+  "jeu": "commun",
+  "taille": [8, 4],
+  "grille": [
+    "########",
+    "#......#",
+    "#......#",
+    "........"
+  ],
+  "couches": [
+    [
+      "        ",
+      "  G     ",
+      "        ",
+      "        "
+    ]
+  ],
+  "ancrages": [
+    { "$comment": "À l'écart de la gondole et de ce qu'elle ferme.", "type": "apparition", "position": [6, 2] }
+  ]
+}

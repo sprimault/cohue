@@ -964,6 +964,12 @@ Trois champs à prévoir dès la première version, sinon ils ne pourront plus �
 
 **La grille est dans le même fichier, et sous forme de lignes.** Un fichier séparé serait une seconde description du même objet : une pièce dont la grille annonce seize cases et dont le descripteur en déclare douze ment, sans qu'on sache lequel des deux. Et des lignes plutôt qu'un tableau de nombres parce qu'on **voit la pièce** en lisant le fichier — l'exemple ci-dessus a son mur au nord et son ouverture au sud, cela se lit sans rien décoder. Pendant les étapes où les pièces s'écrivent à la main, cela vaut mieux qu'un mur de virgules ; en revue, un diff montre les lignes changées.
 
+**Le terrain se remplit par couches.** La grille dit le revêtement — sol, chaussée, herbe, mur — et `couches` porte ce qui se pose dessus, de la plus basse à la plus haute : marquages, mobilier, véhicules, bâtiments. Chaque couche a la géométrie de la grille, et l'espace y laisse la case telle qu'elle est.
+
+Une seule grille ne savait dire que « remplacer », jamais « poser ». Un bus écrit dans la grille prenait la case d'une chaussée, si bien que le rendu, ne sachant plus ce que cette case était, comblait avec le sol du thème et laissait un carré de béton clair sous chaque véhicule garé. C'est déjà ainsi que le jeu pose tout le reste — créatures, caisses et figurants ont leurs positions à part, et aucun n'a jamais effacé le sol sous lui.
+
+Ce qui suit des couches plutôt que de se décider à côté : la passabilité prend **le plus cher** de ce qu'elles empilent, le contrôle de couverture ne porte que sur la grille — un calque est troué par nature —, et leur nombre n'est pas borné, un revêtement, ce qui le marque et ce qui s'y tient en faisant déjà trois.
+
 Deux règles rendent la forme exploitable :
 
 - **Une chaîne par `v` croissant, un caractère par `u` croissant** — l'ordre direct des axes du losange, celui que les emprises du manifeste emploient déjà. Un format cohérent avec le reste s'oublie moins qu'un format justifié.

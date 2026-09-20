@@ -14,6 +14,13 @@
     "x": "sol_fissure",
     "#": "mur",
     "m": "muret",
-    "O": "pilier"
+    "O": "pilier",
+    "B": "bus",
+    "N": "minibus",
+    "F": "fourgon",
+    "S": "scooter",
+    "I": "immeuble_petit",
+    "H": "immeuble_haut",
+    "K": "immeuble_brique"
   }
 }

@@ -42,6 +42,17 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Ajouté
+
+- **Le quartier a des véhicules et des immeubles dessinés** : un bus, un
+  minibus, un fourgon, un scooter, et trois bâtiments qui se distinguent par
+  leur hauteur — une boutique basse, un immeuble de rapport, une façade de
+  brique. Les quatre premiers se garent le long des avenues de la place, les
+  trois autres en bordure des esplanades et des carrefours.
+- **Les véhicules dessinés se couchent dans l'autre sens** que ceux du
+  générateur. Une rue peut donc enfin montrer des véhicules garés dans les deux
+  directions.
+
 ### Modifié
 
 - **Une forme de plus d'une tuile ferme toutes les cases qu'elle couvre.** Les
@@ -54,6 +65,15 @@ publié, et explique les conventions du dépôt à qui y contribue.
   pièces ont été écrites ne décide plus de rien.
 
 ***
+
+### Added
+
+- **The neighbourhood has drawn vehicles and buildings**: a bus, a minibus, a
+  van, a scooter, and three buildings told apart by their height — a low shop, a
+  tenement, a brick front. The first four park along the square's avenues, the
+  other three stand at the edge of its esplanades and crossroads.
+- **Drawn vehicles lie the other way round** from the generated ones. A street
+  can at last show vehicles parked in both directions.
 
 ### Changed
 

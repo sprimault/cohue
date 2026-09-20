@@ -114,18 +114,23 @@ func TestUneFormeIntrouvableSeDit(t *testing.T) {
 	}
 }
 
-// TestLeCoinCentreLEmpriseSurSaCase épingle l'arithmétique de pose.
+// TestLeCoinCentreLEmpriseSurSonBloc épingle l'arithmétique de pose.
 //
 // **Elle n'a aucun autre gardien.** Le rendu qui s'en sert n'a pas de test par
 // doctrine, et un décalage d'un pixel ou d'une demi-tuile donne une scène qui
 // paraît juste : les formes s'alignent entre elles, puisqu'elles se décalent
 // toutes pareil, et rien ne dit que le décor a glissé sous les créatures.
 //
-// Les trois cas sont les trois natures que le décor livré emploie : un sol
+// Les trois premiers cas sont les natures que le décor livré emploie : un sol
 // d'une tuile pleine, un mur qui monte, et une forme plus petite que sa case. Le
-// dernier est le seul qui distingue le centrage du sommet bas — les deux
-// premiers donnent la même réponse.
-func TestLeCoinCentreLEmpriseSurSaCase(t *testing.T) {
+// dernier des trois est le seul qui distingue le centrage du sommet bas.
+//
+// **Les deux suivants gardent le bloc, et eux seuls peuvent le faire** : à
+// emprise inférieure à la tuile, le plafond vaut un et la règle est mot pour
+// mot celle qu'elle remplace. Un banc allongé sépare les deux axes — deux cases
+// en u, une seule en v —, un immeuble carré de deux tuiles épingle le cas où
+// l'ancienne règle posait la moitié de la forme hors de son bloc.
+func TestLeCoinCentreLEmpriseSurSonBloc(t *testing.T) {
 	tuile := [2]int{64, 32}
 	cas := []struct {
 		nom    string
@@ -150,6 +155,22 @@ func TestLeCoinCentreLEmpriseSurSaCase(t *testing.T) {
 			nom:    "pilier",
 			forme:  level.Shape{Size: [2]int{32, 80}, Anchor: [2]int{16, 79}, Elevation: 64, Footprint: [2]float64{0.5, 0.5}},
 			attend: [2]int{-16, -56},
+		},
+		{
+			// Deux cases en u, une en v : le mou d'un demi-dixième de tuile se
+			// répartit aux deux bouts du bloc, et la forme descend vers l'est
+			// de ce que la case ajoutée lui donne.
+			nom:    "banc",
+			forme:  level.Shape{Size: [2]int{61, 42}, Anchor: [2]int{45, 41}, Elevation: 12, Footprint: [2]float64{1.4, 0.5}},
+			attend: [2]int{-15, -3},
+		},
+		{
+			// Le cas qui rendait l'ancienne convention intenable : l'emprise
+			// vaut exactement son bloc, donc le losange couvre ses quatre cases
+			// au pixel près et son sommet nord est celui de la case d'ancrage.
+			nom:    "immeuble",
+			forme:  level.Shape{Size: [2]int{128, 136}, Anchor: [2]int{64, 135}, Elevation: 72, Footprint: [2]float64{2, 2}},
+			attend: [2]int{-64, -72},
 		},
 	}
 

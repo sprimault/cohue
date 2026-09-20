@@ -33,8 +33,8 @@ const (
 // d'autre.
 //
 // Le moteur ne sait plus, à ce stade, que le lieu était fait de pièces. C'est
-// tout l'intérêt de la cuisson au chargement : l'assemblage est un sujet du
-// chargeur, le parcours en est un autre, et aucun des deux n'a besoin de
+// tout l'intérêt de l'assembler au chargement : réunir les pièces est un sujet
+// du chargeur, le parcours en est un autre, et aucun des deux n'a besoin de
 // connaître le vocabulaire de l'autre.
 type CostGrid struct {
 	largeur, hauteur int
@@ -55,7 +55,7 @@ func NewCostGrid(largeur, hauteur int) *CostGrid {
 
 // Clone rend une copie indépendante de la grille.
 //
-// **Une par run, faite au montage.** La grille cuite est partagée par toutes les
+// **Une par run, faite au montage.** La grille assemblée est partagée par toutes les
 // runs d'une session — c'est ce qui permet à une relance de reposer le même lieu
 // sans le relire —, et une caisse y écrit son coût de traversée. Sans copie, la
 // case garderait ce coût après la casse : la run suivante reposerait une caisse

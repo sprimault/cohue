@@ -63,7 +63,7 @@ func valider(nom string, lieu *Level, jeu *Set, pieces []*Room, decor *Decor) []
 			dire("%s.jeu : « %s », alors que le lieu emploie « %s »", ou, piece.Set, lieu.SetID)
 		}
 		if pose := lieu.Placements[i]; pose.U < 0 || pose.V < 0 {
-			// La cuisson ignore ce qui tombe hors de la grille, et l'origine
+			// L'assemblage ignore ce qui tombe hors de la grille, et l'origine
 			// d'un lieu est son coin (0, 0) : une pose négative perdrait ses
 			// premières lignes sans que rien ne l'écrive.
 			dire("%s : posée en (%d, %d), un lieu commence à son coin", ou, pose.U, pose.V)

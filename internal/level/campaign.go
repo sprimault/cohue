@@ -58,7 +58,7 @@ type Campaign struct {
 //
 // Il ne charge aucun lieu : une campagne dit où commencer, et c'est l'appelant
 // qui décide s'il monte cette run maintenant. L'écran de catalogue les
-// énumérera toutes sans en cuire une seule.
+// énumérera toutes sans en assembler une seule.
 func LoadCampaign(fsys fs.FS, dossier string) (*Campaign, error) {
 	nom := path.Base(dossier)
 	if nom == "." || nom == "/" {

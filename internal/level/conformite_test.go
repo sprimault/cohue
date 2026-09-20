@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Le montage du décor et du lieu publiés, sans rien injecter : `go:embed`, le
-// manifeste, la palette, la cuisson, case par case. Le montage d'une partie
+// manifeste, la palette, l'assemblage, case par case. Le montage d'une partie
 // entière est éprouvé dans `internal/session`.
 
 package level
@@ -46,13 +46,13 @@ func TestManifesteLivreDonneLeCatalogue(t *testing.T) {
 // TestLieuLivre monte le lieu publié sur le catalogue publié, sans rien injecter.
 //
 // Il exerce la chaîne du lieu — `go:embed`, le manifeste du décor, la palette du
-// jeu de pièces, la cuisson — et tombe quand deux de ces maillons cessent d'être
+// jeu de pièces, l'assemblage — et tombe quand deux de ces maillons cessent d'être
 // d'accord. Un renommage de forme dans le générateur casse ici, pas au lancement
 // du jeu.
 //
 // Il s'arrête à la grille, et `TestPartieLivreeSeMonte` reprend au-delà : celui-là
 // monte profils, armes et joueur, mais ne regarde aucune case. Le supprimer au
-// motif que l'autre monte davantage laisserait la cuisson sans épreuve.
+// motif que l'autre monte davantage laisserait l'assemblage sans épreuve.
 func TestLieuLivre(t *testing.T) {
 	decor, err := LoadDecor(cohue.Assets, "assets/decors/manifeste.json")
 	if err != nil {
@@ -123,7 +123,7 @@ func TestLieuLivre(t *testing.T) {
 	// origine, en `[u, v]`.
 	//
 	// **C'est la pose qui est éprouvée ici, pas le dessin.** Une seule case
-	// suffirait à dire que la cuisson lit une grille ; il en faut une par pièce
+	// suffirait à dire que l'assemblage lit une grille ; il en faut une par pièce
 	// pour dire qu'elle les pose au bon endroit, et un lieu qui n'en portait
 	// qu'une n'a jamais rien demandé à ce code.
 	cases := []struct {

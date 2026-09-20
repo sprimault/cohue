@@ -86,7 +86,7 @@ de l'écrire qu'on découvrirait que la grille attendue n'est pas celle qu'on sa
 produire.
 
 Ce qui est avancé : lire un fichier de lieu, l'assembler à partir de plusieurs
-pièces, le cuire en grille de coûts et refuser un pavage troué ou recouvert deux
+pièces, l'assembler en grille de coûts et refuser un pavage troué ou recouvert deux
 fois. La composition est venue avec le lieu livré, qui passe par le même chemin
 qu'un niveau tiers : une pièce unique n'aurait exercé aucun assemblage. Restent
 à l'étape 10 les connecteurs et la validation topologique — les numéros ne
@@ -246,7 +246,7 @@ sans progression.
 
 ## 10 — Le format de pièces
 
-Lecture, validation, assemblage en une seule tilemap à la cuisson. Passabilité
+Lecture, validation, assemblage en une seule tilemap au chargement. Passabilité
 et hauteurs dérivées des tuiles, jamais saisies.
 
 Les lieux livrés sont bâtis en pièces, comme un niveau tiers : même chemin de

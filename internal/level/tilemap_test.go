@@ -15,10 +15,10 @@ import (
 	"github.com/sprimault/cohue/internal/game"
 )
 
-// TestLaCarteDesFormesNommeChaqueCase vérifie que la cuisson pose une forme
+// TestLaCarteDesFormesNommeChaqueCase vérifie que l'assemblage pose une forme
 // partout, et laquelle.
 //
-// Le même fichier asymétrique que la cuisson en coûts, pour la même raison : un
+// Le même fichier asymétrique que l'assemblage en coûts, pour la même raison : un
 // assemblage qui inverserait `u` et `v` passerait tous les autres cas et
 // échouerait ici.
 func TestLaCarteDesFormesNommeChaqueCase(t *testing.T) {

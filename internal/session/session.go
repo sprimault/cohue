@@ -1,7 +1,7 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// Le montage d'une partie : les manifestes lus, le lieu cuit, le monde bâti et
+// Le montage d'une partie : les manifestes lus, le lieu assemblé, le monde bâti et
 // le joueur posé. Ce qu'il rend suffit à ouvrir une fenêtre ou à écrire une
 // image, et rien d'autre n'a à savoir dans quel ordre tout cela se charge.
 
@@ -153,11 +153,11 @@ const FxCapacity = 32
 // partie sans en décoder une seule.
 type Session struct {
 	World *game.World
-	// Grid est la grille de la run en cours, copie de la carte cuite sur
+	// Grid est la grille de la run en cours, copie de la carte assemblée sur
 	// laquelle les caisses ont écrit leur coût de traversée.
 	//
 	// **Une copie par run, et c'est ce qui garde vraie la liste d'en dessous.**
-	// La carte cuite ne bouge jamais ; une caisse qui écrirait dedans y laisserait
+	// La carte assemblée ne bouge jamais ; une caisse qui écrirait dedans y laisserait
 	// son coût après la casse, la run suivante reposerait une caisse au même
 	// endroit, et la case resterait chère pour toujours.
 	Grid *game.CostGrid
@@ -182,13 +182,13 @@ type Session struct {
 	Seed uint64
 
 	// Ce que la relance conserve, parce que rien ne l'a modifié : les tables du
-	// manifeste et le lieu cuit. Les relire coûterait un décodage complet pour
+	// manifeste et le lieu assemblé. Les relire coûterait un décodage complet pour
 	// rendre exactement les mêmes valeurs.
 	profils     *game.Profiles
 	armes       *game.Weapons
 	progression *game.Progression
 	scenario    *game.Scenario
-	// carte est le lieu cuit, tel que le chargeur l'a rendu et sans une caisse
+	// carte est le lieu assemblé, tel que le chargeur l'a rendu et sans une caisse
 	// dessus. C'est la seule chose de cette liste qu'une run pourrait modifier si
 	// on la lui donnait directement, d'où la copie que `monter` en fait.
 	carte *game.CostGrid

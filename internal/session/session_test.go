@@ -26,7 +26,7 @@ const graineDeTest uint64 = 20260902
 // Il va plus loin que `TestLieuLivre`, dans `internal/level`, qui s'arrête à la
 // grille de coûts : ni profils, ni armes, ni joueur n'y sont montés, si bien
 // qu'un manifeste de personnages devenu illisible le laisserait au vert. Celui-ci
-// tombe. À l'inverse, il ne dit rien de ce que la cuisson a mis dans chaque case,
+// tombe. À l'inverse, il ne dit rien de ce que l'assemblage a mis dans chaque case,
 // que l'autre relève une par une — supprimer l'un des deux laisse donc une moitié
 // de la chaîne sans épreuve.
 //
@@ -86,7 +86,7 @@ func TestPartieLivreeSeMonte(t *testing.T) {
 // **L'absence de survivant est énumérée plutôt que supposée**, et c'est ce qui
 // fait de ce test une garde : le premier élément de méta-progression devra le
 // modifier pour entrer, donc le décider. Ce qui traverse aujourd'hui est ce que
-// la partie n'a pas touché — les tables du manifeste et le lieu cuit —, et rien
+// la partie n'a pas touché — les tables du manifeste et le lieu assemblé —, et rien
 // de cela n'est un état de jeu.
 //
 // **La graine échappe à cette énumération parce qu'elle n'est pas conservée mais
@@ -132,8 +132,8 @@ func TestLaRelanceNeConserveRienDeLaPartie(t *testing.T) {
 		t.Errorf("%d projectiles encore en vol après la relance", got)
 	}
 
-	// Les tuiles traversent, parce que la partie ne les touche pas : les recuire
-	// rendrait les mêmes octets pour le prix d'un décodage complet.
+	// Les tuiles traversent, parce que la partie ne les touche pas : les
+	// réassembler rendrait les mêmes octets pour le prix d'un décodage complet.
 	if partie.Tiles != tuiles {
 		t.Error("la relance recharge les tuiles, qu'aucune partie ne modifie")
 	}
@@ -148,7 +148,7 @@ func TestLaRelanceNeConserveRienDeLaPartie(t *testing.T) {
 
 // TestUnePartieNecritPasDansLaCarteDuLieu garde ce que la copie par run protège.
 //
-// **Le lieu cuit est partagé par toutes les runs d'une session**, ce que le
+// **Le lieu assemblé est partagé par toutes les runs d'une session**, ce que le
 // remontage énonce comme une propriété par construction. Une caisse qui y
 // écrirait son coût de traversée ferait de la carte un état de jeu : ce que le
 // chargeur a produit cesserait de décrire le lieu, et tout ce qui le relirait

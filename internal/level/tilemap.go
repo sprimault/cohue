@@ -10,7 +10,7 @@ import "github.com/sprimault/cohue/internal/game"
 
 // Tilemap dit quelle forme du décor occupe chaque case d'un lieu assemblé.
 //
-// **C'est elle que la cuisson produit, et la grille de coûts en descend.** La
+// **C'est elle que l'assemblage produit, et la grille de coûts en descend.** La
 // conception énonce l'ordre — assemblage en une seule tilemap, puis dérivation
 // de la passabilité — et il vaut mieux que l'inverse : deux tables construites
 // côte à côte à partir des mêmes pièces seraient deux descriptions, et le jour

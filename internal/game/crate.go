@@ -102,7 +102,7 @@ type Loot struct {
 	Index int
 }
 
-// CompileCrates résout un semis de caisses contre la carte cuite.
+// CompileCrates résout un semis de caisses contre la carte assemblée.
 //
 // Elle rend tout ce qui l'empêche de valoir plutôt que le premier écart, comme
 // les vagues, le peuplement et la sortie.
@@ -117,7 +117,7 @@ type Loot struct {
 // seconde, qui coûterait alors ce que coûte le sol et ralentirait ce qu'elle
 // devrait ralentir.
 //
-// La carte reçue est celle du lieu cuit, avant qu'aucune caisse n'y ait écrit :
+// La carte reçue est celle du lieu assemblé, avant qu'aucune caisse n'y ait écrit :
 // c'est de là que chaque placement tire le sol qu'il recouvre.
 func CompileCrates(brut CrateSpec, carte *CostGrid) ([]CratePlacement, []string) {
 	var manques []string
@@ -169,7 +169,7 @@ func CompileCrates(brut CrateSpec, carte *CostGrid) ([]CratePlacement, []string)
 // réécrit exactement ce que cette passe a recouvert, et une caisse qui laisserait
 // son coût derrière elle se verrait à deux lignes d'écart.
 //
-// La grille reçue est celle de la run, jamais le lieu cuit : écrire dans la carte
+// La grille reçue est celle de la run, jamais le lieu assemblé : écrire dans la carte
 // partagée laisserait le coût d'une caisse à la run suivante.
 func StampCrates(grille *CostGrid, caisses []CratePlacement, regles CrateRules) {
 	for _, c := range caisses {

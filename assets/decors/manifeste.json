@@ -13,7 +13,7 @@
         67
       ],
       "ancrage": [
-        37,
+        51,
         66
       ],
       "elevation": 30,
@@ -33,8 +33,8 @@
         77
       ],
       "ancrage": [
-        49,
-        76
+        70,
+        74
       ],
       "elevation": 27,
       "categorie": "haut",
@@ -74,7 +74,7 @@
         42
       ],
       "ancrage": [
-        30,
+        45,
         41
       ],
       "elevation": 12,
@@ -115,7 +115,7 @@
         32
       ],
       "ancrage": [
-        17,
+        32,
         31
       ],
       "elevation": 14,
@@ -176,7 +176,7 @@
         98
       ],
       "ancrage": [
-        54,
+        64,
         97
       ],
       "elevation": 44,
@@ -196,7 +196,7 @@
         82
       ],
       "ancrage": [
-        54,
+        83,
         81
       ],
       "elevation": 28,
@@ -236,8 +236,8 @@
         92
       ],
       "ancrage": [
-        61,
-        91
+        93,
+        88
       ],
       "elevation": 31,
       "categorie": "haut",
@@ -256,8 +256,8 @@
         78
       ],
       "ancrage": [
-        53,
-        77
+        77,
+        74
       ],
       "elevation": 25,
       "categorie": "haut",
@@ -276,8 +276,8 @@
         73
       ],
       "ancrage": [
-        47,
-        72
+        67,
+        70
       ],
       "elevation": 25,
       "categorie": "haut",
@@ -317,7 +317,7 @@
         67
       ],
       "ancrage": [
-        18,
+        32,
         66
       ],
       "elevation": 48,
@@ -337,7 +337,7 @@
         68
       ],
       "ancrage": [
-        48,
+        64,
         67
       ],
       "elevation": 20,
@@ -357,7 +357,7 @@
         70
       ],
       "ancrage": [
-        48,
+        64,
         69
       ],
       "elevation": 22,
@@ -377,7 +377,7 @@
         49
       ],
       "ancrage": [
-        27,
+        32,
         48
       ],
       "elevation": 22,
@@ -417,7 +417,7 @@
         87
       ],
       "ancrage": [
-        41,
+        77,
         86
       ],
       "elevation": 46,
@@ -519,7 +519,7 @@
         57
       ],
       "ancrage": [
-        43,
+        64,
         56
       ],
       "elevation": 14,
@@ -539,7 +539,7 @@
         41
       ],
       "ancrage": [
-        27,
+        32,
         40
       ],
       "elevation": 14,
@@ -640,7 +640,7 @@
         58
       ],
       "ancrage": [
-        9,
+        14,
         57
       ],
       "elevation": 54,
@@ -721,7 +721,7 @@
         83
       ],
       "ancrage": [
-        19,
+        32,
         82
       ],
       "elevation": 64,
@@ -781,7 +781,7 @@
         44
       ],
       "ancrage": [
-        10,
+        16,
         43
       ],
       "elevation": 40,
@@ -882,7 +882,7 @@
         67
       ],
       "ancrage": [
-        19,
+        32,
         66
       ],
       "elevation": 48,
@@ -902,7 +902,7 @@
         67
       ],
       "ancrage": [
-        19,
+        32,
         66
       ],
       "elevation": 48,
@@ -923,7 +923,7 @@
         63
       ],
       "ancrage": [
-        19,
+        32,
         62
       ],
       "elevation": 44,
@@ -1024,7 +1024,7 @@
         38
       ],
       "ancrage": [
-        33,
+        64,
         37
       ],
       "elevation": 4,
@@ -1045,7 +1045,7 @@
         57
       ],
       "ancrage": [
-        44,
+        64,
         56
       ],
       "elevation": 12,
@@ -1065,8 +1065,8 @@
         41
       ],
       "ancrage": [
-        17,
-        40
+        26,
+        37
       ],
       "elevation": 23,
       "categorie": "obstacle_bas",
@@ -1211,8 +1211,8 @@
         54
       ],
       "ancrage": [
-        39,
-        53
+        54,
+        51
       ],
       "elevation": 14,
       "categorie": "obstacle_bas",
@@ -1292,8 +1292,8 @@
         54
       ],
       "ancrage": [
-        39,
-        53
+        54,
+        51
       ],
       "elevation": 14,
       "categorie": "obstacle_bas",
@@ -1312,7 +1312,7 @@
         51
       ],
       "ancrage": [
-        39,
+        54,
         50
       ],
       "elevation": 11,
@@ -1332,8 +1332,8 @@
         95
       ],
       "ancrage": [
-        64,
-        94
+        98,
+        92
       ],
       "elevation": 31,
       "categorie": "haut",
@@ -1352,8 +1352,8 @@
         85
       ],
       "ancrage": [
-        54,
-        84
+        78,
+        82
       ],
       "elevation": 31,
       "categorie": "haut",

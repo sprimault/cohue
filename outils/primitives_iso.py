@@ -53,6 +53,18 @@ MARQUAGE = (232, 232, 224)
 BANDE_JAUNE = (222, 186, 74)
 
 
+def _appui(tx, largeur_tuile, hauteur):
+    """Point d'appui d'une emprise dans sa propre image : x depuis le bord
+    gauche, y sur la dernière rangée.
+
+    C'est le sommet bas du losange, que `position` situe en `tx * lt / 2` — le
+    milieu de l'image seulement quand tx vaut ty. Le manifeste l'annonçait
+    comme un bas-centre pour toutes les formes, ce qui décalait les vingt-huit
+    formes allongées d'un quart de tuile en diagonale.
+    """
+    return (round(tx * largeur_tuile / 2), hauteur - 1)
+
+
 def surface(tx, ty, largeur_tuile=LARGEUR_TUILE):
     """Rend {(x, y): (u, v)} pour la face supérieure d'une emprise tx sur ty.
 
@@ -234,6 +246,7 @@ def volume(tx=1, ty=1, elevation=0, matiere="beton", largeur_tuile=LARGEUR_TUILE
     # moins qu'une tuile entière, et un wagon en occupe trois.
     echelle = largeur_tuile / LARGEUR_TUILE
     img.info["emprise"] = (round(tx * echelle, 3), round(ty * echelle, 3))
+    img.info["appui"] = _appui(tx, largeur_tuile, img.height)
     img.info["tx"] = tx
     img.info["ty"] = ty
     img.info["largeur_tuile"] = largeur_tuile
@@ -272,6 +285,7 @@ def decalque(peinture, tx=1, ty=1, largeur_tuile=LARGEUR_TUILE, cerne=True):
     img.info["hauteur_dessus"] = hauteur
     echelle = largeur_tuile / LARGEUR_TUILE
     img.info["emprise"] = (round(tx * echelle, 3), round(ty * echelle, 3))
+    img.info["appui"] = _appui(tx, largeur_tuile, img.height)
     img.info["tx"] = tx
     img.info["ty"] = ty
     img.info["largeur_tuile"] = largeur_tuile
@@ -290,6 +304,13 @@ def empiler(*couches):
         img.alpha_composite(couche, (dx, hauteur - couche.height - dy))
     img.info["hauteur_dessus"] = couches[0][0].info["hauteur_dessus"]
     img.info["emprise"] = couches[0][0].info.get("emprise", (1.0, 1.0))
+    # L'emprise vient de la première couche, l'appui aussi — et il se décale de
+    # ce dont elle a été posée. Le déduire de la taille du résultat serait faux
+    # dès qu'une couche déborde d'un côté seulement.
+    couche, dx, dy = couches[0]
+    if "appui" in couche.info:
+        ax, ay = couche.info["appui"]
+        img.info["appui"] = (ax + dx, ay + hauteur - couche.height - dy)
     for face in ("dessus", "gauche", "droite"):
         img.info[face] = set()
     return img
@@ -326,7 +347,7 @@ def reduire(img, couleurs=24):
     plat = img.convert("RGB").quantize(colors=couleurs, dither=Image.NONE).convert("RGB")
     plat.putalpha(alpha)
     for cle in ("hauteur_dessus", "dessus", "gauche", "droite", "tx", "ty",
-                "largeur_tuile", "emprise", "decalque", "cerner"):
+                "largeur_tuile", "emprise", "appui", "decalque", "cerner"):
         if cle in img.info:
             plat.info[cle] = img.info[cle]
     return plat
@@ -373,6 +394,12 @@ def poser(base, *objets):
     for cle in ("tx", "ty", "largeur_tuile", "emprise"):
         if cle in base.info:
             resultat.info[cle] = base.info[cle]
+    # L'appui est celui de la base, descendu de la marge puis ramené dans le
+    # recadrage. C'est ici qu'il cesserait d'être dérivable : après le rognage,
+    # ni le milieu de l'image ni l'emprise ne le rendent.
+    if "appui" in base.info:
+        ax, ay = base.info["appui"]
+        resultat.info["appui"] = (ax - boite[0], ay + marge - boite[1])
     for face in ("dessus", "gauche", "droite"):
         resultat.info[face] = set()
     return resultat

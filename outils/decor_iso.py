@@ -889,6 +889,9 @@ def main():
                 info = dict(img.info)
                 img = img.crop(boite)
                 img.info.update(info)
+                if "appui" in info:
+                    ax, ay = info["appui"]
+                    img.info["appui"] = (ax - boite[0], ay - boite[1])
             dossier = options.sortie / THEME_DE[nom]
             dossier.mkdir(exist_ok=True)
             img.save(dossier / f"{nom}.png")
@@ -898,7 +901,12 @@ def main():
         manifeste[nom] = {
             "theme": THEME_DE[nom],
             "taille": list(img.size),
-            "ancrage": [img.width // 2, img.height - 1],
+            # Le sommet bas du losange de l'emprise, et non le bas-centre de
+            # l'image : les deux ne coïncident que pour une emprise carrée, et
+            # l'écart vaut un quart de tuile en diagonale sur les allongées. Une
+            # forme dessinée n'a pas de volume dont le dériver, mais elle occupe
+            # sa case entière, donc son losange est celui de l'image.
+            "ancrage": list(img.info.get("appui", (img.width // 2, img.height - 1))),
             "elevation": haut,
             # Trois hauteurs, dérivées de la passabilité d'abord : c'est la vue
             # de dessus de l'éditeur qui les lit, et elle veut savoir où l'on

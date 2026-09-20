@@ -1441,28 +1441,6 @@ func (s *Screen) poserObjet(ecran *ebiten.Image, objet prop, img *ebiten.Image,
 	return trace{x: coinX, y: coinY}
 }
 
-// silhouette pose un aplat blanc dans la teinte donnée, son pied sur le point où
-// le monde le situe.
-//
-// **Un aplat blanc, et la précision n'est pas une redondance.** La teinte
-// multiplie l'image : sur du blanc, multiplier *est* colorer, et la fonction fait
-// ce que son nom promet. Passez-lui un dessin et elle ne le teinte plus, elle
-// l'assombrit — c'est exactement ce qui a fait disparaître l'éclair d'impact le
-// jour où les créatures ont eu leurs bandes, sans qu'une ligne d'ici ne bouge.
-// Ce qui s'ajoute à un dessin passe par `eclairer`, en mélange additif.
-//
-// L'appui est au milieu du bas : c'est le point qui touche le sol, et le seul
-// qui puisse coïncider avec une position du monde.
-func (s *Screen) silhouette(ecran, forme *ebiten.Image, x, y game.Fixed, teinte color.RGBA) {
-	ex, ey := s.ecranAuSol(x, y)
-	taille := forme.Bounds()
-	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(ex-taille.Dx()/2), float64(ey-taille.Dy()))
-	s.op.ColorScale.Reset()
-	s.op.ColorScale.ScaleWithColor(teinte)
-	ecran.DrawImage(forme, &s.op)
-}
-
 // braiseGemme est ce qu'il reste d'une gemme au dernier tick de sa vie.
 //
 // **Elle ne descend pas à zéro**, et ce n'est pas une prudence d'affichage :
@@ -1603,18 +1581,5 @@ func face(tuile [2]int) *ebiten.Image {
 
 	img := ebiten.NewImage(largeur, hauteur)
 	img.WritePixels(pixels)
-	return img
-}
-
-// aplat rend un rectangle blanc plein, à teinter au blit.
-//
-// Un quart de tuile de large et trois quarts de haut pour la silhouette du
-// joueur : un personnage tient dans une image de la largeur d'une tuile et s'y
-// dresse presque entier, si bien que ces proportions donnent l'échelle sans
-// prétendre au sprite. Elles se dérivent de la tuile pour ne pas mentir si elle
-// change.
-func aplat(largeur, hauteur int) *ebiten.Image {
-	img := ebiten.NewImage(largeur, hauteur)
-	img.Fill(color.White)
 	return img
 }

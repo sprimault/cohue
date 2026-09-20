@@ -29,16 +29,6 @@ func obstaclesLivres(t *testing.T) []BreakableKind {
 	return sortes
 }
 
-// rangDeLObstacle rend la place d'une sorte dans la table, ou arrête le test.
-func rangDeLObstacle(t *testing.T, sortes []BreakableKind, cle string) int {
-	t.Helper()
-	i := slices.IndexFunc(sortes, func(s BreakableKind) bool { return s.Key == cle })
-	if i < 0 {
-		t.Fatalf("« %s » n'est pas un obstacle du catalogue livré", cle)
-	}
-	return i
-}
-
 // salleAvecObstacle monte une salle coupée par un mur, dont les ouvertures sont
 // fermées par les obstacles donnés, dans l'ordre du montage.
 //

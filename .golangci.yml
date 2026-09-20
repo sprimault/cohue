@@ -22,13 +22,6 @@ linters:
 
   exclusions:
     rules:
-      # Les corps sont encore des stubs : unused remonte les champs et les
-      # fonctions que personne n'appelle. Retirer un chemin de cette liste dès
-      # que son étape est écrite.
-      - linters:
-          - unused
-        path: internal/(game|render|level)/
-
       # Un stub rend errors.New("à implémenter : étape N"), donc jamais nil :
       # staticcheck en déduit que le `if err != nil` de l'appelant est toujours
       # vrai, ce qui est exact et sans intérêt. C'est le motif que ROADMAP.md

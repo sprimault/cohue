@@ -85,7 +85,7 @@ func (h *HUD) Rect(dst *ebiten.Image, x, y, largeur, hauteur int, teinte color.R
 // jouée eut signalé qu'on ne distinguait rien dans les cases.
 //
 // **C'est la deuxième fois que ce piège se referme ici**, la première ayant fait
-// disparaître l'éclair d'impact ; la mise en garde de `silhouette.go` ne l'a pas
+// disparaître l'éclair d'impact ; la mise en garde d'`eclairer` ne l'a pas
 // empêchée parce qu'elle est écrite ailleurs. Une méthode qui monte ses options
 // rend le défaut inexprimable au lieu de le rendre reconnaissable, ce que ce
 // projet préfère partout où il le peut.

@@ -44,7 +44,7 @@ type AmbientPlacement struct {
 }
 
 // CompileAmbient résout un peuplement écrit contre la table des figurants et la
-// carte cuite.
+// carte assemblée.
 //
 // Elle rend tout ce qui l'empêche de valoir plutôt que le premier écart, comme
 // la compilation des vagues, et pour la même raison : qui met au point un lieu

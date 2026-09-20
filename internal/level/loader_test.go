@@ -1,7 +1,7 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// Les cas du chargeur : la cuisson en grille de coûts, la clé inconnue refusée,
+// Les cas du chargeur : l'assemblage en grille de coûts, la clé inconnue refusée,
 // le commentaire admis en tout point, les manquements listés en une fois, le
 // dossier renommé sans son identifiant, et le lieu qu'on tente d'ouvrir par un
 // fichier.
@@ -80,12 +80,12 @@ func chargeurDeTest(t *testing.T) *Loader {
 	return chargeur(os.DirFS("testdata"))
 }
 
-// TestCuissonEnGrilleDeCouts vérifie qu'un lieu devient la carte qu'il dessine.
+// TestAssemblageEnGrilleDeCouts vérifie qu'un lieu devient la carte qu'il dessine.
 //
 // La grille du fichier est volontairement asymétrique : mur plein sur la
 // première ligne, ouverture pleine sur la dernière. Un chargeur qui inverserait
 // `u` et `v` passerait tous les autres tests et échouerait ici.
-func TestCuissonEnGrilleDeCouts(t *testing.T) {
+func TestAssemblageEnGrilleDeCouts(t *testing.T) {
 	charge, err := chargeurDeTest(t).Load("essai")
 	if err != nil {
 		t.Fatalf("chargement : %v", err)
@@ -406,7 +406,7 @@ func TestCasePoseeDeuxFois(t *testing.T) {
 
 // TestPoseAvantLOrigine refuse la pièce posée en amont du coin du lieu.
 //
-// La cuisson laisse tomber ce qui sort de la grille : une pièce posée en `u` de
+// L'assemblage laisse tomber ce qui sort de la grille : une pièce posée en `u` de
 // moins un perdrait sa première colonne sans un mot, et le lieu s'ouvrirait avec
 // un mur en moins là où son auteur en avait dessiné un.
 func TestPoseAvantLOrigine(t *testing.T) {

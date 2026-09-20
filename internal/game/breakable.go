@@ -92,7 +92,7 @@ type Breakable struct {
 }
 
 // CompileBreakables résout un semis d'obstacles contre le catalogue et la carte
-// cuite.
+// assemblée.
 //
 // Elle rend tout ce qui l'empêche de valoir, comme les caisses. Les refus qui
 // leur sont propres :

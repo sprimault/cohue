@@ -156,7 +156,7 @@ La porte s'ouvre donc après un objectif : un temps de survie, un compteur de ki
 
 **L'objectif est écrit par le lieu, pas par le binaire.** C'est son auteur qui compose sa longueur, comme il compose sa courbe : un seuil en dur ferait de tous les lieux la même durée. Il se refuse en dessous de un, faute de quoi le champ oublié donnerait une porte ouverte au premier tick.
 
-**La porte se touche, elle ne se traverse pas.** Elle reste l'obstacle que le décor déclare, ouverte comme fermée, et le joueur qui l'atteint sort du lieu. Deux raisons vont dans le même sens : une horde qui sortirait par où le joueur sort n'aurait pas de sens, et rendre la case franchissable demanderait de modifier la carte cuite — or celle-ci est partagée par toutes les runs d'une session, si bien qu'une porte gagnée rouvrirait la suivante avant son premier tick. L'ouverture est un état de partie, elle vit là où vivent les états de partie.
+**La porte se touche, elle ne se traverse pas.** Elle reste l'obstacle que le décor déclare, ouverte comme fermée, et le joueur qui l'atteint sort du lieu. Deux raisons vont dans le même sens : une horde qui sortirait par où le joueur sort n'aurait pas de sens, et rendre la case franchissable demanderait de modifier la carte assemblée — or celle-ci est partagée par toutes les runs d'une session, si bien qu'une porte gagnée rouvrirait la suivante avant son premier tick. L'ouverture est un état de partie, elle vit là où vivent les états de partie.
 
 ### Le temps mort à la porte
 
@@ -524,7 +524,7 @@ Le champ de flux devient donc un parcours pondéré. **Un tri par seaux, pas un 
 
 **Ce que la destruction demande, en revanche, est un ordre**, et il tient en une phrase que le code porte à l'endroit où on la violerait : le champ se bâtit une fois tous les coûts posés, et en cours de partie un coût ne fait que baisser. La première moitié suit du tri par seaux, dont le nombre se dérive du plus grand coût de la grille ; la seconde est ce qui la rend durable — casser une caisse rend sa case au sol, une ruine remplace un bloquant, et rien de ce qu'une partie fait à la grille ne monte.
 
-**La grille est donc une copie par run et jamais la carte cuite.** Celle-ci est partagée par toutes les runs d'une session, et une caisse qui y écrirait son coût ferait du lieu un état de jeu.
+**La grille est donc une copie par run et jamais la carte assemblée.** Celle-ci est partagée par toutes les runs d'une session, et une caisse qui y écrirait son coût ferait du lieu un état de jeu.
 
 **Le coût se paie au déplacement, et il divise la vitesse.** Sans quoi le parcours pondéré serait une superstition : il contournerait au prix de deux cases ce qui ne coûte rien à traverser, et l'écart entre le chemin choisi et le chemin payé ne se verrait nulle part.
 
@@ -1136,7 +1136,7 @@ Un dossier de lieu se reconnaît alors sans être ouvert, et renommer un lieu se
 
 Un niveau qui ne référence que des pièces officielles ne contient donc que des identifiants et des positions : le destinataire possède déjà les tuiles, les objets et les images. Mesuré sur un supermarché de douze pièces, ça fait 1189 octets lisibles, 902 compacts, **548 caractères une fois compressé et encodé en base64** — copiable dans un message.
 
-### La cuisson au chargement
+### L'assemblage au chargement
 
 À l'ouverture d'un lieu : assemblage des pièces en une seule tilemap, dérivation de la grille de passabilité et des hauteurs, collecte des ancrages, orientation de la signalétique depuis le chemin réel vers la sortie.
 
@@ -1301,13 +1301,13 @@ Composition : `poser` place un objet **en coordonnées de tuile**, pas en pixels
 
 **`sons.py`** génère les bruitages par synthèse, sur le même principe de graine et de manifeste — le procédé est décrit plus bas, à la section du son.
 
-**`interface.py`** ne dessine pas, il rastérise : il cuit la police tierce en planche de glyphes et déclare dans son manifeste la cellule, la ligne de base, la chaîne des glyphes et leur avance. C'est le seul générateur dont la source est un fichier reçu plutôt qu'une fonction — `assets/polices/` porte ce qu'on a téléchargé, `assets/interface/` ce qu'on en fabrique —, et c'est ce qui met le texte dans le même régime que le reste : une image qu'on régénère et qu'on compare, au lieu d'un rendu qui dépendrait de la version d'une bibliothèque.
+**`interface.py`** ne dessine pas, il rastérise : il tire de la police tierce une planche de glyphes et déclare dans son manifeste la cellule, la ligne de base, la chaîne des glyphes et leur avance. C'est le seul générateur dont la source est un fichier reçu plutôt qu'une fonction — `assets/polices/` porte ce qu'on a téléchargé, `assets/interface/` ce qu'on en fabrique —, et c'est ce qui met le texte dans le même régime que le reste : une image qu'on régénère et qu'on compare, au lieu d'un rendu qui dépendrait de la version d'une bibliothèque.
 
 ### Les manifestes
 
 Chaque lot produit un manifeste JSON, et c'est lui qui fait contrat entre les images et le moteur.
 
-**Un manifeste est généré quand son contenu est dérivé, tenu à la main quand il est décidé.** Un générateur gagne sa place en calculant ce qui n'existe pas dans son entrée — des volumes composés, une enveloppe synthétisée, une fonte cuite en planche. Il n'en a aucune quand il transcrirait les mêmes chiffres depuis un script : les valeurs déménageraient du JSON vers le Python, on éditerait toujours un fichier, et l'on paierait une commande de plus.
+**Un manifeste est généré quand son contenu est dérivé, tenu à la main quand il est décidé.** Un générateur gagne sa place en calculant ce qui n'existe pas dans son entrée — des volumes composés, une enveloppe synthétisée, une fonte rastérisée en planche. Il n'en a aucune quand il transcrirait les mêmes chiffres depuis un script : les valeurs déménageraient du JSON vers le Python, on éditerait toujours un fichier, et l'on paierait une commande de plus.
 
 Ce n'est donc pas une exception que d'écrire à la main la table d'armes et celle de la progression, c'est le même critère appliqué à des contenus d'une autre nature. Et il dit d'avance ce qui les ferait changer de camp : le jour où l'outil d'équilibrage mesure une cadence de récolte, les seuils de niveau cessent d'être décidés pour devenir un calcul. La table d'armes, elle, ne changera pas — ses valeurs tiennent au ressenti, et un outil mesure ce qu'une cadence produit sans décider ce qui est agréable.
 

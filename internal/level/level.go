@@ -4,10 +4,10 @@
 // Level est le descripteur d'un lieu : son identifiant, le jeu de pièces dont il
 // tire ses tuiles, et les pièces qu'il pose avec leurs positions.
 
-// Package level lit les lieux et les cuit en une carte que la simulation
+// Package level lit les lieux et les assemble en une carte que la simulation
 // consomme.
 //
-// Le moteur ne sait plus, après la cuisson, que le lieu était fait de pièces :
+// Le moteur ne sait plus, une fois l'assemblage fait, que le lieu était fait de pièces :
 // il reçoit une grille de coûts. C'est ce qui permet aux lieux livrés d'emprunter
 // exactement le chemin d'un niveau tiers — même code, une seule chose à
 // déboguer, et un chargeur exercé à chaque partie plutôt qu'une fois de temps en

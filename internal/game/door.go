@@ -41,7 +41,7 @@ type Exit struct {
 	U, V int
 }
 
-// CompileExit résout une sortie écrite contre la carte cuite.
+// CompileExit résout une sortie écrite contre la carte assemblée.
 //
 // Elle rend tout ce qui l'empêche de valoir plutôt que le premier écart, comme
 // la compilation des vagues et celle du peuplement.
@@ -50,7 +50,7 @@ type Exit struct {
 // un caprice de format.** La porte fermée *est* le mur qui retient : posée sur
 // du sol libre, elle serait franchissable avant d'être gagnée, et le lieu se
 // terminerait en marchant dessus. Le fichier ne peut pas dire quelle forme de
-// décor occupe la case — la cuisson n'en garde que le coût —, mais il peut dire
+// décor occupe la case — l'assemblage n'en garde que le coût —, mais il peut dire
 // qu'elle est infranchissable, ce qui est la propriété dont le mécanisme dépend.
 func CompileExit(brut *ExitSpec, carte *CostGrid) (*Exit, []string) {
 	if brut == nil {
@@ -100,7 +100,7 @@ func CompileExit(brut *ExitSpec, carte *CostGrid) (*Exit, []string) {
 // SetExit pose la sortie du lieu, au montage et à chaque relance.
 //
 // Le pendant de `Populate` pour les figurants, et posé au montage pour la même
-// raison : la carte cuite est partagée par toutes les runs d'une session, si
+// raison : la carte assemblée est partagée par toutes les runs d'une session, si
 // bien que l'état d'ouverture ne peut pas y vivre. Une porte ouverte qui aurait
 // modifié la grille rouvrirait la suivante avant le premier tick.
 func (w *World) SetExit(sortie *Exit) { w.sortie = sortie }
@@ -136,7 +136,7 @@ func (w *World) Over() bool { return !w.Alive() || w.echappe }
 // **Toucher et non traverser.** La porte reste l'obstacle que le décor déclare,
 // pour deux raisons qui vont dans le même sens : une horde qui sortirait par où
 // le joueur sort n'aurait pas de sens, et rendre la case franchissable
-// demanderait de modifier la grille cuite — donc de mettre de l'état de partie
+// demanderait de modifier la grille assemblée — donc de mettre de l'état de partie
 // dans ce que les relances se partagent.
 //
 // Elle vient en fin de tick, après la moisson des morts : la créature qui

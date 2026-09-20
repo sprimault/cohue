@@ -1,7 +1,7 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// L'ouverture d'un dossier de lieu et la cuisson de sa grille de coûts, plus les
+// L'ouverture d'un dossier de lieu et l'assemblage de sa grille de coûts, plus les
 // refus que l'appelant peut vouloir distinguer. Le nom du dossier et
 // l'identifiant doivent s'accorder, ce qui attrape la copie qu'on a renommée
 // sans toucher au champ.
@@ -69,7 +69,7 @@ type Loader struct {
 	// dériver l'autre aurait fait entrer deux descriptions par la porte du
 	// paramètre.
 	decor *Decor
-	// couts est dérivé de `decor`, une fois, parce que la cuisson le consulte
+	// couts est dérivé de `decor`, une fois, parce que l'assemblage le consulte
 	// par case.
 	couts map[string]game.Cost
 	// profils sert à résoudre les profils qu'un scénario de vagues autorise.
@@ -108,15 +108,15 @@ func NewLoader(fsys fs.FS, decor *Decor, profils *game.Profiles, report game.Tic
 	}
 }
 
-// Load lit le lieu que porte un dossier, ses pièces et son jeu, puis les cuit
-// en grille de coûts.
+// Load lit le lieu que porte un dossier, ses pièces et son jeu, puis les
+// assemble en grille de coûts.
 //
 // Un dossier, et non un fichier : c'est ce qui donne aux pièces un espace de
 // noms local. À plat, deux auteurs qui nomment chacun leur pièce « carrefour »
 // s'écraseraient, et un lieu ne pourrait pas circuler sans emporter le
 // vocabulaire de tous les autres.
 //
-// L'ordre importe : décoder, valider, cuire. Le décodage s'arrête au premier
+// L'ordre importe : décoder, valider, assembler. Le décodage s'arrête au premier
 // écart — `encoding/json` ne sait pas faire autrement —, la validation liste
 // tout ce qui manque en une fois, parce que c'est là que l'aller-retour coûte à
 // qui met au point un niveau.
@@ -159,13 +159,13 @@ func (l *Loader) Load(dossier string) (*Loaded, error) {
 	// La géométrie et la courbe de pression se valident ensemble et se refusent
 	// ensemble : ce sont deux moitiés du même fichier, et rendre la seconde après
 	// avoir corrigé la première ferait un aller-retour de plus.
-	// **La cuisson précède la dernière validation**, et l'ordre annoncé plus haut
-	// s'entend donc « décoder, valider, cuire, valider ce qui a besoin de la
-	// carte ». Elle ne peut pas échouer — la grille est dimensionnée sur les
+	// **L'assemblage précède la dernière validation**, et l'ordre annoncé plus
+	// haut s'entend donc « décoder, valider, assembler, valider ce qui a besoin
+	// de la carte ». Il ne peut pas échouer — la grille est dimensionnée sur les
 	// placements qu'elle recopie —, si bien que la faire tôt ne coûte rien et
 	// donne aux positions de figurants la seule chose qui permette de les
 	// refuser : une carte où lire la passabilité.
-	tuiles := cuire(lieu, pieces, jeu)
+	tuiles := assembler(lieu, pieces, jeu)
 	grille := tuiles.couts(l.couts)
 
 	scenario, ecarts := game.CompileScenario(lieu.Waves, l.profils, l.report)
@@ -188,14 +188,15 @@ func (l *Loader) Load(dossier string) (*Loaded, error) {
 	}, nil
 }
 
-// Loaded est ce qu'un lieu devient une fois cuit, jamais le fichier qu'il était.
+// Loaded est ce qu'un lieu devient une fois assemblé, jamais le fichier qu'il
+// était.
 //
 // La distinction porte : `Level` est la structure décodée, avec ses pièces
-// posées et ses noms de profils ; ceci est le produit de la cuisson, où la
+// posées et ses noms de profils ; ceci est le produit de l'assemblage, où la
 // géométrie est devenue une grille et les noms des index. Rien ici ne se
 // réécrit dans un fichier.
 //
-// **N'y entre que ce que la cuisson produit**, jamais ce qu'un appelant
+// **N'y entre que ce que l'assemblage produit**, jamais ce qu'un appelant
 // trouverait commode d'avoir sous la main : une struct de retour est une
 // invitation permanente à devenir un fourre-tout, et ce qui l'en garde est ce
 // critère plutôt que la vigilance.
@@ -218,11 +219,11 @@ type Loaded struct {
 	Breakables []game.BreakablePlacement
 }
 
-// cuire assemble les pièces posées en une seule carte de formes.
+// assembler réunit les pièces posées en une seule carte de formes.
 //
 // Après quoi le moteur ne sait plus que le lieu était modulaire : le parcours du
 // champ de flux tourne sur une grille ordinaire, dérivée de cette carte.
-func cuire(lieu *Level, pieces []*Room, jeu *Set) *Tilemap {
+func assembler(lieu *Level, pieces []*Room, jeu *Set) *Tilemap {
 	var largeur, hauteur int
 	for i, pose := range lieu.Placements {
 		largeur = max(largeur, pose.U+pieces[i].Size[0])

@@ -16,11 +16,11 @@ import (
 	"github.com/sprimault/cohue/internal/sprite"
 )
 
-// Terrain est le décor cuit d'un lieu, résolu en images.
+// Terrain est le décor assemblé d'un lieu, résolu en images.
 //
 // Il existe pour que `Screen` n'ait ni à connaître le catalogue de formes, ni à
-// résoudre un nom par case : la carte cuite cite des index, et la résolution se
-// fait une fois au montage.
+// résoudre un nom par case : la carte assemblée cite des index, et la résolution
+// se fait une fois au montage.
 type Terrain struct {
 	taille [2]int
 	carte  *level.Tilemap
@@ -64,7 +64,7 @@ type forme struct {
 	cache bool
 }
 
-// NewTerrain résout la carte cuite d'un lieu en images posables.
+// NewTerrain résout la carte assemblée d'un lieu en images posables.
 //
 // La conversion vers Ebitengine a lieu ici et une seule fois : `sprite` rend des
 // images de la bibliothèque standard pour rester vérifiable sans écran, et les

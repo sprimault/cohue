@@ -10,6 +10,7 @@ package level
 import (
 	"fmt"
 	"io/fs"
+	"math"
 	"sort"
 
 	"github.com/sprimault/cohue/internal/game"
@@ -56,12 +57,11 @@ type Shape struct {
 	Category string `json:"categorie"`
 	// Footprint est l'emprise au sol en tuiles.
 	//
-	// **Le rendu la lit, le chargeur pas encore.** Elle dit où poser l'image sur
-	// sa case, et rien de plus : ce qu'elle couvre est désormais `Covering`, qui
-	// se mesure. Ce qui bloque reste la seule case d'ancrage, si bien qu'une
-	// gondole de deux tuiles n'en bloquerait qu'une. **Aucune pièce ne doit donc poser une forme de plus d'une tuile**
-	// tant que la passabilité l'ignore, et c'est pourquoi le lieu livré n'en
-	// emploie aucune.
+	// **Le rendu et le chargeur la lisent, et c'est ce qui les accorde** : elle
+	// dit où poser l'image, et quelles cases la forme ferme. Les deux passent
+	// par `Block`, si bien qu'aucun pixel dessiné ne tombe sur une case qu'on
+	// peut traverser. Ce qu'elle couvre est autre chose, et se mesure :
+	// `Covering`.
 	Footprint [2]float64 `json:"emprise"`
 	// Covering dit que la forme peint tout le losange de sa case, donc qu'il n'y
 	// a rien à combler dessous.
@@ -137,23 +137,64 @@ func LoadDecor(fsys fs.FS, chemin string) (*Decor, error) {
 	return decor, nil
 }
 
-// Costs dérive le catalogue de coûts que le chargeur de lieux consulte.
+// Footing est ce qu'une forme fait à la grille : ce que sa traversée coûte, et
+// sur combien de cases ce coût s'applique.
+//
+// **Les deux voyagent ensemble parce qu'ils ne veulent rien dire l'un sans
+// l'autre.** Un coût sans son bloc s'appliquerait à la seule case d'ancrage, ce
+// qui laisserait une gondole de deux tuiles n'en fermer qu'une ; un bloc sans
+// son coût ne dirait pas ce qu'il faut y écrire. Deux tables parallèles auraient
+// fini par ne plus parler des mêmes formes.
+type Footing struct {
+	// Cost est le prix de traversée, `game.Blocked` pour ce qui arrête.
+	Cost game.Cost
+	// Block est le nombre de cases fermées sur chaque axe, au moins une.
+	Block [2]int
+}
+
+// Costs dérive le catalogue d'assises que le chargeur de lieux consulte.
 //
 // **Il se dérive au lieu d'être rendu par la lecture**, parce que le manifeste
-// est désormais lu pour deux choses — les coûts et les images — et qu'un couple
+// est désormais lu pour deux choses — les assises et les images — et qu'un couple
 // rendu à tous ferait porter à chaque appelant ce dont il n'a pas l'usage. Une
 // forme dont le rôle se contredit vaut un mur ici ; c'est `LoadDecor` qui la
 // refuse, et personne n'atteint ce cas sur un manifeste qu'il a lu.
-func (d *Decor) Costs() map[string]game.Cost {
-	couts := make(map[string]game.Cost, len(d.Shapes))
+func (d *Decor) Costs() map[string]Footing {
+	assises := make(map[string]Footing, len(d.Shapes))
 	for nom, forme := range d.Shapes {
 		cout, defaut := forme.cout()
 		if defaut != "" {
 			cout = game.Blocked
 		}
-		couts[nom] = cout
+		assises[nom] = Footing{Cost: cout, Block: forme.Block()}
 	}
-	return couts
+	return assises
+}
+
+// Block rend le nombre de cases qu'une forme ferme sur chaque axe.
+//
+// **Le plafond de l'emprise, et jamais un seuil de recouvrement.** L'emprise se
+// centre sur sa case : une forme de deux tuiles recouvre donc exactement la
+// moitié de chacune de ses voisines, et un seuil « plus de la moitié » lui
+// donnerait une case ou neuf selon qu'on écrive `>` ou `>=`. Huit formes du
+// catalogue ont une emprise de deux exactement, le cas n'a rien d'exotique. Le
+// plafond ne compare aucune fraction, et à l'entier ses deux branches rendent le
+// même bloc — la borne est tranchée par la géométrie au lieu de l'être par une
+// écriture.
+//
+// **Le rendu et la passabilité l'appellent tous les deux**, et c'est ce qui les
+// tient d'accord : le dessin se centre sur le bloc que ce compte donne, si bien
+// qu'aucun pixel ne tombe sur une case franchissable. Recopier la règle d'un
+// côté ou de l'autre la ferait diverger en silence, la scène restant plausible.
+//
+// Une emprise nulle ou négative est refusée à la lecture des images ; le
+// plancher à une case est ici pour que ce qui échapperait à ce refus ferme au
+// moins sa propre case.
+func (s Shape) Block() [2]int {
+	return [2]int{
+		max(int(math.Ceil(s.Footprint[0])), 1),
+		max(int(math.Ceil(s.Footprint[1])), 1),
+	}
 }
 
 // cout rend le prix de traversée de la forme, ou ce qui l'empêche de l'avoir.

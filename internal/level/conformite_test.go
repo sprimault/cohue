@@ -37,8 +37,22 @@ func TestManifesteLivreDonneLeCatalogue(t *testing.T) {
 	for nom, veut := range attendus {
 		if a, connu := couts[nom]; !connu {
 			t.Errorf("« %s » absent du catalogue", nom)
-		} else if a != veut {
-			t.Errorf("« %s » coûte %d, attendu %d", nom, a, veut)
+		} else if a.Cost != veut {
+			t.Errorf("« %s » coûte %d, attendu %d", nom, a.Cost, veut)
+		}
+	}
+
+	// Le bloc suit l'emprise du manifeste livré, et le catalogue en porte des
+	// deux sortes : une gondole de deux tuiles ferme deux cases, un pilier d'un
+	// quart de case n'en ferme qu'une. C'est ce qui relie le compte à ce que le
+	// générateur écrit, là où un cas monté à la main ne dirait rien du livré.
+	blocs := map[string][2]int{"gondole": {2, 1}, "pilier": {1, 1}, "immeuble_haut": {2, 2}}
+	for nom, veut := range blocs {
+		if a, connu := couts[nom]; !connu {
+			t.Errorf("« %s » absent du catalogue", nom)
+		} else if a.Block != veut {
+			t.Errorf("« %s » ferme %v cases, attendu %v — emprise %v",
+				nom, a.Block, veut, decor.Shapes[nom].Footprint)
 		}
 	}
 }

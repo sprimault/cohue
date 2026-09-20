@@ -71,7 +71,7 @@ type Loader struct {
 	decor *Decor
 	// couts est dérivé de `decor`, une fois, parce que l'assemblage le consulte
 	// par case.
-	couts map[string]game.Cost
+	couts map[string]Footing
 	// profils sert à résoudre les profils qu'un scénario de vagues autorise.
 	//
 	// Il entre ici pour la même raison que le catalogue de coûts : un lieu cite

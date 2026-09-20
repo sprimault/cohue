@@ -42,6 +42,29 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Modifié
+
+- **Une forme de plus d'une tuile ferme toutes les cases qu'elle couvre.** Les
+  vingt et une du catalogue — véhicules, wagons, gondoles, immeubles — n'en
+  fermaient qu'une, si bien que la moitié de leur dessin se traversait : un
+  lieu ne pouvait pas les poser. Il le peut désormais, et ce qu'on voit est ce
+  qui arrête.
+- **Là où deux formes se disputent une case, la plus coûteuse l'emporte.** Une
+  enseigne qui déborde sur un mur ne l'ouvre pas, et l'ordre dans lequel les
+  pièces ont été écrites ne décide plus de rien.
+
+***
+
+### Changed
+
+- **A shape larger than one tile now closes every cell it covers.** The
+  catalogue's twenty-one such shapes — vehicles, carriages, shelving units,
+  buildings — closed only one, so half their drawing could be walked through: a
+  level could not place them. It now can, and what you see is what stops you.
+- **Where two shapes claim a cell, the costlier one wins.** A sign overhanging a
+  wall no longer opens it, and the order in which rooms were written decides
+  nothing.
+
 ## [0.7.2] — 2026-09-19 — Le décor prend matière
 
 ### Ajouté

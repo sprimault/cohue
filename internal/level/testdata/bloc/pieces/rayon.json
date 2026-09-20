@@ -1,0 +1,16 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · la gondole est en (2,1), et la case (3,1) qu'elle déborde porte du sol : c'est là que le bloc se lit, ou ne se lit pas",
+  "version_format": 1,
+  "identifiant": "rayon",
+  "jeu": "commun",
+  "taille": [8, 4],
+  "grille": [
+    "########",
+    "#.G....#",
+    "#......#",
+    "........"
+  ],
+  "ancrages": [
+    { "$comment": "À l'écart de la gondole et de ce qu'elle ferme.", "type": "apparition", "position": [6, 2] }
+  ]
+}

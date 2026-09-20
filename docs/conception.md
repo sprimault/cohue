@@ -883,9 +883,9 @@ Pour une pièce peinte à la main, les connecteurs sont **déduits automatiqueme
 
 En iso, pivoter une pièce de 90° n'est pas gratuit : chaque tuile de mur doit exister dans les quatre orientations. Deux options honnêtes — concevoir le tileset avec les quatre variantes, la rotation devenant un simple remappage d'index ; ou l'interdire et dessiner plus de pièces.
 
-**L'absence de rotation est entérinée, faute d'usage.** Les soixante et une formes livrées n'en ont pas, et rien ne les fera pivoter avant l'éditeur : les ajouter maintenant serait du travail écrit d'avance sur son besoin, ce que ce projet refuse partout ailleurs.
+**L'absence de rotation est entérinée, faute d'usage.** Les formes livrées n'en ont pas, et rien ne les fera pivoter avant l'éditeur : les ajouter maintenant serait du travail écrit d'avance sur son besoin, ce que ce projet refuse partout ailleurs.
 
-**La question se rouvre à l'étape 11, et attendre la rend meilleure.** Le catalogue complet dira alors combien de formes en réclament vraiment — peut-être quatre murs plutôt que soixante et une tuiles. L'argument qui poussait à trancher tôt, la dette qui grossit à chaque tuile ajoutée, est précisément ce qui renseigne la décision : ce n'est pas un report, c'est le moment où la question devient répondable.
+**La question se rouvre à l'étape 11, et attendre la rend meilleure.** Le catalogue complet dira alors combien de formes en réclament vraiment — peut-être quatre murs plutôt que le catalogue entier. L'argument qui poussait à trancher tôt, la dette qui grossit à chaque tuile ajoutée, est précisément ce qui renseigne la décision : ce n'est pas un report, c'est le moment où la question devient répondable.
 
 ### Le retour en direct
 
@@ -1036,9 +1036,9 @@ emploie une forme non couvrante sans déclarer de sol est refusé**. Sans ce
 dernier, le mécanisme serait correct et un thème pourrait simplement ne pas
 l'employer : le trou reviendrait, aussi silencieux qu'avant. Le message nomme la
 forme fautive, parce qu'il s'adresse à un auteur de thème — « sol manquant »
-l'enverrait ouvrir les soixante et une formes du catalogue. Il ne cite pas son
-emprise, qui ne dit plus rien de la couverture depuis qu'un marquage au sol
-occupe sa case sans la peindre.
+l'enverrait ouvrir le catalogue entier. Il ne cite pas son emprise, qui ne dit
+plus rien de la couverture depuis qu'un marquage au sol occupe sa case sans la
+peindre.
 
 ### Une campagne
 

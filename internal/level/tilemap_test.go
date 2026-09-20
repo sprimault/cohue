@@ -101,7 +101,7 @@ func TestLaGrilleDescendDeLaCarteDesFormes(t *testing.T) {
 //
 // Le message est éprouvé autant que le refus. Il s'adresse à un auteur de thème,
 // qui doit savoir **laquelle** de ses tuiles exige un sol : « sol manquant » lui
-// ferait ouvrir les soixante et une formes du catalogue.
+// ferait ouvrir le catalogue entier.
 func TestUnThemeSansSolQuiEmploieUneFormeNueEstRefuse(t *testing.T) {
 	fsys := fstest.MapFS{
 		"x/lieu.json": &fstest.MapFile{Data: []byte(`{

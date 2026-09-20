@@ -58,6 +58,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Les véhicules dessinés se couchent dans l'autre sens** que ceux du
   générateur. Une rue peut donc enfin montrer des véhicules garés dans les deux
   directions.
+- **Dix formes de plus au quartier** : autocar, bus à impériale, utilitaire,
+  pick-up, camion de livraison, benne à ordures, citadine, et trois bâtiments
+  qui s'étagent de la maison de pierre à la tour de six étages. Cinq se posent
+  dans la place, les autres attendent un lieu qui les emploie.
 
 ### Modifié
 
@@ -86,6 +90,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   other three stand at the edge of its esplanades and crossroads.
 - **Drawn vehicles lie the other way round** from the generated ones. A street
   can at last show vehicles parked in both directions.
+- **Ten more shapes for the neighbourhood**: a coach, a double-decker, a utility
+  van, a pickup, a box truck, a refuse lorry, a hatchback, and three buildings
+  ranging from a stone house to a six-storey tower. Five stand in the square,
+  the rest await a level that uses them.
 
 ### Changed
 

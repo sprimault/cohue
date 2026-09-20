@@ -715,7 +715,14 @@ DESSINES = {
     # véhicules ne sont pas tous garés dans le même sens.
     "bus": {"theme": "quartier", "emprise": (0.8, 2.6)},
     "minibus": {"theme": "quartier", "emprise": (0.8, 2.6)},
+    "autocar": {"theme": "quartier", "emprise": (0.8, 2.6)},
+    "bus_imperiale": {"theme": "quartier", "emprise": (0.8, 2.6)},
     "fourgon": {"theme": "quartier", "emprise": (0.8, 2.0)},
+    "utilitaire": {"theme": "quartier", "emprise": (0.8, 2.0)},
+    "pickup": {"theme": "quartier", "emprise": (0.8, 2.0)},
+    "camion_livraison": {"theme": "quartier", "emprise": (0.8, 2.0)},
+    "camion_ordures": {"theme": "quartier", "emprise": (0.8, 2.0)},
+    "citadine": {"theme": "quartier", "emprise": (0.8, 2.0)},
     "scooter": {"theme": "quartier", "emprise": (0.3, 0.8)},
     # Trois hauteurs qui se distinguent d'un coup d'œil : une boutique basse,
     # un immeuble de rapport, une façade de brique. Leur emprise est carrée,
@@ -723,6 +730,9 @@ DESSINES = {
     "immeuble_petit": {"theme": "quartier", "emprise": (2.0, 2.0)},
     "immeuble_haut": {"theme": "quartier", "emprise": (2.0, 2.0)},
     "immeuble_brique": {"theme": "quartier", "emprise": (2.0, 2.0)},
+    "immeuble_pierre": {"theme": "quartier", "emprise": (2.0, 2.0)},
+    "immeuble_bureau": {"theme": "quartier", "emprise": (2.0, 2.0)},
+    "immeuble_tour": {"theme": "quartier", "emprise": (2.0, 2.0)},
 }
 
 CATALOGUE = {nom: fn for formes in THEMES.values() for nom, fn in formes.items()}

@@ -509,7 +509,7 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 	for v := v0; v <= v1; v++ {
 		for u := u0; u <= u1; u++ {
 			if f, posee := s.sol.formeDe(u, v); posee && !f.triee {
-				s.poserCase(ecran, u, v, f)
+				s.poserCase(ecran, u, v, f, true)
 			}
 		}
 	}
@@ -522,7 +522,7 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 		for v := v0; v <= v1; v++ {
 			for u := u0; u <= u1; u++ {
 				if f, posee := s.sol.coucheDe(couche, u, v); posee && !f.triee {
-					s.poserCase(ecran, u, v, f)
+					s.poserCase(ecran, u, v, f, false)
 				}
 			}
 		}
@@ -552,10 +552,14 @@ func (s *Screen) peindreSol(ecran *ebiten.Image) {
 // qui ne la remplit pas la traverse, et c'est le sol du thème, sous elle, qu'on
 // marche. La passe unique qu'il remplaçait tombait sous le trottoir et le quai,
 // qui ont une élévation et se trient donc.
-func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme) trace {
+func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme, comble bool) trace {
 	x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
 	if f.nue {
-		if s.sol.sol != nil {
+		// **Une couche ne comble pas, et c'est tout l'objet des couches.** Ce
+		// qui est sous elle vient d'être peint : y remettre le sol du thème
+		// effacerait la chaussée juste avant d'y poser le véhicule, ce qui est
+		// exactement le défaut que le calque existe pour fermer.
+		if comble && s.sol.sol != nil {
 			s.poser(ecran, x, y, *s.sol.sol)
 		}
 		s.marquerEmprise(ecran, u, v, f)
@@ -797,7 +801,7 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 			if couche >= 0 {
 				f, _ = s.sol.coucheDe(couche, u, v)
 			}
-			t = s.poserCase(ecran, u, v, f)
+			t = s.poserCase(ecran, u, v, f, couche < 0)
 		case sorteEnnemi:
 			c := s.monde.Enemies().At(e.place)
 			f := s.troupe.ennemis[c.Profile]

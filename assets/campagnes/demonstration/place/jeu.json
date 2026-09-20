@@ -21,6 +21,11 @@
     "S": "scooter",
     "I": "immeuble_petit",
     "H": "immeuble_haut",
-    "K": "immeuble_brique"
+    "K": "immeuble_brique",
+    "P": "immeuble_pierre",
+    "T": "immeuble_tour",
+    "C": "citadine",
+    "U": "pickup",
+    "L": "camion_livraison"
   }
 }

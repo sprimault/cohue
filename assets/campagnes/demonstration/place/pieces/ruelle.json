@@ -38,6 +38,42 @@
     ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
     ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
   ],
+  "couches": [
+    [
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "   T                     P      ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                "
+    ]
+  ],
   "ancrages": [
     {
       "$comment": "Sur le parvis sud et non dans la ruelle : une créature apparue dans un passage d'une case y naîtrait déjà bloquée, et le premier corps posé là fermerait ce que le joueur doit pouvoir tenter.",

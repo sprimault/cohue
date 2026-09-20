@@ -65,6 +65,13 @@ func TestLaCarteDesFormesNommeChaqueCase(t *testing.T) {
 // d'une même case. Le test rejoue la dérivation depuis le catalogue et confronte
 // case par case — il tombe le jour où quelqu'un remet deux remplissages côte à
 // côte, ce qui est précisément ce qu'aucune relecture ne rattrape.
+//
+// **L'égalité case par case vaut tant qu'aucune forme du lieu ne dépasse la
+// tuile**, et le lieu « essai » n'en pose aucune. Une forme qui déborde écrit
+// sur ses voisines, si bien que leur coût cesse de venir de la forme qu'elles
+// portent — c'est `TestUneFormeLargeFermeSonBloc` qui garde ce cas-là, sur le
+// lieu « bloc ». Poser une gondole ici ferait donc tomber ce test pour une
+// raison qui n'est pas celle qu'il annonce.
 func TestLaGrilleDescendDeLaCarteDesFormes(t *testing.T) {
 	charge, err := chargeurDeTest(t).Load("essai")
 	if err != nil {
@@ -75,7 +82,7 @@ func TestLaGrilleDescendDeLaCarteDesFormes(t *testing.T) {
 	vus := map[game.Cost]int{}
 	for v := range charge.Tiles.Height() {
 		for u := range charge.Tiles.Width() {
-			attendu := couts[charge.Tiles.Shapes()[charge.Tiles.At(u, v)]]
+			attendu := couts[charge.Tiles.Shapes()[charge.Tiles.At(u, v)]].Cost
 			if got := charge.Grid.At(u, v); got != attendu {
 				t.Errorf("(%d,%d) coûte %d, la forme posée en dit %d", u, v, got, attendu)
 			}
@@ -171,5 +178,48 @@ func TestUneCaseHorsCarteNaPasDeForme(t *testing.T) {
 		if i := charge.Tiles.At(hors[0], hors[1]); i >= 0 {
 			t.Errorf("(%d,%d) est hors de la carte et rend la forme %d", hors[0], hors[1], i)
 		}
+	}
+}
+
+// TestUneFormeLargeFermeSonBloc garde ce qu'une emprise de plus d'une tuile
+// ferme, et la règle qui décide quand deux formes se disputent une case.
+//
+// Le lieu « bloc » pose une gondole de deux tuiles en (2,1). La case (3,1)
+// qu'elle déborde porte du **sol** dans la carte : c'est ce qui rend ce cas
+// discriminant, et il l'est deux fois.
+//
+// **Il dit d'abord que le bloc est lu.** Une passabilité qui s'en tiendrait à la
+// case d'ancrage laisserait (3,1) franchissable, et le joueur marcherait dans
+// une moitié de gondole — un défaut que rien ne signale, puisque la scène reste
+// plausible pour qui ne s'y frotte pas.
+//
+// **Il dit ensuite que le plus cher l'emporte.** L'assemblage balaie les cases
+// par `v` puis `u` croissants et les blocs s'étendent vers `+u` et `+v` : une
+// forme qui déborde est donc toujours traitée **avant** la case qu'elle
+// recouvre. Une écriture qui n'arbitrerait pas verrait le sol de (3,1) écraser
+// ce que la gondole venait d'y poser, et le débord serait perdu à chaque fois
+// que la case voisine porte quelque chose — c'est-à-dire toujours, un lieu
+// devant couvrir son étendue.
+func TestUneFormeLargeFermeSonBloc(t *testing.T) {
+	charge, err := chargeurDeTest(t).Load("bloc")
+	if err != nil {
+		t.Fatalf("chargement : %v", err)
+	}
+
+	if charge.Grid.Passable(2, 1) {
+		t.Error("(2,1) franchissable : la gondole ne ferme pas sa propre case")
+	}
+	if charge.Grid.Passable(3, 1) {
+		t.Error("(3,1) franchissable : le bloc de la gondole s'arrête à son ancrage")
+	}
+
+	// Ce que le bloc ne doit pas fermer, et qui dit qu'il compte juste : la case
+	// suivante en u, et la voisine en v — l'emprise ne vaut qu'une tuile sur cet
+	// axe-là.
+	if !charge.Grid.Passable(4, 1) {
+		t.Error("(4,1) bloquée : le bloc déborde d'une case de trop en u")
+	}
+	if !charge.Grid.Passable(2, 2) {
+		t.Error("(2,2) bloquée : une emprise de sept dixièmes ferme deux cases en v")
 	}
 }

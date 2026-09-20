@@ -772,7 +772,9 @@ Tout découle des sprites de personnages, en 64×64 : la tuile de sol fait **64�
 
 Pour un objet couvrant plusieurs tuiles, `largeur = (tx + ty) × 32` et l'emprise au sol `hauteur = (tx + ty) × 16`.
 
-**Une forme occupe un bloc de cases entières, et son dessin s'y centre.** Le bloc vaut le plafond de l'emprise sur chaque axe : une case pour tout ce qui ne dépasse pas la tuile, deux pour un banc de 1,4, quatre pour un wagon de 3,05. C'est ce qui fait coïncider ce qu'on voit et ce qu'on ne peut pas traverser, puisque la passabilité lira le même bloc.
+**Une forme occupe un bloc de cases entières, et son dessin s'y centre.** Le bloc vaut le plafond de l'emprise sur chaque axe : une case pour tout ce qui ne dépasse pas la tuile, deux pour un banc de 1,4, quatre pour un wagon de 3,05. C'est ce qui fait coïncider ce qu'on voit et ce qu'on ne peut pas traverser, puisque la passabilité ferme le même bloc.
+
+**Et ce qui se dispute une case, c'est le plus cher qui l'emporte.** Deux blocs se recouvrent dès qu'un bus longe une façade, et l'assemblage balaie les cases dans un ordre que rien n'annonce : laisser la dernière écriture gagner ferait dépendre la grille de l'ordre des pièces, ce que ce document refuse déjà ailleurs. Le maximum, lui, est commutatif — la grille ne dépend plus que de ce qui est posé.
 
 **Le plafond plutôt qu'un seuil de recouvrement**, et la raison est celle que `docs/go.md` nomme — une valeur posée sur la borne du problème est fausse en permanence. Une emprise centrée de deux tuiles recouvre exactement la moitié de chacune de ses voisines : un seuil « plus de la moitié » donnerait une case ou neuf pour un immeuble selon la comparaison choisie, et le cas n'a rien d'exotique puisque huit formes du catalogue ont une emprise de deux exactement. Le plafond ne compare aucune fraction, et à l'entier ses deux branches rendent le même bloc.
 

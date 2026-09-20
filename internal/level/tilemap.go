@@ -101,17 +101,37 @@ func (t *Tilemap) set(u, v int, forme string) {
 
 // couts dérive la grille que la simulation lit.
 //
-// Une forme absente du catalogue vaut un mur, et le chargement la refuse par
-// ailleurs : l'assemblage précède la validation, donc il rencontre encore ce
-// que celle-ci va rejeter et n'a pas à s'en émouvoir. Le mur est le repli qui ne
-// laisse passer personne, ce qu'on préfère à un sol qui s'ouvrirait sur une
-// faute de frappe.
+// **Une forme peint son bloc et non sa seule case.** Une gondole de deux tuiles
+// ferme les deux qu'elle couvre, sans quoi la moitié de son dessin se
+// traverserait — le défaut le plus coûteux qui soit, puisque la scène reste
+// plausible et que seul le joueur qui marche dans le décor l'apprend. Le compte
+// vient de `Shape.Block`, que le rendu appelle aussi pour centrer le dessin :
+// une seule règle, donc aucun écart possible entre ce qui se voit et ce qui
+// arrête.
+//
+// **Le plus cher l'emporte, et c'est ce qui retire tout effet à l'ordre des
+// poses.** Deux blocs qui se recouvrent — un bus le long d'une façade, une
+// enseigne au-dessus d'un mur — écriraient sinon selon l'ordre où les pièces
+// ont été lues, que rien n'annonce et dont aucun auteur n'aurait idée. Le
+// maximum est commutatif, si bien que la grille ne dépend plus que de ce qui
+// est posé ; et `Blocked` valant le plus grand coût possible, un mur gagne
+// contre tout sans que cette fonction ait à le savoir.
+//
+// Une forme absente du catalogue vaut un mur d'une case, et le chargement la
+// refuse par ailleurs : l'assemblage précède la validation, donc il rencontre
+// encore ce que celle-ci va rejeter et n'a pas à s'en émouvoir. Le mur est le
+// repli qui ne laisse passer personne, ce qu'on préfère à un sol qui s'ouvrirait
+// sur une faute de frappe.
 //
 // Une case qu'aucune pièce ne pose garde en revanche le coût d'une grille
 // neuve, celui d'un sol ordinaire. C'est ce que le contrôle de couverture
 // décrit et refuse : le trou se traverse et ne se dessine pas, et lui donner un
 // mur ici le rendrait invisible au moment même où l'on veut qu'il se voie.
-func (t *Tilemap) couts(catalogue map[string]game.Cost) *game.CostGrid {
+//
+// Ce qu'un bloc pousse hors de la grille est perdu sans conséquence : au-delà
+// des bords, `CostGrid.At` rend déjà un mur, si bien qu'il n'y a rien à y
+// fermer.
+func (t *Tilemap) couts(catalogue map[string]Footing) *game.CostGrid {
 	grille := game.NewCostGrid(t.largeur, t.hauteur)
 	for v := range t.hauteur {
 		for u := range t.largeur {
@@ -119,11 +139,17 @@ func (t *Tilemap) couts(catalogue map[string]game.Cost) *game.CostGrid {
 			if i < 0 {
 				continue
 			}
-			cout, connu := catalogue[t.formes[i]]
-			if !connu {
-				cout = game.Blocked
+			assise, connue := catalogue[t.formes[i]]
+			if !connue {
+				assise = Footing{Cost: game.Blocked, Block: [2]int{1, 1}}
 			}
-			grille.Set(u, v, cout)
+			for dv := range assise.Block[1] {
+				for du := range assise.Block[0] {
+					if assise.Cost > grille.At(u+du, v+dv) {
+						grille.Set(u+du, v+dv, assise.Cost)
+					}
+				}
+			}
 		}
 	}
 	return grille

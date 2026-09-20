@@ -42,6 +42,11 @@ var decorDeTest = &Decor{
 			Elevation: 64, Footprint: [2]float64{1, 1}, Covering: true, Blocking: true},
 		"pilier": {Theme: "commun", Size: [2]int{32, 80}, Anchor: [2]int{16, 79},
 			Elevation: 64, Footprint: [2]float64{0.5, 0.5}, Blocking: true},
+		// La quatrième nature, celle qui déborde : deux tuiles en u, une en v.
+		// Elle n'est posée que par le lieu « bloc », pour que les cas du lieu
+		// « essai » gardent l'égalité case par case qu'ils affirment.
+		"gondole": {Theme: "commun", Size: [2]int{96, 62}, Anchor: [2]int{64, 61},
+			Elevation: 22, Footprint: [2]float64{2, 0.7}, Blocking: true},
 	},
 }
 

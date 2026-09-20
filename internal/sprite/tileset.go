@@ -147,16 +147,14 @@ func controlerForme(f level.Shape) string {
 // 3,05. Un pilier d'une demi-tuile se pose donc au milieu de son losange plutôt
 // que dans son quart sud, et une gondole de deux tuiles remplit ses deux cases.
 //
-// **Le plafond plutôt qu'un seuil de recouvrement, et c'est ce qui évite une
-// valeur posée sur la borne.** L'emprise étant centrée, une forme de deux
-// tuiles recouvre exactement la moitié de chacune de ses voisines : un seuil
-// « plus de la moitié » vaudrait une case ou neuf pour un immeuble, selon qu'on
-// écrive `>` ou `>=`. Le plafond ne compare aucune fraction, et à l'entier ses
-// deux branches donnent le même résultat — la borne est tranchée par la
-// géométrie au lieu de l'être par une écriture.
+// **Le bloc est celui que la passabilité ferme**, et `level.Shape.Block` dit
+// pourquoi c'est le plafond de l'emprise et pas un seuil de recouvrement. Ce
+// qui compte ici est que ce soit le même compte des deux côtés : le dessin se
+// centre sur les cases qu'on ne peut pas traverser, donc aucun pixel ne tombe
+// sur du sol libre.
 //
-// Ce qu'il coûte est borné et se paie du bon côté : au plus une demi-case de
-// mou par bord, là où rien n'est dessiné et où l'on ne passe donc pas.
+// Ce que le bloc coûte est borné et se paie du bon côté : au plus une demi-case
+// de mou par bord, là où rien n'est dessiné et où l'on ne passe donc pas.
 //
 // L'ancrage du manifeste est le sommet bas du losange de l'emprise, à une
 // rangée près : la dernière rangée d'une image de n pixels est la n-1, d'où le
@@ -164,7 +162,11 @@ func controlerForme(f level.Shape) string {
 func coin(f level.Shape, tuile [2]int) [2]int {
 	demiLargeur, demiHauteur := float64(tuile[0])/2, float64(tuile[1])/2
 	ex, ey := f.Footprint[0], f.Footprint[1]
-	bu, bv := math.Ceil(ex), math.Ceil(ey)
+	// Le compte vient de `level`, avec la donnée qu'il interprète : la
+	// passabilité ferme ce bloc-là, et le recopier ici ferait diverger le dessin
+	// de ce qu'on peut traverser sans que rien ne le dise.
+	bloc := f.Block()
+	bu, bv := float64(bloc[0]), float64(bloc[1])
 
 	dx := (bu + ex - bv - ey) * demiLargeur / 2
 	dy := (bu + ex + bv + ey) * demiHauteur / 2

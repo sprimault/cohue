@@ -681,7 +681,7 @@ type planche struct {
 	hud     *render.HUD
 	// tuiles est le catalogue des formes du décor, lu une fois : il ne dépend
 	// que du manifeste, là où le terrain d'une vue dépend du lieu qu'elle monte.
-	// Le décoder par vue coûterait soixante et une images onze fois.
+	// Le décoder par vue coûterait tout le catalogue d'images, onze fois.
 	tuiles *sprite.Tileset
 	// troupe est celle de toutes les vues : les bandes ne dépendent que du
 	// manifeste des personnages, là où la partie d'une vue lui est propre.

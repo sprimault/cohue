@@ -141,28 +141,33 @@ func controlerForme(f level.Shape) string {
 // coin rend le coin haut-gauche où poser une forme, relatif au sommet nord de
 // sa case.
 //
-// **L'emprise se centre sur la case**, ce qui est la convention de `poser` dans
-// les primitives isométriques : une position y désigne le centre de l'emprise
-// d'un objet, et non son coin. Un pilier d'une demi-tuile se pose donc au milieu
-// de son losange plutôt que dans son quart sud, et une forme d'une tuile pleine
-// retombe exactement sur le sommet bas de la case — ce que faisait déjà le sol
-// peint en aplat.
+// **Une forme occupe un bloc de cases entières, et son dessin s'y centre.** Le
+// bloc vaut le plafond de l'emprise sur chaque axe : une case pour tout ce qui
+// ne dépasse pas la tuile, deux pour un banc de 1,4, quatre pour un wagon de
+// 3,05. Un pilier d'une demi-tuile se pose donc au milieu de son losange plutôt
+// que dans son quart sud, et une gondole de deux tuiles remplit ses deux cases.
 //
-// L'ancrage du manifeste est le pixel bas-centre de l'image, c'est-à-dire ce
-// sommet bas à une rangée près : la dernière rangée d'une image de n pixels est
-// la n-1, d'où le pixel retranché en ordonnée.
+// **Le plafond plutôt qu'un seuil de recouvrement, et c'est ce qui évite une
+// valeur posée sur la borne.** L'emprise étant centrée, une forme de deux
+// tuiles recouvre exactement la moitié de chacune de ses voisines : un seuil
+// « plus de la moitié » vaudrait une case ou neuf pour un immeuble, selon qu'on
+// écrive `>` ou `>=`. Le plafond ne compare aucune fraction, et à l'entier ses
+// deux branches donnent le même résultat — la borne est tranchée par la
+// géométrie au lieu de l'être par une écriture.
 //
-// Ce n'est exact que pour une emprise carrée, la seule que le décor livré
-// emploie : le bas-centre d'une image cesse d'être le sommet bas du losange dès
-// que les deux côtés diffèrent. Le manifeste écrivant l'ancrage de la même
-// façon pour toutes, l'écart appartient au générateur et se corrigera là-bas, le
-// jour où une pièce posera une forme allongée.
+// Ce qu'il coûte est borné et se paie du bon côté : au plus une demi-case de
+// mou par bord, là où rien n'est dessiné et où l'on ne passe donc pas.
+//
+// L'ancrage du manifeste est le sommet bas du losange de l'emprise, à une
+// rangée près : la dernière rangée d'une image de n pixels est la n-1, d'où le
+// pixel retranché en ordonnée.
 func coin(f level.Shape, tuile [2]int) [2]int {
 	demiLargeur, demiHauteur := float64(tuile[0])/2, float64(tuile[1])/2
 	ex, ey := f.Footprint[0], f.Footprint[1]
+	bu, bv := math.Ceil(ex), math.Ceil(ey)
 
-	dx := (ex - ey) * demiLargeur / 2
-	dy := (2 + ex + ey) * demiHauteur / 2
+	dx := (bu + ex - bv - ey) * demiLargeur / 2
+	dy := (bu + ex + bv + ey) * demiHauteur / 2
 	return [2]int{
 		int(math.Round(dx)) - f.Anchor[0],
 		int(math.Round(dy)) - 1 - f.Anchor[1],

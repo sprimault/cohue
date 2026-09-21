@@ -46,6 +46,26 @@
       "bloquant": true,
       "masquant": true
     },
+    "autocar": {
+      "theme": "quartier",
+      "taille": [
+        109,
+        102
+      ],
+      "ancrage": [
+        26,
+        101
+      ],
+      "elevation": 48,
+      "categorie": "haut",
+      "emprise": [
+        0.8,
+        2.6
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
+    },
     "ballast": {
       "theme": "station",
       "taille": [
@@ -209,6 +229,26 @@
       "bloquant": true,
       "masquant": true
     },
+    "bus_imperiale": {
+      "theme": "quartier",
+      "taille": [
+        109,
+        115
+      ],
+      "ancrage": [
+        26,
+        114
+      ],
+      "elevation": 61,
+      "categorie": "haut",
+      "emprise": [
+        0.8,
+        2.6
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
+    },
     "caddie": {
       "theme": "supermarche",
       "taille": [
@@ -269,6 +309,46 @@
       "bloquant": true,
       "masquant": true
     },
+    "camion_livraison": {
+      "theme": "quartier",
+      "taille": [
+        90,
+        85
+      ],
+      "ancrage": [
+        26,
+        84
+      ],
+      "elevation": 40,
+      "categorie": "haut",
+      "emprise": [
+        0.8,
+        2.0
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
+    },
+    "camion_ordures": {
+      "theme": "quartier",
+      "taille": [
+        90,
+        84
+      ],
+      "ancrage": [
+        26,
+        83
+      ],
+      "elevation": 39,
+      "categorie": "haut",
+      "emprise": [
+        0.8,
+        2.0
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
+    },
     "camionnette": {
       "theme": "parking",
       "taille": [
@@ -309,6 +389,26 @@
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": false
+    },
+    "citadine": {
+      "theme": "quartier",
+      "taille": [
+        90,
+        71
+      ],
+      "ancrage": [
+        26,
+        70
+      ],
+      "elevation": 26,
+      "categorie": "haut",
+      "emprise": [
+        0.8,
+        2.0
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
     },
     "cloison": {
       "theme": "commun",
@@ -613,6 +713,26 @@
       "bloquant": true,
       "masquant": true
     },
+    "immeuble_bureau": {
+      "theme": "quartier",
+      "taille": [
+        128,
+        213
+      ],
+      "ancrage": [
+        64,
+        212
+      ],
+      "elevation": 149,
+      "categorie": "haut",
+      "emprise": [
+        2.0,
+        2.0
+      ],
+      "couvrant": true,
+      "bloquant": true,
+      "masquant": true
+    },
     "immeuble_haut": {
       "theme": "quartier",
       "taille": [
@@ -644,6 +764,46 @@
         167
       ],
       "elevation": 104,
+      "categorie": "haut",
+      "emprise": [
+        2.0,
+        2.0
+      ],
+      "couvrant": true,
+      "bloquant": true,
+      "masquant": true
+    },
+    "immeuble_pierre": {
+      "theme": "quartier",
+      "taille": [
+        128,
+        182
+      ],
+      "ancrage": [
+        64,
+        181
+      ],
+      "elevation": 118,
+      "categorie": "haut",
+      "emprise": [
+        2.0,
+        2.0
+      ],
+      "couvrant": true,
+      "bloquant": true,
+      "masquant": true
+    },
+    "immeuble_tour": {
+      "theme": "quartier",
+      "taille": [
+        128,
+        261
+      ],
+      "ancrage": [
+        64,
+        260
+      ],
+      "elevation": 197,
       "categorie": "haut",
       "emprise": [
         2.0,
@@ -894,6 +1054,26 @@
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": false
+    },
+    "pickup": {
+      "theme": "quartier",
+      "taille": [
+        90,
+        73
+      ],
+      "ancrage": [
+        26,
+        72
+      ],
+      "elevation": 28,
+      "categorie": "haut",
+      "emprise": [
+        0.8,
+        2.0
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
     },
     "pilier": {
       "theme": "commun",
@@ -1344,6 +1524,26 @@
       "bloquant": false,
       "cout_traversee": 1,
       "masquant": false
+    },
+    "utilitaire": {
+      "theme": "quartier",
+      "taille": [
+        90,
+        98
+      ],
+      "ancrage": [
+        26,
+        97
+      ],
+      "elevation": 53,
+      "categorie": "haut",
+      "emprise": [
+        0.8,
+        2.0
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
     },
     "voiture": {
       "theme": "parking",

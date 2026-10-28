@@ -16,6 +16,7 @@ import (
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/render"
@@ -74,16 +75,35 @@ type boucle struct {
 	sol    *render.Terrain
 	troupe *render.Cast
 	objets *render.Stage
+	// tenues et pressees portent le relevé du clavier de l'image en cours. Elles
+	// vivent sur la boucle pour être réemployées : un relevé qui allouerait
+	// soixante fois par seconde mettrait le ramasse-miettes sur le chemin d'une
+	// image.
+	tenues, pressees []ebiten.Key
 }
 
 // Update avance la partie, ou en monte une neuve si le joueur relance.
+//
+// **Le clavier se relève ici et une seule fois par image.** Les fonctions d'état
+// d'Ebitengine sont globales : les appeler depuis le rendu marchait, mais laissait
+// une méthode de dessin lire une touche sans que sa signature le dise. La boucle
+// est le seul endroit qui sache quand une image commence, donc c'est à elle de
+// relever et de passer.
+//
+// Les deux tranches sont réemployées d'une image à la suivante, ce que les
+// fonctions d'ajout d'Ebitengine permettent : un relevé par image ne doit pas
+// allouer.
 func (b *boucle) Update() error {
-	if b.ecran.WantsRestart() {
+	b.tenues = inpututil.AppendPressedKeys(b.tenues[:0])
+	b.pressees = inpututil.AppendJustPressedKeys(b.pressees[:0])
+	in := render.NewInput(b.tenues, b.pressees)
+
+	if b.ecran.WantsRestart(in) {
 		b.partie.Restart()
 		b.monter()
 		return nil
 	}
-	return b.ecran.Update()
+	return b.ecran.Update(in)
 }
 
 // Draw peint la partie en cours.

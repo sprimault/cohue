@@ -356,7 +356,7 @@ var interaction = []ebiten.Key{ebiten.KeyShiftRight, ebiten.KeyNumpad0}
 // Un pas par appel et rien qui lise l'horloge : Ebitengine appelle cette méthode
 // à cadence fixe et rattrape un retard en l'appelant plusieurs fois d'affilée,
 // ce qui est exactement ce que la simulation attend d'un appelant.
-func (s *Screen) Update() error {
+func (s *Screen) Update(in Input) error {
 	// **La mort fige la scène**, et c'est ici que la décision se prend puisque
 	// `World.Step` la laisse ouverte. Le chapitre 2 veut que le joueur puisse se
 	// raconter sa mort ; une horde qui continue d'avancer sous le voile efface
@@ -372,11 +372,11 @@ func (s *Screen) Update() error {
 	// mort : mourir dans le tick qui ouvre un choix laisse l'écran de fin, et non
 	// trois cartes suspendues au-dessus d'un cadavre.
 	if s.monde.Choosing() {
-		s.choisir()
+		s.choisir(in)
 		return nil
 	}
 
-	if presse(emplacement1) {
+	if in.JustPressed(emplacement1...) {
 		// Sur l'enfoncement, comme la relance et le choix d'une carte : au
 		// maintien, la charge partirait à l'image où le doigt se pose et le
 		// joueur ne saurait jamais s'il l'a dépensée exprès.
@@ -389,7 +389,7 @@ func (s *Screen) Update() error {
 	// une trouvaille dépenserait une charge au lieu de la ramasser, et le joueur
 	// verrait son arme partir en croyant en prendre une.
 	for place, touches := range [][]ebiten.Key{emplacement2, emplacement3} {
-		if !presse(touches) {
+		if !in.JustPressed(touches...) {
 			continue
 		}
 		if !s.monde.TakeDrop(place) {
@@ -397,7 +397,7 @@ func (s *Screen) Update() error {
 		}
 	}
 
-	if presse(emplacement4) {
+	if in.JustPressed(emplacement4...) {
 		// Sur l'enfoncement comme l'aimant, et pour la même raison : au maintien,
 		// la fiole partirait à l'image où le doigt se pose. Rien à prendre au sol
 		// ici — une fiole se ramasse en marchant dessus, la touche ne fait que
@@ -405,18 +405,18 @@ func (s *Screen) Update() error {
 		s.monde.Drink()
 	}
 
-	if presse(repere) {
+	if in.JustPressed(repere...) {
 		s.poserRepere()
 	}
 
 	// **Au maintien, à la différence des emplacements** : on force un obstacle
 	// en tenant la touche, une frappe par cadence. Marteler douze fois un rideau
 	// de fer serait une corvée des doigts, pas une décision.
-	if enfonce(interaction...) {
+	if in.Held(interaction...) {
 		s.monde.Interact()
 	}
 
-	s.monde.Step(voulu())
+	s.monde.Step(voulu(in))
 	s.cam.suivre(s.monde.Player())
 	return nil
 }
@@ -1532,7 +1532,8 @@ func attenuer(teinte color.RGBA, part float32) color.RGBA {
 	}
 }
 
-// voulu lit les touches et rend la direction demandée, dans le repère du monde.
+// voulu rend la direction que les touches tenues demandent, dans le repère du
+// monde.
 //
 // Les touches sont en repère d'écran et le monde ne connaît que ses deux axes
 // obliques : « haut » vaut donc (-1, -1), et « gauche » (-1, +1). C'est la
@@ -1548,31 +1549,21 @@ func attenuer(teinte color.RGBA, part float32) color.RGBA {
 // `ebiten.Key` désigne une touche par sa **place** sur un clavier américain :
 // `KeyW` est la touche marquée Z sur un clavier français, et le carré ZQSD tombe
 // donc juste sans qu'on ait à le nommer.
-func voulu() game.Vec {
+func voulu(in Input) game.Vec {
 	var v game.Vec
-	if enfonce(ebiten.KeyW, ebiten.KeyArrowUp) {
+	if in.Held(ebiten.KeyW, ebiten.KeyArrowUp) {
 		v = v.Add(game.Vec{X: -game.One, Y: -game.One})
 	}
-	if enfonce(ebiten.KeyS, ebiten.KeyArrowDown) {
+	if in.Held(ebiten.KeyS, ebiten.KeyArrowDown) {
 		v = v.Add(game.Vec{X: game.One, Y: game.One})
 	}
-	if enfonce(ebiten.KeyA, ebiten.KeyArrowLeft) {
+	if in.Held(ebiten.KeyA, ebiten.KeyArrowLeft) {
 		v = v.Add(game.Vec{X: -game.One, Y: game.One})
 	}
-	if enfonce(ebiten.KeyD, ebiten.KeyArrowRight) {
+	if in.Held(ebiten.KeyD, ebiten.KeyArrowRight) {
 		v = v.Add(game.Vec{X: game.One, Y: -game.One})
 	}
 	return v
-}
-
-// enfonce dit si l'une des touches est pressée.
-func enfonce(touches ...ebiten.Key) bool {
-	for _, t := range touches {
-		if ebiten.IsKeyPressed(t) {
-			return true
-		}
-	}
-	return false
 }
 
 // face peint la face supérieure d'une case, en blanc, pour être teintée au blit.

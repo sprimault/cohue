@@ -63,6 +63,14 @@ Les exceptions connues d'avance :
 | Module | Ce qu'il apporte |
 |---|---|
 | `github.com/hajimehoshi/ebiten/v2` | rendu, entrées, son |
+| `github.com/sprimault/lozengine` | planches et atlas, rastériseur, scène isométrique |
+
+**Les deux sont liés en même temps, et cela ne durera pas.** Le rendu passe du
+premier au second, et `internal/render` est indivisible pour la compilation : ses
+fonctions se passent le tampon de dessin, donc aucune moitié ne se porte seule.
+Le paquet est donc converti en entier avant que le premier module ne quitte
+`go.mod`. Ce qui n'en dépend pas est déjà porté — `internal/sprite` range ses
+planches dans un atlas et décrit ce qu'il pose, sans peindre.
 
 Un seul candidat non tranché : une bibliothèque d'interface pour l'éditeur,
 `ebitenui` ou tout dessiner à la main.

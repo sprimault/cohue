@@ -10,7 +10,6 @@ import (
 	"fmt"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 // validation est la touche qui prend la carte désignée.
@@ -56,33 +55,23 @@ const interligne = 2
 // Elle revient à gauche après chaque prise : une récolte abondante ouvre deux
 // panneaux d'affilée, et hériter de la désignation du premier ferait valider le
 // second sur une carte qu'on n'a pas regardée.
-func (s *Screen) choisir() {
+func (s *Screen) choisir(in Input) {
 	dernier := len(s.monde.Pending()) - 1
 	if dernier < 0 {
 		return
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft) && s.carteChoisie > 0 {
+	if in.JustPressed(ebiten.KeyArrowLeft) && s.carteChoisie > 0 {
 		s.carteChoisie--
 	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) && s.carteChoisie < dernier {
+	if in.JustPressed(ebiten.KeyArrowRight) && s.carteChoisie < dernier {
 		s.carteChoisie++
 	}
 
-	if presse(validation) {
+	if in.JustPressed(validation...) {
 		s.monde.Choose(s.carteChoisie)
 		s.carteChoisie = 0
 	}
-}
-
-// presse dit si l'une des touches vient d'être enfoncée.
-func presse(touches []ebiten.Key) bool {
-	for _, t := range touches {
-		if inpututil.IsKeyJustPressed(t) {
-			return true
-		}
-	}
-	return false
 }
 
 // peindreCartes pose le panneau de choix en bas de l'image.

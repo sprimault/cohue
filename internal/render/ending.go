@@ -25,8 +25,8 @@ import "github.com/hajimehoshi/ebiten/v2"
 // `Over` qu'elle lit, et les deux issues repartent par le même geste. Pendant la
 // partie, ces touches ne font rien hors du panneau de choix, qui met la fin hors
 // de portée puisque `Update` traite l'une avant l'autre.
-func (s *Screen) WantsRestart() bool {
-	return s.monde.Over() && presse(validation)
+func (s *Screen) WantsRestart(in Input) bool {
+	return s.monde.Over() && in.JustPressed(validation...)
 }
 
 // peindreFin couvre l'écran et dit comment repartir.

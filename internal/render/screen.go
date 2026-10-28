@@ -24,11 +24,14 @@
 package render
 
 import (
+	"fmt"
 	"image/color"
 	"math"
 	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sprimault/lozengine/geometry"
+	"github.com/sprimault/lozengine/scene"
 
 	"github.com/sprimault/cohue/internal/game"
 	"github.com/sprimault/cohue/internal/sprite"
@@ -95,28 +98,6 @@ const emprisePlancher = 0.45
 // conception que personne n'a prise.
 var (
 	fond = color.RGBA{R: 24, G: 24, B: 28, A: 255}
-
-	// La porte, dans ses deux états. Elle teinte le décor de sa case au lieu de
-	// le remplacer, parce qu'elle n'y change rien : fermée elle est un mur comme
-	// un autre, ouverte elle l'est encore. Ce que ces deux teintes disent est ce
-	// qu'aucune forme ne porte — le lieu est gagné, et la sortie est là.
-	//
-	// **Une seule teinte, éteinte puis vive**, plutôt que deux couleurs : c'est
-	// le même objet dans deux états, et l'écart de valeur se voit en périphérie
-	// là où un changement de teinte demande de regarder. Un cyan, parce que le
-	// vert appartient à l'éclair de soin et qu'ouvrir une porte n'a rien à voir
-	// avec lui — le voisin le plus proche est la gemme, à 28,5, et elle est au
-	// sol quand la porte est sur un mur.
-	//
-	// **Deux écarts de valeur à tenir, et le premier jet n'en a tenu qu'un.**
-	// L'écart entre les deux états était bon ; celui entre la porte fermée et le
-	// mur qui l'entoure ne l'était pas, si bien qu'une partie jouée n'a pas
-	// trouvé la porte en faisant les quatre coins de la salle. Une teinte ne se
-	// choisit pas contre l'autre état du même objet, elle se choisit **aussi**
-	// contre ce qui l'entoure — ici le mur de l'enceinte, sur lequel la porte
-	// est posée et que ces deux teintes multiplient.
-	porteFermee  = color.RGBA{R: 48, G: 132, B: 152, A: 255}
-	porteOuverte = color.RGBA{R: 120, G: 232, B: 248, A: 255}
 
 	// intact est l'élément neutre de la multiplication qu'Ebitengine applique :
 	// une image posée sous cette échelle sort telle qu'elle est dessinée. C'est
@@ -216,7 +197,11 @@ type Screen struct {
 	objets *Stage
 	cam    *camera
 
-	scene *scene
+	// scene porte ce que l'image contient, et c'est le moteur qui la trie. Le
+	// champ garde le nom du paquet sans l'ombrer : les deux vivent dans des
+	// espaces distincts, et l'appeler autrement ferait chercher la scène sous un
+	// autre mot.
+	scene *scene.Scene
 
 	// face est le losange blanc que le dessin teinte au blit.
 	//
@@ -287,10 +272,20 @@ func (s *Screen) WithHUD(h *HUD) *Screen {
 // constante : le chargeur en exige le rapport de deux pour un, et c'est de lui
 // que la projection la tient. La recevoir à part du terrain qui la porte aurait
 // laissé deux appelants la prendre à deux endroits.
+// **La scène se monte ici parce que c'est l'écran qui la décrit.** Sa capacité
+// d'entités reste au défaut du moteur jusqu'à ce que les entités y entrent : la
+// fixer maintenant serait un chiffre qu'aucune pose n'exerce, et le majorant est
+// la somme des bassins, qu'on relève en les parcourant.
 func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Cast,
-	objets *Stage) *Screen {
+	objets *Stage) (*Screen, error) {
 	tuile := sol.TileSize()
-	cam := nouvelleCamera(tuile, carte)
+	sc, err := scene.New(carte.Width(), carte.Height(),
+		geometry.Dimetric(tuile[0], tuile[1]), scene.Options{})
+	if err != nil {
+		return nil, fmt.Errorf("scene du lieu : %w", err)
+	}
+
+	cam := nouvelleCamera(sc, carte)
 	s := &Screen{
 		monde:     monde,
 		carte:     carte,
@@ -298,7 +293,7 @@ func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Ca
 		troupe:    troupe,
 		objets:    objets,
 		cam:       cam,
-		scene:     nouvelleScene(carte, monde, sol, cam),
+		scene:     sc,
 		face:      face(tuile),
 		demiTuile: tuile[0] / 2,
 		// Le joueur et, au pire, tous les projectiles de la horde en vol : c'est
@@ -308,7 +303,10 @@ func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Ca
 		emprises: make([]nappe, carte.Width()*carte.Height()),
 	}
 	s.cam.suivre(monde.Player())
-	return s
+	if err := s.LeDecor(); err != nil {
+		return nil, err
+	}
+	return s, nil
 }
 
 // emplacement1 est la touche qui dépense la charge du premier emplacement, celui
@@ -435,7 +433,6 @@ func (s *Screen) Follow() { s.cam.suivre(s.monde.Player()) }
 func (s *Screen) Draw(ecran *ebiten.Image) {
 	ecran.Fill(fond)
 	s.releverEmprises()
-	s.peindreSol(ecran)
 	s.peindreEntites(ecran)
 	s.peindreEffets(ecran)
 	s.peindreDanger(ecran)
@@ -493,94 +490,29 @@ func (s *Screen) peindreDanger(ecran *ebiten.Image) {
 	}
 }
 
-// peindreSol pose le décor de chaque case visible qui ne dépasse pas du sol.
+// LeDecor pose le décor du lieu dans la scène, une fois pour toutes.
 //
-// **Ce qui dépasse n'est pas ici mais dans la séquence**, où il dispute sa
-// profondeur au reste. Un sol, lui, est toujours dessous : l'ordre entre deux
-// cases plates ne décide de rien, puisqu'elles pavent sans se recouvrir, et le
-// balayage par rangées suffit.
-//
-// **Le tri par coût que ce sol montrait a disparu avec l'aplat**, et rien ne
-// s'est perdu à le retirer : la grille descend désormais de la même carte de
-// formes que ces images, si bien qu'un écart entre ce qu'on voit et ce que le
-// champ de flux lit n'est plus exprimable.
-func (s *Screen) peindreSol(ecran *ebiten.Image) {
-	u0, v0, u1, v1 := s.cam.casesVisibles()
-	for v := v0; v <= v1; v++ {
-		for u := u0; u <= u1; u++ {
-			if f, posee := s.sol.formeDe(u, v); posee && !f.triee {
-				s.poserCase(ecran, u, v, f, true)
-			}
-		}
-	}
-
-	// **Les couches viennent après tout le terrain, et non case par case.** Une
-	// couche posée dans la même passe se ferait recouvrir par le revêtement de
-	// la case suivante, dont l'image déborde vers le sud : c'est la raison qui
-	// fait déjà peindre le sol par rangées plutôt que par colonne.
-	for couche := range s.sol.Couches() {
-		for v := v0; v <= v1; v++ {
-			for u := u0; u <= u1; u++ {
-				if f, posee := s.sol.coucheDe(couche, u, v); posee && !f.triee {
-					s.poserCase(ecran, u, v, f, false)
-				}
-			}
-		}
-	}
+// **Il n'y a plus de passe de sol**, et c'est ce que la scène a retiré : le
+// décor se range au montage et le moteur ne relit que la fenêtre visible, là où
+// deux boucles balayaient un millier de cases à chaque image. Ce qui dépasse du
+// sol n'est plus peint à part non plus — son étage le range sous les vivants
+// sans qu'aucune passe l'y mette.
+func (s *Screen) LeDecor() error {
+	return poserLeDecor(s.scene, s.sol, s.monde, s.carte)
 }
 
-// poserCase pose l'image d'une case, à l'ancrage que son manifeste lui donne, le
-// sol du thème sous ce qui ne remplit pas son losange, et le télégraphe d'une
-// explosion par-dessus.
+// LaPorte repose la case de sortie, dont l'état de partie change l'apparence.
 //
-// **Le sol vient juste avant la forme et non dans une passe à part.** Un pilier
-// se trie, un rail ne se trie pas, et ce qui les comble doit suivre chacun dans
-// sa passe : une passe de sol posée d'un bloc peindrait par-dessus les cases
-// déjà triées de la même image.
-//
-// **La porte garde ses deux teintes, appliquées à ce que le décor y dessine.**
-// Aucune forme du lieu ne dit qu'une case est la sortie — l'ouverture est un
-// état de partie, et le décor n'en sait rien —, or une partie jouée a montré
-// qu'on fait les quatre coins d'une salle sans trouver une porte qui ressemble
-// au mur qui l'entoure. La teinte multiplie l'image au lieu de la remplacer :
-// le mur reste un mur, et il vire au cyan. Le sol n'en prend rien — ce qu'elle
-// désigne est la porte, pas la case qui la porte.
-//
-// **Le télégraphe d'une explosion suit la surface qu'il marque**, donc il
-// s'intercale et ne se peint pas d'un bloc. Une forme qui remplit son losange
-// *est* la surface, et le marquage se pose dessus, à son élévation ; une forme
-// qui ne la remplit pas la traverse, et c'est le sol du thème, sous elle, qu'on
-// marche. La passe unique qu'il remplaçait tombait sous le trottoir et le quai,
-// qui ont une élévation et se trient donc.
-func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme, comble bool) trace {
-	x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
-	if f.nue {
-		// **Une couche ne comble pas, et c'est tout l'objet des couches.** Ce
-		// qui est sous elle vient d'être peint : y remettre le sol du thème
-		// effacerait la chaussée juste avant d'y poser le véhicule, ce qui est
-		// exactement le défaut que le calque existe pour fermer.
-		if comble && s.sol.sol != nil {
-			s.poser(ecran, x, y, *s.sol.sol)
-		}
-		s.marquerEmprise(ecran, u, v, f)
+// **C'est la seule case qui se repose**, et elle existe parce qu'aucune forme du
+// lieu ne dit qu'une case est la sortie : l'ouverture est un état de partie, et
+// le décor n'en sait rien. Une partie jouée a montré qu'on fait les quatre coins
+// d'une salle sans trouver une porte qui ressemble au mur qui l'entoure.
+func (s *Screen) LaPorte() {
+	sortie := s.monde.Exit()
+	if sortie == nil {
+		return
 	}
-
-	s.op.ColorScale.Reset()
-	if sortie := s.monde.Exit(); sortie != nil && sortie.U == u && sortie.V == v {
-		if s.monde.DoorOpen() {
-			s.op.ColorScale.ScaleWithColor(porteOuverte)
-		} else {
-			s.op.ColorScale.ScaleWithColor(porteFermee)
-		}
-	}
-	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(x+f.dx), float64(y+f.dy))
-	ecran.DrawImage(f.image, &s.op)
-
-	if !f.nue {
-		s.marquerEmprise(ecran, u, v, f)
-	}
-	return trace{x: x + f.dx, y: y + f.dy, masque: f.masque, cache: f.cache}
+	poserLaCase(s.scene, s.sol, s.monde, sortie.U, sortie.V)
 }
 
 // ecranAuSol projette une position du monde en la posant sur la surface qu'on y
@@ -597,14 +529,6 @@ func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme, comble bool) 
 func (s *Screen) ecranAuSol(x, y game.Fixed) (int, int) {
 	ex, ey := s.cam.ecran(x, y)
 	return ex, ey - s.sol.hauteurSolEn(x, y)
-}
-
-// poser pose une forme sans la teinter, au coin que son ancrage lui donne.
-func (s *Screen) poser(ecran *ebiten.Image, x, y int, f forme) {
-	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(x+f.dx), float64(y+f.dy))
-	s.op.ColorScale.Reset()
-	ecran.DrawImage(f.image, &s.op)
 }
 
 // nappe est ce qu'une case porte d'une zone, le temps d'une image.

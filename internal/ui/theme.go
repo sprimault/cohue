@@ -9,10 +9,12 @@ package ui
 
 import (
 	"fmt"
-	"image/color"
 	"io/fs"
 	"maps"
 	"slices"
+	"strings"
+
+	"github.com/sprimault/lozengine/render"
 
 	"github.com/sprimault/cohue/internal/manifest"
 )
@@ -42,7 +44,7 @@ type Theme struct {
 	// GaugeHeight est l'épaisseur d'une jauge.
 	GaugeHeight int
 
-	teintes map[string]color.RGBA
+	teintes map[string]render.Color
 }
 
 // LoadTheme lit les réglages d'apparence du manifeste d'interface.
@@ -73,25 +75,30 @@ func LoadTheme(fsys fs.FS, chemin string) (*Theme, error) {
 			r.GaugeHeight)
 	}
 
-	teintes := make(map[string]color.RGBA, len(r.Colors))
+	teintes := make(map[string]render.Color, len(r.Colors))
 	for _, nom := range teintesRequises {
 		brute, presente := r.Colors[nom]
 		if !presente {
 			dire("reglages.teintes.%s : absente", nom)
 			continue
 		}
-		// **Une teinte s'écrit prémultipliée par son alpha**, ce qu'impose le type
-		// de la bibliothèque standard et ce qu'Ebitengine attend du rendu. Une
-		// composante au-dessus de l'alpha ne décrit aucune couleur : elle donne un
-		// aplat bien plus dense que l'opacité annoncée, et rien ne le dit — un
-		// voile écrit à plat est passé ainsi, et seule une planche l'a montré.
-		for i, canal := range []string{"rouge", "vert", "bleu"} {
-			if brute[i] > brute[3] {
-				dire("reglages.teintes.%s : %s à %d au-dessus de l'alpha %d, "+
-					"une teinte s'écrit prémultipliée", nom, canal, brute[i], brute[3])
-			}
+		// **Une teinte s'écrit prémultipliée par son alpha**, et le manifeste la
+		// porte déjà ainsi : elle se recopie donc champ par champ, sans passer
+		// par `render.Premultiply`, qui l'appliquerait une seconde fois.
+		//
+		// **Le refus se délègue à `render.Color.Valid`**, qui porte la même règle
+		// et le même argument — une composante au-dessus de l'alpha ne décrit
+		// aucune couleur, elle donne un aplat bien plus dense que l'opacité
+		// annoncée, et rien d'autre ne le signale. Un voile écrit à plat est passé
+		// ainsi, et seule une planche l'a montré. La garder ici en serait une
+		// seconde description, que rien ne tiendrait d'accord.
+		teinte := render.Color{R: brute[0], G: brute[1], B: brute[2], A: brute[3]}
+		if !teinte.Valid() {
+			dire("reglages.teintes.%s : %s, une teinte s'écrit prémultipliée",
+				nom, debordement(brute))
+			continue
 		}
-		teintes[nom] = color.RGBA{R: brute[0], G: brute[1], B: brute[2], A: brute[3]}
+		teintes[nom] = teinte
 	}
 	for _, nom := range slices.Sorted(maps.Keys(r.Colors)) {
 		if !slices.Contains(teintesRequises, nom) {
@@ -117,12 +124,28 @@ func LoadTheme(fsys fs.FS, chemin string) (*Theme, error) {
 // dans du code, pas une donnée douteuse. Rendre une couleur par défaut la ferait
 // passer pour un réglage, et l'on chercherait dans le manifeste ce qui est dans
 // le code.
-func (t *Theme) Color(nom string) color.RGBA {
+func (t *Theme) Color(nom string) render.Color {
 	teinte, connue := t.teintes[nom]
 	if !connue {
 		panic("teinte d'interface inconnue : " + nom)
 	}
 	return teinte
+}
+
+// debordement nomme ce qui déborde dans un prémultiplié incohérent.
+//
+// `render.Color.Valid` décide, cette fonction explique : un manquement doit dire
+// où il est, et « teinte invalide » enverrait l'auteur du manifeste comparer
+// quatre nombres à la main. Les deux ne font pas doublon pour autant — l'une
+// porte la règle, l'autre la phrase.
+func debordement(brute [4]uint8) string {
+	var fautifs []string
+	for i, canal := range []string{"rouge", "vert", "bleu"} {
+		if brute[i] > brute[3] {
+			fautifs = append(fautifs, fmt.Sprintf("%s à %d", canal, brute[i]))
+		}
+	}
+	return fmt.Sprintf("%s au-dessus de l'alpha %d", strings.Join(fautifs, ", "), brute[3])
 }
 
 // rawSettings porte les réglages tels qu'ils s'écrivent.

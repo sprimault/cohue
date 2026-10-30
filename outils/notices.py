@@ -28,13 +28,17 @@ from pathlib import Path
 NOTICES = Path("THIRD-PARTY-NOTICES")
 
 # Les cibles dont une archive est publiée. `js/wasm` n'y est pas : il se compile
-# sans se publier, et une notice ne suit que ce qu'on distribue.
+# sans se publier, et une notice ne suit que ce qu'on distribue. macOS non plus :
+# le moteur compile pour lui et n'ouvre pas de fenêtre, donc rien n'en sort.
+#
+# La colonne cgo vaut zéro partout, et ce n'est pas un réglage de ce script : le
+# moteur n'a aucune dépendance système, donc aucune archive publiée ne lie de
+# natif. Elle survit parce que `go list` la veut dans l'environnement, et parce
+# qu'une cible qui la remettrait à un se verrait ici.
 CIBLES = (
     ("windows", "amd64", "0"),
-    ("linux", "amd64", "1"),
-    ("linux", "arm64", "1"),
-    ("darwin", "amd64", "1"),
-    ("darwin", "arm64", "1"),
+    ("linux", "amd64", "0"),
+    ("linux", "arm64", "0"),
 )
 
 # Une ligne de déclaration : chemin de module, version, tiret cadratin, licence.

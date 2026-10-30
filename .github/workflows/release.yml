@@ -3,9 +3,10 @@
 
 # Construction des binaires publiés, sur un tag.
 #
-# Une seule machine ne produit pas toutes les cibles, contrairement aux autres
-# projets : Ebitengine ne se compile en croisé que vers Windows et WebAssembly,
-# Linux et macOS exigent du natif. D'où la matrice multi-runners.
+# Une seule machine produit toutes les cibles : le moteur n'a aucune dépendance
+# système, donc `CGO_ENABLED=0` partout et tout se croise depuis Linux. La
+# matrice reste parce qu'elle nomme ce qui sort, pas parce qu'il faut plusieurs
+# runners.
 #
 # Trois choses ne peuvent pas se faire cible par cible et vont dans le job de
 # rassemblement : SHA256SUMS calculé en un seul endroit sur toutes les archives,
@@ -39,7 +40,7 @@ concurrency:
 jobs:
   binaires:
     name: ${{ matrix.os }}/${{ matrix.arch }}
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -49,27 +50,25 @@ jobs:
           # comparaison coerce en 0 comme le booléen false. Un filtre écrit
           # `matrix.publier != false` serait donc faux partout, y compris sur
           # les cibles à publier, et l'étape d'archivage ne tournerait jamais.
-          - { os: windows, arch: amd64, cgo: 0, runner: ubuntu-latest, ext: .exe, publier: true }
+          - { os: windows, arch: amd64, ext: .exe, publier: true }
           # js/wasm se compile mais ne se publie pas : l'archive serait
-          # inutilisable seule, faute de wasm_exec.js et d'une page HTML, et le
-          # mode web n'est pas au programme. La cible reste ici parce qu'elle est
-          # ce qui empêche une dépendance d'introduire du cgo sans qu'on le voie.
-          - { os: js, arch: wasm, cgo: 0, runner: ubuntu-latest, ext: .wasm, publier: false }
-          # **La version du runner est la glibc minimale exigée chez le joueur**,
-          # le binaire Linux étant lié à elle faute de construction statique. Une
-          # image épinglée plutôt que `ubuntu-latest`, qui migrera : compilé sur
-          # plus récent, l'exécutable cesse de démarrer sur les systèmes un peu
-          # anciens, et personne ne l'apprend avant le rapport d'un joueur.
-          #
-          # C'est aussi ce qui accorde les deux architectures, dont l'une était
-          # déjà épinglée : sans cela, les deux binaires Linux d'une même version
-          # n'auraient pas le même plancher.
-          - { os: linux, arch: amd64, cgo: 1, runner: ubuntu-24.04, ext: "", publier: true }
-          - { os: linux, arch: arm64, cgo: 1, runner: ubuntu-24.04-arm, ext: "", publier: true }
-          - { os: darwin, arch: arm64, cgo: 1, runner: macos-latest, ext: "", publier: true }
-          # macos-15-intel est la dernière image x86_64 des runners, annoncée
-          # jusqu'en août 2027. Cette ligne a une date de péremption connue.
-          - { os: darwin, arch: amd64, cgo: 1, runner: macos-15-intel, ext: "", publier: true }
+          # inutilisable seule, faute de wasm_exec.js et d'une page HTML. Elle
+          # reste ici pour la portabilité de la chaîne et parce qu'elle prépare
+          # le jalon 5 du moteur, le canvas du navigateur — et non plus comme
+          # garde-fou contre le cgo, que `CGO_ENABLED=0` partout rend inutile.
+          - { os: js, arch: wasm, ext: .wasm, publier: false }
+          # **Le binaire Linux est statique**, le moteur parlant X11 sans
+          # bibliothèque C. Il n'y a donc plus de plancher de glibc à tenir, plus
+          # d'image à épingler, et les deux architectures se croisent depuis le
+          # même runner.
+          - { os: linux, arch: amd64, ext: "", publier: true }
+          - { os: linux, arch: arm64, ext: "", publier: true }
+          # **macOS n'est pas publié, et c'est le moteur qui le dit** : il
+          # compile pour darwin et rend une erreur à l'ouverture de la fenêtre,
+          # son backend n'étant pas écrit. macOS, iOS et Android natifs sont hors
+          # de son périmètre, et c'est le navigateur — son jalon 5 — qui les
+          # couvrira. Publier une archive qui ne démarre pas serait pire que de
+          # n'en publier aucune.
     steps:
       - uses: actions/checkout@v7
 
@@ -77,14 +76,6 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
-
-      # Ebitengine se lie aux bibliothèques système sur Linux : sans leurs
-      # en-têtes, la compilation échoue sur `X11/Xlib.h` bien avant le code du
-      # jeu. L'action ne regarde que le système du runner, or deux cibles de
-      # cette matrice compilent en croisé depuis Linux sans cgo : elles ne lient
-      # rien de natif et n'ont donc rien à installer.
-      - uses: ./.github/actions/dependances-ebitengine
-        if: matrix.cgo == 1
 
       # La saisie passe par l'environnement et non par interpolation dans le
       # corps : une expression `${{ }}` est substituée avant que le shell ne
@@ -103,7 +94,7 @@ jobs:
       - name: Construction
         shell: bash
         env:
-          CGO_ENABLED: ${{ matrix.cgo }}
+          CGO_ENABLED: "0"
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
         run: |

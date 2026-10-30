@@ -98,15 +98,17 @@ une dépendance qui en exigerait rendrait d'un coup impossibles WebAssembly et
 tout ce qui se compile ailleurs que sur la machine cible.
 
 C'est pourquoi `js/wasm` continue d'être compilé en intégration continue sans
-être publié : il interdit à une dépendance d'introduire du natif par surprise.
+être publié : il interdit à une dépendance d'introduire du natif par surprise,
+et il prépare le jalon 5 du moteur, qui est le canvas du navigateur.
 
 **Le seul reste est `make race`**, qui garde `CGO_ENABLED=1` et son compilateur
 C : le détecteur de course l'exige indépendamment de ce que le dépôt lie. C'est
 une variable de cible, jamais une valeur globale.
 
 La matrice des cibles publiées, elle, vit dans
-[`construction.md`](construction.md) et dans les workflows ; elle porte encore
-les valeurs héritées d'Ebitengine, qui exigeait du natif sur Linux et macOS.
+[`construction.md`](construction.md) et dans les workflows, et elle est
+désormais à `CGO_ENABLED=0` sur toutes ses lignes : tout se croise depuis un
+seul runner.
 
 ## 3. La langue des identifiants
 
@@ -918,11 +920,12 @@ apparitions, mêmes trajectoires, même état final. Sans lui, l'équilibrage n'
 pas comparable d'une version à l'autre et une mort injuste n'est pas
 reproductible.
 
-**Sur toutes les cibles, et pas seulement deux fois de suite ici.** Le job des
-tests natifs exécute la suite sur windows/amd64, darwin/arm64 et linux/arm64 :
-c'est là que se vérifie ce que la virgule fixe achète, et c'est ce qui sépare un
-invariant d'une discipline. Un déterminisme qui ne tiendrait que sur la machine
-qui l'a écrit ne porterait ni le classement par graine, ni le partage d'un défi.
+**Sur toutes les cibles publiées, et pas seulement deux fois de suite ici.** La
+suite s'exécute sur windows/amd64 et linux/arm64 dans le job des tests natifs,
+et sur linux/amd64 dans celui des contrôles : c'est là que se vérifie ce que la
+virgule fixe achète, et c'est ce qui sépare un invariant d'une discipline. Un
+déterminisme qui ne tiendrait que sur la machine qui l'a écrit ne porterait ni
+le classement par graine, ni le partage d'un défi.
 
 L'empreinte comparée porte sur l'**état** — positions, points de vie,
 générations, état de chaque flux aléatoire, parcourus dans l'ordre des index du

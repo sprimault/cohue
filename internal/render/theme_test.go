@@ -46,7 +46,8 @@ const reglagesValides = `{
         "texte": [232, 234, 238, 255],
         "texte_attenue": [150, 154, 162, 255],
         "texte_valeur": [236, 196, 96, 255],
-        "texte_contour": [0, 0, 0, 255]
+        "texte_contour": [0, 0, 0, 255],
+        "survol": [214, 220, 232, 255]
       }
     }
   }

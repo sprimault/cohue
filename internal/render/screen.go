@@ -301,6 +301,14 @@ type Screen struct {
 	// recopié parce que la tranche qu'il passe ne vaut que pendant l'appel.
 	// Réutilisée avec `[:0]`, comme tout ce que ce paquet remplit par image.
 	recouvrements render.OverlapList
+
+	// souris est ce que le pointeur désignait au dernier pas.
+	//
+	// **C'est le seul état que la souris ajoute, et il est inévitable** : `Step`
+	// reçoit les entrées, `Describe` dessine, et le survol a besoin des deux. Sa
+	// valeur zéro ne survole rien, si bien qu'un appelant qui ne joue aucun pas
+	// — la planche de relecture — compose exactement ce qu'il composait avant.
+	souris pointeur
 }
 
 // WithHUD attache l'interface à un écran.
@@ -447,6 +455,12 @@ var interaction = []input.Key{input.KeyRightShift, input.KeyNumpad0}
 // machine chargée. Le déterminisme n'en souffre pas, puisque rien de ce qui
 // décide ne lit autre chose que le compteur.
 func (s *Screen) Step(in Input) {
+	// **Le pointeur se note avant tout le reste**, y compris avant les deux
+	// sorties qui suivent : le panneau de cartes se survole pendant la pause du
+	// choix, et l'écran de fin ne dessine rien qui réagisse mais n'a aucune
+	// raison de garder une position périmée.
+	s.souris = pointeurDe(in)
+
 	// **La mort fige la scène**, et c'est ici que la décision se prend puisque
 	// `World.Step` la laisse ouverte. Le chapitre 2 veut que le joueur puisse se
 	// raconter sa mort ; une horde qui continue d'avancer sous le voile efface
@@ -499,6 +513,8 @@ func (s *Screen) Step(in Input) {
 		s.poserRepere()
 	}
 
+	s.clicDansLeBandeau(in)
+
 	// **Au maintien, à la différence des emplacements** : on force un obstacle
 	// en tenant la touche, une frappe par cadence. Marteler douze fois un rideau
 	// de fer serait une corvée des doigts, pas une décision.
@@ -508,6 +524,46 @@ func (s *Screen) Step(in Input) {
 
 	s.monde.Step(voulu(in))
 	s.cam.suivre(s.monde.Player())
+}
+
+// clicDansLeBandeau déclenche ce qu'une case ferait à sa touche.
+//
+// **Exactement ce que fait la touche, et pas une seconde règle.** Un clic sur
+// l'emplacement d'une arme prend ce qui est sous les pieds avant de tirer, comme
+// le chiffre correspondant : la priorité existe pour qu'on ne dépense pas une
+// charge en passant sur une trouvaille, et elle vaut quelle que soit la main qui
+// la déclenche. Deux comportements pour une même case seraient deux choses à
+// tenir d'accord, et le joueur n'a aucune raison de deviner laquelle il a prise.
+//
+// **Sur l'enfoncement**, par `ButtonJustPressed` : au maintien, la charge
+// partirait à l'image où le bouton se pose et le joueur ne saurait jamais s'il
+// l'a dépensée exprès. C'est le même régime que les touches d'emplacement.
+//
+// **Une case vide n'a pas de rectangle**, donc le clic n'y rencontre rien :
+// `casesDuBandeau` ne pose que ce que la partie montre, et c'est ce qui fait que
+// cliquer où une arme épuisée se trouvait ne fait rien, comme sa touche.
+func (s *Screen) clicDansLeBandeau(in Input) {
+	if s.hud == nil || !in.ButtonJustPressed(input.ButtonLeft) {
+		return
+	}
+
+	for i, z := range s.hud.casesDuBandeau(s.scene, s.lectures()) {
+		if !s.souris.survole(z) {
+			continue
+		}
+		switch i {
+		case caseAimant:
+			s.monde.Attract()
+		case caseFiole:
+			s.monde.Drink()
+		default:
+			place := i - 1
+			if !s.monde.TakeDrop(place) {
+				s.monde.Trigger(place)
+			}
+		}
+		return
+	}
 }
 
 // Rebind rattache l'écran à la run qui remplace la précédente.

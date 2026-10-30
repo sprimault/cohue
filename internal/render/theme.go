@@ -29,6 +29,7 @@ var teintesRequises = []string{
 	"cadre_fond", "cadre_bord", "cadre_choisi", "bandeau_fond",
 	"jauge_fond", "jauge_vie", "jauge_experience", "vignette_danger",
 	"texte", "texte_attenue", "texte_valeur", "texte_contour",
+	"survol",
 }
 
 // Theme porte ce que l'interface règle.

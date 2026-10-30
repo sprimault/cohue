@@ -162,7 +162,12 @@ type Readings struct {
 // décor n'a que trois gris. Une partie jouée a tranché en une minute : le texte
 // se perdait. Le bandeau a donc son fond, ce que le manifeste prévoyait depuis le
 // début sans que personne ne le lise ici.
-func (h *HUD) Panel(sc *scene.Scene, r Readings) {
+//
+// **Le pointeur vient en paramètre et non dans `Readings`**, qui est ce que le
+// bandeau montre *d'une partie* : où la souris se trouve n'est pas une lecture
+// du jeu, et l'y glisser obligerait la planche de relecture à en inventer une
+// pour composer une mise en page.
+func (h *HUD) Panel(sc *scene.Scene, r Readings, souris pointeur) {
 	// Le bandeau se pose juste au-dessus de l'aire de jeu, et toutes les poses
 	// qui suivent s'y rapportent.
 	//
@@ -229,10 +234,21 @@ func (h *HUD) Panel(sc *scene.Scene, r Readings) {
 			ligne, h.Color("texte"))
 	}
 
-	bas := y + h.Font.Height() + h.Margin()
-	h.emplacement(sc, x, bas, r.Charged)
-	h.lourdes(sc, x, bas, r)
-	h.fioles(sc, x, bas, r)
+	cases := h.casesDuBandeau(sc, r)
+	h.emplacement(sc, cases[caseAimant], r.Charged)
+	h.lourdes(sc, cases, r)
+	h.fioles(sc, cases, r)
+
+	// Le survol vient après les cases, pour couvrir le bord qu'elles ont posé.
+	// Une seule case peut être survolée — elles ne se chevauchent pas —, mais la
+	// boucle ne s'arrête pas pour autant : sortir au premier trouvé ferait
+	// dépendre le dessin de l'ordre, ce qui est une promesse qu'on n'a pas à
+	// tenir.
+	for _, z := range cases {
+		if souris.survole(z) {
+			h.Outline(sc, z.x, z.y, z.largeur, z.hauteur, h.Color("survol"))
+		}
+	}
 }
 
 // fioles pose la case des consommables, après les deux emplacements d'armes.
@@ -246,20 +262,12 @@ func (h *HUD) Panel(sc *scene.Scene, r Readings) {
 // fiole ne revient pas d'elle-même : elle sort des caisses, si bien qu'une case
 // vide n'annoncerait rien qui vienne, à la différence de l'aimant que sa période
 // ramène.
-func (h *HUD) fioles(sc *scene.Scene, x, y int, r Readings) {
-	if r.Vials.Charges <= 0 {
+func (h *HUD) fioles(sc *scene.Scene, cases [nombreDeCases]zone, r Readings) {
+	z := cases[caseFiole]
+	if z.vide() {
 		return
 	}
-
-	cote := h.SlotSide(contenuEmplacement)
-	gauche := x + (game.Slots+1)*(cote+h.Margin())
-	h.Slot(sc, gauche, y, contenuEmplacement, toucheFiole)
-
-	bord := (cote - contenuEmplacement) / 2
-	if r.Vials.Icon.Width != 0 {
-		h.Sprite(sc, r.Vials.Icon, gauche+bord, y+bord)
-	}
-	h.compteDansLaCase(sc, gauche+h.Border()+1, y+cote-h.Border(), r.Vials.Charges)
+	h.garnir(sc, z, toucheFiole, r.Vials)
 }
 
 // lourdes pose les emplacements d'armes lourdes à la suite de celui de l'aimant.
@@ -273,21 +281,30 @@ func (h *HUD) fioles(sc *scene.Scene, x, y int, r Readings) {
 // La conséquence à assumer est qu'un emplacement vide ne montre pas sa touche.
 // C'est ce que « pas de message » veut dire : rien n'invite à presser une touche
 // qui ne ferait rien.
-func (h *HUD) lourdes(sc *scene.Scene, x, y int, r Readings) {
-	cote := h.SlotSide(contenuEmplacement)
+func (h *HUD) lourdes(sc *scene.Scene, cases [nombreDeCases]zone, r Readings) {
 	for place, tenue := range r.Heavies {
-		if tenue.Charges <= 0 {
+		z := cases[place+1]
+		if z.vide() {
 			continue
 		}
-		gauche := x + (place+1)*(cote+h.Margin())
-		h.Slot(sc, gauche, y, contenuEmplacement, touchesLourdes[place])
-
-		bord := (cote - contenuEmplacement) / 2
-		if tenue.Icon.Width != 0 {
-			h.Sprite(sc, tenue.Icon, gauche+bord, y+bord)
-		}
-		h.compteDansLaCase(sc, gauche+h.Border()+1, y+cote-h.Border(), tenue.Charges)
+		h.garnir(sc, z, touchesLourdes[place], tenue)
 	}
+}
+
+// garnir pose une case tenue : son cadre, sa touche, son icône et son compte.
+//
+// **Une seule fonction pour les armes et pour les fioles**, parce que la case
+// dit la même chose des deux — ce qu'elle tient, et combien. Ce qui les sépare
+// est la touche, qui boit d'un côté et déclenche de l'autre, et c'est le seul
+// paramètre qui les distingue ici.
+func (h *HUD) garnir(sc *scene.Scene, z zone, touche string, tenue Held) {
+	h.Slot(sc, z.x, z.y, contenuEmplacement, touche)
+
+	bord := (z.largeur - contenuEmplacement) / 2
+	if tenue.Icon.Width != 0 {
+		h.Sprite(sc, tenue.Icon, z.x+bord, z.y+bord)
+	}
+	h.compteDansLaCase(sc, z.x+h.Border()+1, z.y+z.hauteur-h.Border(), tenue.Charges)
 }
 
 // compteDansLaCase pose ce qu'un emplacement tient, au coin bas gauche de son
@@ -324,8 +341,8 @@ func (h *HUD) compteDansLaCase(sc *scene.Scene, x, bas, tenu int) {
 // La touche s'écrit dessous et non le nom, comme la conception l'exige d'un
 // emplacement : ce que le joueur cherche sous la case en jouant est ce qu'il doit
 // presser, et l'icône dira de quoi il s'agit quand elle existera.
-func (h *HUD) emplacement(sc *scene.Scene, x, y int, chargee bool) {
-	cote := h.Slot(sc, x, y, contenuEmplacement, toucheAimant)
+func (h *HUD) emplacement(sc *scene.Scene, z zone, chargee bool) {
+	h.Slot(sc, z.x, z.y, contenuEmplacement, toucheAimant)
 	if !chargee {
 		return
 	}
@@ -341,8 +358,8 @@ func (h *HUD) emplacement(sc *scene.Scene, x, y int, chargee bool) {
 	// pixels comme ceux des armes, et il vient du générateur. Jusque-là cette
 	// teinte est une seconde description de la couleur du sprite, tenue à la
 	// main, et c'est ce que la ligne suivante coûte.
-	bord := (cote - contenuEmplacement) / 2
-	h.Rect(sc, x+bord, y+bord, contenuEmplacement, contenuEmplacement, teinteAimant)
+	bord := (z.largeur - contenuEmplacement) / 2
+	h.Rect(sc, z.x+bord, z.y+bord, contenuEmplacement, contenuEmplacement, teinteAimant)
 }
 
 // libelle pose un texte du bandeau, aligné sur la jauge qu'il commente.
@@ -389,7 +406,12 @@ func (s *Screen) poserBandeau() {
 	if s.hud == nil {
 		return
 	}
-	s.hud.Panel(s.scene, Readings{
+	s.hud.Panel(s.scene, s.lectures(), s.souris)
+}
+
+// lectures rassemble ce que le bandeau montre de la partie en cours.
+func (s *Screen) lectures() Readings {
+	return Readings{
 		Health:     s.monde.Health(),
 		MaxHealth:  s.monde.MaxHealth(),
 		Level:      s.monde.Level(),
@@ -404,7 +426,7 @@ func (s *Screen) poserBandeau() {
 		},
 		Mark:      s.marque(),
 		Objective: s.objectif(),
-	})
+	}
 }
 
 // objectif met en forme l'avancement vers la porte, vide sans sortie.
@@ -434,8 +456,74 @@ func (s *Screen) objectif() string {
 // c'est ce qui a laissé le bandeau se démentir : le calcul restait juste, mais il
 // s'appliquait à un contenu qui n'était plus celui des cases posées.
 func hauteurBandeau(h *HUD) int {
-	haut := margeEcran + 2*h.Font.Height() + h.Margin()
-	return haut + h.SlotSide(contenuEmplacement) + h.Font.Height() + h.Margin()
+	return hautDesCases(h) + h.SlotSide(contenuEmplacement) + h.Font.Height() + h.Margin()
+}
+
+// hautDesCases rend l'ordonnée de la rangée de cases, comptée depuis le haut du
+// bandeau : la marge d'écran, les deux jauges et leur interligne.
+//
+// **Elle est extraite parce que trois choses en dépendent** — la hauteur du
+// bandeau, la pose des cases et le rectangle qu'un clic atteint. Écrite trois
+// fois, elle se démentirait à la première jauge ajoutée, et c'est le clic qui
+// tomberait à côté sans que rien ne le dise.
+func hautDesCases(h *HUD) int {
+	return margeEcran + 2*h.Font.Height() + h.Margin()
+}
+
+// Les cases du bandeau, dans l'ordre où elles se posent et où leurs chiffres se
+// suivent. Les emplacements d'armes lourdes occupent les places intermédiaires.
+const (
+	caseAimant    = 0
+	caseFiole     = game.Slots + 1
+	nombreDeCases = game.Slots + 2
+)
+
+// casesDuBandeau rend le rectangle de chaque case, vide pour celles que la
+// partie ne montre pas.
+//
+// **Une seule formule pour la pose et pour le clic.** Les quatre cases sont une
+// rangée à pas constant : le côté d'une case plus la marge, depuis le bord
+// gauche de l'aire. Les calculer une seconde fois pour savoir ce qu'un clic
+// touche serait la seconde description que `docs/go.md` proscrit — juste le
+// jour où on l'écrit, fausse à la première marge changée.
+//
+// **Une case vide n'a pas de rectangle**, et c'est ce qui fait qu'un clic ne
+// déclenche rien là où il n'y a rien : un emplacement d'arme épuisé disparaît,
+// donc il ne se clique pas, exactement comme sa touche ne fait rien.
+func (h *HUD) casesDuBandeau(sc *scene.Scene, r Readings) [nombreDeCases]zone {
+	ax, ay, _, _ := aireDans(sc)
+	gauche := ax + margeEcran
+	haut := ay - hauteurBandeau(h) + hautDesCases(h)
+	cote := h.SlotSide(contenuEmplacement)
+
+	var cases [nombreDeCases]zone
+	for i := range cases {
+		if !caseMontree(i, r) {
+			continue
+		}
+		cases[i] = zone{
+			x: gauche + i*(cote+h.Margin()), y: haut,
+			largeur: cote, hauteur: cote,
+		}
+	}
+	return cases
+}
+
+// caseMontree dit si une case est à l'écran, donc cliquable.
+//
+// L'aimant garde la sienne vide ou pleine — sa période la ramène, et une case
+// vide est ce qui le fait chercher dans la salle. Les armes lourdes et les
+// fioles n'existent que tenues, la conception voulant qu'à l'épuisement
+// l'interface disparaisse sans message.
+func caseMontree(i int, r Readings) bool {
+	switch i {
+	case caseAimant:
+		return true
+	case caseFiole:
+		return r.Vials.Charges > 0
+	default:
+		return r.Heavies[i-1].Charges > 0
+	}
 }
 
 // Inset rend la bande que l'interface réserve autour du jeu, pour que le moteur

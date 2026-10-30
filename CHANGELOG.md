@@ -70,6 +70,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Le jeu est publié pour Linux**, en amd64 et en arm64. Les binaires sont
   statiques : rien à installer à côté, et aucune version minimale de glibc à
   respecter.
+- **La souris déclenche ce que les touches déclenchent.** Un clic sur une case
+  du bandeau fait ce que fait son chiffre, et un clic sur une carte de montée de
+  niveau la prend. Les cases et les cartes se signalent sous le curseur, et
+  toutes les touches continuent de fonctionner.
 
 ### Modifié
 
@@ -125,6 +129,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
   through a melee where they share the scenery's greys.
 - **The game is published for Linux**, on amd64 and arm64. The binaries are
   static: nothing to install alongside, and no minimum glibc version to meet.
+- **The mouse triggers whatever the keys trigger.** Clicking a bar slot does
+  what its number does, and clicking a level-up card takes it. Slots and cards
+  highlight under the cursor, and every key keeps working.
 
 ### Changed
 

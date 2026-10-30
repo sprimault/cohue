@@ -116,6 +116,12 @@ REGLAGES = {
         "texte_attenue": [150, 154, 162, 255],
         "texte_valeur": [236, 196, 96, 255],
         "texte_contour": [0, 0, 0, 255],
+        # Le bord d'une case ou d'une carte que la souris désigne, sans l'avoir
+        # encore prise. Un blanc froid plutôt que l'ambre de `cadre_choisi` :
+        # les deux se voient en même temps sur le panneau de cartes, et le
+        # survol doit rester le plus discret des deux — il dit « ceci est sous
+        # le curseur », pas « ceci est votre choix ».
+        "survol": [214, 220, 232, 255],
     },
 }
 

@@ -152,17 +152,19 @@ cover:
 	go test -coverprofile=$(SORTIE)/couverture.out ./...
 	go tool cover -html=$(SORTIE)/couverture.out
 
-# Une seule cible paramétrée, pas cinq recettes : la matrice complète vit dans
-# le workflow, qui est le seul endroit où elle peut être exécutée. En local on
-# ne produit que ce qui se croise sans compilateur C — Windows et wasm.
+# Une seule cible paramétrée, pas quatre recettes : la matrice complète vit dans
+# le workflow, qui est le seul endroit où elle est tracée et attestée. Tout se
+# croise en local depuis n'importe quel système, le moteur n'ayant aucune
+# dépendance système.
 binary:
 	CGO_ENABLED=$(CGO) GOOS=$(OS) GOARCH=$(ARCH) go build -trimpath \
 	  -ldflags "$(LDFLAGS)" -o dist/$(BINAIRE)_$(OS)_$(ARCH)$(EXT) ./cmd/cohue
 
 binaries:
 	$(MAKE) binary OS=windows ARCH=amd64 CGO=0 EXT=.exe
+	$(MAKE) binary OS=linux ARCH=amd64 CGO=0
+	$(MAKE) binary OS=linux ARCH=arm64 CGO=0
 	$(MAKE) binary OS=js ARCH=wasm CGO=0
-	@echo "Les cibles linux et darwin exigent une compilation native : voir release.yml"
 
 clean:
 	rm -rf $(SORTIE) dist

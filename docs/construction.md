@@ -18,7 +18,7 @@ make entetes    # la mention de licence, sur ce que git publie
 make sommaire   # le sommaire par question de docs/go.md
 make notices    # THIRD-PARTY-NOTICES contre ce que les cibles publiées lient
 make cover
-make binaries   # windows et wasm, dans dist/
+make binaries   # windows, les deux linux et wasm, dans dist/
 make tools      # installe golangci-lint, govulncheck, gosec
 ```
 
@@ -169,30 +169,29 @@ sa règle étant de tenir dès l'introduction de la ressource.
 
 ## Les cibles publiées
 
-Ebitengine ne se compile en croisé que vers Windows et WebAssembly ; Linux et
-macOS exigent du natif. D'où la matrice multi-runners de `release.yml`.
+**Trois archives : Windows amd64, Linux amd64, Linux arm64.** Le moteur n'a
+aucune dépendance système — il écrit lui-même ce qu'il faut de Win32 et de
+X11 —, donc `CGO_ENABLED=0` sur toutes les lignes et tout se croise depuis un
+seul runner. Les binaires sont statiques : **il n'y a pas de plancher de glibc à
+tenir**, donc pas d'image à épingler ni de version de runner à surveiller.
 
-`js/wasm` se compile mais ne se publie pas : l'archive serait inutilisable seule.
-La cible reste dans la matrice parce qu'elle est ce qui empêche une dépendance
-d'introduire du cgo sans qu'on le voie.
+`js/wasm` se compile mais ne se publie pas : l'archive serait inutilisable seule,
+faute de `wasm_exec.js` et d'une page HTML. La cible reste dans la matrice pour
+la portabilité de la chaîne et parce qu'elle prépare le jalon 5 du moteur, le
+canvas du navigateur.
 
-**Les deux cibles Linux sont épinglées sur une image nommée**, jamais
-`ubuntu-latest`. Le binaire y est lié à la glibc, faute de construction
-statique : **la version du runner est donc le plancher exigé chez le joueur**, et
-une image qui migre le relève sans prévenir — l'exécutable cesse de démarrer sur
-les distributions un peu anciennes, ce qu'on apprend par un rapport de joueur.
+**macOS n'est pas publié, et c'est le moteur qui le décide.** Il compile pour
+darwin et rend une erreur à l'ouverture de la fenêtre, son backend n'étant pas
+écrit ; macOS, iOS et Android natifs sont hors de son périmètre, et c'est le
+navigateur qui les couvrira. Une archive qui ne démarre pas serait pire que pas
+d'archive : annoncer une plateforme sur la seule foi d'une compilation est
+exactement ce qu'il faut éviter. La cible a donc quitté la matrice de
+compilation comme celle des tests — un contrôle vert sur ce qu'on ne livre pas
+ne protège personne et peut bloquer une version.
 
-Le choix est asymétrique, et c'est ce qui le tranche : compiler sur une glibc
-ancienne ne coûte rien, le binaire tournant aussi sur les systèmes récents, quand
-compiler sur une récente exclut les anciens. Le jeu n'emploie aucune API système
-nouvelle, donc la dernière image n'apporte rien. Ceux qu'elle écarterait sont les
-distributions au long support, c'est-à-dire le public qui ne s'occupe pas de son
-système.
-
-Ce que l'épinglage coûte : une image finit par être retirée, et ce jour-là le job
-échoue franchement. C'est préférable à un binaire qui cesse silencieusement de
-démarrer. La même règle vaut déjà pour `macos-15-intel`, dernière image x86_64
-des runners, dont la ligne porte sa date de péremption.
+Les BSD sont dans le même cas sans être un refus : ils parlent le même protocole
+X11, mais aucune machine ne permet de le vérifier, et c'est la vérification qui
+manque, pas le code.
 
 ## Les assets dans le binaire
 

@@ -96,11 +96,6 @@ jobs:
           go-version-file: go.mod
           check-latest: true
 
-      # Ebitengine se lie aux bibliothèques système sur Linux : sans leurs
-      # en-têtes, la compilation échoue sur `X11/Xlib.h` bien avant le code du
-      # jeu. L'action ne fait rien sur les autres systèmes.
-      - uses: ./.github/actions/dependances-ebitengine
-
       - name: Format
         run: make fmt
 
@@ -152,11 +147,6 @@ jobs:
           go-version-file: go.mod
           check-latest: true
 
-      # Ebitengine se lie aux bibliothèques système sur Linux : sans leurs
-      # en-têtes, la compilation échoue sur `X11/Xlib.h` bien avant le code du
-      # jeu. L'action ne fait rien sur les autres systèmes.
-      - uses: ./.github/actions/dependances-ebitengine
-
       # make tools et non des go install réécrits ici : les versions sont
       # épinglées dans le Makefile, et deux définitions divergeraient. Il
       # installe aussi golangci-lint, inutile à ce job — quelques secondes
@@ -172,24 +162,27 @@ jobs:
 
   # Ce que le poste de développement ne peut pas vérifier : que le code se
   # construit encore pour les cibles de la matrice. Sans ce job, une rupture de
-  # compilation sur macOS ou arm64 n'apparaîtrait qu'au moment de publier.
+  # compilation sur arm64 ou sur wasm n'apparaîtrait qu'au moment de publier.
+  #
+  # **macOS n'y est plus.** Le moteur compile pour lui et rend une erreur à
+  # l'ouverture de la fenêtre, son backend n'étant pas écrit ; compiler une
+  # cible qu'on ne publie pas et qui ne démarre pas ne prouve rien, et `js/wasm`
+  # garde la portabilité de la chaîne bien mieux.
   cibles:
     name: Compilation ${{ matrix.os }}/${{ matrix.arch }}
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { os: windows, arch: amd64, cgo: 0, runner: ubuntu-latest }
-          - { os: js, arch: wasm, cgo: 0, runner: ubuntu-latest }
-          # Les deux cibles Linux prennent l'image que la publication emploie :
-          # une compilation qui ne se fait pas sur le même système que la release
-          # ne vérifie plus ce qui sera publié, et c'est là que la glibc décide.
-          # Les cibles sans cgo n'en dépendent pas et restent sur `latest`.
-          - { os: linux, arch: amd64, cgo: 1, runner: ubuntu-24.04 }
-          - { os: linux, arch: arm64, cgo: 1, runner: ubuntu-24.04-arm }
-          - { os: darwin, arch: arm64, cgo: 1, runner: macos-latest }
-          - { os: darwin, arch: amd64, cgo: 1, runner: macos-15-intel }
+          # Un seul runner pour toute la matrice : le moteur n'a aucune
+          # dépendance système, donc `CGO_ENABLED=0` partout et tout se croise
+          # depuis Linux. Les lignes restent séparées pour que chaque cible
+          # porte son nom dans la liste des contrôles.
+          - { os: windows, arch: amd64 }
+          - { os: js, arch: wasm }
+          - { os: linux, arch: amd64 }
+          - { os: linux, arch: arm64 }
     steps:
       - uses: actions/checkout@v7
 
@@ -198,17 +191,9 @@ jobs:
           go-version-file: go.mod
           check-latest: true
 
-      # Ebitengine se lie aux bibliothèques système sur Linux : sans leurs
-      # en-têtes, la compilation échoue sur `X11/Xlib.h` bien avant le code du
-      # jeu. L'action ne regarde que le système du runner, or deux cibles de
-      # cette matrice compilent en croisé depuis Linux sans cgo : elles ne lient
-      # rien de natif et n'ont donc rien à installer.
-      - uses: ./.github/actions/dependances-ebitengine
-        if: matrix.cgo == 1
-
       - name: Construction
         env:
-          CGO_ENABLED: ${{ matrix.cgo }}
+          CGO_ENABLED: "0"
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
         run: go build -trimpath ./cmd/cohue
@@ -219,9 +204,9 @@ jobs:
   # rejoué sur chaque cible.
   #
   # Linux/amd64 est absent de la matrice parce que le job Contrôles est déjà
-  # dessus, et darwin/amd64 aussi : même système que darwin/arm64, pour du code
-  # sans flottant ni dépendance à la taille d'un mot, il ne prouverait rien de
-  # plus qu'un quatrième runner à faire tourner.
+  # dessus. **macOS en est sorti avec les cibles publiées** : le déterminisme se
+  # vérifie sur ce qu'on livre, et une cible qu'on ne livre pas ne peut que
+  # bloquer une version sans protéger personne.
   natifs:
     name: Tests ${{ matrix.os }}/${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
@@ -230,7 +215,6 @@ jobs:
       matrix:
         include:
           - { os: windows, arch: amd64, runner: windows-latest }
-          - { os: darwin, arch: arm64, runner: macos-latest }
           - { os: linux, arch: arm64, runner: ubuntu-24.04-arm }
     steps:
       - uses: actions/checkout@v7
@@ -239,11 +223,6 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
-
-      # Ebitengine se lie aux bibliothèques système sur Linux : sans leurs
-      # en-têtes, la compilation échoue sur `X11/Xlib.h` bien avant le code du
-      # jeu. L'action ne fait rien sur les autres systèmes.
-      - uses: ./.github/actions/dependances-ebitengine
 
       # Toute la suite et pas seulement le noyau : l'extraction du contenu livré
       # écrit sur disque, et les séparateurs de chemin sont le genre de chose qui

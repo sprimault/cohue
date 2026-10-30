@@ -67,6 +67,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
   fenêtre plus grande montre un peu plus du lieu.
 - **Le personnage porte un liseré permanent**, qui permet de le suivre dans une
   mêlée où il partage les gris du décor.
+- **Le jeu est publié pour Linux**, en amd64 et en arm64. Les binaires sont
+  statiques : rien à installer à côté, et aucune version minimale de glibc à
+  respecter.
 
 ### Modifié
 
@@ -80,6 +83,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
   pièces ont été écrites ne décide plus de rien.
 - **Le bandeau ne recouvre plus le jeu.** Il occupe une bande au-dessus de
   l'aire de jeu, de hauteur constante quelle que soit la fenêtre.
+
+### Retiré
+
+- **macOS n'est plus publié.** Le moteur de rendu n'a pas de fenêtre pour cette
+  famille de systèmes : le binaire se construit et ne démarre pas. Une archive
+  qui ne s'ouvre pas vaut moins que pas d'archive du tout, et c'est le mode
+  navigateur qui les couvrira.
 
 ### Corrigé
 
@@ -113,6 +123,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
   a little more of the level.
 - **The character now carries a permanent outline**, so you can follow them
   through a melee where they share the scenery's greys.
+- **The game is published for Linux**, on amd64 and arm64. The binaries are
+  static: nothing to install alongside, and no minimum glibc version to meet.
 
 ### Changed
 
@@ -125,6 +137,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
   nothing.
 - **The bar no longer covers the game.** It sits in a band above the play area,
   of constant height whatever the window size.
+
+### Removed
+
+- **macOS is no longer published.** The rendering engine has no window for that
+  family of systems: the binary builds and does not start. An archive that will
+  not open is worth less than no archive at all, and the browser mode is what
+  will cover them.
 
 ### Fixed
 

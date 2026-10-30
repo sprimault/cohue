@@ -10,6 +10,8 @@ import (
 	"fmt"
 
 	"github.com/sprimault/lozengine/input"
+
+	"github.com/sprimault/cohue/internal/game"
 )
 
 // validation est la touche qui prend la carte désignée.
@@ -71,6 +73,38 @@ func (s *Screen) choisir(in Input) {
 	if pressee(in, validation...) {
 		s.monde.Choose(s.carteChoisie)
 		s.carteChoisie = 0
+		return
+	}
+
+	s.clicSurUneCarte(in)
+}
+
+// clicSurUneCarte prend la carte qu'on désigne du doigt, sans confirmation.
+//
+// **Le clic décide seul, là où la flèche désigne et Entrée valide**, et ce n'est
+// pas une incohérence : la flèche a été séparée de la prise parce qu'elle sert
+// aussi à courir, si bien qu'un panneau qui s'ouvre sous des doigts déjà posés
+// prenait une carte avant qu'on l'ait lue. Un clic ne souffre pas de ce
+// voisinage — on ne clique pas une carte par inadvertance —, et une carte mal
+// choisie se rattrape au niveau suivant.
+//
+// **La désignation suit le clic** avant de repartir à zéro : si le choix ouvre
+// autre chose plus tard, c'est la carte prise que la surbrillance doit avoir
+// montrée, et non celle que les flèches avaient laissée.
+func (s *Screen) clicSurUneCarte(in Input) {
+	if s.hud == nil || !in.ButtonJustPressed(input.ButtonLeft) {
+		return
+	}
+
+	_, zones := s.dispositionDesCartes(s.monde.Pending())
+	for rang, z := range zones {
+		if !s.souris.survole(z) {
+			continue
+		}
+		s.carteChoisie = rang
+		s.monde.Choose(rang)
+		s.carteChoisie = 0
+		return
 	}
 }
 
@@ -96,16 +130,11 @@ func (s *Screen) poserCartes() {
 
 	h := s.hud
 	marge, ligne := h.Margin(), h.Font.Height()
-	hauteurCarte := 3*(ligne+interligne) + 2*(marge+h.Border())
+	panneau, zones := s.dispositionDesCartes(cartes)
 
-	// Le titre, puis les cartes, chacun avec sa marge. Rien sous les cartes
-	// depuis que l'instruction est passée dans le titre.
 	// Le panneau se pose contre le bas de l'aire de jeu, pas contre le bas de la
 	// surface : il forme un bloc avec elle, comme le bandeau au-dessus.
-	ax, ay, alargeur, ahauteur := aireDans(s.scene)
-	panneau := 2*marge + ligne + marge + hauteurCarte + marge
-	haut := ay + ahauteur - panneau
-	h.Band(s.scene, ax, haut, alargeur, panneau)
+	h.Band(s.scene, panneau.x, panneau.y, panneau.largeur, panneau.hauteur)
 
 	// **L'instruction est dans le titre, pas sous les cartes.** La règle qui veut
 	// qu'un libellé porte sa touche vise ce qu'on lit *en jouant*, donc sous
@@ -113,10 +142,64 @@ func (s *Screen) poserCartes() {
 	// n'est pas dans ce régime, et il a un titre où l'écrire une fois pour les
 	// trois. Elle est utile ici parce que rien sur les cartes ne dit qu'on choisit
 	// au clavier.
-	titre := fmt.Sprintf("Niveau %d %c les flèches désignent, Entrée valide",
+	titre := fmt.Sprintf("Niveau %d %c les flèches désignent, Entrée ou un clic valide",
 		s.monde.Level(), '—')
-	h.Font.Draw(s.scene, titre, ax+(alargeur-h.Font.Advance(titre))/2, haut+marge,
+	h.Font.Draw(s.scene, titre,
+		panneau.x+(panneau.largeur-h.Font.Advance(titre))/2, panneau.y+marge,
 		h.Color("texte"))
+
+	for rang, z := range zones {
+		c := cartes[rang]
+		h.Frame(s.scene, z.x, z.y, z.largeur, z.hauteur)
+
+		// Le survol d'abord, la désignation par-dessus : c'est elle qui décide,
+		// et une carte à la fois désignée et survolée doit se lire comme
+		// désignée.
+		if s.souris.survole(z) {
+			h.Outline(s.scene, z.x, z.y, z.largeur, z.hauteur, h.Color("survol"))
+		}
+		if rang == s.carteChoisie {
+			// Le bord, et non un fond : le fond d'un cadre laisse deviner la
+			// horde qui approche, et l'assombrir pour désigner une carte
+			// retirerait au joueur ce qu'il doit lire pendant qu'il choisit.
+			h.Outline(s.scene, z.x, z.y, z.largeur, z.hauteur, h.Color("cadre_choisi"))
+		}
+
+		texte, courante := z.x+marge+h.Border(), z.y+marge+h.Border()
+		h.Font.Draw(s.scene, c.Name, texte, courante, h.Color("texte"))
+		h.Font.Draw(s.scene, c.Effect, texte, courante+ligne+interligne,
+			h.Color("texte_valeur"))
+		h.Font.Draw(s.scene, c.Phrase, texte, courante+2*(ligne+interligne),
+			h.Color("texte_attenue"))
+	}
+}
+
+// dispositionDesCartes rend le rectangle du panneau et celui de chaque carte.
+//
+// **Une seule formule pour la pose et pour le clic**, comme pour les cases du
+// bandeau : les recalculer ailleurs serait la seconde description que
+// `docs/go.md` proscrit, et c'est le clic qui tomberait à côté le jour où la
+// marge change. Le panneau en fait partie parce que le titre s'y centre : le
+// séparer ferait deux fonctions qui recalculent la même ordonnée.
+//
+// **Toutes les cartes ont la largeur de la plus longue ligne de l'ensemble**, et
+// non chacune la sienne : trois largeurs différentes se liraient comme trois
+// importances différentes, alors que le choix est entre égaux. C'est aussi ce
+// qui rend la rangée régulière, donc exprimable en un pas constant.
+//
+// **Elle alloue une tranche par ouverture de panneau**, ce que le budget admet :
+// le choix met le jeu en pause, donc on n'est pas dans la boucle de mise à jour.
+func (s *Screen) dispositionDesCartes(cartes []game.Card) (panneau zone, zones []zone) {
+	h := s.hud
+	marge, ligne := h.Margin(), h.Font.Height()
+	hauteurCarte := 3*(ligne+interligne) + 2*(marge+h.Border())
+
+	ax, ay, alargeur, ahauteur := aireDans(s.scene)
+	hauteurPanneau := 2*marge + ligne + marge + hauteurCarte + marge
+	panneau = zone{
+		x: ax, y: ay + ahauteur - hauteurPanneau,
+		largeur: alargeur, hauteur: hauteurPanneau,
+	}
 
 	largeur := 0
 	for _, c := range cartes {
@@ -127,23 +210,14 @@ func (s *Screen) poserCartes() {
 	largeur += 2 * (marge + h.Border())
 
 	x := ax + (alargeur-len(cartes)*largeur-(len(cartes)-1)*marge)/2
-	y := haut + 2*marge + ligne
-	for rang, c := range cartes {
-		h.Frame(s.scene, x, y, largeur, hauteurCarte)
-		if rang == s.carteChoisie {
-			// Le bord, et non un fond : le fond d'un cadre laisse deviner la
-			// horde qui approche, et l'assombrir pour désigner une carte
-			// retirerait au joueur ce qu'il doit lire pendant qu'il choisit.
-			h.Outline(s.scene, x, y, largeur, hauteurCarte, h.Color("cadre_choisi"))
+	y := panneau.y + 2*marge + ligne
+
+	zones = make([]zone, len(cartes))
+	for rang := range zones {
+		zones[rang] = zone{
+			x: x + rang*(largeur+marge), y: y,
+			largeur: largeur, hauteur: hauteurCarte,
 		}
-
-		texte, courante := x+marge+h.Border(), y+marge+h.Border()
-		h.Font.Draw(s.scene, c.Name, texte, courante, h.Color("texte"))
-		h.Font.Draw(s.scene, c.Effect, texte, courante+ligne+interligne,
-			h.Color("texte_valeur"))
-		h.Font.Draw(s.scene, c.Phrase, texte, courante+2*(ligne+interligne),
-			h.Color("texte_attenue"))
-
-		x += largeur + marge
 	}
+	return panneau, zones
 }

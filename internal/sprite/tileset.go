@@ -15,6 +15,7 @@ import (
 	"slices"
 
 	"github.com/sprimault/lozengine/raster"
+	"github.com/sprimault/lozengine/scene"
 
 	"github.com/sprimault/cohue/internal/level"
 	"github.com/sprimault/cohue/internal/manifest"
@@ -22,14 +23,14 @@ import (
 
 // Tile est une forme du décor, prête à être posée.
 type Tile struct {
-	// Pose est le dessin de la forme et l'ancre qui le place autour du point de
+	// Aspect est le dessin de la forme et l'ancre qui le place autour du point de
 	// sa case.
 	//
 	// L'ancre est calculée ici plutôt qu'au dessin parce que c'est de
 	// l'arithmétique de manifeste — un ancrage, une emprise, une taille de
 	// tuile — et que le rendu n'a aucun test pour la garder. Ce qui se pose sur
 	// l'écran vaut mieux d'être fixé là où un test peut l'épingler.
-	Pose Pose
+	Aspect scene.Aspect
 	// Elevation est la hauteur au-dessus du sol, en pixels. Zéro dit que la
 	// forme est un sol, donc qu'elle ne peut rien recouvrir.
 	Elevation int
@@ -94,7 +95,7 @@ func LoadTiles(fsys fs.FS, racine string, decor *level.Decor, atlas *raster.Atla
 			continue
 		}
 		jeu.tuiles[nom] = Tile{
-			Pose:         poses[0],
+			Aspect:       poses[0],
 			Elevation:    forme.Elevation,
 			Covers:       forme.Covering,
 			GroundHeight: hauteurSol(forme),

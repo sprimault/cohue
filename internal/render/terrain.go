@@ -16,22 +16,35 @@ import (
 	"github.com/sprimault/cohue/internal/sprite"
 )
 
-// Les étages où le décor se range.
+// Les étages où le monde se range.
 //
 // **L'étage remplace la passe préalable.** Le sol se peignait par rangées avant
 // tout le reste, parce qu'un tri par profondeur seule l'aurait fait disputer son
 // rang à ce qui marche dessus ; l'étage le range sous les vivants sans passe
 // séparée, et c'est le moteur qui ordonne.
 //
-// Deux valeurs et non trois : ce qui se marche est au sol, ce qui arrête ou
-// cache est au-dessus. Le critère reste celui du manifeste — `sprite.occulte`
-// porte l'arbitrage et son test —, c'est la passe qui part.
+// **L'étage passe avant la profondeur dans la clé de tri, et c'est ce qui décide
+// de leur emploi.** Deux choses d'étages différents ne se comparent jamais par
+// leur profondeur : la plus haute se peint après, où qu'elle soit dans le lieu.
+// Un étage sépare donc des plans qui ne se disputent rien — le sol, ce qui s'y
+// traîne, ce qui s'y tient debout — et **jamais deux choses qui doivent se
+// départager par leur position**.
+//
+// C'est l'erreur que ces constantes ont portée : le décor occultant était seul à
+// `etageDebout` et les entités restaient à zéro, si bien qu'un pilier **devant**
+// le joueur se peignait par-dessus lui et que le relevé de recouvrement le
+// comptait caché aux deux tiers alors qu'il passait simplement à côté. Tout ce
+// qui se tient sur le sol partage donc le même étage, décor et vivants
+// confondus.
 const (
 	// etageSol porte ce qu'on foule : sol, trottoir plat, marquages.
 	etageSol uint8 = 0
-	// etageDecor porte ce qui dispute sa profondeur à ce qui se tient au sol.
-	// Un cran est laissé libre en dessous pour ce qui se traîne — les épaves.
-	etageDecor uint8 = 2
+	// etageTraine porte ce qui gît sans arrêter personne — les épaves —, sous
+	// les vivants et au-dessus du sol.
+	etageTraine uint8 = 1
+	// etageDebout porte tout ce qui se dresse sur le sol et doit se départager
+	// par la profondeur : murs, mobilier, créatures, joueur, objets posés.
+	etageDebout uint8 = 2
 )
 
 // Terrain est le décor assemblé d'un lieu, résolu en aspects.
@@ -62,18 +75,6 @@ type forme struct {
 	// sur cette case — ce sur quoi un marquage au sol se pose. Elle vient du
 	// manifeste par `sprite`, qui porte l'arithmétique et le test.
 	hauteurSol int
-	// masque est la forme de l'image, ce qui décide si elle recouvre un
-	// personnage. Un mur remplit sa boîte, un pilier n'en occupe qu'une bande
-	// étroite.
-	masque *sprite.Mask
-	// cache dit que la forme dépasse la hauteur d'un personnage, donc qu'elle en
-	// dissimule un au lieu de simplement empiéter sur sa case.
-	//
-	// **Le manifeste le déclare et le rendu en décide**, ce que sa godoc annonce
-	// depuis l'étape 5 sans que rien ne le lise : le champ constate qu'une forme
-	// peut cacher, la silhouette est la réponse qu'on y apporte. Vingt-sept
-	// formes le portent, aucune sous vingt-cinq pixels d'élévation.
-	cache bool
 }
 
 // NewTerrain résout la carte assemblée d'un lieu en aspects posables.
@@ -115,17 +116,15 @@ func resoudre(tuiles *sprite.Tileset, nom string) (forme, error) {
 		return forme{}, fmt.Errorf("decor : la forme %q du lieu n'est pas au catalogue", nom)
 	}
 
-	aspect := tuile.Pose.Aspect
+	aspect := tuile.Aspect
 	aspect.Floor = etageSol
 	if tuile.Occludes {
-		aspect.Floor = etageDecor
+		aspect.Floor = etageDebout
 	}
 	return forme{
 		aspect:     centrerSurLaCase(aspect, tuiles.TileSize()),
 		nue:        !tuile.Covers,
 		hauteurSol: tuile.GroundHeight,
-		masque:     tuile.Pose.Mask,
-		cache:      tuile.Masking,
 	}, nil
 }
 

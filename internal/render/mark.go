@@ -11,7 +11,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sprimault/lozengine/input"
 
 	"github.com/sprimault/cohue/internal/game"
 )
@@ -22,7 +22,7 @@ import (
 // et relance après la mort, deux états où `Update` a rendu la main plus haut :
 // les trois usages ne se rencontrent jamais dans le même tick. Le geste doit se
 // faire sans regarder le clavier, ce qu'aucune touche de bord ne permet.
-var repere = []ebiten.Key{ebiten.KeySpace}
+var repere = []input.Key{input.KeySpace}
 
 // dureeRepere est le temps que l'accusé reste à l'écran.
 //

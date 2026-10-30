@@ -51,17 +51,29 @@ type camera struct {
 // nouvelleCamera monte la caméra sur une scène et l'étendue d'un lieu.
 //
 // Les bornes sortent de la projection des quatre sommets plutôt que de formules
-// récrites ici : le sommet nord donne le haut, l'ouest la gauche, l'est la
-// droite, et le sud le bas.
+// récrites ici. **Et elles s'en sortent par un minimum et un maximum, sans dire
+// quel sommet tombe où** : la matrice décide du sens de l'axe des abscisses, et
+// nommer le sommet qui donne la gauche est une seconde description d'elle. Celle
+// qui était écrite ici disait l'inverse de ce que `Dimetric` rend, si bien que
+// l'intervalle admissible était vide sur toute sa largeur : chaque vue retombait
+// sur la branche du lieu trop étroit, se centrait en abscisse, et le joueur
+// sortait du champ dès qu'il s'éloignait de la diagonale.
 func nouvelleCamera(sc *scene.Scene, carte *game.CostGrid) *camera {
 	largeur, hauteur := float64(carte.Width()), float64(carte.Height())
 
-	_, minY := pixelDe(sc, 0, 0)
-	minX, _ := pixelDe(sc, 0, hauteur)
-	maxX, _ := pixelDe(sc, largeur, 0)
-	_, maxY := pixelDe(sc, largeur, hauteur)
-
-	return &camera{scene: sc, minX: minX, minY: minY, maxX: maxX, maxY: maxY}
+	c := &camera{
+		scene: sc,
+		minX:  math.Inf(1), minY: math.Inf(1),
+		maxX: math.Inf(-1), maxY: math.Inf(-1),
+	}
+	for _, sommet := range [4][2]float64{
+		{0, 0}, {largeur, 0}, {0, hauteur}, {largeur, hauteur},
+	} {
+		x, y := pixelDe(sc, sommet[0], sommet[1])
+		c.minX, c.maxX = math.Min(c.minX, x), math.Max(c.maxX, x)
+		c.minY, c.maxY = math.Min(c.minY, y), math.Max(c.maxY, y)
+	}
+	return c
 }
 
 // suivre recentre la vue sur un point du monde, borné à ce que le lieu montre.
@@ -69,13 +81,23 @@ func nouvelleCamera(sc *scene.Scene, carte *game.CostGrid) *camera {
 // Le point revient au monde avant d'être posé, parce que c'est la seule entrée
 // que la scène offre : le cadrage se décide en pixels, la vue se pose en
 // cellules.
+//
+// **La taille vient de la vue et non des constantes.** L'aire de monde est la
+// surface moins la bande du bandeau, et la surface suit la fenêtre : elle ne
+// vaut donc la résolution interne à aucun moment, et borner le cadrage sur
+// 960×540 laisserait la caméra dépasser le losange du lieu de la différence.
+// Elle se relit à chaque pas plutôt que d'être retenue, la boucle du moteur la
+// réimposant — les deux derniers paramètres de `Focus` sont inertes sous `Run`,
+// et seule la planche, qui tient sa propre boucle, les voit.
 func (c *camera) suivre(x, y game.Fixed) {
+	_, _, largeur, hauteur := c.scene.View()
+
 	ex, ey := pixelDe(c.scene, x.Float(), y.Float())
-	vise := cadrer(Width, ex, c.minX, c.maxX)
-	visey := cadrer(Height, ey, c.minY, c.maxY)
+	vise := cadrer(int(largeur), ex, c.minX, c.maxX)
+	visey := cadrer(int(hauteur), ey, c.minY, c.maxY)
 
 	mx, my := c.scene.Projection().Unproject(arrondi32(vise), arrondi32(visey))
-	c.scene.Focus(mx, my, Width, Height)
+	c.scene.Focus(mx, my, largeur, hauteur)
 }
 
 // pixelDe rend le pixel absolu où tombe un point du monde, dans le plan du sol.
@@ -139,6 +161,3 @@ func arrondi32(pixels float64) int32 {
 	// clé de tri du moteur compte sur trente-deux bits
 	return int32(math.Round(pixels))
 }
-
-// arrondi ramène un pixel flottant au plus proche pixel entier.
-func arrondi(pixels float64) int { return int(math.Round(pixels)) }

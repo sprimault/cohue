@@ -9,7 +9,7 @@ package render
 import (
 	"fmt"
 
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sprimault/lozengine/input"
 )
 
 // validation est la touche qui prend la carte désignée.
@@ -31,9 +31,9 @@ import (
 // et chercher est la première des frictions que le chapitre 2 compte à la
 // relance.
 //
-// Entrée du pavé numérique en fait partie : `ebiten.Key` désigne une place, et
-// ce sont bien deux places différentes pour un même geste.
-var validation = []ebiten.Key{ebiten.KeyEnter, ebiten.KeyNumpadEnter, ebiten.KeySpace}
+// Entrée du pavé numérique en fait partie : une `input.Key` désigne une place
+// sur le clavier, et ce sont bien deux places différentes pour un même geste.
+var validation = []input.Key{input.KeyEnter, input.KeyNumpadEnter, input.KeySpace}
 
 // interligne est l'écart entre deux lignes d'une carte, en pixels.
 //
@@ -61,14 +61,14 @@ func (s *Screen) choisir(in Input) {
 		return
 	}
 
-	if in.JustPressed(ebiten.KeyArrowLeft) && s.carteChoisie > 0 {
+	if in.JustPressed(input.KeyLeft) && s.carteChoisie > 0 {
 		s.carteChoisie--
 	}
-	if in.JustPressed(ebiten.KeyArrowRight) && s.carteChoisie < dernier {
+	if in.JustPressed(input.KeyRight) && s.carteChoisie < dernier {
 		s.carteChoisie++
 	}
 
-	if in.JustPressed(validation...) {
+	if pressee(in, validation...) {
 		s.monde.Choose(s.carteChoisie)
 		s.carteChoisie = 0
 	}
@@ -85,7 +85,7 @@ func (s *Screen) choisir(in Input) {
 // Toutes les cartes ont la largeur de la plus longue ligne de l'ensemble, et non
 // chacune la sienne : trois largeurs différentes se liraient comme trois
 // importances différentes, alors que le choix est entre égaux.
-func (s *Screen) peindreCartes(ecran *ebiten.Image) {
+func (s *Screen) poserCartes() {
 	if s.hud == nil {
 		return
 	}
@@ -100,9 +100,12 @@ func (s *Screen) peindreCartes(ecran *ebiten.Image) {
 
 	// Le titre, puis les cartes, chacun avec sa marge. Rien sous les cartes
 	// depuis que l'instruction est passée dans le titre.
+	// Le panneau se pose contre le bas de l'aire de jeu, pas contre le bas de la
+	// surface : il forme un bloc avec elle, comme le bandeau au-dessus.
+	ax, ay, alargeur, ahauteur := aireDans(s.scene)
 	panneau := 2*marge + ligne + marge + hauteurCarte + marge
-	haut := Height - panneau
-	h.Band(ecran, haut, panneau)
+	haut := ay + ahauteur - panneau
+	h.Band(s.scene, ax, haut, alargeur, panneau)
 
 	// **L'instruction est dans le titre, pas sous les cartes.** La règle qui veut
 	// qu'un libellé porte sa touche vise ce qu'on lit *en jouant*, donc sous
@@ -112,7 +115,7 @@ func (s *Screen) peindreCartes(ecran *ebiten.Image) {
 	// au clavier.
 	titre := fmt.Sprintf("Niveau %d %c les flèches désignent, Entrée valide",
 		s.monde.Level(), '—')
-	h.Font.Draw(ecran, titre, (Width-h.Font.Advance(titre))/2, haut+marge,
+	h.Font.Draw(s.scene, titre, ax+(alargeur-h.Font.Advance(titre))/2, haut+marge,
 		h.Color("texte"))
 
 	largeur := 0
@@ -123,22 +126,22 @@ func (s *Screen) peindreCartes(ecran *ebiten.Image) {
 	}
 	largeur += 2 * (marge + h.Border())
 
-	x := (Width - len(cartes)*largeur - (len(cartes)-1)*marge) / 2
+	x := ax + (alargeur-len(cartes)*largeur-(len(cartes)-1)*marge)/2
 	y := haut + 2*marge + ligne
 	for rang, c := range cartes {
-		h.Frame(ecran, x, y, largeur, hauteurCarte)
+		h.Frame(s.scene, x, y, largeur, hauteurCarte)
 		if rang == s.carteChoisie {
 			// Le bord, et non un fond : le fond d'un cadre laisse deviner la
 			// horde qui approche, et l'assombrir pour désigner une carte
 			// retirerait au joueur ce qu'il doit lire pendant qu'il choisit.
-			h.Outline(ecran, x, y, largeur, hauteurCarte, h.Color("cadre_choisi"))
+			h.Outline(s.scene, x, y, largeur, hauteurCarte, h.Color("cadre_choisi"))
 		}
 
 		texte, courante := x+marge+h.Border(), y+marge+h.Border()
-		h.Font.Draw(ecran, c.Name, texte, courante, h.Color("texte"))
-		h.Font.Draw(ecran, c.Effect, texte, courante+ligne+interligne,
+		h.Font.Draw(s.scene, c.Name, texte, courante, h.Color("texte"))
+		h.Font.Draw(s.scene, c.Effect, texte, courante+ligne+interligne,
 			h.Color("texte_valeur"))
-		h.Font.Draw(ecran, c.Phrase, texte, courante+2*(ligne+interligne),
+		h.Font.Draw(s.scene, c.Phrase, texte, courante+2*(ligne+interligne),
 			h.Color("texte_attenue"))
 
 		x += largeur + marge

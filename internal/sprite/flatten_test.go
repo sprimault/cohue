@@ -7,11 +7,30 @@
 package sprite
 
 import (
+	"image"
 	"testing"
 
 	"github.com/sprimault/lozengine/raster"
 	"github.com/sprimault/lozengine/render"
 )
+
+// pave rend une planche transparente où les rectangles donnés sont opaques.
+func pave(largeur, hauteur uint16, pleins ...image.Rectangle) raster.Sheet {
+	p := raster.NewSheet(largeur, hauteur)
+	for _, plein := range pleins {
+		for y := plein.Min.Y; y < plein.Max.Y; y++ {
+			for x := plein.Min.X; x < plein.Max.X; x++ {
+				p.Pixels[y*int(largeur)+x] = render.Premultiply(200, 200, 200, 255)
+			}
+		}
+	}
+	return p
+}
+
+// pixel rend la couleur d'un pixel d'une planche.
+func pixel(p raster.Sheet, x, y int) render.Color {
+	return p.Pixels[y*int(p.Width)+x]
+}
 
 // dessinDEssai rend une planche dont la moitié gauche est opaque et colorée, la
 // droite transparente, avec un pixel à demi opaque au milieu.

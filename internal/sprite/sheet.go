@@ -37,9 +37,9 @@ type Sheet struct {
 	// à cette structure est une image et jamais une liste, et trois niveaux de
 	// map coûteraient à écrire ce qu'ils n'apportent pas à lire.
 	bandes map[string]planche
-	// poses sont les cases de chaque bande, relevées une fois au chargement.
+	// images sont les cases de chaque bande, relevées une fois au chargement.
 	// Elles dérivent des planches et ne peuvent donc pas en diverger.
-	poses map[string][]Pose
+	images map[string][]scene.Aspect
 	// formes et bords sont les dérivés d'une bande, absents tant que personne ne
 	// les a demandés par `Silhouette`.
 	formes map[string]planche
@@ -79,7 +79,7 @@ func Load(fsys fs.FS, racine string, figure game.Figure, atlas *raster.Atlas) (*
 		figure: figure,
 		ancre:  ancre,
 		bandes: map[string]planche{},
-		poses:  map[string][]Pose{},
+		images: map[string][]scene.Aspect{},
 	}
 	for _, cycle := range slices.Sorted(maps.Keys(figure.Cycles)) {
 		c := figure.Cycles[cycle]
@@ -94,7 +94,7 @@ func Load(fsys fs.FS, racine string, figure game.Figure, atlas *raster.Atlas) (*
 				}
 				k := cle(cycle, direction, variante)
 				feuille.bandes[k] = bande
-				feuille.poses[k] = bande.poses(ancre)
+				feuille.images[k] = bande.aspects(ancre)
 			}
 		}
 	}
@@ -131,7 +131,7 @@ func (s *Sheet) Silhouette(atlas *raster.Atlas) error {
 	return nil
 }
 
-// Pose rend une image d'un cycle, ou dit qu'elle n'existe pas.
+// Frame rend une image d'un cycle, ou dit qu'elle n'existe pas.
 //
 // **Le second retour n'est pas une précaution.** Tous les profils n'ont pas les
 // mêmes cycles — le Molosse n'a ni repos ni attaque —, si bien que demander un
@@ -139,10 +139,10 @@ func (s *Sheet) Silhouette(atlas *raster.Atlas) error {
 // C'est à l'appelant de choisir son repli, parce que lui seul sait par quoi
 // remplacer une pose qui n'existe pas. La valeur zéro d'un aspect ne dessinant
 // rien, la rendre seule le laisserait sans moyen de le savoir.
-func (s *Sheet) Pose(cycle, direction string, variante, image int) (Pose, bool) {
-	bande, ok := s.poses[cle(cycle, direction, variante)]
+func (s *Sheet) Frame(cycle, direction string, variante, image int) (scene.Aspect, bool) {
+	bande, ok := s.images[cle(cycle, direction, variante)]
 	if !ok || image < 0 || image >= len(bande) {
-		return Pose{}, false
+		return scene.Aspect{}, false
 	}
 	return bande[image], true
 }

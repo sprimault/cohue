@@ -23,8 +23,8 @@ import (
 
 // Prop est un objet prêt à poser : ses images et l'ancre qui les place.
 type Prop struct {
-	// Poses sont les images du cycle, une seule pour un objet immobile.
-	Poses []Pose
+	// Images sont les images du cycle, une seule pour un objet immobile.
+	Images []scene.Aspect
 	// Cycle est la cadence de la bande, nulle pour une image unique.
 	Cycle game.Cycle
 	// Masking dit que l'objet dépasse la hauteur d'un personnage, donc qu'il
@@ -44,6 +44,15 @@ type Prop struct {
 	// Son ancre pose son coin haut-gauche sur le point visé, parce qu'un
 	// emplacement d'interface se mesure par son coin et non par un pied.
 	Icon scene.Aspect
+	// Shapes et IconShape sont les mêmes dessins aplatis en blanc, absents tant
+	// que `Props.Silhouette` ne les a pas demandés.
+	//
+	// **Deux usages seulement, et c'est pourquoi ils se demandent** : le
+	// projectile de la horde, que la conception révèle quand quelque chose le
+	// cache, et le liseré qui détache une icône d'un sol clair. Dériver le
+	// catalogue entier doublerait ses planches pour des dessins que rien ne pose.
+	Shapes    []scene.Aspect
+	IconShape scene.Aspect
 }
 
 // Props porte les objets du catalogue, par nom.
@@ -104,6 +113,83 @@ func (p *Props) Prop(nom string) (Prop, bool) {
 	return objet, connu
 }
 
+// Silhouette range dans l'atlas l'aplat des images des objets nommés.
+//
+// **Par nom et non pour tout le catalogue**, parce qu'un seul objet en a besoin
+// — le projectile de la horde, que la conception révèle quand quelque chose le
+// cache — et que les planches d'un atlas sont comptées. Un nom inconnu est une
+// erreur de programmation en amont et se dit comme telle : le rendu choisit ce
+// qu'il révèle, donc il sait ce qu'il demande.
+//
+// **Séparée de `IconSilhouette` parce que les deux dessins ne servent pas au
+// même geste**, et qu'un objet qui a les deux n'en révèle qu'un : une arme pose
+// son icône au-dessus d'une caisse et son dessin au sol dans la scène, où rien
+// ne la révèle. Les dériver ensemble aurait rangé une planche que personne ne
+// pose, par objet et pour toujours.
+//
+// L'aplat d'une bande garde sa découpe, si bien qu'une image y prend le même
+// rectangle que dans son dessin.
+func (p *Props) Silhouette(atlas *raster.Atlas, noms ...string) error {
+	for _, nom := range noms {
+		objet, connu := p.objets[nom]
+		if !connu {
+			return fmt.Errorf("aplat de %q : objet absent du catalogue", nom)
+		}
+		if len(objet.Images) == 0 {
+			return fmt.Errorf("aplat de %q : aucune image à aplatir", nom)
+		}
+
+		plate, err := aplatirLaPlanche(atlas, objet.Images[0])
+		if err != nil {
+			return fmt.Errorf("aplat de %q : %w", nom, err)
+		}
+		objet.Shapes = make([]scene.Aspect, len(objet.Images))
+		for i, a := range objet.Images {
+			a.Sheet = plate
+			objet.Shapes[i] = a
+		}
+		p.objets[nom] = objet
+	}
+	return nil
+}
+
+// IconSilhouette range dans l'atlas l'aplat des icônes des objets nommés.
+//
+// C'est le liseré qui détache une icône d'un sol clair, là où le bandeau n'en a
+// pas besoin : ses cases sont sombres, et c'est pour elles que les icônes ont
+// été dessinées. Un objet sans icône est refusé pour la même raison qu'un nom
+// inconnu — l'appelant sait ce qu'il pose.
+func (p *Props) IconSilhouette(atlas *raster.Atlas, noms ...string) error {
+	for _, nom := range noms {
+		objet, connu := p.objets[nom]
+		if !connu {
+			return fmt.Errorf("aplat d'icône de %q : objet absent du catalogue", nom)
+		}
+		if objet.Icon.Width == 0 {
+			return fmt.Errorf("aplat d'icône de %q : cet objet n'en a pas", nom)
+		}
+
+		plate, err := aplatirLaPlanche(atlas, objet.Icon)
+		if err != nil {
+			return fmt.Errorf("aplat d'icône de %q : %w", nom, err)
+		}
+		objet.IconShape = objet.Icon
+		objet.IconShape.Sheet = plate
+		p.objets[nom] = objet
+	}
+	return nil
+}
+
+// aplatirLaPlanche range l'aplat de la planche qu'un aspect désigne et rend son
+// index.
+//
+// L'aspect sert à désigner la planche et non à décrire ce qu'on aplatit : c'est
+// la planche entière qui se dérive, avec sa découpe, pour que toutes les images
+// d'une bande partagent un seul aplat.
+func aplatirLaPlanche(atlas *raster.Atlas, a scene.Aspect) (uint16, error) {
+	return atlas.Add(Flatten(atlas.Sheets[a.Sheet]))
+}
+
 // charger découpe ce qu'une entrée déclare, et rien de plus.
 //
 // **Les cinq familles se posent maintenant**, la dernière étant « cycle » — les
@@ -122,7 +208,7 @@ func (p *Props) charger(fsys fs.FS, racine, nom string, objet game.Object, atlas
 		if err != nil {
 			return err
 		}
-		pose := Prop{Poses: poses, Masking: objet.Masking}
+		pose := Prop{Images: poses, Masking: objet.Masking}
 		// **Un objet du monde peut avoir une icône, et la fiole est le premier.**
 		// Son fichier est à côté de son dessin de monde quand celui d'une arme vit
 		// dans `armes/` : ce dossier porte ce qui est une arme, et le suffixe
@@ -150,7 +236,7 @@ func (p *Props) charger(fsys fs.FS, racine, nom string, objet game.Object, atlas
 		if err != nil {
 			return err
 		}
-		p.objets[nom] = Prop{Poses: poses, Icon: icone}
+		p.objets[nom] = Prop{Images: poses, Icon: icone}
 		// Les entrées sont parcourues dans l'ordre trié du manifeste, si bien que
 		// cette liste l'est aussi sans qu'on ait à la trier.
 		p.armes = append(p.armes, nom)
@@ -164,8 +250,8 @@ func (p *Props) charger(fsys fs.FS, racine, nom string, objet game.Object, atlas
 		}
 		duree, _ := game.TicksFromMs(objet.Duration)
 		p.objets[nom] = Prop{
-			Poses: poses,
-			Cycle: game.Cycle{Frames: objet.Frames, Duration: duree, Loop: objet.Loop},
+			Images: poses,
+			Cycle:  game.Cycle{Frames: objet.Frames, Duration: duree, Loop: objet.Loop},
 		}
 	case game.FamilyCycle:
 		poses, err := poser(fsys, atlas, path.Join(racine, nom+".png"),
@@ -181,8 +267,8 @@ func (p *Props) charger(fsys fs.FS, racine, nom string, objet game.Object, atlas
 		}
 		duree, _ := game.TicksFromMs(objet.Duration)
 		p.objets[nom] = Prop{
-			Poses: poses,
-			Cycle: game.Cycle{Frames: objet.Frames, Duration: duree, Loop: objet.Loop},
+			Images: poses,
+			Cycle:  game.Cycle{Frames: objet.Frames, Duration: duree, Loop: objet.Loop},
 		}
 	case game.FamilyParticle:
 		poses, err := poser(fsys, atlas, path.Join(racine, nom+".png"),
@@ -193,7 +279,7 @@ func (p *Props) charger(fsys fs.FS, racine, nom string, objet game.Object, atlas
 			return err
 		}
 		// Pas de cadence : ces formes ne se suivent pas, on en choisit une.
-		p.objets[nom] = Prop{Poses: poses}
+		p.objets[nom] = Prop{Images: poses}
 	}
 	return nil
 }
@@ -218,7 +304,7 @@ func (p *Props) chargerScintillement(fsys fs.FS, racine, nom string, objet game.
 	// l'icône d'une fiole — s'y perdrait en silence, et un bandeau sans dessin ne
 	// se distingue pas d'un bandeau qu'on n'a pas encore rempli.
 	pose := p.objets[nom]
-	pose.Poses = poses
+	pose.Images = poses
 	pose.Cycle = game.Cycle{Frames: s.Frames, Duration: duree, Loop: s.Loop}
 	pose.Masking = objet.Masking
 	p.objets[nom] = pose
@@ -227,14 +313,14 @@ func (p *Props) chargerScintillement(fsys fs.FS, racine, nom string, objet game.
 
 // chargerIcone range une icône d'interface et rend de quoi la dessiner.
 //
-// Sans masque : rien ne la recouvre dans un bandeau, et son coin suffit à la
-// poser.
+// Son coin suffit à la poser : un emplacement de bandeau se mesure par là, et
+// non par un pied.
 func chargerIcone(fsys fs.FS, atlas *raster.Atlas, chemin string, taille [2]int) (scene.Aspect, error) {
-	poses, err := poser(fsys, atlas, chemin, taille, taille, [2]int{})
+	images, err := poser(fsys, atlas, chemin, taille, taille, [2]int{})
 	if err != nil {
 		return scene.Aspect{}, err
 	}
-	return poses[0].Aspect, nil
+	return images[0], nil
 }
 
 // bandeDe rend la taille d'une planche qui porte des cases côte à côte.

@@ -97,7 +97,7 @@ func TestLesFeuillesLivreesSeChargent(t *testing.T) {
 				for variante := range f.Variants {
 					bandes++
 					images += c.Frames
-					if _, ok := feuille.Pose(cycle, direction, variante, c.Frames-1); !ok {
+					if _, ok := feuille.Frame(cycle, direction, variante, c.Frames-1); !ok {
 						t.Errorf("%s : dernière image de %s_%s manquante en v%d",
 							f.Key, cycle, direction, variante)
 					}
@@ -153,13 +153,13 @@ func TestUnCycleAbsentSeDitAuLieuDeSeDeviner(t *testing.T) {
 	if err != nil {
 		t.Fatalf("chargement : %v", err)
 	}
-	if _, ok := feuille.Pose("repos", "S", 0, 0); ok {
+	if _, ok := feuille.Frame("repos", "S", 0, 0); ok {
 		t.Error("un cycle que le manifeste ne déclare pas a rendu une image")
 	}
-	if _, ok := feuille.Pose("marche", "S", 0, 3); ok {
+	if _, ok := feuille.Frame("marche", "S", 0, 3); ok {
 		t.Error("la quatrième image d'un cycle qui en porte trois a été rendue")
 	}
-	if _, ok := feuille.Pose("marche", "S", 0, 2); !ok {
+	if _, ok := feuille.Frame("marche", "S", 0, 2); !ok {
 		t.Error("la troisième image d'un cycle qui en porte trois manque")
 	}
 }
@@ -181,20 +181,20 @@ func TestLesImagesDUneBandeSeSuiventDansLaPlanche(t *testing.T) {
 	}
 
 	for image := range 3 {
-		pose, ok := feuille.Pose("marche", "S", 0, image)
+		pose, ok := feuille.Frame("marche", "S", 0, image)
 		if !ok {
 			t.Fatalf("image %d manquante", image)
 		}
-		if got, veut := int(pose.Aspect.SourceX), image*f.Side; got != veut {
+		if got, veut := int(pose.SourceX), image*f.Side; got != veut {
 			t.Errorf("image %d : source en %d, attendue en %d", image, got, veut)
 		}
-		if pose.Aspect.SourceY != 0 {
+		if pose.SourceY != 0 {
 			t.Errorf("image %d : source en ordonnée %d, une bande est sur une ligne",
-				image, pose.Aspect.SourceY)
+				image, pose.SourceY)
 		}
-		if int(pose.Aspect.Width) != f.Side || int(pose.Aspect.Height) != f.Side {
+		if int(pose.Width) != f.Side || int(pose.Height) != f.Side {
 			t.Errorf("image %d : %dx%d, attendu %dx%d",
-				image, pose.Aspect.Width, pose.Aspect.Height, f.Side, f.Side)
+				image, pose.Width, pose.Height, f.Side, f.Side)
 		}
 	}
 }
@@ -215,14 +215,14 @@ func TestLancrageDUnePoseVientDeLappui(t *testing.T) {
 		t.Fatalf("chargement : %v", err)
 	}
 
-	pose, ok := feuille.Pose("marche", "S", 0, 0)
+	pose, ok := feuille.Frame("marche", "S", 0, 0)
 	if !ok {
 		t.Fatal("première image manquante")
 	}
 	x, y := AnchorFromFooting(f.Anchor, [2]int{f.Side, f.Side})
-	if int(pose.Aspect.AnchorX) != x || int(pose.Aspect.AnchorY) != y {
+	if int(pose.AnchorX) != x || int(pose.AnchorY) != y {
 		t.Errorf("ancre (%d,%d), attendue (%d,%d)",
-			pose.Aspect.AnchorX, pose.Aspect.AnchorY, x, y)
+			pose.AnchorX, pose.AnchorY, x, y)
 	}
 }
 
@@ -242,8 +242,8 @@ func TestUnAspectRenduSeDessine(t *testing.T) {
 		t.Fatalf("chargement : %v", err)
 	}
 
-	pose, _ := feuille.Pose("marche", "S", 0, 0)
-	if pose.Aspect.Tint.A == 0 {
+	pose, _ := feuille.Frame("marche", "S", 0, 0)
+	if pose.Tint.A == 0 {
 		t.Error("teinte transparente : l'aspect ne dessinerait rien")
 	}
 }
@@ -279,7 +279,7 @@ func TestLaSilhouetteAjouteDeuxPlanchesParBande(t *testing.T) {
 		t.Errorf("%d planches après la silhouette, attendu 3", len(atlas.Sheets))
 	}
 
-	pose, _ := feuille.Pose("marche", "S", 0, 2)
+	pose, _ := feuille.Frame("marche", "S", 0, 2)
 	forme, ok := feuille.Shape("marche", "S", 0, 2)
 	if !ok {
 		t.Fatal("aplat de la troisième image manquant")
@@ -295,12 +295,12 @@ func TestLaSilhouetteAjouteDeuxPlanchesParBande(t *testing.T) {
 		{"aplat", forme},
 		{"bord", bord},
 	} {
-		if c.aspect.SourceX != pose.Aspect.SourceX || c.aspect.Width != pose.Aspect.Width {
+		if c.aspect.SourceX != pose.SourceX || c.aspect.Width != pose.Width {
 			t.Errorf("%s : source %d largeur %d, attendu %d et %d",
 				c.quoi, c.aspect.SourceX, c.aspect.Width,
-				pose.Aspect.SourceX, pose.Aspect.Width)
+				pose.SourceX, pose.Width)
 		}
-		if c.aspect.Sheet == pose.Aspect.Sheet {
+		if c.aspect.Sheet == pose.Sheet {
 			t.Errorf("%s : même planche que le dessin, le dérivé n'en est pas un", c.quoi)
 		}
 	}

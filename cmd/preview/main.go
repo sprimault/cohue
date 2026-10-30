@@ -1,16 +1,15 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// La planche de relecture du rendu : les vues qu'elle écrit, le monde qu'elle
-// pose pour chacune, et le détour par le cycle Ebitengine que le dessin impose.
+// La planche de relecture du rendu : les vues qu'elle écrit, et le monde qu'elle
+// pose pour chacune.
 
 // Preview écrit des vues du rendu dans `.tmp/apercus/`, à regarder.
 //
-// `internal/render` n'a pas de test et n'en aura pas : importer Ebitengine
-// initialise GLFW, qui panique sans écran. Le rendu se juge donc à l'œil, et une
-// planche est ce qui rend ce jugement possible ailleurs que dans une partie —
-// on y compare une image d'avant et d'après un changement, ce qu'une observation
-// au clavier ne permet pas.
+// `internal/render` n'a pas de test et n'en aura pas : le rendu se juge à l'œil,
+// et une planche est ce qui rend ce jugement possible ailleurs que dans une
+// partie — on y compare une image d'avant et d'après un changement, ce qu'une
+// observation au clavier ne permet pas.
 //
 // **Elle pilote le `render.Screen` du jeu, jamais une scène montée à côté.** Une
 // planche qui dessinerait autrement que le jeu relirait la planche, et c'est le
@@ -19,14 +18,15 @@
 //
 // **Elle est déterministe, et doit le rester.** Deux exécutions écrivent des
 // octets identiques, sans quoi comparer une planche d'avant et d'après un
-// changement ne dirait rien. Ce qui la tient n'est plus l'absence de tirage — le
-// spawner en fait à chaque tick — mais la graine fixée d'avance, et des pas
-// joués avec une direction nulle. C'est pour cette échéance qu'elle avait été
-// écrite ainsi.
+// changement ne dirait rien. Trois choses la tiennent : la graine fixée
+// d'avance, des pas joués avec une direction nulle, et les entrées remises au
+// moteur, dont la valeur zéro ne tient aucune touche. La dernière est une
+// propriété et non une précaution : il n'y a pas de touche à éviter quand on
+// déclare qu'aucune n'est pressée.
 //
-// Elle exige un écran et ne tourne donc pas en intégration continue. Ce n'est
-// pas un contrôle mais une planche : ce qui se vérifie mécaniquement vit du côté
-// simulation, qui n'importe pas Ebitengine.
+// **Elle n'exige pas d'écran** : le moteur calcule ses images sans fenêtre, et
+// la planche lui demande un pas qui n'avance rien. Elle reste une planche et non
+// un contrôle — ce qui se vérifie mécaniquement vit du côté simulation.
 package main
 
 import (
@@ -36,8 +36,9 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"slices"
 
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sprimault/lozengine"
 
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/game"
@@ -403,11 +404,15 @@ type vue struct {
 	jusquAuDanger bool
 	// jusquALaMort s'arrête au dernier point de vie.
 	jusquALaMort bool
-	// texte pose les échantillons nus, pour juger la police seule ; hud pose
-	// l'interface, pour juger ce qui l'entoure. Les deux sont séparés parce
-	// qu'un cadre sous un texte change ce qu'on lit de la police.
+	// texte pose les échantillons nus, pour juger la police seule : un cadre
+	// sous un texte change ce qu'on lit de la police.
+	//
+	// **L'interface, elle, n'a plus de maquette**, et c'est la règle que le
+	// bandeau avait déjà imposée : `Screen.Describe` pose la vraie, donc une
+	// seconde superposait deux jeux de cases et deux lignes de texte. Les
+	// emplacements en étaient la dernière — ils valaient deux lignes vides faute
+	// d'icônes dessinées, et les icônes existent.
 	texte bool
-	hud   bool
 }
 
 // vues énumère ce que la planche donne à relire.
@@ -468,7 +473,7 @@ var vues = []vue{
 	// Le plafond ne sert que si le pilote survit au-delà ; l'enregistrement
 	// s'achève de toute façon au dernier instant vivant. Le jour où le pilote
 	// jouera mieux, ce chiffre montera sans que rien d'autre ne bouge.
-	{nom: "partie", pilote: 3 * 60 * game.TPS, anime: 6, hud: true},
+	{nom: "partie", pilote: 3 * 60 * game.TPS, anime: 6},
 
 	// **Le tir du joueur n'avait aucune vue**, et c'est ce qui l'a laissé
 	// invisible jusqu'à ce qu'une partie jouée le signale : les projectiles sont
@@ -536,7 +541,6 @@ var vues = []vue{
 	// qu'il réclame. C'est ce qu'un aplat plein écran avait fait perdre.
 	{nom: "danger", ticks: 600 * game.TPS, jusquAuDanger: true},
 	{nom: "texte", texte: true},
-	{nom: "interface", hud: true},
 
 	// **Le choix ne se pose pas non plus, il s'obtient** — comme la mort, et pour
 	// la même raison : une maquette de cartes divergerait du panneau que le jeu
@@ -650,35 +654,25 @@ var echantillons = []string{
 	"ÀÉÈÊÇÎÔÙŸŒÆ «»",
 }
 
-// planche écrit toutes les vues au premier pas, puis demande l'arrêt.
-//
-// Elle est un jeu Ebitengine sans l'être : le dessin et la lecture de pixels ne
-// sont valides que dans le cycle de la bibliothèque, si bien qu'un programme qui
-// écrirait ses images depuis `main` n'obtiendrait rien. D'où ce détour, dont
-// `Draw` reste vide — la fenêtre qui s'ouvre une fraction de seconde n'a rien à
-// montrer.
-//
-// **Elle n'appelle jamais `render.Screen.Update`, et c'est délibéré.** Cette
-// méthode lit les touches : une direction pressée pendant l'écriture déplacerait
-// le joueur, et les images cesseraient d'être comparables d'une exécution à
-// l'autre — le déterminisme reposerait sur la précaution de ne pas toucher au
-// clavier plutôt que sur une propriété. Ne pas l'appeler n'est pas une garde
-// qu'on pourrait contourner, c'est un chemin qui n'existe pas.
-//
-// Ce qu'elle en perd est nul : monter un écran cadre déjà sur le joueur, donc un
-// écran monté après la scène est cadré juste. Ce qui doit avancer d'un pas passe
-// par `World.Step`, où la direction est écrite et non lue.
+// commun est ce que toutes les vues partagent : l'atlas où vivent leurs
+// planches, et les catalogues qui ne dépendent que de leur manifeste.
 //
 // **Chaque vue monte sa propre partie**, et n'hérite donc pas de ce que les
 // précédentes ont joué. Une vue qui avance de quatre secondes laisserait sinon
 // une horde déplacée aux suivantes, et l'ordre de la table déciderait de ce
 // qu'on voit — ce qui est exactement le genre de dépendance cachée qu'une
 // planche ne doit pas avoir. Le montage coûte quelques millisecondes.
-type planche struct {
-	tampon *ebiten.Image
-	// agrandi porte le tampon multiplié par `echelle`, et c'est lui qu'on écrit.
-	agrandi *ebiten.Image
-	hud     *render.HUD
+//
+// **Le moteur n'en fait pas partie**, et c'est la seule chose qui ne se partage
+// pas : il tient une scène, et une vue a la sienne puisque c'est son écran qui
+// la construit. Un moteur par vue, donc, là où l'atlas où ses planches vivent
+// traverse toutes les vues.
+type commun struct {
+	// atlas porte les planches de tout ce qui se dessine, et il est unique : un
+	// quad désigne la sienne par un index, si bien que des index relevés contre
+	// un atlas ne désignent rien dans un autre.
+	atlas *lozengine.Atlas
+	hud   *render.HUD
 	// tuiles est le catalogue des formes du décor, lu une fois : il ne dépend
 	// que du manifeste, là où le terrain d'une vue dépend du lieu qu'elle monte.
 	// Le décoder par vue coûterait tout le catalogue d'images, onze fois.
@@ -689,29 +683,7 @@ type planche struct {
 	// objets est le catalogue des ramassables et des projectiles, lu une fois
 	// pour la même raison que la troupe : il ne dépend que de son manifeste.
 	objets *render.Stage
-	ecrit  bool
 }
-
-// Update écrit les vues, puis rend la fin de partie.
-func (p *planche) Update() error {
-	if p.ecrit {
-		return ebiten.Termination
-	}
-	for _, v := range vues {
-		if err := p.vue(v); err != nil {
-			return err
-		}
-	}
-	p.ecrit = true
-	return nil
-}
-
-// Draw ne dessine rien : la fenêtre n'est ouverte que pour le contexte
-// graphique.
-func (p *planche) Draw(*ebiten.Image) {}
-
-// Layout donne au tampon la taille de celui du jeu.
-func (p *planche) Layout(_, _ int) (int, int) { return render.Width, render.Height }
 
 // vue monte une partie, y pose la scène, la dessine et écrit le fichier.
 //
@@ -720,7 +692,7 @@ func (p *planche) Layout(_, _ int) (int, int) { return render.Width, render.Heig
 // ensuite, avec une direction nulle : la horde avance, le joueur ne bouge pas, et
 // rien de ce qui se passe ne dépend de ce qu'on presse. L'écran vient en dernier,
 // puisque c'est son montage qui cadre.
-func (p *planche) vue(v vue) error {
+func (p *commun) vue(v vue) error {
 	partie, err := session.Open(cohue.Assets, cohue.StartingCampaign, graine)
 	if err != nil {
 		return err
@@ -927,22 +899,54 @@ func (p *planche) vue(v vue) error {
 		pilote.avancer(max(0, fin-v.anime*game.TPS))
 	}
 
-	ecran := render.NewScreen(partie.World, partie.Grid, sol, p.troupe, p.objets).
-		WithHUD(p.hud)
-	ecran.Draw(p.tampon)
-	if v.texte {
-		p.poser()
+	retrait := p.hud.Inset()
+	ecran, err := render.NewScreen(partie.World, partie.Grid, sol, p.troupe, p.objets,
+		p.atlas, retrait)
+	if err != nil {
+		return err
 	}
-	if v.hud {
-		p.poserInterface()
+	ecran = ecran.WithHUD(p.hud)
+
+	// Le moteur se monte après l'écran, qui construit la scène, et il n'ouvre
+	// aucune fenêtre : il calcule ses images, et c'est tout ce que la planche lui
+	// demande.
+	//
+	// **Les options sont celles du jeu**, sans quoi la planche jugerait une autre
+	// mise en page que celle qu'on joue — le retrait de l'interface comme le
+	// reste. Sans fenêtre, la surface vaut son plancher et l'aire prend ce que le
+	// retrait laisse, donc les planches montrent ce que montre une fenêtre à la
+	// taille d'ouverture.
+	moteur, err := lozengine.NewEngine(ecran.Scene(), lozengine.Options{
+		Width:      render.Width,
+		Height:     render.Height,
+		WorldInset: retrait,
+		Background: render.Background,
+		Atlas:      p.atlas,
+	})
+	if err != nil {
+		return err
 	}
 
-	// L'agrandissement se fait au plus proche voisin, qui est le filtre par
-	// défaut : un lissage rendrait la planche inutilisable pour juger du pixel
-	// art, qui est précisément ce qu'elle donne à relire.
-	var op ebiten.DrawImageOptions
-	op.GeoM.Scale(echelle, echelle)
-	p.agrandi.DrawImage(p.tampon, &op)
+	// **Deux pas, et le premier n'est pas du gâchis.** Le relevé de recouvrement
+	// porte le pas précédent — il ne se connaît qu'après un tri —, si bien qu'une
+	// image écrite au premier pas ne montre jamais la silhouette de ce qui est
+	// caché : un joueur derrière un mur y est absent de l'image, ce qu'aucune
+	// partie ne présente. Le second pas décrit avec le relevé du premier, et le
+	// monde n'ayant pas avancé entre les deux, ce qu'on écrit reste l'instant
+	// qu'on visait.
+	//
+	// **Un jeu nul et des entrées vides** : le moteur rend la scène telle qu'on
+	// vient de la décrire, et n'avance rien. Les deux arguments disent la même
+	// chose de deux façons, et c'est voulu — le premier qu'il n'y a pas de pas à
+	// jouer, le second qu'aucune touche n'est tenue.
+	for range 2 {
+		ecran.Overlaps(moteur.Overlaps())
+		ecran.Describe()
+		if v.texte {
+			p.poser(ecran.Scene())
+		}
+		moteur.Step(nil, lozengine.Input{})
+	}
 
 	chemin := filepath.Join(sortie, v.nom+".png")
 
@@ -958,7 +962,7 @@ func (p *planche) vue(v vue) error {
 	// La fermeture est signalée, mais elle ne masque pas l'écriture : un encodage
 	// qui échoue dit ce qui ne va pas, là où la fermeture d'un fichier déjà
 	// fautif ne dirait que le symptôme.
-	err = png.Encode(f, p.agrandi)
+	err = png.Encode(f, agrandir(moteur.Frame(), echelle))
 	if cerr := f.Close(); err == nil {
 		err = cerr
 	}
@@ -970,37 +974,76 @@ func (p *planche) vue(v vue) error {
 	// L'image fixe sert de vignette à l'animation, et elle est écrite d'abord :
 	// un GIF qui échouerait laisse au moins de quoi voir où la partie en était.
 	if v.anime > 0 {
-		images, err := p.enregistrer(ecran, pilote, v.anime)
-		if err != nil {
-			return err
-		}
+		// La taille vient du tampon et non des constantes : c'est la surface que
+		// le moteur a dimensionnée, et elle ne vaut le plancher que tant qu'aucune
+		// fenêtre ne l'élargit.
+		tampon := moteur.Frame()
 		return ecrireGIF(filepath.Join(sortie, v.nom+".gif"),
-			image.Pt(render.Width, render.Height), images)
+			image.Pt(int(tampon.Width), int(tampon.Height)),
+			enregistrer(moteur, ecran, pilote, v.anime))
 	}
 	return nil
 }
 
-// enregistrer joue la suite de la partie en dessinant, et rend les images lues.
+// agrandir recopie l'image du moteur dans une image de la bibliothèque
+// standard, chaque point y couvrant un carré du côté donné.
 //
-// **Le tampon est lu et non l'agrandi** : un GIF de pixel art se regarde au
-// facteur du lecteur, et quadrupler chaque point quadruplerait un fichier que
+// **Au plus proche voisin par construction**, et il n'y a donc aucun filtre à
+// choisir : un lissage rendrait la planche inutilisable pour juger du pixel art,
+// qui est précisément ce qu'elle donne à relire.
+//
+// Les composantes se recopient telles quelles. Le moteur les rend
+// prémultipliées, ce qu'`image.RGBA` déclare ; le PNG les stocke sans
+// prémultiplication, et les deux coïncident parce que l'image est opaque — le
+// fond l'est, et rien ne découpe le tampon.
+func agrandir(tampon *lozengine.Buffer, cote int) *image.RGBA {
+	largeur, hauteur := int(tampon.Width), int(tampon.Height)
+	img := image.NewRGBA(image.Rect(0, 0, largeur*cote, hauteur*cote))
+	for y := range hauteur {
+		for x := range largeur {
+			c := tampon.Pixels[y*largeur+x]
+			for dy := range cote {
+				i := img.PixOffset(x*cote, y*cote+dy)
+				for range cote {
+					img.Pix[i] = c.R
+					img.Pix[i+1] = c.G
+					img.Pix[i+2] = c.B
+					img.Pix[i+3] = c.A
+					i += 4
+				}
+			}
+		}
+	}
+	return img
+}
+
+// enregistrer joue la suite de la partie en rendant une image par pas, et rend
+// la suite obtenue.
+//
+// **Le tampon se recopie et ne s'agrandit pas** : un GIF de pixel art se regarde
+// au facteur du lecteur, et quadrupler chaque point quadruplerait un fichier que
 // rien n'allège ensuite. La cadence tombe à un tick sur trois, ce que l'œil ne
 // distingue pas d'une animation à soixante sur du pixel art qui bouge.
-func (p *planche) enregistrer(ecran *render.Screen, pilote *pilotage, secondes int) ([][]byte, error) {
-	images := make([][]byte, 0, secondes*imagesParSeconde)
+//
+// **La copie n'est pas une précaution** : le moteur réécrit son tampon au pas
+// suivant, donc garder la tranche qu'il rend ferait de la séquence entière la
+// dernière image répétée.
+func enregistrer(moteur *lozengine.Engine, ecran *render.Screen, pilote *pilotage,
+	secondes int) [][]lozengine.Color {
+	images := make([][]lozengine.Color, 0, secondes*imagesParSeconde)
 	for range secondes * imagesParSeconde {
 		// **On dessine avant d'avancer.** L'inverse place la dernière image un
 		// pas au-delà de ce qu'on visait, et quand ce qu'on vise est le dernier
 		// instant vivant, ce pas de trop est l'écran de mort.
 		ecran.Follow()
-		ecran.Draw(p.tampon)
-		pixels := make([]byte, 4*render.Width*render.Height)
-		p.tampon.ReadPixels(pixels)
-		images = append(images, pixels)
+		ecran.Overlaps(moteur.Overlaps())
+		ecran.Describe()
+		moteur.Step(nil, lozengine.Input{})
+		images = append(images, slices.Clone(moteur.Frame().Pixels))
 
 		pilote.avancer(game.TPS / imagesParSeconde)
 	}
-	return images, nil
+	return images
 }
 
 // poser écrit les échantillons sur la scène déjà dessinée.
@@ -1010,11 +1053,11 @@ func (p *planche) enregistrer(ecran *render.Screen, pilote *pilotage, secondes i
 // et deux lignes alignées sur le bord droit par mesure plutôt qu'à distance
 // fixe. La troisième est ce qui manquait à la planche qui a fait écrire la règle
 // — un minuteur placé au jugé déborde dès qu'il s'allonge.
-func (p *planche) poser() {
+func (p *commun) poser(sc *lozengine.Scene) {
 	h := p.hud
 	y := 12
 	for _, s := range echantillons {
-		h.Font.Draw(p.tampon, s, 12, y, h.Color("texte"))
+		h.Font.Draw(sc, s, 12, y, h.Color("texte"))
 		y += h.Font.Height() + 4
 	}
 
@@ -1026,56 +1069,19 @@ func (p *planche) poser() {
 	// or le rendu provisoire ne peint que trois gris et un bleu : le cas se
 	// jugera quand les sprites entreront, à l'étape 5. Ce que la vue montre est
 	// que le contour ne nuit pas sur fond moyen, pas qu'il suffit sur fond clair.
+	// La maquette se pose contre la surface, que le moteur dimensionne, et non
+	// contre la résolution interne, qui n'en est que le plancher.
+	largeur, hauteur := sc.Surface()
 	contour := h.Color("texte_contour")
-	h.Font.DrawOutlined(p.tampon, "247", render.Width/2-40, render.Height/2-60,
+	h.Font.DrawOutlined(sc, "247", int(largeur)/2-40, int(hauteur)/2-60,
 		h.Color("texte_valeur"), contour)
-	h.Font.DrawOutlined(p.tampon, "12", render.Width/2+30, render.Height/2-20,
+	h.Font.DrawOutlined(sc, "12", int(largeur)/2+30, int(hauteur)/2-20,
 		h.Color("texte"), contour)
 
 	for i, s := range []string{"07:41", "1" + string(rune(0x00A0)) + "340 pts"} {
-		x := render.Width - 12 - h.Font.Advance(s)
-		h.Font.Draw(p.tampon, s, x, 12+i*(h.Font.Height()+2), h.Color("texte"))
+		x := int(largeur) - 12 - h.Font.Advance(s)
+		h.Font.Draw(sc, s, x, 12+i*(h.Font.Height()+2), h.Color("texte"))
 	}
-}
-
-// poserInterface compose l'écran de jeu à partir des primitives.
-//
-// **Chaque élément se dimensionne sur son contenu**, jamais sur une constante :
-// la carte prend la largeur de sa plus longue ligne, la case le côté de ce
-// qu'elle contient, le minuteur sa place mesurée depuis le bord droit. C'est ce
-// que la planche doit donner à juger — si une dimension y était écrite, on
-// jugerait le chiffre plutôt que la règle qui le produit.
-func (p *planche) poserInterface() {
-	h := p.hud
-	marge, hauteur := h.Margin(), h.Font.Height()
-
-	// Le bandeau n'est pas remaquetté ici : `Screen.Draw` vient de le poser, avec
-	// les valeurs de la partie montée. Une maquette qui le doublerait
-	// superposerait deux jeux de chiffres — c'est ce qui est arrivé, et l'image
-	// l'a montré tout de suite : les glyphes se chevauchaient au point de rendre
-	// « 62 / 100 » illisible. Les vues qui le jugent sur des valeurs parlantes
-	// sont `melee` et `mort`, qui jouent assez de ticks pour cela.
-
-	// Les emplacements, sous les jauges. Le contenu vaut deux lignes faute
-	// d'icône : elles viendront à l'étape 5, et c'est leur taille réelle qui
-	// fixera le côté de la case — d'où un côté calculé plutôt que réglé.
-	x := 12
-	for _, touche := range []string{"1", "2"} {
-		x += h.Slot(p.tampon, x, 62, hauteur*2, touche) + marge
-	}
-
-	// Le score, sous le minuteur du bandeau. Il n'est pas encore une lecture du
-	// jeu — rien ne le compte —, et la planche le porte pour que sa place soit
-	// jugée avec le reste.
-	score := "1" + string(rune(0x00A0)) + "340 pts"
-	h.Font.Draw(p.tampon, score, render.Width-12-h.Font.Advance(score),
-		12+hauteur+2, h.Color("texte"))
-
-	// Le panneau de choix n'est pas remaquetté : la vue `cartes` montre celui que
-	// le jeu peint, sur une partie où le plancher de temps l'a ouvert. Une
-	// maquette qui doublerait la mise en page livrée resterait juste jusqu'au
-	// premier déplacement de colonne, puis montrerait un écran que personne ne
-	// joue — c'est ce qui était arrivé au bandeau.
 }
 
 // main écrit la planche, ou sort en échec.
@@ -1086,15 +1092,20 @@ func main() {
 	}
 }
 
-// run ouvre la fenêtre que le dessin exige, puis lance la planche.
+// run lit les catalogues une fois, puis écrit chaque vue.
 //
-// La partie, elle, se monte une fois par vue : voir la godoc de `planche`.
+// La partie, elle, se monte une fois par vue : voir la godoc de `commun`.
 func run() error {
 	if err := os.MkdirAll(sortie, 0o750); err != nil {
 		return err
 	}
 
-	hud, err := render.LoadHUD(cohue.Assets, cohue.InterfaceManifest)
+	// L'atlas se monte vide et se remplit à mesure que les catalogues se
+	// chargent, chacun y rangeant ses planches et retenant leurs index. Il se
+	// construit donc avant eux, et se remet au moteur après eux.
+	atlas := &lozengine.Atlas{}
+
+	hud, err := render.LoadHUD(cohue.Assets, cohue.InterfaceManifest, atlas)
 	if err != nil {
 		return err
 	}
@@ -1106,7 +1117,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	tuiles, err := sprite.LoadTiles(cohue.Assets, cohue.DecorDir, decor)
+	tuiles, err := sprite.LoadTiles(cohue.Assets, cohue.DecorDir, decor, atlas)
 	if err != nil {
 		return err
 	}
@@ -1114,7 +1125,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	troupe, err := render.NewCast(cohue.Assets, cohue.CharacterDir, profils)
+	troupe, err := render.NewCast(cohue.Assets, cohue.CharacterDir, profils, atlas)
 	if err != nil {
 		return err
 	}
@@ -1122,21 +1133,19 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	objets, err := render.NewStage(cohue.Assets, cohue.ObjectDir, cohue.ObjectManifest, catalogue)
+	objets, err := render.NewStage(cohue.Assets, cohue.ObjectDir, cohue.ObjectManifest,
+		catalogue, atlas)
 	if err != nil {
 		return err
 	}
 
-	ebiten.SetWindowTitle("Cohue — planche")
-	ebiten.SetWindowSize(render.Width, render.Height)
-	return ebiten.RunGame(&planche{
-		tampon:  ebiten.NewImage(render.Width, render.Height),
-		agrandi: ebiten.NewImage(render.Width*echelle, render.Height*echelle),
-		hud:     hud,
-		tuiles:  tuiles,
-		troupe:  troupe,
-		objets:  objets,
-	})
+	c := &commun{atlas: atlas, hud: hud, tuiles: tuiles, troupe: troupe, objets: objets}
+	for _, v := range vues {
+		if err := c.vue(v); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Les deux sortes d'effet que les vues attendent, prises en variables parce

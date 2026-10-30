@@ -174,7 +174,7 @@ La bonne structure, c'est le **flow field**. Un seul BFS depuis le joueur sur la
 
 Coût : un BFS sur 128×128 cellules, quelques dizaines de microsecondes, une fois pour tout le monde.
 
-Ordre de grandeur des effectifs, calé sur le tampon interne de 960×540. La demi-étendue visible y vaut 15,9 tuiles par axe du monde — pas « une quinzaine en largeur », qui serait un compte orthogonal et donnerait un champ deux fois trop petit. Sur cette surface : **60 à 100 ennemis à l'écran** en régime normal de fin de segment, **150 en pic** sur une vingtaine de secondes, **250 à 300 entités vivantes** au total en comptant ce qui approche hors champ. Au-delà, ce n'est plus une horde mais un mur uni : les profils cessent d'être distinguables, et avec eux la lisibilité de l'échec. Le levier de pression n'est de toute façon pas le nombre, c'est la vitesse relative et la fermeture des angles — vingt ennemis qui coupent une sortie font plus peur que deux cents qui suivent en file. Le contournement d'obstacles est gratuit — piliers, rayonnages, tourniquets se retrouvent dans le champ sans une ligne de code d'évitement. C'est ce qui rend le décor urbain jouable là où les survivors classiques se contentent d'un terrain vide.
+Ordre de grandeur des effectifs, calé sur l'aire de jeu qu'ouvre le tampon interne de 960×540. C'est une référence et non une borne, l'aire s'élargissant avec la fenêtre : ce qui se dimensionne dessus est la lisibilité d'une mêlée, jamais le budget d'une vague, que le scénario fixe en dur pour que deux fenêtres donnent la même run. La demi-étendue visible y vaut 15,9 tuiles par axe du monde — pas « une quinzaine en largeur », qui serait un compte orthogonal et donnerait un champ deux fois trop petit. Sur cette surface : **60 à 100 ennemis à l'écran** en régime normal de fin de segment, **150 en pic** sur une vingtaine de secondes, **250 à 300 entités vivantes** au total en comptant ce qui approche hors champ. Au-delà, ce n'est plus une horde mais un mur uni : les profils cessent d'être distinguables, et avec eux la lisibilité de l'échec. Le levier de pression n'est de toute façon pas le nombre, c'est la vitesse relative et la fermeture des angles — vingt ennemis qui coupent une sortie font plus peur que deux cents qui suivent en file. Le contournement d'obstacles est gratuit — piliers, rayonnages, tourniquets se retrouvent dans le champ sans une ligne de code d'évitement. C'est ce qui rend le décor urbain jouable là où les survivors classiques se contentent d'un terrain vide.
 
 Sur les lieux étirés en longueur, le champ n'est calculé que sur une **fenêtre autour du joueur** : un ennemi à quarante tuiles n'a besoin d'aucune précision.
 
@@ -793,9 +793,13 @@ Ce sont là des tailles d'image, donc des pixels, et elles n'appartiennent qu'au
 
 La règle des **24 pixels** est celle qui compte : au-delà, l'objet masque un personnage de 64 et devient un piège visuel. Ce qui la dépasse — murs, piliers, véhicules, wagons, immeubles — n'est pas un obstacle à contourner en pleine action mais une limite de zone, et le manifeste le déclare forme par forme. Ce que le rendu en fait est plus bas, à « La silhouette plutôt que la transparence ».
 
-**Résolution interne : 960×540**, agrandie en entier vers la fenêtre. Un tampon de 480×270 ne montrerait que 7 tuiles de large, bien trop serré pour voir la horde arriver ; 960×540 en donne une quinzaine et se multiplie par 2 pour du 1080p, donc pixels carrés garantis.
+**Résolution interne : 960×540 au plancher**, agrandie vers la fenêtre par un facteur entier. Un tampon de 480×270 ne montrerait que 7 tuiles de large, bien trop serré pour voir la horde arriver ; 960×540 en donne une quinzaine et se multiplie par 2 pour du 1080p.
 
-Deux choses distinctes, et elles n'arrivent pas ensemble : **la fixité du tampon est acquise dès l'étape 2**, l'agrandissement en entier attend l'étape 15. Le facteur dépend du facteur d'échelle du système, qu'il faut lire séparément, et il oblige à choisir ce qu'on fait du reste de la fenêtre — bandes noires, taille contrainte, ou redimensionnement par pas. C'est un réglage d'affichage, et il vit avec le plein écran et la résolution.
+**Un plancher et non une taille fixe, et c'est ce que l'essai a tranché.** La surface de dessin remplit la fenêtre une fois le facteur appliqué, si bien qu'il n'en reste au plus que `facteur − 1` pixels de bande par axe. Agrandir la fenêtre montre donc un peu plus de lieu. L'autre voie — borner l'aire de jeu pour que le joueur en voie toujours autant — a été essayée et écartée à l'écran : le reste d'une division entière va au monde ou à la marge, il n'y a pas de troisième endroit, et la marge atteint 44 % de la surface sur un écran de 1440p, où le lieu se retrouve collé dans un cadre noir.
+
+**Ce qui tient la règle de pixel art est donc le facteur entier, pas une surface figée.** Une tuile couvre toujours un nombre entier de pixels de fenêtre, rien n'est filtré ni étiré, et c'est la seule chose dont dépend le grain. Ce que le joueur voit du monde varie avec sa fenêtre, et ce qui l'empêche de peser sur la run est ailleurs : le rayon d'apparition est une donnée du manifeste et jamais une dérivation de la vue, sans quoi deux fenêtres différentes ne donneraient pas la même partie sur la même graine — voir « L'apparition ».
+
+**L'interface a sa bande, retirée au monde.** Le bandeau occupe une marge de hauteur constante au-dessus de l'aire de jeu, quelle que soit la fenêtre : il ne recouvre plus le jeu, et il ne s'en éloigne pas non plus quand l'écran grandit. L'aire de jeu est tout ce que cette marge laisse.
 
 ### Les trois hauteurs
 
@@ -851,7 +855,7 @@ Elle suit le joueur, centrée, **en pixels entiers** — un déplacement en flot
 
 Aux abords d'un bord de lieu, elle **se bloque sur les limites** plutôt que de découvrir du vide. Le joueur se décentre alors, ce qui est le comportement attendu : on voit le mur arriver, on comprend qu'on est acculé, et l'écran ne montre jamais un hors-champ noir qui n'existe pas.
 
-Deux cas particuliers. Si un lieu est plus petit que le tampon de 960×540 — ce qui arrive avec une pièce unique — la caméra ne se bloque pas, elle **centre le lieu** une fois pour toutes. Et lors du passage d'un lieu au suivant, elle ne se déplace pas : le fondu de la porte couvre le saut, ce qui évite un travelling de plusieurs centaines de tuiles.
+Deux cas particuliers. Si un lieu est plus petit que l'aire de jeu — ce qui arrive avec une pièce unique, et d'autant plus facilement que la fenêtre est grande — la caméra ne se bloque pas, elle **centre le lieu**. Et lors du passage d'un lieu au suivant, elle ne se déplace pas : le fondu de la porte couvre le saut, ce qui évite un travelling de plusieurs centaines de tuiles.
 
 Un lissage est possible — la caméra rattrape le joueur en quelques images plutôt que de le coller — mais sa position finale est arrondie au pixel avant tout dessin. Sans cet arrondi, le lissage réintroduit exactement le scintillement qu'on cherche à éviter.
 
@@ -1206,7 +1210,7 @@ Corollaire : la voie du rendu 3D précalculé (modèles Mixamo ou low-poly rendu
 
 **Aucun filtrage à l'affichage.** Échantillonnage au plus proche voisin, et caméra déplacée en pixels entiers, jamais en flottants. Le scrolling sous-pixel fait scintiller le pixel art : c'est le défaut qui trahit immédiatement un jeu bâclé.
 
-**Une résolution interne fixe.** Rendu dans le tampon de 960×540 arrêté au chapitre 10, agrandi en entier vers la fenêtre — l'agrandissement étant réglé à l'étape 15, avec le reste de l'affichage. Pixels carrés à toutes les tailles d'écran une fois qu'il l'est, et surtout décision de game design déguisée en détail technique : ce tampon détermine à quelle distance le joueur voit arriver la horde. C'est sa fixité qui est la règle de pixel art ; sa valeur, elle, est déjà tranchée.
+**Un agrandissement entier.** Rendu dans le tampon de 960×540 arrêté au chapitre 10, agrandi vers la fenêtre par un facteur entier, jamais fractionnaire. Pixels carrés à toutes les tailles d'écran, et c'est là qu'est la règle — pas dans une surface figée, que le chapitre 10 a ramenée à un plancher. Ce que ce tampon garde de décision de game design est sa valeur : elle dit à quelle distance le joueur voit arriver la horde, et c'est pour cela qu'elle est un plancher et non un défaut qu'on pourrait baisser.
 
 ### La lisibilité en masse
 
@@ -1419,19 +1423,21 @@ Le mode tuiles différé ne remet pas ça en cause quand il arrivera : peindre u
 
 ## 15. Le langage et le budget technique
 
-### Go avec Ebitengine
+### Go, et un moteur isométrique dédié
 
-Retenu, principalement parce que c'est déjà la pile de [[jeu-fugitif]] : même chaîne de compilation, mêmes runners pour macOS et Linux, WebAssembly déjà prévu. Deux jeux qui partagent leur outillage font un chantier de moins.
+Retenu pour le langage d'abord : le travail à écrire — BFS sur grille, bassins, boucle sur quelques centaines d'entités, tri en profondeur — tombe bien pour Go et ne demande pas de moteur généraliste.
 
-Sur le fond, le travail à écrire — BFS sur grille, pools, boucle sur quelques centaines d'entités, blitting, tri par compartiments — tombe bien pour Go, et ne demande pas de moteur.
+**Le rendu passe par `lozengine`**, moteur isométrique 2D écrit pour ce besoin et sans aucune dépendance : le jeu décrit une scène — des cellules, des entités, leur apparence — et le moteur trie, rastérise et présente. Le graphe complet du binaire est donc la bibliothèque standard plus ce module, et aucune cible n'exige de compilateur C.
 
-Deux manques à connaître d'avance. **Ebitengine ne fournit aucune interface** : pour le jeu ce n'est pas grave (l'écran de montée de niveau, c'est trois cartes dessinées), pour l'éditeur c'est un vrai sujet — palette, jauges, dialogues. `ebitenui` fait le travail, à évaluer avant de s'engager. Et **le rendu isométrique est entièrement à écrire** : tri en profondeur, conversion écran/tuile, caméra en pixels entiers. Une journée, écrite une fois pour les deux jeux.
+Deux manques à connaître d'avance. **Il ne fournit aucune interface** : pour le jeu ce n'est pas grave — l'écran de montée de niveau, c'est trois cartes dessinées —, pour l'éditeur c'est un vrai sujet, palette, jauges, dialogues. Et **l'audio n'existe pas encore** : il vient plus tard dans la feuille de route du moteur, ce qui tient l'étape sonore du jeu derrière lui.
 
 L'alternative sérieuse serait Godot, qui donnerait tilemap isométrique et interface gratuitement — mais l'éditeur voulu ici est intégré au jeu, avec test en direct, donc l'avantage fond et il faudrait apprendre un moteur entier au lieu d'un langage.
 
 ### Le temps
 
-**Soixante pas par seconde, fixes, jamais réglables.** Ebitengine appelle la mise à jour à cadence constante et rattrape un retard en l'appelant plusieurs fois d'affilée ; la simulation n'a donc jamais à connaître le temps écoulé. Le tick est l'unité de temps unique d'`internal/game`, qui **n'accepte aucun delta** : une fonction de mise à jour qui prendrait une durée en paramètre est un défaut, pas une souplesse.
+**Soixante pas par seconde, fixes, jamais réglables.** La boucle du moteur appelle la mise à jour à cadence constante ; la simulation n'a donc jamais à connaître le temps écoulé. Le tick est l'unité de temps unique d'`internal/game`, qui **n'accepte aucun delta** : une fonction de mise à jour qui prendrait une durée en paramètre est un défaut, pas une souplesse.
+
+**Un retard n'est pas rattrapé, il est abandonné.** Au-delà de deux pas, la boucle laisse tomber ce qu'elle n'a pas joué plutôt que d'enchaîner les appels. L'invariant tient — soixante pas fixes, aucun delta —, mais le corollaire mérite d'être écrit : **un compte de ticks est un nombre d'images et non une horloge**, donc le minuteur du bandeau peut dériver du temps réel sur une machine chargée. Le déterminisme de la run n'en souffre pas, puisqu'il porte sur la suite des pas et non sur leur date.
 
 Toute durée écrite dans un manifeste — les cadences d'animation, le tiers de seconde d'appui sur une caisse, le télégraphe du Molosse — est en millisecondes, et se convertit en ticks **une seule fois au chargement**, par arrondi au plus proche. Convertir à l'usage rouvrirait la question à chaque appel : à 60 Hz, 330 ms valent 19,8 pas, et la caisse céderait au 19e ou au 20e selon qui écrit le code.
 
@@ -1643,7 +1649,7 @@ Note de prudence : survivor, roguelite, exploration, ressources et éditeur avec
 - **La portée de ramassage des gemmes et la durée de vie d'une gemme** : deux valeurs, un seul réglage — le chapitre 2 dit pourquoi elles ne se décident pas séparément.
 - **Le pilote de persistance** : SQLite si et seulement si il se compile pour `js/wasm`, sinon un fichier JSON.
 - **La courbe de résistance** au fil de la run, et le **temps de référence** de chaque lieu : c'est lui qui fixe le poids réel du bonus de temps face aux points d'ennemis.
-- **La bibliothèque d'interface pour l'éditeur** : `ebitenui` ou tout dessiner à la main. À évaluer avant le chantier de l'éditeur, pas pendant.
+- **L'interface de l'éditeur** : une bibliothèque tierce ou tout dessiner à la main, le moteur n'en fournissant pas. À évaluer avant le chantier de l'éditeur, pas pendant.
 
 Tranché en cours de route : aucun asset importable dans le contenu utilisateur, mode tuiles différé après la première version de l'éditeur, et l'aimant gardé — avec son emplacement propre et l'effacement des gemmes pour contre-force.
 

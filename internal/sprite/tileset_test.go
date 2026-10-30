@@ -67,7 +67,7 @@ func TestLeCatalogueLivreSeCharge(t *testing.T) {
 			t.Errorf("« %s » est au manifeste et pas au catalogue chargé", nom)
 			continue
 		}
-		if largeur := int(tuile.Pose.Aspect.Width); largeur != forme.Size[0] {
+		if largeur := int(tuile.Aspect.Width); largeur != forme.Size[0] {
 			t.Errorf("« %s » : image large de %d, le manifeste annonce %d",
 				nom, largeur, forme.Size[0])
 		}

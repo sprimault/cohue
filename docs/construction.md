@@ -30,8 +30,8 @@ request qui en ajoute une sans régénérer le fichier.
 de relire `internal/render`, qui n'a pas de test et n'en aura pas — importer
 Ebitengine initialise GLFW, qui panique sans écran. La planche pilote le rendu du
 jeu et non une scène montée à côté, et elle est déterministe : c'est ce qui permet
-de comparer une image d'avant et d'après un changement. Elle exige un écran, donc
-elle ne tourne pas en intégration continue.
+de comparer une image d'avant et d'après un changement. Elle n'exige aucun
+écran : le moteur de rendu calcule ses images sans fenêtre.
 
 **Une des vues n'est pas une image.** `partie.gif` montre six secondes de jeu à
 la troisième minute, jouées par le pilote du test de déterminisme : ce qui ne se

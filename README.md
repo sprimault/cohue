@@ -86,8 +86,10 @@ make test
 make lint
 ```
 
-Ebitengine is pure Go on Windows: no C compiler for day-to-day development. The
-Linux and macOS targets require native builds and go through CI.
+[`lozengine`](https://github.com/sprimault/lozengine), the rendering engine, is
+pure Go with no dependencies: no C compiler for day-to-day development, and it
+serves Windows as well as Linux. Only `make race` needs one, since the race
+detector requires cgo.
 
 [`docs/construction.md`](docs/construction.md) covers the rest (in French): local
 targets, asset regeneration and the build matrix.

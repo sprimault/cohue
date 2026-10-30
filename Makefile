@@ -28,9 +28,8 @@ run:
 	go run ./cmd/cohue
 
 # internal/render n'a pas de test et n'en aura pas : le rendu se juge à l'œil, et
-# une planche que rien ne fabrique ne relit rien. Elle ouvre une fenêtre le temps
-# d'obtenir un contexte graphique, donc elle ne tourne pas en intégration
-# continue — c'est une planche, pas un contrôle.
+# une planche que rien ne fabrique ne relit rien. Elle n'ouvre aucune fenêtre, le
+# moteur calculant ses images sans écran.
 apercus:
 	go run ./cmd/preview
 

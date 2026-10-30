@@ -8,7 +8,7 @@
 // Package game porte la simulation : bassins d'entités, champ de flux, profils
 // et boucle de mise à jour.
 //
-// Il n'importe ni Ebitengine, ni `time` : une run se joue en mémoire, sans
+// Il n'importe ni `lozengine`, ni `time` : une run se joue en mémoire, sans
 // fenêtre, sur un nombre de ticks fixé. C'est ce qui rend le rejeu testable et
 // l'équilibrage comparable d'une version à l'autre.
 package game

@@ -19,10 +19,9 @@ import (
 // planche est ce qu'une planche rangée laisse à qui pose ses images : l'index
 // qui la désigne dans l'atlas, et la découpe qui y prend une case.
 //
-// La planche elle-même voyage avec, parce que la forme d'une case se relève sur
-// ses pixels — le masque, l'aplat, le bord. Elle ne coûte rien à garder : son
-// tableau est celui que l'atlas partage, `raster.Atlas.Add` n'en recopiant que
-// la description.
+// La planche elle-même voyage avec, parce que ses dérivés se relèvent sur ses
+// pixels — l'aplat, le bord. Elle ne coûte rien à garder : son tableau est celui
+// que l'atlas partage, `raster.Atlas.Add` n'en recopiant que la description.
 type planche struct {
 	index  uint16
 	cases  []raster.Rectangle
@@ -85,7 +84,8 @@ func ranger(fsys fs.FS, atlas *raster.Atlas, chemin string, taille, cases [2]int
 // Le décalage est celui du dépôt — le coin haut-gauche relatif au point visé —
 // et `AnchorFromOffset` le convertit vers le pied centré du moteur. Il porte sur
 // une case et non sur la planche : c'est une image qu'on pose, pas une bande.
-func poser(fsys fs.FS, atlas *raster.Atlas, chemin string, taille, cases, decalage [2]int) ([]Pose, error) {
+func poser(fsys fs.FS, atlas *raster.Atlas, chemin string, taille, cases,
+	decalage [2]int) ([]scene.Aspect, error) {
 	ancre, tient := ancre16(AnchorFromOffset(decalage, cases))
 	if !tient {
 		return nil, fmt.Errorf("%s : décalage %v dans une case de %v, l'ancre n'y tient pas",
@@ -95,7 +95,7 @@ func poser(fsys fs.FS, atlas *raster.Atlas, chemin string, taille, cases, decala
 	if err != nil {
 		return nil, err
 	}
-	return p.poses(ancre), nil
+	return p.aspects(ancre), nil
 }
 
 // derive range dans l'atlas une planche tirée de celle-ci, à découpe identique.
@@ -157,10 +157,15 @@ func ancre16(x, y int) ([2]int16, bool) {
 	return [2]int16{int16(x), int16(y)}, true
 }
 
-// masque relève la forme d'une case de la planche.
-func (p planche) masque(image int) *Mask {
-	if image < 0 || image >= len(p.cases) {
-		return nil
+// aspects rend les cases d'une planche, ancrées comme l'appelant le demande.
+//
+// Relevées une fois au chargement : ce qu'elles portent ne dépend que de la
+// découpe et de l'ancre, et les recalculer par image serait du travail dans la
+// boucle.
+func (p planche) aspects(ancre [2]int16) []scene.Aspect {
+	liste := make([]scene.Aspect, len(p.cases))
+	for i := range p.cases {
+		liste[i], _ = p.aspect(i, ancre)
 	}
-	return NewMask(p.source, p.cases[image])
+	return liste
 }

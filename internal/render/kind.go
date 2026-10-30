@@ -49,5 +49,23 @@ const (
 	sorteFioleAuSol
 	// sorteTourelle est une tourelle posée. On marche autour.
 	sorteTourelle
+	// sorteEclair n'est pas un bassin de plus, c'est un second quad sur celui des
+	// créatures : la teinte qu'un état ajoute par-dessus le sprite.
+	//
+	// **Elle a sa propre correspondance parce qu'elle a sa propre poignée.** Deux
+	// quads de la même créature sont deux entités pour la scène, et l'éclair
+	// apparaît et disparaît sans que la créature bouge — c'est le solde de son
+	// attache qui le retire quand l'état s'achève.
+	sorteEclair
 	sorteJoueur
+	// sorteLisere n'est pas un bassin non plus : ce sont les huit quads de
+	// l'aplat qui cernent le joueur, posés sous son sprite.
+	//
+	// **Huit et non un, et ce n'est pas un choix de confort.** Le liseré déborde
+	// du dessin, donc il demanderait une planche dilatée d'un pixel ; or une
+	// silhouette grossie déborderait aussi de sa case et s'y ferait couper, ce
+	// que la godoc de `sprite.Outline` constate pour le tracé intérieur. Huit
+	// copies décalées par l'ancre débordent sans rien perdre, et elles coûtent
+	// huit poses par image pour une seule entité.
+	sorteLisere
 )

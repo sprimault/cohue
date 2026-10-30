@@ -15,8 +15,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/sprimault/lozengine"
 
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/render"
@@ -69,58 +68,52 @@ func main() {
 type boucle struct {
 	partie *session.Session
 	ecran  *render.Screen
-	hud    *render.HUD
-	// sol est le décor du lieu et troupe les créatures, résolus en images une
-	// fois : ni l'un ni l'autre ne dépend de la partie, que la relance remplace.
-	sol    *render.Terrain
-	troupe *render.Cast
-	objets *render.Stage
-	// tenues et pressees portent le relevé du clavier de l'image en cours. Elles
-	// vivent sur la boucle pour être réemployées : un relevé qui allouerait
-	// soixante fois par seconde mettrait le ramasse-miettes sur le chemin d'une
-	// image.
-	tenues, pressees []ebiten.Key
+	// echec porte ce qu'une relance a refusé. La boucle du moteur ne sait pas
+	// recevoir d'erreur en cours de route — un jeu qui veut partir le dit par
+	// `Quitting` —, et la taire laisserait une partie tourner sur un décor que
+	// personne n'a reposé.
+	echec error
 }
 
-// Update avance la partie, ou en monte une neuve si le joueur relance.
+// Step avance la partie, ou relie l'écran à une partie neuve si le joueur
+// relance, puis décrit l'image.
 //
-// **Le clavier se relève ici et une seule fois par image.** Les fonctions d'état
-// d'Ebitengine sont globales : les appeler depuis le rendu marchait, mais laissait
-// une méthode de dessin lire une touche sans que sa signature le dise. La boucle
-// est le seul endroit qui sache quand une image commence, donc c'est à elle de
-// relever et de passer.
+// **Les entrées viennent du moteur, et la boucle n'interroge plus rien.** Elles
+// étaient relevées ici parce que les fonctions d'état de la bibliothèque
+// précédente étaient globales, et qu'une méthode de dessin pouvait lire une
+// touche sans que sa signature le dise. Le pas les reçoit désormais en valeur.
 //
-// Les deux tranches sont réemployées d'une image à la suivante, ce que les
-// fonctions d'ajout d'Ebitengine permettent : un relevé par image ne doit pas
-// allouer.
-func (b *boucle) Update() error {
-	b.tenues = inpututil.AppendPressedKeys(b.tenues[:0])
-	b.pressees = inpututil.AppendJustPressedKeys(b.pressees[:0])
-	in := render.NewInput(b.tenues, b.pressees)
-
+// **Avancer et décrire sont le même appel**, parce que c'est ce que le moteur
+// attend : il ne dessine pas ce qu'on lui demande, il trie et peint ce que la
+// scène porte quand le pas rend la main.
+func (b *boucle) Step(in lozengine.Input) {
+	if b.echec != nil {
+		return
+	}
 	if b.ecran.WantsRestart(in) {
 		b.partie.Restart()
-		b.monter()
-		return nil
+		b.echec = b.ecran.Rebind(b.partie.World, b.partie.Grid)
+		if b.echec != nil {
+			return
+		}
+	} else {
+		b.ecran.Step(in)
 	}
-	return b.ecran.Update(in)
+	b.ecran.Describe()
 }
 
-// Draw peint la partie en cours.
-func (b *boucle) Draw(ecran *ebiten.Image) { b.ecran.Draw(ecran) }
-
-// Layout délègue à l'écran, qui fixe le tampon interne.
-func (b *boucle) Layout(largeur, hauteur int) (int, int) { return b.ecran.Layout(largeur, hauteur) }
-
-// monter accroche un écran neuf sur la partie courante.
+// Overlaps relaie à l'écran le relevé de ce qui recouvre les choses qu'il suit.
 //
-// L'écran se remonte parce qu'il cadre sur le joueur à sa construction : le
-// réutiliser laisserait la caméra là où la partie précédente s'est terminée, et
-// la relance montrerait un premier instant décadré.
-func (b *boucle) monter() {
-	b.ecran = render.NewScreen(b.partie.World, b.partie.Grid, b.sol, b.troupe, b.objets).
-		WithHUD(b.hud)
-}
+// La boucle du moteur la cherche sur le jeu, et le jeu est cet objet-ci : sans
+// ce relais, le rappel de ce qui est caché ne recevrait jamais sa mesure.
+func (b *boucle) Overlaps(list lozengine.OverlapList) { b.ecran.Overlaps(list) }
+
+// Quitting arrête la boucle quand une relance a échoué.
+//
+// C'est la seule sortie de secours d'un jeu qui passe par la boucle du moteur,
+// et l'erreur est rendue par `run` une fois la main reprise : sortir du
+// processus ici sauterait tout ce que la boucle fait en se terminant.
+func (b *boucle) Quitting() bool { return b.echec != nil }
 
 // run monte le jeu et le fait tourner jusqu'à ce que le joueur quitte.
 func run() error {
@@ -128,11 +121,16 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	hud, err := render.LoadHUD(cohue.Assets, cohue.InterfaceManifest)
+
+	// L'atlas se remplit à mesure que les catalogues se chargent, chacun y
+	// rangeant ses planches et retenant leurs index. Il se construit donc avant
+	// eux, et se remet au moteur après eux.
+	atlas := &lozengine.Atlas{}
+	hud, err := render.LoadHUD(cohue.Assets, cohue.InterfaceManifest, atlas)
 	if err != nil {
 		return err
 	}
-	tuiles, err := sprite.LoadTiles(cohue.Assets, cohue.DecorDir, partie.Decor)
+	tuiles, err := sprite.LoadTiles(cohue.Assets, cohue.DecorDir, partie.Decor, atlas)
 	if err != nil {
 		return err
 	}
@@ -140,27 +138,66 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	troupe, err := render.NewCast(cohue.Assets, cohue.CharacterDir, partie.Profiles)
+	troupe, err := render.NewCast(cohue.Assets, cohue.CharacterDir, partie.Profiles, atlas)
+	if err != nil {
+		return err
+	}
+	objets, err := render.NewStage(cohue.Assets, cohue.ObjectDir, cohue.ObjectManifest,
+		partie.Objects, atlas)
+	if err != nil {
+		return err
+	}
+	// Le retrait que l'interface réserve se lit avant l'écran, qui en tire le
+	// cadrage de sa première image, et il part aux options du moteur, qui en tire
+	// toutes les suivantes.
+	retrait := hud.Inset()
+	ecran, err := render.NewScreen(partie.World, partie.Grid, sol, troupe, objets, atlas,
+		retrait)
 	if err != nil {
 		return err
 	}
 
-	objets, err := render.NewStage(cohue.Assets, cohue.ObjectDir, cohue.ObjectManifest, partie.Objects)
-	if err != nil {
-		return err
-	}
-
-	jeu := &boucle{partie: partie, hud: hud, sol: sol, troupe: troupe, objets: objets}
-	jeu.monter()
-
+	// Les icônes ne passent pas par l'atlas : la fenêtre les porte, aucun quad
+	// n'y puise.
 	icones, err := ui.LoadIcons(cohue.Assets, cohue.InterfaceManifest)
 	if err != nil {
 		return err
 	}
 
-	ebiten.SetWindowTitle(titreFenetre)
-	ebiten.SetWindowIcon(icones)
-	ebiten.SetWindowSize(render.Width, render.Height)
-	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	return ebiten.RunGame(jeu)
+	jeu := &boucle{partie: partie, ecran: ecran.WithHUD(hud)}
+
+	// **Le monde remplit la fenêtre moins la bande du bandeau, et c'est un
+	// arbitrage jugé à l'écran.** `Width` et `Height` sont le plancher de la
+	// surface : la fenêtre s'ouvre à cette taille, puis la surface grandit au
+	// facteur entier près. Le retrait en sort la hauteur du bandeau, toujours la
+	// même, et l'aire de monde prend tout le reste — il ne reste donc aucune
+	// bande, et agrandir montre un peu plus de lieu.
+	//
+	// **Le plafond a été essayé et écarté, et c'est l'écran qui a tranché.** Il
+	// borne l'aire en pixels, donc la marge est ce que la fenêtre a de plus :
+	// 44 % de la surface sur un écran de 1440p, le lieu collé dans un cadre noir.
+	// Le reste d'une division entière va au monde ou à la marge, et il n'y a pas
+	// de troisième endroit — c'est de l'arithmétique, pas un réglage. Un retrait
+	// fait l'inverse, et c'est celui-là qu'on veut : la marge est une donnée de
+	// mise en page, l'aire est ce qui reste.
+	//
+	// L'alignement n'a donc rien à dire : une aire qui prend tout ce que le
+	// retrait laisse part du retrait, quel que soit `WorldAlignY`.
+	//
+	// `Bars` n'est pas posé : son défaut noir est voulu par le moteur, qui tient
+	// à ce que la frontière de l'image reste visible, et il ne reste de toute
+	// façon au plus qu'un résidu de `facteur − 1` pixels.
+	err = lozengine.Run(ecran.Scene(), jeu, lozengine.Options{
+		Title:      titreFenetre,
+		Width:      render.Width,
+		Height:     render.Height,
+		WorldInset: retrait,
+		Background: render.Background,
+		Atlas:      atlas,
+		Icons:      icones,
+	})
+	if err != nil {
+		return err
+	}
+	return jeu.echec
 }

@@ -4,7 +4,7 @@
 // Ce que les icônes livrées doivent porter, et le refus d'une fenêtre sans
 // icône. Le dessin, lui, se juge dans une barre des tâches.
 
-package ui
+package render
 
 import (
 	"strings"

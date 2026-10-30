@@ -5,7 +5,7 @@
 // marges et teintes. Aucune dimension calculée — ce qui dépend d'un contenu se
 // mesure au rendu.
 
-package ui
+package render
 
 import (
 	"fmt"
@@ -53,9 +53,9 @@ func LoadTheme(fsys fs.FS, chemin string) (*Theme, error) {
 	if err != nil {
 		return nil, err
 	}
-	if brut.Format != FormatFont {
+	if brut.Format != FormatInterface {
 		return nil, fmt.Errorf("%s: %w : %d, ce binaire lit la %d",
-			chemin, manifest.ErrUnsupportedFormat, brut.Format, FormatFont)
+			chemin, manifest.ErrUnsupportedFormat, brut.Format, FormatInterface)
 	}
 
 	var manques []string

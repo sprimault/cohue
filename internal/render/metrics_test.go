@@ -5,7 +5,7 @@
 // porter. C'est le versant vérifiable de la police : le dessin, lui, se juge à
 // l'œil sur la planche.
 
-package ui
+package render
 
 import (
 	"strings"
@@ -79,7 +79,7 @@ func TestLeManifesteDInterfaceRefuseCeQuiEstIncoherent(t *testing.T) {
 				t.Fatalf("le cas ne change rien : %q est absent du manifeste", c.avant)
 			}
 			fsys := fstest.MapFS{"m.json": {Data: []byte(texte)}}
-			_, err := LoadFont(fsys, "m.json")
+			_, err := LoadMetrics(fsys, "m.json")
 			if err == nil {
 				t.Fatalf("manifeste accepté alors qu'il porte : %s", c.nom)
 			}
@@ -93,12 +93,12 @@ func TestLeManifesteDInterfaceRefuseCeQuiEstIncoherent(t *testing.T) {
 // TestLeManifesteValideSeCharge est le témoin des refus de
 // `TestLeManifesteDInterfaceRefuseCeQuiEstIncoherent`.
 //
-// Sans lui, un `LoadFont` qui refuserait tout les ferait tous passer : ils
+// Sans lui, un `LoadMetrics` qui refuserait tout les ferait tous passer : ils
 // vérifient qu'un manifeste est refusé, jamais qu'un autre est accepté. C'est la
 // paire dont chaque moitié garde ce que l'autre ne garde pas.
 func TestLeManifesteValideSeCharge(t *testing.T) {
 	fsys := fstest.MapFS{"m.json": {Data: []byte(manifesteValide)}}
-	police, err := LoadFont(fsys, "m.json")
+	police, err := LoadMetrics(fsys, "m.json")
 	if err != nil {
 		t.Fatalf("manifeste valide refusé : %v", err)
 	}
@@ -118,7 +118,7 @@ func TestLeManifesteValideSeCharge(t *testing.T) {
 // voit là où il se produit.
 func TestUnGlypheAbsentOccupeUneCellule(t *testing.T) {
 	fsys := fstest.MapFS{"m.json": {Data: []byte(manifesteValide)}}
-	police, err := LoadFont(fsys, "m.json")
+	police, err := LoadMetrics(fsys, "m.json")
 	if err != nil {
 		t.Fatalf("manifeste valide refusé : %v", err)
 	}
@@ -135,7 +135,7 @@ func TestUnGlypheAbsentOccupeUneCellule(t *testing.T) {
 // l'ASCII imprimable et les capitales accentuées, que le français impose et
 // qu'une fonte de jeu anglophone porte rarement.
 func TestLaPoliceLivreeSeCharge(t *testing.T) {
-	police, err := LoadFont(cohue.Assets, cohue.InterfaceManifest)
+	police, err := LoadMetrics(cohue.Assets, cohue.InterfaceManifest)
 	if err != nil {
 		t.Fatalf("chargement de la police livrée : %v", err)
 	}

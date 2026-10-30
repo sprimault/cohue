@@ -2,16 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // La police telle que son manifeste la décrit : la cellule, la ligne de base, la
-// place de chaque glyphe dans la planche et son avance. Rien qui dessine — le
-// dessin est dans `internal/render`, qui lit ces mesures.
-
-// Package ui porte ce que l'interface lit, sans rien afficher.
+// place de chaque glyphe dans la planche et son avance. Rien qui dessine — `Font`
+// lit ces mesures, et c'est lui qui pose les quads.
 //
-// Il existe pour que le décodage d'un manifeste d'interface reste vérifiable :
-// `internal/render` n'a pas de test, alors que refuser un manifeste incohérent
-// est exactement ce qui doit l'être.
-// La frontière est celle du pixel : ce qui mesure vit ici, ce qui peint vit là.
-package ui
+// **Ce fichier vient d'`internal/ui`, qui n'existe plus.** Ce paquet-là portait
+// la moitié mesurable d'une interface parce que celle qui peint n'avait pas de
+// test ; depuis qu'elle en a, la coupure ne séparait plus que deux catalogues
+// qu'il fallait tenir d'accord.
+package render
 
 import (
 	"fmt"
@@ -20,15 +18,19 @@ import (
 	"github.com/sprimault/cohue/internal/manifest"
 )
 
-// FormatFont est la version de format que ce binaire sait lire.
-const FormatFont = 1
+// FormatInterface est la version de format que ce binaire sait lire du
+// manifeste d'interface. Les trois lectures la partagent — mesures, icônes,
+// réglages —, le manifeste étant un seul fichier.
+const FormatInterface = 1
 
-// Font est la planche de glyphes, mesurée.
+// Metrics est la planche de glyphes, mesurée.
 //
-// Elle ne porte aucune image : la planche est un fichier que le rendu charge, et
-// ce type n'en connaît que le nom et la géométrie. C'est ce qui lui permet de se
-// tester sans écran.
-type Font struct {
+// Elle ne porte aucune image : la planche est un fichier que `Font` charge, et
+// ce type n'en connaît que le nom et la géométrie. **Deux types et non un**, là
+// où un seul paraîtrait plus simple : celui-ci se lit d'un manifeste et se
+// vérifie sans atlas, celui-là tient un index de planche et des rectangles que
+// seul un atlas monté peut rendre.
+type Metrics struct {
 	// Sheet est le nom de la planche, relatif au dossier du manifeste.
 	Sheet string
 	// Cell est la cellule d'un glyphe, largeur puis hauteur. Elle n'est pas
@@ -49,18 +51,18 @@ type Font struct {
 	advance []int
 }
 
-// LoadFont lit le manifeste d'interface et rend la police qu'il décrit.
+// LoadMetrics lit le manifeste d'interface et rend les mesures qu'il décrit.
 //
 // Les manques sont listés en une fois : qui met au point un manifeste veut la
 // liste, pas un aller-retour par défaut.
-func LoadFont(fsys fs.FS, chemin string) (*Font, error) {
+func LoadMetrics(fsys fs.FS, chemin string) (*Metrics, error) {
 	brut, err := manifest.Decode[rawInterface](fsys, chemin)
 	if err != nil {
 		return nil, err
 	}
-	if brut.Format != FormatFont {
+	if brut.Format != FormatInterface {
 		return nil, fmt.Errorf("%s: %w : %d, ce binaire lit la %d",
-			chemin, manifest.ErrUnsupportedFormat, brut.Format, FormatFont)
+			chemin, manifest.ErrUnsupportedFormat, brut.Format, FormatInterface)
 	}
 
 	var manques []string
@@ -106,7 +108,7 @@ func LoadFont(fsys fs.FS, chemin string) (*Font, error) {
 	if len(manques) > 0 {
 		return nil, &manifest.Invalid{Path: chemin, Missing: manques}
 	}
-	return &Font{
+	return &Metrics{
 		Sheet:    p.Sheet,
 		Cell:     p.Cell,
 		Baseline: p.Baseline,
@@ -121,7 +123,7 @@ func LoadFont(fsys fs.FS, chemin string) (*Font, error) {
 // Le second retour dit si la table le porte. Un caractère absent n'est pas une
 // erreur de chargement — le manifeste ne peut pas connaître ce que le jeu
 // écrira — mais il ne se dessine pas pour autant.
-func (f *Font) Place(r rune) (int, bool) {
+func (f *Metrics) Place(r rune) (int, bool) {
 	i, ok := f.place[r]
 	return i, ok
 }
@@ -136,7 +138,7 @@ func (f *Font) Place(r rune) (int, bool) {
 // n'occuper rien, mais un texte auquel il manque une lettre se lit comme un
 // texte, alors qu'un trou se voit. Le défaut doit se remarquer là où il se
 // produit, pas se dissimuler dans une chaîne plausible.
-func (f *Font) Advance(s string) int {
+func (f *Metrics) Advance(s string) int {
 	total := 0
 	for _, r := range s {
 		if i, ok := f.place[r]; ok {
@@ -149,7 +151,7 @@ func (f *Font) Advance(s string) int {
 }
 
 // Height rend la hauteur d'une ligne, en pixels de tampon.
-func (f *Font) Height() int { return f.Cell[1] }
+func (f *Metrics) Height() int { return f.Cell[1] }
 
 // rawInterface est le manifeste tel qu'il s'écrit.
 type rawInterface struct {

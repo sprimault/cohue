@@ -42,6 +42,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+## [0.7.3] — 2026-10-30 — Le rendu change de moteur
+
 ### Ajouté
 
 - **Une pièce peut poser sur son terrain au lieu de le remplacer.** Sa grille

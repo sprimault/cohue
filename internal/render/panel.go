@@ -9,10 +9,10 @@ package render
 
 import (
 	"fmt"
-	"image/color"
 	"strconv"
 
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sprimault/lozengine/render"
+	"github.com/sprimault/lozengine/scene"
 
 	"github.com/sprimault/cohue/internal/game"
 )
@@ -100,8 +100,9 @@ func (s *Screen) emplacementsLourds() [game.Slots]Held {
 // lui donne. C'est ce qui lui permet de ne charger aucune image tout en en
 // posant une.
 type Held struct {
-	// Icon est le dessin de face de l'arme, nul quand l'emplacement est vide.
-	Icon *ebiten.Image
+	// Icon est le dessin de face de l'arme. Sa valeur zéro ne montre rien, ce qui
+	// est la façon dont la scène reconnaît un emplacement vide.
+	Icon scene.Aspect
 	// Charges est le nombre de tirs que l'emplacement porte.
 	//
 	// **Un compte et non une proportion**, depuis qu'une arme du même type
@@ -161,8 +162,20 @@ type Readings struct {
 // décor n'a que trois gris. Une partie jouée a tranché en une minute : le texte
 // se perdait. Le bandeau a donc son fond, ce que le manifeste prévoyait depuis le
 // début sans que personne ne le lise ici.
-func (h *HUD) Panel(dst *ebiten.Image, r Readings) {
-	x, y := margeEcran, margeEcran
+func (h *HUD) Panel(sc *scene.Scene, r Readings) {
+	// Le bandeau se pose juste au-dessus de l'aire de jeu, et toutes les poses
+	// qui suivent s'y rapportent.
+	//
+	// **Au-dessus et non dessus.** C'est `HUD.Inset` qui le rend possible : le
+	// moteur retire du monde la hauteur du bandeau, donc la marge existe
+	// toujours et cette ordonnée ne redevient jamais négative. Il a recouvert le
+	// monde le temps que le retrait n'existe pas, et il n'y a plus de raison de
+	// disputer au jeu la bande qu'on lui réserve.
+	ax, ay, alargeur, _ := aireDans(sc)
+	haut := ay - hauteurBandeau(h)
+	droite := ax + alargeur - margeEcran
+
+	x, y := ax+margeEcran, haut+margeEcran
 	ecart := 2 * h.Margin()
 
 	// **Le bandeau a son propre fond, comme le panneau des cartes.** Sans lui, la
@@ -171,35 +184,35 @@ func (h *HUD) Panel(dst *ebiten.Image, r Readings) {
 	// elle. `bandeau_fond` était déclaré au manifeste et lu nulle part ici, ce que
 	// personne n'avait vu tant qu'on jugeait la mise en page sur une planche
 	// plutôt qu'en jouant.
-	h.Band(dst, 0, hauteurBandeau(h))
+	h.Band(sc, ax, haut, alargeur, hauteurBandeau(h))
 
-	h.Gauge(dst, x, y, largeurJauge, part(r.Health, r.MaxHealth), h.Color("jauge_vie"))
-	h.libelle(dst, fmt.Sprintf("%d / %d", r.Health, r.MaxHealth),
+	h.Gauge(sc, x, y, largeurJauge, part(r.Health, r.MaxHealth), h.Color("jauge_vie"))
+	h.libelle(sc, fmt.Sprintf("%d / %d", r.Health, r.MaxHealth),
 		x+largeurJauge+ecart, y, h.Color("texte"))
 
 	y += h.Font.Height()
-	h.Gauge(dst, x, y, largeurJauge, part(r.Experience, r.Threshold),
+	h.Gauge(sc, x, y, largeurJauge, part(r.Experience, r.Threshold),
 		h.Color("jauge_experience"))
 
 	// **Le niveau en pleine teinte, comme la vie.** Il était atténué, ce qui
 	// range un texte au second plan : c'est ce qu'on fait d'une phrase
 	// d'explication sur une carte, pas d'une des trois lectures que le bandeau
 	// existe pour donner.
-	h.libelle(dst, fmt.Sprintf("Niveau %d", r.Level),
+	h.libelle(sc, fmt.Sprintf("Niveau %d", r.Level),
 		x+largeurJauge+ecart, y, h.Color("texte"))
 
 	// Le minuteur s'aligne sur le bord droit par mesure, et non à distance fixe :
 	// il s'allonge d'un caractère au passage de la dixième minute.
 	temps := minuteur(r.Elapsed)
-	h.libelle(dst, temps, Width-margeEcran-h.Font.Advance(temps), margeEcran,
+	h.libelle(sc, temps, droite-h.Font.Advance(temps), haut+margeEcran,
 		h.Color("texte"))
 
 	// L'accusé se pose sous le minuteur, dans la teinte atténuée : il confirme
 	// une pose, il n'est pas une des lectures que le bandeau existe pour donner,
 	// et l'œil qui vérifie l'heure d'un repère est déjà dans ce coin-là.
 	if r.Mark != "" {
-		h.libelle(dst, r.Mark, Width-margeEcran-h.Font.Advance(r.Mark),
-			margeEcran+h.Font.Height(), h.Color("texte_attenue"))
+		h.libelle(sc, r.Mark, droite-h.Font.Advance(r.Mark),
+			haut+margeEcran+h.Font.Height(), h.Color("texte_attenue"))
 	}
 
 	// **L'objectif se pose sous le minuteur, en pleine teinte.** C'est une des
@@ -208,18 +221,18 @@ func (h *HUD) Panel(dst *ebiten.Image, r Readings) {
 	// réception. Il descend d'une ligne quand un repère occupe la sienne, plutôt
 	// que de la lui disputer.
 	if r.Objective != "" {
-		ligne := margeEcran + h.Font.Height()
+		ligne := haut + margeEcran + h.Font.Height()
 		if r.Mark != "" {
 			ligne += h.Font.Height()
 		}
-		h.libelle(dst, r.Objective, Width-margeEcran-h.Font.Advance(r.Objective),
+		h.libelle(sc, r.Objective, droite-h.Font.Advance(r.Objective),
 			ligne, h.Color("texte"))
 	}
 
 	bas := y + h.Font.Height() + h.Margin()
-	h.emplacement(dst, margeEcran, bas, r.Charged)
-	h.lourdes(dst, margeEcran, bas, r)
-	h.fioles(dst, margeEcran, bas, r)
+	h.emplacement(sc, x, bas, r.Charged)
+	h.lourdes(sc, x, bas, r)
+	h.fioles(sc, x, bas, r)
 }
 
 // fioles pose la case des consommables, après les deux emplacements d'armes.
@@ -233,20 +246,20 @@ func (h *HUD) Panel(dst *ebiten.Image, r Readings) {
 // fiole ne revient pas d'elle-même : elle sort des caisses, si bien qu'une case
 // vide n'annoncerait rien qui vienne, à la différence de l'aimant que sa période
 // ramène.
-func (h *HUD) fioles(dst *ebiten.Image, x, y int, r Readings) {
+func (h *HUD) fioles(sc *scene.Scene, x, y int, r Readings) {
 	if r.Vials.Charges <= 0 {
 		return
 	}
 
 	cote := h.SlotSide(contenuEmplacement)
 	gauche := x + (game.Slots+1)*(cote+h.Margin())
-	h.Slot(dst, gauche, y, contenuEmplacement, toucheFiole)
+	h.Slot(sc, gauche, y, contenuEmplacement, toucheFiole)
 
 	bord := (cote - contenuEmplacement) / 2
-	if r.Vials.Icon != nil {
-		h.Image(dst, r.Vials.Icon, gauche+bord, y+bord)
+	if r.Vials.Icon.Width != 0 {
+		h.Sprite(sc, r.Vials.Icon, gauche+bord, y+bord)
 	}
-	h.compteDansLaCase(dst, gauche+h.Border()+1, y+cote-h.Border(), r.Vials.Charges)
+	h.compteDansLaCase(sc, gauche+h.Border()+1, y+cote-h.Border(), r.Vials.Charges)
 }
 
 // lourdes pose les emplacements d'armes lourdes à la suite de celui de l'aimant.
@@ -260,20 +273,20 @@ func (h *HUD) fioles(dst *ebiten.Image, x, y int, r Readings) {
 // La conséquence à assumer est qu'un emplacement vide ne montre pas sa touche.
 // C'est ce que « pas de message » veut dire : rien n'invite à presser une touche
 // qui ne ferait rien.
-func (h *HUD) lourdes(dst *ebiten.Image, x, y int, r Readings) {
+func (h *HUD) lourdes(sc *scene.Scene, x, y int, r Readings) {
 	cote := h.SlotSide(contenuEmplacement)
 	for place, tenue := range r.Heavies {
 		if tenue.Charges <= 0 {
 			continue
 		}
 		gauche := x + (place+1)*(cote+h.Margin())
-		h.Slot(dst, gauche, y, contenuEmplacement, touchesLourdes[place])
+		h.Slot(sc, gauche, y, contenuEmplacement, touchesLourdes[place])
 
 		bord := (cote - contenuEmplacement) / 2
-		if tenue.Icon != nil {
-			h.Image(dst, tenue.Icon, gauche+bord, y+bord)
+		if tenue.Icon.Width != 0 {
+			h.Sprite(sc, tenue.Icon, gauche+bord, y+bord)
 		}
-		h.compteDansLaCase(dst, gauche+h.Border()+1, y+cote-h.Border(), tenue.Charges)
+		h.compteDansLaCase(sc, gauche+h.Border()+1, y+cote-h.Border(), tenue.Charges)
 	}
 }
 
@@ -296,8 +309,8 @@ func (h *HUD) lourdes(dst *ebiten.Image, x, y int, r Readings) {
 // **Contouré, parce qu'il se pose malgré tout sur une partie du dessin.** Un
 // chiffre clair sur un corps clair ne se lirait pas, et c'est la règle que le
 // chapitre 2 applique à tout texte posé sur autre chose que son propre fond.
-func (h *HUD) compteDansLaCase(dst *ebiten.Image, x, bas, tenu int) {
-	h.Font.DrawOutlined(dst, strconv.Itoa(tenu), x, bas-h.Font.Height(),
+func (h *HUD) compteDansLaCase(sc *scene.Scene, x, bas, tenu int) {
+	h.Font.DrawOutlined(sc, strconv.Itoa(tenu), x, bas-h.Font.Height(),
 		h.Color("texte"), h.Color("cadre_fond"))
 }
 
@@ -311,8 +324,8 @@ func (h *HUD) compteDansLaCase(dst *ebiten.Image, x, bas, tenu int) {
 // La touche s'écrit dessous et non le nom, comme la conception l'exige d'un
 // emplacement : ce que le joueur cherche sous la case en jouant est ce qu'il doit
 // presser, et l'icône dira de quoi il s'agit quand elle existera.
-func (h *HUD) emplacement(dst *ebiten.Image, x, y int, chargee bool) {
-	cote := h.Slot(dst, x, y, contenuEmplacement, toucheAimant)
+func (h *HUD) emplacement(sc *scene.Scene, x, y int, chargee bool) {
+	cote := h.Slot(sc, x, y, contenuEmplacement, toucheAimant)
 	if !chargee {
 		return
 	}
@@ -329,7 +342,7 @@ func (h *HUD) emplacement(dst *ebiten.Image, x, y int, chargee bool) {
 	// teinte est une seconde description de la couleur du sprite, tenue à la
 	// main, et c'est ce que la ligne suivante coûte.
 	bord := (cote - contenuEmplacement) / 2
-	h.Rect(dst, x+bord, y+bord, contenuEmplacement, contenuEmplacement, teinteAimant)
+	h.Rect(sc, x+bord, y+bord, contenuEmplacement, contenuEmplacement, teinteAimant)
 }
 
 // libelle pose un texte du bandeau, aligné sur la jauge qu'il commente.
@@ -337,8 +350,8 @@ func (h *HUD) emplacement(dst *ebiten.Image, x, y int, chargee bool) {
 // Le pixel de décalage vers le haut n'est pas un ajustement à l'œil : la jauge
 // est haute de six pixels et la ligne de texte de neuf, et les centrer l'une sur
 // l'autre demande la moitié de leur différence.
-func (h *HUD) libelle(dst *ebiten.Image, texte string, x, y int, teinte color.RGBA) {
-	h.Font.Draw(dst, texte, x, y-(h.Font.Height()-h.theme.GaugeHeight)/2, teinte)
+func (h *HUD) libelle(sc *scene.Scene, texte string, x, y int, teinte render.Color) {
+	h.Font.Draw(sc, texte, x, y-(h.Font.Height()-h.theme.GaugeHeight)/2, teinte)
 }
 
 // part rend la fraction d'une jauge, zéro quand son maximum n'en est pas un.
@@ -372,11 +385,11 @@ func minuteur(ecoule game.Tick) string {
 // pire moment ; sous le voile que `peindreFin` pose, parce que le niveau atteint
 // et le temps tenu font partie de ce que le joueur relit à la fin d'une partie —
 // c'est pour cela que cet écran-là n'a que deux lignes.
-func (s *Screen) peindreBandeau(ecran *ebiten.Image) {
+func (s *Screen) poserBandeau() {
 	if s.hud == nil {
 		return
 	}
-	s.hud.Panel(ecran, Readings{
+	s.hud.Panel(s.scene, Readings{
 		Health:     s.monde.Health(),
 		MaxHealth:  s.monde.MaxHealth(),
 		Level:      s.monde.Level(),
@@ -423,4 +436,22 @@ func (s *Screen) objectif() string {
 func hauteurBandeau(h *HUD) int {
 	haut := margeEcran + 2*h.Font.Height() + h.Margin()
 	return haut + h.SlotSide(contenuEmplacement) + h.Font.Height() + h.Margin()
+}
+
+// Inset rend la bande que l'interface réserve autour du jeu, pour que le moteur
+// l'en retire.
+//
+// **Un retrait et non un plafond, et les deux ne se ressemblent que de loin.**
+// Un plafond fixe l'aire de monde et laisse la marge enfler avec la fenêtre —
+// mesuré en jouant : soixante-dix-sept pixels à l'ouverture, deux cent vingt-un
+// sur un écran de 1440p, soit un bandeau flottant à vingt centimètres du jeu.
+// Un retrait fixe la marge et laisse l'aire prendre le reste, si bien que le
+// bandeau reste collé au monde et qu'agrandir montre un peu plus de lieu.
+//
+// **Le haut seul, et le panneau des cartes ne l'élargit pas.** Lui aussi se pose
+// contre l'aire, mais il n'ouvre que pendant une pause : lui réserver sa bande
+// coûterait au joueur un cinquième du lieu pendant les quinze minutes où il est
+// fermé, pour une mise en page qui recouvre un monde où rien ne se joue.
+func (h *HUD) Inset() scene.Inset {
+	return scene.Inset{Top: pixelDEcran(hauteurBandeau(h))}
 }

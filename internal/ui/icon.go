@@ -1,18 +1,18 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// Les icônes de la fenêtre : ce que le manifeste en déclare, et leur décodage.
-// Rien n'est dessiné ici — le gestionnaire de fenêtres choisit la taille qui
-// convient à l'endroit où il l'affiche.
+// Les icônes de la fenêtre : ce que le manifeste en déclare, et leur lecture en
+// planches. Rien n'est dessiné ici — le gestionnaire de fenêtres choisit la
+// taille qui convient à l'endroit où il l'affiche.
 
 package ui
 
 import (
 	"fmt"
-	"image"
-	_ "image/png" // le format des icônes, décodé par image.Decode
 	"io/fs"
 	"path"
+
+	"github.com/sprimault/lozengine/raster"
 
 	"github.com/sprimault/cohue/internal/manifest"
 )
@@ -24,10 +24,15 @@ import (
 // se démentirait le jour où le générateur change de grille sans que le manifeste
 // suive.
 //
+// **Une planche par taille, et aucune n'est redimensionnée.** C'est ce que la
+// fenêtre attend : le moteur ne sait pas passer de vingt-quatre à seize pixels
+// par une échelle entière, et une réduction douce brouillerait un dessin fait
+// pixel par pixel. Le système retient la plus proche et réduit s'il y tient.
+//
 // Une liste vide fait échouer plutôt que de rendre une tranche nulle : une
 // fenêtre sans icône est une icône par défaut, c'est-à-dire un défaut qu'on ne
 // remarque pas — et le seul endroit capable de le dire est celui-ci.
-func LoadIcons(fsys fs.FS, chemin string) ([]image.Image, error) {
+func LoadIcons(fsys fs.FS, chemin string) ([]raster.Sheet, error) {
 	brut, err := manifest.Decode[rawInterface](fsys, chemin)
 	if err != nil {
 		return nil, err
@@ -44,13 +49,15 @@ func LoadIcons(fsys fs.FS, chemin string) ([]image.Image, error) {
 	}
 
 	dossier := path.Dir(chemin)
-	icones := make([]image.Image, 0, len(fichiers))
+	icones := make([]raster.Sheet, 0, len(fichiers))
 	for _, nom := range fichiers {
 		f, err := fsys.Open(path.Join(dossier, nom))
 		if err != nil {
 			return nil, fmt.Errorf("icone %s: %w", nom, err)
 		}
-		icone, _, err := image.Decode(f)
+		icone, err := raster.LoadSheet(f)
+		// Fermé ici et non en `defer` : ce qui suit ne lit plus le fichier, et
+		// une lecture seule n'a rien à rendre à la fermeture.
 		_ = f.Close()
 		if err != nil {
 			return nil, fmt.Errorf("icone %s: %w", nom, err)

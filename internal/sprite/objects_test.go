@@ -13,22 +13,24 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/sprimault/lozengine/raster"
+
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/game"
 )
 
-// chargerCatalogue décode le manifeste puis en découpe les images, dans l'ordre
+// chargerCatalogue décode le manifeste puis en range les images, dans l'ordre
 // où le montage le fait.
 //
 // Les deux moitiés vivent dans deux paquets depuis que la simulation lit des
 // valeurs de ce fichier ; les tests d'images ont besoin des deux, et les
 // enchaîner ici évite de le redire à chaque cas.
-func chargerCatalogue(fsys fs.FS, racine, chemin string) (*game.Objects, *Props, error) {
+func chargerCatalogue(fsys fs.FS, racine, chemin string, atlas *raster.Atlas) (*game.Objects, *Props, error) {
 	catalogue, err := game.LoadObjects(fsys, chemin)
 	if err != nil {
 		return nil, nil, err
 	}
-	props, err := LoadProps(fsys, racine, chemin, catalogue)
+	props, err := LoadProps(fsys, racine, chemin, catalogue, atlas)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -75,7 +77,8 @@ func ramassable(amplitude int) string {
 // Il compte ce qu'il a visité : une boucle qui ne trouverait aucun objet
 // passerait au vert en ne vérifiant rien.
 func TestLeCatalogueDobjetsLivreSeCharge(t *testing.T) {
-	catalogue, props, err := chargerCatalogue(cohue.Assets, racineObjets, objetsLivres)
+	atlas := &raster.Atlas{}
+	catalogue, props, err := chargerCatalogue(cohue.Assets, racineObjets, objetsLivres, atlas)
 	if err != nil {
 		t.Fatalf("catalogue livré : %v", err)
 	}
@@ -100,8 +103,8 @@ func TestLeCatalogueDobjetsLivreSeCharge(t *testing.T) {
 		t.Fatalf("%d entrées, %d posables, %d animées : trop peu pour dire quoi que ce soit",
 			len(catalogue.Items), poses, scintillants)
 	}
-	t.Logf("%d entrées au catalogue, %d posables, %d animées",
-		len(catalogue.Items), poses, scintillants)
+	t.Logf("%d entrées au catalogue, %d posables, %d animées, %d planches",
+		len(catalogue.Items), poses, scintillants, len(atlas.Sheets))
 }
 
 // TestUneArmeLourdePorteSesDeuxDessins garde ce qui la distingue des autres
@@ -113,7 +116,7 @@ func TestLeCatalogueDobjetsLivreSeCharge(t *testing.T) {
 // avec un champ de plus, et c'est aussi ce qui a laissé le rendu livrer une arme
 // au sol qu'aucune image ne dessinait — la famille n'était pas chargée.
 func TestUneArmeLourdePorteSesDeuxDessins(t *testing.T) {
-	catalogue, props, err := chargerCatalogue(cohue.Assets, racineObjets, objetsLivres)
+	catalogue, props, err := chargerCatalogue(cohue.Assets, racineObjets, objetsLivres, &raster.Atlas{})
 	if err != nil {
 		t.Fatalf("catalogue livré : %v", err)
 	}
@@ -132,16 +135,22 @@ func TestUneArmeLourdePorteSesDeuxDessins(t *testing.T) {
 		}
 		if len(p.Images) != 1 {
 			t.Errorf("« %s » : %d dessin(s) au sol, attendu un", nom, len(p.Images))
+			continue
 		}
-		if p.Icon == nil {
+		if p.Icon.Width == 0 {
 			t.Errorf("« %s » n'a pas d'icône", nom)
 			continue
 		}
 		// Les deux tailles viennent du manifeste : les confondre poserait l'icône
 		// dans le monde, ou le dessin du sol dans une case.
-		if taille := p.Icon.Bounds().Size(); taille.X != objet.IconSize[0] {
-			t.Errorf("« %s » : icône de %v, le manifeste annonce %v",
-				nom, taille, objet.IconSize)
+		if int(p.Icon.Width) != objet.IconSize[0] {
+			t.Errorf("« %s » : icône de %d de large, le manifeste annonce %v",
+				nom, p.Icon.Width, objet.IconSize)
+		}
+		// Deux fichiers, donc deux planches : les ranger ensemble ferait désigner
+		// l'un par le rectangle de l'autre.
+		if p.Icon.Sheet == p.Images[0].Sheet {
+			t.Errorf("« %s » : l'icône et le dessin au sol partagent leur planche", nom)
 		}
 	}
 
@@ -161,13 +170,16 @@ func TestUneArmeLourdePorteSesDeuxDessins(t *testing.T) {
 // descend d'autant puisque l'objet y flotte. Une erreur d'un pixel décale le
 // ramassable de la même quantité, ce qui se voit à peine et ne se mesure nulle
 // part ailleurs.
+//
+// L'ancre attendue est écrite et non recalculée : la dériver ici par les mêmes
+// fonctions que le chargeur ferait un test qui ne sépare plus rien.
 func TestLaCelluleDunScintillementSeDeriveDeLamplitude(t *testing.T) {
 	const amplitude = 2
 	fsys := manifesteObjets(ramassable(amplitude))
 	fsys["gemme.png"] = &fstest.MapFile{Data: bande(t, 10, 8)}
 	fsys["gemme_scintille.png"] = &fstest.MapFile{Data: bande(t, 4*10, 8+amplitude)}
 
-	_, props, err := chargerCatalogue(fsys, ".", "objets.json")
+	_, props, err := chargerCatalogue(fsys, ".", "objets.json", &raster.Atlas{})
 	if err != nil {
 		t.Fatalf("chargement : %v", err)
 	}
@@ -179,13 +191,138 @@ func TestLaCelluleDunScintillementSeDeriveDeLamplitude(t *testing.T) {
 	if n := len(gemme.Images); n != 4 {
 		t.Fatalf("%d image(s) découpée(s), attendu 4", n)
 	}
-	if taille := gemme.Images[0].Bounds().Size(); taille.X != 10 || taille.Y != 8+amplitude {
-		t.Errorf("cellule %v, attendu 10x%d", taille, 8+amplitude)
+	a := gemme.Images[0]
+	if int(a.Width) != 10 || int(a.Height) != 8+amplitude {
+		t.Errorf("cellule %dx%d, attendu 10x%d", a.Width, a.Height, 8+amplitude)
 	}
 	// L'appui de l'objet est en (5, 7) ; celui de la cellule descend du
-	// bombement, donc le coin remonte d'autant.
-	if attendu := [2]int{-5, -(7 + amplitude)}; gemme.Offset != attendu {
-		t.Errorf("coin %v, attendu %v", gemme.Offset, attendu)
+	// bombement, donc le coin de l'image est en (-5, -9) du point visé. Rapporté
+	// au pied centré du moteur — (-largeur/2, -hauteur) —, cela fait (0, 1).
+	if a.AnchorX != 0 || a.AnchorY != 1 {
+		t.Errorf("ancre (%d,%d), attendue (0,1)", a.AnchorX, a.AnchorY)
+	}
+}
+
+// TestLaplatDunObjetGardeSaDecoupeEtChangeDePlanche garde ce que la dérivation
+// doit tenir.
+//
+// L'aplat sert à révéler ce qui est caché : il se pose au même endroit que le
+// dessin, donc il en garde la découpe et l'ancre, et n'en change que la planche.
+// Partager la planche le ferait dessiner le sprite colorié à la place de sa
+// silhouette, ce qu'aucune erreur ne dirait.
+func TestLaplatDunObjetGardeSaDecoupeEtChangeDePlanche(t *testing.T) {
+	const amplitude = 2
+	fsys := manifesteObjets(ramassable(amplitude))
+	fsys["gemme.png"] = &fstest.MapFile{Data: bande(t, 10, 8)}
+	fsys["gemme_scintille.png"] = &fstest.MapFile{Data: bande(t, 4*10, 8+amplitude)}
+
+	atlas := &raster.Atlas{}
+	_, props, err := chargerCatalogue(fsys, ".", "objets.json", atlas)
+	if err != nil {
+		t.Fatalf("chargement : %v", err)
+	}
+	if gemme, _ := props.Prop("gemme"); gemme.Shapes != nil {
+		t.Fatal("un aplat existe avant qu'on l'ait demandé")
+	}
+
+	planches := len(atlas.Sheets)
+	if err := props.Silhouette(atlas, "gemme"); err != nil {
+		t.Fatalf("silhouette : %v", err)
+	}
+	if ajout := len(atlas.Sheets) - planches; ajout != 1 {
+		t.Errorf("%d planche(s) ajoutée(s) pour une bande, attendu 1", ajout)
+	}
+
+	gemme, _ := props.Prop("gemme")
+	if len(gemme.Shapes) != len(gemme.Images) {
+		t.Fatalf("%d aplat(s) pour %d image(s)", len(gemme.Shapes), len(gemme.Images))
+	}
+	for i, plat := range gemme.Shapes {
+		dessin := gemme.Images[i]
+		if plat.SourceX != dessin.SourceX || plat.Width != dessin.Width ||
+			plat.AnchorX != dessin.AnchorX || plat.AnchorY != dessin.AnchorY {
+			t.Errorf("image %d : l'aplat ne se pose pas comme son dessin", i)
+		}
+		if plat.Sheet == dessin.Sheet {
+			t.Errorf("image %d : l'aplat partage la planche de son dessin", i)
+		}
+	}
+}
+
+// TestLaplatDuneIconeNeTouchePasAuDessinDuSol garde la séparation des deux
+// dérivations.
+//
+// Une arme porte deux dessins et n'en révèle aucun : seule son icône prend un
+// liseré, son dessin au sol vivant dans la scène où rien ne le révèle. Les
+// dériver ensemble rangerait une planche que personne ne pose, par arme et pour
+// toujours — et c'est le genre de coût qu'on ne retrouve plus une fois qu'il est
+// réparti sur le catalogue.
+func TestLaplatDuneIconeNeTouchePasAuDessinDuSol(t *testing.T) {
+	atlas := &raster.Atlas{}
+	_, props, err := chargerCatalogue(cohue.Assets, racineObjets, objetsLivres, atlas)
+	if err != nil {
+		t.Fatalf("catalogue livré : %v", err)
+	}
+	armes := props.Weapons()
+	if len(armes) == 0 {
+		t.Fatal("aucune arme au catalogue, le cas ne dit plus rien")
+	}
+
+	planches := len(atlas.Sheets)
+	if err := props.IconSilhouette(atlas, armes[0]); err != nil {
+		t.Fatalf("aplat d'icône : %v", err)
+	}
+	if ajout := len(atlas.Sheets) - planches; ajout != 1 {
+		t.Errorf("%d planche(s) ajoutée(s) pour une icône, attendu 1", ajout)
+	}
+
+	arme, _ := props.Prop(armes[0])
+	if arme.IconShape.Sheet == arme.Icon.Sheet {
+		t.Error("l'aplat de l'icône partage la planche de l'icône")
+	}
+	if arme.Shapes != nil {
+		t.Error("le dessin au sol a été aplati alors que seule l'icône était demandée")
+	}
+}
+
+// TestUnAplatSansSonDessinEstRefuse garde les deux refus symétriques.
+//
+// Demander l'aplat d'une icône qu'un objet n'a pas, ou celui des images d'un
+// objet qui n'en porte aucune, est une faute de frappe dans du code : c'est
+// l'appelant qui choisit ce qu'il pose. Le taire rendrait une valeur zéro qui ne
+// dessine rien, et la silhouette absente se chercherait dans le tri.
+func TestUnAplatSansSonDessinEstRefuse(t *testing.T) {
+	fsys := manifesteObjets(ramassable(2))
+	fsys["gemme.png"] = &fstest.MapFile{Data: bande(t, 10, 8)}
+	fsys["gemme_scintille.png"] = &fstest.MapFile{Data: bande(t, 4*10, 8+2)}
+
+	atlas := &raster.Atlas{}
+	_, props, err := chargerCatalogue(fsys, ".", "objets.json", atlas)
+	if err != nil {
+		t.Fatalf("chargement : %v", err)
+	}
+	if err := props.IconSilhouette(atlas, "gemme"); err == nil {
+		t.Fatal("l'icône d'un objet qui n'en a pas a été aplatie")
+	}
+}
+
+// TestUnAplatDobjetInconnuEstRefuse garde ce que le rendu choisit.
+//
+// C'est lui qui sait ce qu'il révèle, donc un nom qu'il demande et que le
+// catalogue n'a pas est une faute de frappe dans du code. La rendre silencieuse
+// ferait chercher une silhouette absente dans le tri.
+func TestUnAplatDobjetInconnuEstRefuse(t *testing.T) {
+	fsys := manifesteObjets(ramassable(2))
+	fsys["gemme.png"] = &fstest.MapFile{Data: bande(t, 10, 8)}
+	fsys["gemme_scintille.png"] = &fstest.MapFile{Data: bande(t, 4*10, 8+2)}
+
+	atlas := &raster.Atlas{}
+	_, props, err := chargerCatalogue(fsys, ".", "objets.json", atlas)
+	if err != nil {
+		t.Fatalf("chargement : %v", err)
+	}
+	if err := props.Silhouette(atlas, "fiole"); err == nil {
+		t.Fatal("un objet absent du catalogue a été aplati")
 	}
 }
 
@@ -201,7 +338,7 @@ func TestUneBandeDeScintillementQuiMentEstRefusee(t *testing.T) {
 	// Trois pixels de bombement là où le manifeste en annonce deux.
 	fsys["gemme_scintille.png"] = &fstest.MapFile{Data: bande(t, 4*10, 8+3)}
 
-	if _, _, err := chargerCatalogue(fsys, ".", "objets.json"); err == nil {
+	if _, _, err := chargerCatalogue(fsys, ".", "objets.json", &raster.Atlas{}); err == nil {
 		t.Fatal("bande d'un pixel trop haute acceptée")
 	}
 }
@@ -216,7 +353,7 @@ func TestUnAncrageDobjetHorsDeSonImageEstRefuse(t *testing.T) {
 	}`)
 	fsys["gemme.png"] = &fstest.MapFile{Data: bande(t, 10, 8)}
 
-	if _, _, err := chargerCatalogue(fsys, ".", "objets.json"); err == nil {
+	if _, _, err := chargerCatalogue(fsys, ".", "objets.json", &raster.Atlas{}); err == nil {
 		t.Fatal("ancrage d'une rangée hors de l'image accepté")
 	}
 }

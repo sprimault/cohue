@@ -11,7 +11,8 @@ import (
 	"io/fs"
 	"slices"
 
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sprimault/lozengine/raster"
+	"github.com/sprimault/lozengine/scene"
 
 	"github.com/sprimault/cohue/internal/game"
 	"github.com/sprimault/cohue/internal/sprite"
@@ -41,36 +42,19 @@ type Cast struct {
 	ambiants []*figure
 }
 
-// figure est un profil dessiné : ses images, et ce que son manifeste dit de la
-// façon de les poser.
+// figure est un profil dessiné : sa feuille, et ce que son manifeste dit de la
+// façon de la lire.
+//
+// **Elle ne tient plus aucune image, et c'est ce que le portage a retiré.** Les
+// quatre tables qu'elle portait — images, masques, aplats, bords — existaient
+// pour convertir une fois ce que `sprite` rendait en images de la bibliothèque
+// standard. La feuille range désormais ses planches dans l'atlas et rend de quoi
+// remplir un quad : il n'y a plus rien à convertir, donc plus rien à ranger.
 type figure struct {
-	appui [2]int
+	feuille *sprite.Sheet
 	// directions sont les orientations dessinées, dans l'ordre du manifeste.
 	directions []string
 	cycles     map[string]game.Cycle
-	images     map[pose]*ebiten.Image
-	// masques sont les formes des mêmes images, un bit par pixel.
-	//
-	// **Toutes les figures en ont, là où seul le joueur a des aplats.** Un aplat
-	// se pose et coûte une texture ; un masque se lit et coûte cinq cents octets.
-	// Et ce qu'on teste n'est pas seulement le personnage révélé mais tout ce qui
-	// le recouvre — c'est-à-dire la horde entière.
-	masques map[pose]*sprite.Mask
-	// formes sont les mêmes images aplaties en blanc, et seul le joueur en a.
-	//
-	// **Elles servent son contour et sa silhouette, et à personne d'autre** : la
-	// conception ne révèle jamais une créature, parce que voir la horde à travers
-	// un bus retirerait au décor le seul pouvoir qu'il a sur le combat. Les
-	// construire pour tous coûterait douze cents textures dont aucune ne se
-	// poserait.
-	formes map[pose]*ebiten.Image
-	// bords sont les mêmes formes réduites à leur tracé, et vont avec les
-	// précédentes.
-	//
-	// **Deux jeux plutôt qu'un choix fait au montage** : c'est ce qui recouvre le
-	// joueur qui décide de la forme du rappel, et on ne le sait qu'une fois la
-	// scène dessinée.
-	bords map[pose]*ebiten.Image
 }
 
 // pose désigne une image dans une figure.
@@ -84,7 +68,8 @@ type pose struct {
 // **Tout au montage, jamais en jeu.** Le budget d'allocation interdit d'ouvrir
 // un fichier dans la boucle, et une texture créée à la première apparition d'un
 // profil ferait sauter l'image précise où la sixième minute entre.
-func NewCast(fsys fs.FS, racine string, profils *game.Profiles) (*Cast, error) {
+func NewCast(fsys fs.FS, racine string, profils *game.Profiles,
+	atlas *raster.Atlas) (*Cast, error) {
 	troupe := &Cast{
 		ennemis:  make([]*figure, len(profils.Enemies)),
 		ambiants: make([]*figure, len(profils.Ambient)),
@@ -93,21 +78,21 @@ func NewCast(fsys fs.FS, racine string, profils *game.Profiles) (*Cast, error) {
 	// Le joueur seul reçoit ses formes aplaties : c'est le seul personnage que la
 	// conception révèle quand quelque chose le cache, et le seul qu'un contour
 	// détache.
-	joueur, err := charger(fsys, racine, profils.Player.Figure, true)
+	joueur, err := charger(fsys, racine, profils.Player.Figure, atlas, true)
 	if err != nil {
 		return nil, err
 	}
 	troupe.joueur = joueur
 
 	for i, p := range profils.Enemies {
-		f, err := charger(fsys, racine, p.Figure, false)
+		f, err := charger(fsys, racine, p.Figure, atlas, false)
 		if err != nil {
 			return nil, err
 		}
 		troupe.ennemis[i] = f
 	}
 	for i, p := range profils.Ambient {
-		f, err := charger(fsys, racine, p.Figure, false)
+		f, err := charger(fsys, racine, p.Figure, atlas, false)
 		if err != nil {
 			return nil, err
 		}
@@ -116,61 +101,48 @@ func NewCast(fsys fs.FS, racine string, profils *game.Profiles) (*Cast, error) {
 	return troupe, nil
 }
 
-// charger découpe les bandes d'un profil et en fait des textures.
+// charger range les bandes d'un profil dans l'atlas.
 //
-// La conversion est exhaustive et non paresseuse : une image créée au premier
-// usage se paierait pendant une partie, et c'est précisément ce que le montage
-// existe pour éviter.
-func charger(fsys fs.FS, racine string, f game.Figure, aplati bool) (*figure, error) {
-	feuille, err := sprite.Load(fsys, racine, f)
+// **Tout au montage, jamais en jeu**, et c'est la planche qui le garantit
+// désormais : une bande entre entière dans l'atlas, où son encodage est calculé
+// une fois. Rien ne s'ouvre ni ne s'encode à la première apparition d'un profil.
+//
+// Les dérivés ne se demandent que pour le joueur : la conception ne révèle
+// jamais une créature, parce que voir la horde à travers un bus retirerait au
+// décor le seul pouvoir qu'il a sur le combat. L'aplat lui sert deux fois — son
+// liseré permanent et son rappel sous une foule —, le bord une seule.
+func charger(fsys fs.FS, racine string, f game.Figure, atlas *raster.Atlas,
+	aplati bool) (*figure, error) {
+	feuille, err := sprite.Load(fsys, racine, f, atlas)
 	if err != nil {
 		return nil, err
 	}
-
-	dessin := &figure{
-		appui:      f.Anchor,
-		directions: f.Directions,
-		cycles:     f.Cycles,
-		images:     map[pose]*ebiten.Image{},
-		masques:    map[pose]*sprite.Mask{},
-	}
 	if aplati {
-		dessin.formes = map[pose]*ebiten.Image{}
-		dessin.bords = map[pose]*ebiten.Image{}
-	}
-	for nom, c := range f.Cycles {
-		for _, direction := range f.Directions {
-			for variante := range f.Variants {
-				for image := range c.Frames {
-					img, ok := feuille.Frame(nom, direction, variante, image)
-					if !ok {
-						continue
-					}
-					p := pose{nom, direction, variante, image}
-					dessin.images[p] = ebiten.NewImageFromImage(img)
-					dessin.masques[p] = sprite.NewMask(img)
-					if aplati {
-						dessin.formes[p] = aplatir(img)
-						dessin.bords[p] = cerner(img)
-					}
-				}
-			}
+		if err := feuille.Silhouette(atlas); err != nil {
+			return nil, err
 		}
 	}
-	return dessin, nil
+	return &figure{feuille: feuille, directions: f.Directions, cycles: f.Cycles}, nil
 }
 
-// image rend la texture d'une pose, ou nil quand la figure ne la porte pas.
-func (f *figure) image(p pose) *ebiten.Image { return f.images[p] }
+// image rend de quoi poser une pose, et dit quand la figure ne la porte pas.
+func (f *figure) image(p pose) (scene.Aspect, bool) {
+	return f.feuille.Frame(p.cycle, p.direction, p.variante, p.image)
+}
 
-// forme rend la même pose aplatie en blanc, ou nil quand la figure n'en a pas.
-func (f *figure) forme(p pose) *ebiten.Image { return f.formes[p] }
+// forme rend la même pose aplatie en blanc, et faux quand la figure n'en a pas.
+func (f *figure) forme(p pose) (scene.Aspect, bool) {
+	return f.feuille.Shape(p.cycle, p.direction, p.variante, p.image)
+}
 
-// bord rend le tracé de la même pose, ou nil quand la figure n'en a pas.
-func (f *figure) bord(p pose) *ebiten.Image { return f.bords[p] }
-
-// masque rend la forme d'une pose, ou nil quand la figure ne la porte pas.
-func (f *figure) masque(p pose) *sprite.Mask { return f.masques[p] }
+// bord rend le tracé de la même pose, et faux quand la figure n'en a pas.
+//
+// **Deux jeux plutôt qu'un choix fait au montage** : c'est ce qui recouvre le
+// joueur qui décide de la forme du rappel, et on ne le sait qu'une fois la scène
+// décrite.
+func (f *figure) bord(p pose) (scene.Aspect, bool) {
+	return f.feuille.Edge(p.cycle, p.direction, p.variante, p.image)
+}
 
 // anim est le cycle qu'un état demande, et ce qui le cadence.
 //

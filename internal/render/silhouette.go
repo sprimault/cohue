@@ -1,155 +1,193 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// L'aplatissement d'un dessin en sa seule forme, et les deux emplois qu'on en
-// fait : le contour qui détache en permanence, la silhouette qui révèle quand
-// quelque chose recouvre.
+// Le rappel de ce qui est caché : ce qu'on suit, et ce que le relevé du moteur
+// en dit.
 
 package render
 
 import (
-	"image"
-	"image/color"
-
-	"github.com/hajimehoshi/ebiten/v2"
-
-	"github.com/sprimault/cohue/internal/sprite"
+	"github.com/sprimault/lozengine/render"
+	"github.com/sprimault/lozengine/scene"
 )
 
-// aplatir rend la forme d'une image, convertie en texture.
+// seuilDeRappel est la part du dessin qui doit être couverte pour qu'on
+// rappelle, en centièmes.
 //
-// Le calcul vit dans `internal/sprite`, où un test peut le garder : ce paquet
-// n'en a pas, et une découpe fausse d'un pixel ne se verrait qu'à l'œil, sur un
-// contour qui aurait un trou.
-func aplatir(src image.Image) *ebiten.Image {
-	return ebiten.NewImageFromImage(sprite.Flatten(src))
-}
+// **Une part et non un nombre de pixels**, parce que le relevé compte désormais
+// ce que la chose peint réellement : une fraction dit « la moitié du corps »
+// quelle que soit la planche, là où un nombre absolu serait vrai pour une taille
+// de sprite et faux pour la suivante.
+//
+// **La valeur se calibre en jouant et la conception ne la fixe pas.** La moitié
+// du dessin est le moment où l'on cesse de reconnaître son personnage, et c'est
+// l'intention que portait déjà la version en pixels.
+//
+// **Celle-là valait 2 048 et était inatteignable**, ce qui n'était pas un défaut
+// de calibrage mais d'échelle : elle comptait des pixels de boîte — des
+// rectangles cumulés, transparents compris — quand une case de personnage de
+// cohue n'en peint que 954 au plus. Un seuil réglé sur l'une ne vaut rien pour
+// l'autre, et c'est le moteur qui porte les deux mesures côte à côte pour cette
+// raison.
+const seuilDeRappel = 50
 
-// cerner rend le bord de la même forme, converti en texture.
+// voileDuRappel est ce qui reste de l'aplat quand c'est le décor seul qui cache,
+// en fraction de 255.
 //
-// Le calcul vit au même endroit et pour la même raison. Deux textures par pose
-// plutôt qu'une, parce que ce qui recouvre décide de laquelle se pose et qu'on ne
-// le sait qu'à l'image — les construire alors coûterait une allocation dans la
-// boucle.
-func cerner(src image.Image) *ebiten.Image {
-	return ebiten.NewImageFromImage(sprite.Outline(src))
-}
+// **Il tient entre deux lectures fausses, et les deux ont été vues à l'image.**
+// À 255 l'aplat efface le mur, et l'enceinte d'un lieu se lit comme une sortie
+// de carte. À zéro il ne reste que le contour, et le mur qu'on voit à
+// l'intérieur du tracé referme la forme en trou : le personnage se lit *dans* la
+// maçonnerie. Entre les deux, la silhouette est une surface et la maçonnerie
+// reste lisible au travers.
+//
+// **Une valeur à juger à l'œil**, comme `intensiteEclair` : ce qui la fixe est
+// qu'on voie l'appareil du mur sans hésiter sur le contour du personnage.
+const voileDuRappel = 110
 
-// trace est ce qu'un dessin laisse à la séquence : le coin où il s'est posé, sa
-// forme, et son aplat quand il est de ceux qu'on révèle.
+// contourAutour sont les huit décalages d'un pixel qui font le liseré permanent.
 //
-// Elle remplace la boîte que les fonctions de dessin rendaient. Une boîte
-// suffisait tant que le recouvrement se jugeait dessus ; du jour où il se juge
-// au pixel, ce qu'il faut transporter est la forme, et la porter à côté de la
-// boîte aurait laissé deux descriptions du même dessin.
-type trace struct {
-	x, y   int
-	masque *sprite.Mask
-	// cache dit que ce dessin peut dissimuler un personnage, donc qu'il déclenche
-	// une silhouette. Il vient du manifeste pour le décor et les objets, et vaut
-	// toujours pour une créature.
-	//
-	// **Un trottoir ne cache personne, et pourtant il recouvre.** Son image
-	// dépasse de six pixels vers le haut et mord sur les pieds de qui se tient
-	// une case derrière : le recouvrement est réel, mais le personnage reste
-	// entièrement visible. Le révéler le faisait clignoter en blanc à chaque
-	// bordure de trottoir, ce qui est exactement l'inverse de ce que la
-	// silhouette existe pour donner.
-	cache bool
-	// vivant dit que ce dessin est une créature et non une chose du lieu.
-	//
-	// **Ce n'est pas une redite de `cache`**, qui dit si le dessin peut
-	// dissimuler ; celui-ci dit ce qu'il est. Un mur et une foule cachent tous
-	// deux, et ce qu'il faut montrer par-dessus n'est pas le même — voir
-	// `reveler`.
-	vivant bool
-	// forme est l'aplat blanc, non nul pour les deux seules sortes que la
-	// conception révèle : le joueur et le projectile de la horde.
-	forme *ebiten.Image
-	// bord est le tracé de la même forme, non nul pour le seul joueur.
-	//
-	// Le projectile de la horde n'en a pas, et n'en veut pas : six pixels cernés
-	// d'un ne laisseraient presque rien, quand le sujet de ce tir est d'être vu
-	// arriver.
-	bord *ebiten.Image
-}
-
-// revele est une chose posée qu'on redessinera si quelque chose la recouvre.
-//
-// Elle porte l'aplat et son coin plutôt que l'entité d'où elle vient : au moment
-// de révéler, la séquence est finie et rien ne garantit qu'une place de bassin
-// désigne encore la même chose. Ce qu'il faut alors est une image et deux
-// nombres, pas une référence.
-type revele struct {
-	forme  *ebiten.Image
-	bord   *ebiten.Image
-	masque *sprite.Mask
-	x, y   int
-	teinte color.RGBA
-	// couvert dit qu'au moins un pixel de la forme a disparu sous ce qui a été
-	// posé après elle. C'est la condition, et la seule, pour la redessiner.
-	couvert bool
-	// parUnVivant dit qu'une créature est de ce qui recouvre, et il décide de la
-	// forme du rappel plutôt que de son existence.
-	parUnVivant bool
-}
-
-// recouvertPar dit si un dessin posé après celui-ci en cache un pixel.
-//
-// **La boîte ne suffit pas, et c'est tout le sujet.** Une bande de personnage
-// fait soixante-quatre pixels de côté quand le joueur en occupe dix-neuf sur
-// quarante-cinq : quatre croisements de boîtes sur cinq ne touchent aucun pixel
-// de lui. Le test portait sur les boîtes, si bien qu'à cent ennemis le
-// personnage était remplacé par son aplat blanc quatre images sur cinq — ce qui
-// lui retirait l'orientation que sa bande venait de lui donner.
-//
-// **Les deux côtés doivent porter un masque.** Serrer la boîte du seul révélé
-// laisse celle de ce qui recouvre, et le faux déclenchement revient par là.
-//
-// **Et recouvrir ne suffit pas : il faut cacher.** Le manifeste distingue les
-// deux — une forme sous vingt-quatre pixels d'élévation est un décor de bordure,
-// et son image mord sur la case d'à côté sans jamais dissimuler quiconque.
-func (r revele) recouvertPar(t trace) bool {
-	return t.cache && r.masque.Overlaps(r.x, r.y, t.masque, t.x, t.y)
-}
-
-// Les huit décalages d'un contour d'un pixel.
-//
-// **Huit et non quatre**, parce qu'un sprite isométrique n'a pas d'arête droite :
-// ses bords descendent en escalier, et un contour en croix y laisse des trous
-// dans les diagonales — exactement là où la silhouette d'un personnage est le
-// plus mince.
-var contourAutour = [8][2]int{
+// **Huit et non quatre** : un sprite isométrique descend en escalier, et un
+// voisinage en croix laisse les diagonales à nu un pixel sur deux.
+var contourAutour = [8][2]int16{
 	{-1, -1}, {0, -1}, {1, -1},
 	{-1, 0}, {1, 0},
 	{-1, 1}, {0, 1}, {1, 1},
 }
 
-// contour cerne une forme d'un liseré, sous l'image qu'il détache.
+// trace est ce qu'une chose posée laisse de quoi reposer son rappel : les deux
+// formes qu'il peut prendre, et le pixel où elle s'est posée.
 //
-// **Il détache le personnage de la horde, et c'est mesuré.** Le pixel le plus
-// clair d'un profil monte à 162, celui d'un figurant à 175 ; un liseré à plein
-// blanc gagne donc plus de quatre-vingts de luminance sur tout ce qu'il peut
-// toucher. C'est l'ordre de grandeur qui avait fait retenir le liseré du tir de
-// la Buse, et c'est le même remède au même problème — reconnaître un objet dans
-// une masse qui partage sa gamme.
+// **Elle ne porte plus rien de ce qui mesurait.** Le masque, la profondeur et le
+// drapeau de ce qui cache existaient pour confronter les choses entre elles ; le
+// relevé du moteur le fait, et il ne reste que ce dont le rappel a besoin pour
+// se dessiner.
+type trace struct {
+	forme, bord scene.Aspect
+	ex, ey      int32
+}
+
+// revele est une chose suivie dont on redessine le rappel quand elle est cachée.
 //
-// **Ce que la valeur ne pouvait plus faire.** Le chapitre 2 sépare le joueur de
-// la horde par la valeur, ce qui supposait un sol sombre ; sur le décor livré, à
-// 162 de luminance, l'éclaircir le rapproche du sol et l'assombrir le renvoie
-// dans la foule. Aucune teinte ne satisfait les deux, et c'est pourquoi la
-// réponse est une forme.
+// **Ce qui mesurait vit désormais dans le moteur.** Cohue tenait un masque par
+// pixel, relevait le décor visible et confrontait les profondeurs pour savoir ce
+// qui recouvrait quoi — trois cents lignes qui refaisaient ce que le tri calcule
+// déjà pour décider si une chose marquée se redessine. `Entity.Measure` le
+// demande, `Overlapped` le rend, et il ne reste ici que ce que le moteur ne peut
+// pas savoir : sous quelle forme on rappelle.
 //
-// Reste un fond qu'il ne bat que de vingt-quatre : le carrelage du supermarché,
-// à 231. Ce n'est pas traité — un joueur seul sur du sol clair n'est pas le cas
-// à risque, et ce que le chapitre 2 protège est le personnage sous un
-// empilement.
-func (s *Screen) contour(ecran, forme *ebiten.Image, x, y int, teinte color.RGBA) {
-	for _, pas := range contourAutour {
-		s.op.GeoM.Reset()
-		s.op.GeoM.Translate(float64(x+pas[0]), float64(y+pas[1]))
-		s.op.ColorScale.Reset()
-		s.op.ColorScale.ScaleWithColor(teinte)
-		ecran.DrawImage(forme, &s.op)
+// La poignée est le lien : le relevé la porte, et c'est elle que la pose a
+// rendue.
+type revele struct {
+	poignee scene.Handle
+	trace
+	teinte render.Color
+}
+
+// Overlaps reçoit le relevé du pas précédent.
+//
+// **La tranche ne vaut que pendant l'appel**, et le moteur le dit : ce qui est
+// gardé est une copie, dans une tranche réutilisée avec `[:0]` pour qu'une image
+// n'alloue pas.
+//
+// **Le décalage d'une image est sans conséquence ici et il faut le savoir.** Un
+// recouvrement ne se connaît qu'après un tri, donc le relevé le plus récent est
+// celui de l'image d'avant ; à soixante images par seconde, une silhouette qui
+// apparaît un seizième de seconde plus tard ne se distingue pas. Ce serait une
+// autre affaire pour une décision de jeu, et c'est pourquoi aucune n'en dépend.
+func (s *Screen) Overlaps(list render.OverlapList) {
+	s.recouvrements = append(s.recouvrements[:0], list...)
+}
+
+// reveler repose en couche haute le rappel de ce que quelque chose recouvre.
+//
+// **La forme du rappel dépend de ce qui cache, et c'est `CoveredByDecor` qui le
+// dit.** Un aplat quand une créature s'interpose : il faut suivre le personnage
+// dans la mêlée, et une foule ne porte aucun indice de profondeur à préserver.
+// Un aplat voilé **et** son contour quand le décor seul recouvre, le voile
+// laissant voir la maçonnerie et le contour épinglant le bord.
+//
+// **Les deux formes pures ont été essayées et échouent chacune d'un côté**,
+// c'est une partie jouée qui l'a montré et une planche qui le reproduit — voir
+// la vue `mur-sud-est`. L'aplat plein efface le mur, et l'enceinte d'un lieu se
+// lit comme une sortie de carte. Le contour seul laisse voir le mur à
+// l'intérieur du tracé, et l'œil referme la forme en trou : le personnage se lit
+// *dans* la maçonnerie, ce qui est précisément la lecture que ce contour
+// existait pour éviter. `voileDuRappel` dit ce qui les sépare.
+//
+// **L'ordre de pose décide, et il est le bon sens** : le voile d'abord, le
+// contour par-dessus. Les deux partagent leur couche, donc ce qui est posé après
+// recouvre ce qui précède.
+//
+// **Le seuil est celui de cohue, et le moteur le veut ainsi** : il rend la
+// mesure et laisse l'hôte choisir son seuil comme la forme de son rappel. Voir
+// `seuilDeRappel` pour ce qui le fixe.
+func (s *Screen) reveler() {
+	for _, r := range s.aRevoir {
+		o, releve := s.recouvrementDe(r.poignee)
+		if !releve || o.Painted == 0 || o.Covered*100 < o.Painted*seuilDeRappel {
+			continue
+		}
+
+		if o.CoveredByDecor == o.Covered && r.bord.Width != 0 {
+			s.poserRappel(r, r.forme, voiler(r.teinte, voileDuRappel))
+			s.poserRappel(r, r.bord, r.teinte)
+			continue
+		}
+		s.poserRappel(r, r.forme, r.teinte)
 	}
+}
+
+// voiler rend une teinte de planche à l'opacité demandée.
+//
+// **Ce n'est pas `Color.Scale`, et l'écart est un défaut du moteur.** Sa godoc
+// en fait « la seule façon d'atténuer » une couleur, et elle met les quatre
+// composantes à l'échelle, alpha compris — ce qui est juste pour une couleur
+// prémultipliée, et ce que fait le chemin de l'aplat uni. Mais le rastériseur
+// module un quad qui lit une planche par `product(product(src, teinte),
+// teinte.A)` : il applique l'alpha de la teinte une **seconde** fois aux
+// composantes de couleur, déjà prémultipliées. Le voile assombrit alors au lieu
+// d'éclaircir — relevé sur la planche `mur-sud-est`, 96 de luminance dans le
+// corps contre 116 pour le mur autour, là où un crème à 43 % doit en rendre 171.
+//
+// Sur ce chemin, les composantes de couleur sont donc un filtre et l'alpha
+// l'opacité. La teinte de base étant opaque, sa forme prémultipliée est sa forme
+// droite, et poser l'alpha suffit. **Le jour où le moteur accorde les deux
+// chemins, cette fonction disparaît au profit de `Scale`.**
+func voiler(c render.Color, opacite uint8) render.Color {
+	c.A = opacite
+	return c
+}
+
+// poserRappel pose un quad de rappel au-dessus de ce qui cachait.
+//
+// **Il quitte la mesure, et sans cela il ne s'éteint plus.** Posé en couche
+// haute, il recouvre ce qui cachait : le relevé suivant le compterait comme
+// cachant la chose qu'il rappelle, dépasserait le seuil qui vient de le
+// déclencher, et s'entretiendrait seul. C'est le défaut qui laissait le joueur
+// en aplat blanc dès qu'une caisse l'avait frôlé une fois. `Aspect.Uncounted`
+// l'exclut à la source, et c'est la voie que le moteur prévoit pour cela :
+// retrancher l'aire du quad de la mesure marcherait aujourd'hui, mais sa godoc
+// l'interdit explicitement — la loi additive sur laquelle cette soustraction
+// repose n'est pas garantie d'une version à l'autre.
+func (s *Screen) poserRappel(r revele, a scene.Aspect, teinte render.Color) {
+	a.Tint = teinte
+	a.Layer = coucheSilhouette
+	a.Uncounted = true
+	s.poserAuPoint(r.ex, r.ey, a)
+}
+
+// recouvrementDe cherche ce que le relevé dit d'une poignée.
+//
+// Un parcours et non une table : le relevé ne porte que ce qu'on a marqué — le
+// joueur et les projectiles de la horde —, donc quelques dizaines d'entrées, et
+// bâtir une table par image coûterait l'allocation que ce chemin n'a pas le
+// droit de faire.
+func (s *Screen) recouvrementDe(p scene.Handle) (render.Overlap, bool) {
+	for _, o := range s.recouvrements {
+		if o.Identity == uint32(p) {
+			return o, true
+		}
+	}
+	return render.Overlap{}, false
 }

@@ -15,7 +15,7 @@ index.
 | Quand on se demande | Voir |
 |---|---|
 | si une dépendance a sa place | [Bibliothèques](#1-bibliothèques) |
-| pourquoi une cible ne se compile pas comme les autres | [cgo n'est pas uniforme](#2-cgo-nest-pas-uniforme-et-cest-la-seule-entorse) |
+| pourquoi une cible exige un compilateur C | [cgo n'entre que par le détecteur de course](#2-cgo-nentre-que-par-le-détecteur-de-course) |
 | en quelle langue nommer une chose | [La langue des identifiants](#3-la-langue-des-identifiants) |
 | ce qu'un fichier porte avant son code | [En-tête de fichier](#4-en-tête-de-fichier) |
 | où ranger un type, un fichier, un réglage | [Structure](#5-structure) |
@@ -62,10 +62,15 @@ Les exceptions connues d'avance :
 
 | Module | Ce qu'il apporte |
 |---|---|
-| `github.com/hajimehoshi/ebiten/v2` | rendu, entrées, son |
+| `github.com/sprimault/lozengine` | planches et atlas, rastériseur, scène isométrique, fenêtre et entrées |
 
-Un seul candidat non tranché : une bibliothèque d'interface pour l'éditeur,
-`ebitenui` ou tout dessiner à la main.
+**C'est le seul `require` du dépôt**, et son noyau n'a lui-même aucune
+dépendance : le graphe complet du jeu est la bibliothèque standard plus ce
+module. C'est ce qui permet de compiler toutes les cibles sans compilateur C,
+voir §2.
+
+Un seul candidat non tranché : une bibliothèque d'interface pour l'éditeur, ou
+tout dessiner à la main.
 
 Le lecteur TOML n'en est plus un. Tout ce que le jeu lit est en JSON, y compris
 les pièces, que le TOML rendrait pourtant plus agréables à écrire : un lieu
@@ -82,26 +87,25 @@ l'asset.
 critère.** Elle n'entre dans aucun binaire, ne peut pas introduire de cgo dans
 une cible publiée, et disparaît du graphe dès qu'on retire le test.
 
-## 2. cgo n'est pas uniforme, et c'est la seule entorse
+## 2. cgo n'entre que par le détecteur de course
 
-| Cible | `CGO_ENABLED` |
-|---|---|
-| windows/amd64 | `0` — Ebitengine y est en Go pur |
-| js/wasm | `0` |
-| linux, darwin | `1` — Ebitengine y passe par les API système |
+**Aucune dépendance n'en demande.** `lozengine` est en Go pur sur toutes les
+cibles qu'il sert — il écrit lui-même ce qu'il faut de chaque système —, et le
+reste du graphe est la bibliothèque standard. `CGO_ENABLED=0` convient donc
+partout, et
+une dépendance qui en exigerait rendrait d'un coup impossibles WebAssembly et
+tout ce qui se compile ailleurs que sur la machine cible.
 
-Le mettre à `0` sur darwin ne produit pas une erreur claire mais un échec de
-liaison obscur. C'est une variable de matrice, jamais une valeur globale.
+C'est pourquoi `js/wasm` continue d'être compilé en intégration continue sans
+être publié : il interdit à une dépendance d'introduire du natif par surprise.
 
-Conséquence à connaître : le binaire Linux est lié à la glibc, il n'y a pas de
-construction statique. Sans importance pour un jeu de bureau, mais ça interdit
-une image `scratch`.
+**Le seul reste est `make race`**, qui garde `CGO_ENABLED=1` et son compilateur
+C : le détecteur de course l'exige indépendamment de ce que le dépôt lie. C'est
+une variable de cible, jamais une valeur globale.
 
-**Aucune autre dépendance n'a le droit d'introduire cgo.** Ebitengine
-est choisi pour cela : une seconde source rendrait les cibles Windows et
-WebAssembly impossibles. C'est aussi pourquoi `js/wasm` continue d'être compilé
-en intégration continue sans être publié : il empêche une dépendance d'en
-ajouter par surprise, comme `windows/amd64` qui est compilé sans cgo lui aussi.
+La matrice des cibles publiées, elle, vit dans
+[`construction.md`](construction.md) et dans les workflows ; elle porte encore
+les valeurs héritées d'Ebitengine, qui exigeait du natif sur Linux et macOS.
 
 ## 3. La langue des identifiants
 
@@ -861,18 +865,24 @@ c'est celui qu'on oublie.
 
 ### Aucun test n'ouvre de fenêtre
 
-Les runners d'intégration sont sans écran, et `internal/game` n'importe pas
-Ebitengine, ce qui rend la règle facile à tenir.
+Les runners d'intégration sont sans écran, et `internal/game` n'importe aucun
+moteur, ce qui rend la règle facile à tenir.
 Un test qui exigerait un serveur X virtuel est le signe qu'il n'a rien à faire
 dans la suite par défaut : le rendu se juge à l'œil.
 
-**La règle est plus large qu'elle n'en a l'air : `internal/render` n'a aucun
-fichier de test, et n'en aura pas.** Importer Ebitengine initialise GLFW, qui
-panique sans `DISPLAY` — donc n'importe quel test de ce paquet tombe avant
-d'avoir commencé, y compris un qui n'ouvrirait aucune fenêtre et se contenterait
-de lire deux constantes. Ce n'est pas « ne pas ouvrir de fenêtre dans un test »,
-c'est « ne pas tester un paquet qui lie la bibliothèque ». Un paquet sans test
-étant d'ordinaire un défaut, sa godoc dit pourquoi celui-là n'en est pas un.
+**`internal/render` n'a aucun fichier de test, et c'était une contrainte avant
+d'être une règle.** Importer Ebitengine initialisait GLFW, qui paniquait sans
+`DISPLAY` : n'importe quel test de ce paquet tombait avant d'avoir commencé, y
+compris un qui n'ouvrait aucune fenêtre et se contentait de lire deux
+constantes. Ce n'était donc pas « ne pas ouvrir de fenêtre dans un test »,
+c'était « ne pas tester un paquet qui lie la bibliothèque ».
+
+**`lozengine` calcule ses images sans fenêtre, donc la contrainte est tombée** et
+ce paquet pourrait être testé. Ce qui reste vrai est que le rendu se
+juge à l'œil, et que la planche de relecture est ce qui rend ce jugement
+possible ; ce qu'on en vérifiera mécaniquement n'est pas tranché. Un paquet sans
+test étant d'ordinaire un défaut, sa godoc renvoie ici plutôt que de se
+justifier seule.
 
 ### Le test qui vend le projet
 
@@ -1356,5 +1366,5 @@ renommage de fichier casse le jeu au lancement plutôt qu'à la compilation.
 
 ### Ce qu'on ne teste pas
 
-Pas de bouchon simulant Ebitengine, pas de comparaison de rendu pixel à pixel.
+Pas de bouchon simulant le moteur, pas de comparaison de rendu pixel à pixel.
 Un faux moteur ne testerait que la fidélité du faux.

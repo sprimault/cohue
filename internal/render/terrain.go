@@ -1,22 +1,53 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// Le décor d'un lieu, prêt à peindre : ses images converties une fois, le coin
-// où chacune se pose, et ce qui départage le sol de ce qui le surplombe.
+// Le décor d'un lieu, prêt à poser : ce que chaque case montre, l'étage où elle
+// se range, et ce qui départage le sol de ce qui le surplombe.
 
 package render
 
 import (
 	"fmt"
 
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sprimault/lozengine/scene"
 
 	"github.com/sprimault/cohue/internal/game"
 	"github.com/sprimault/cohue/internal/level"
 	"github.com/sprimault/cohue/internal/sprite"
 )
 
-// Terrain est le décor assemblé d'un lieu, résolu en images.
+// Les étages où le monde se range.
+//
+// **L'étage remplace la passe préalable.** Le sol se peignait par rangées avant
+// tout le reste, parce qu'un tri par profondeur seule l'aurait fait disputer son
+// rang à ce qui marche dessus ; l'étage le range sous les vivants sans passe
+// séparée, et c'est le moteur qui ordonne.
+//
+// **L'étage passe avant la profondeur dans la clé de tri, et c'est ce qui décide
+// de leur emploi.** Deux choses d'étages différents ne se comparent jamais par
+// leur profondeur : la plus haute se peint après, où qu'elle soit dans le lieu.
+// Un étage sépare donc des plans qui ne se disputent rien — le sol, ce qui s'y
+// traîne, ce qui s'y tient debout — et **jamais deux choses qui doivent se
+// départager par leur position**.
+//
+// C'est l'erreur que ces constantes ont portée : le décor occultant était seul à
+// `etageDebout` et les entités restaient à zéro, si bien qu'un pilier **devant**
+// le joueur se peignait par-dessus lui et que le relevé de recouvrement le
+// comptait caché aux deux tiers alors qu'il passait simplement à côté. Tout ce
+// qui se tient sur le sol partage donc le même étage, décor et vivants
+// confondus.
+const (
+	// etageSol porte ce qu'on foule : sol, trottoir plat, marquages.
+	etageSol uint8 = 0
+	// etageTraine porte ce qui gît sans arrêter personne — les épaves —, sous
+	// les vivants et au-dessus du sol.
+	etageTraine uint8 = 1
+	// etageDebout porte tout ce qui se dresse sur le sol et doit se départager
+	// par la profondeur : murs, mobilier, créatures, joueur, objets posés.
+	etageDebout uint8 = 2
+)
+
+// Terrain est le décor assemblé d'un lieu, résolu en aspects.
 //
 // Il existe pour que `Screen` n'ait ni à connaître le catalogue de formes, ni à
 // résoudre un nom par case : la carte assemblée cite des index, et la résolution
@@ -25,50 +56,32 @@ type Terrain struct {
 	taille [2]int
 	carte  *level.Tilemap
 	// formes est alignée sur `Tilemap.Shapes()` : l'index d'une case y désigne
-	// directement ce qu'il faut dessiner.
+	// directement ce qu'il faut poser.
 	formes []forme
 	// sol est le comblement du thème, nul quand aucune forme n'en a besoin.
 	sol *forme
 }
 
-// forme est ce qu'une case donne à peindre.
+// forme est ce qu'une case donne à poser.
 type forme struct {
-	image  *ebiten.Image
-	dx, dy int
+	// aspect dit où lire dans l'atlas, comment s'ancrer et à quel étage se
+	// ranger. Son ancre est déjà rapportée au centre de la cellule, qui est le
+	// point qu'une pose de décor vise.
+	aspect scene.Aspect
 	// nue dit que la forme ne remplit pas le losange de sa case, donc qu'il faut
-	// peindre le sol du thème avant elle.
+	// poser le sol du thème sous elle.
 	nue bool
-	// triee dit que la forme dispute sa profondeur à ce qui se tient sur le sol,
-	// au lieu d'être peinte dans la passe préalable.
-	//
-	// **Le critère se dérive du manifeste plutôt que de se déclarer.** Un champ
-	// « triable » serait une seconde description de ce que « masquant » et
-	// « bloquant » disent déjà — voir `sprite.occulte`, qui porte l'arbitrage et
-	// le test.
-	triee bool
 	// hauteurSol est la hauteur, en pixels d'écran, de la surface qu'on marche
 	// sur cette case — ce sur quoi un marquage au sol se pose. Elle vient du
 	// manifeste par `sprite`, qui porte l'arithmétique et le test.
 	hauteurSol int
-	// masque est la forme de l'image, ce qui décide si elle recouvre un
-	// personnage. Un mur remplit sa boîte, un pilier n'en occupe qu'une bande
-	// étroite.
-	masque *sprite.Mask
-	// cache dit que la forme dépasse la hauteur d'un personnage, donc qu'elle en
-	// dissimule un au lieu de simplement empiéter sur sa case.
-	//
-	// **Le manifeste le déclare et le rendu en décide**, ce que sa godoc annonce
-	// depuis l'étape 5 sans que rien ne le lise : le champ constate qu'une forme
-	// peut cacher, la silhouette est la réponse qu'on y apporte. Vingt-sept
-	// formes le portent, aucune sous vingt-cinq pixels d'élévation.
-	cache bool
 }
 
-// NewTerrain résout la carte assemblée d'un lieu en images posables.
+// NewTerrain résout la carte assemblée d'un lieu en aspects posables.
 //
-// La conversion vers Ebitengine a lieu ici et une seule fois : `sprite` rend des
-// images de la bibliothèque standard pour rester vérifiable sans écran, et les
-// convertir à chaque case coûterait une texture par image dessinée.
+// **Plus aucune conversion d'image ici**, et c'est ce que le portage retire :
+// `sprite` range les planches dans l'atlas et rend de quoi remplir un quad, donc
+// ce fichier ne fait que recopier et choisir un étage.
 func NewTerrain(carte *level.Tilemap, tuiles *sprite.Tileset) (*Terrain, error) {
 	sol := &Terrain{
 		taille: tuiles.TileSize(),
@@ -96,22 +109,42 @@ func NewTerrain(carte *level.Tilemap, tuiles *sprite.Tileset) (*Terrain, error) 
 	return sol, nil
 }
 
-// resoudre convertit une forme du catalogue en ce que le dessin pose.
+// resoudre convertit une forme du catalogue en ce qu'une case pose.
 func resoudre(tuiles *sprite.Tileset, nom string) (forme, error) {
 	tuile, connue := tuiles.Tile(nom)
 	if !connue {
 		return forme{}, fmt.Errorf("decor : la forme %q du lieu n'est pas au catalogue", nom)
 	}
+
+	aspect := tuile.Aspect
+	aspect.Floor = etageSol
+	if tuile.Occludes {
+		aspect.Floor = etageDebout
+	}
 	return forme{
-		image:      ebiten.NewImageFromImage(tuile.Image),
-		dx:         tuile.Offset[0],
-		dy:         tuile.Offset[1],
+		aspect:     centrerSurLaCase(aspect, tuiles.TileSize()),
 		nue:        !tuile.Covers,
-		triee:      tuile.Occludes,
 		hauteurSol: tuile.GroundHeight,
-		masque:     sprite.NewMask(tuile.Image),
-		cache:      tuile.Masking,
 	}, nil
+}
+
+// centrerSurLaCase rapporte l'ancre d'une forme du sommet nord de sa case à son
+// centre.
+//
+// **C'est la moitié de conversion que `sprite` ne fait pas**, et sa godoc le dit
+// en toutes lettres : `AnchorFromOffset` convertit la pose de l'image autour du
+// point, jamais le point lui-même. Le dépôt vise le sommet nord du losange d'une
+// case, `Scene.PlaceCell` vise son centre — un demi sur chaque axe, soit la
+// demi-hauteur d'une tuile vers le bas et rien en abscisse, les deux demis
+// s'annulant.
+//
+// Oubliée, elle fait descendre le décor entier d'un quart de tuile en diagonale,
+// et l'écart se cherche dans la projection, où il n'est pas.
+func centrerSurLaCase(a scene.Aspect, tuile [2]int) scene.Aspect {
+	// #nosec G115 -- une demi-tuile est bornée par la taille d'une image, que le
+	// manifeste confronte à sa planche
+	a.AnchorY -= int16(tuile[1] / 2)
+	return a
 }
 
 // TileSize rend la taille de tuile du décor, celle dont la projection dépend.
@@ -127,8 +160,8 @@ func (t *Terrain) hauteurSolEn(x, y game.Fixed) int {
 	return f.hauteurSol
 }
 
-// formeDe rend ce qu'une case donne à peindre, et dit qu'il n'y a rien hors de
-// la carte.
+// formeDe rend ce qu'une case donne à poser, et dit qu'il n'y a rien hors de la
+// carte.
 //
 // Rien, et non une forme par défaut : une case qu'aucune pièce ne pose se
 // traverse et ne se dessine pas, ce que le contrôle de couverture refuse par

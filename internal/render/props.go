@@ -12,7 +12,8 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sprimault/lozengine/raster"
+	"github.com/sprimault/lozengine/scene"
 
 	"github.com/sprimault/cohue/internal/game"
 	"github.com/sprimault/cohue/internal/sprite"
@@ -61,11 +62,11 @@ type Stage struct {
 	// dans un emplacement. Séparées des `objets` parce qu'elles ne se posent ni
 	// au même endroit ni dans le même repère : celles-là sont vues de face,
 	// ceux-ci en isométrie.
-	icones map[string]*ebiten.Image
+	icones map[string]scene.Aspect
 	// bordsDIcone sont les mêmes icônes aplaties, dont le rendu tire le liseré
 	// qui les détache d'un sol clair. Le bandeau n'en a pas besoin : ses cases
 	// sont sombres, et c'est pour elles que les icônes ont été dessinées.
-	bordsDIcone map[string]*ebiten.Image
+	bordsDIcone map[string]scene.Aspect
 	// cassables porte ce que le manifeste attache à chaque objet qui se casse :
 	// ses cycles, sa ruine et ses éclats. Le monde nomme ce qui a cédé, et c'est
 	// ici qu'on lit ce qu'il laisse.
@@ -114,26 +115,24 @@ func (s *Stage) sens(nom string, travers bool) string {
 // **Le bandeau ne charge aucune image et n'en cherche aucune** : il pose celle
 // qu'on lui donne, ce qui garde la frontière — il ne connaît pas le catalogue,
 // donc il ne peut pas savoir quelle icône va où.
-func (s *Stage) Icon(nom string) *ebiten.Image { return s.icones[nom] }
+func (s *Stage) Icon(nom string) scene.Aspect { return s.icones[nom] }
 
-// bordDIcone rend le liseré d'une icône, nul si le catalogue n'en a pas.
-func (s *Stage) bordDIcone(nom string) *ebiten.Image { return s.bordsDIcone[nom] }
+// bordDIcone rend le liseré d'une icône. Sa valeur zéro ne montre rien, ce qui
+// est la façon dont la scène reconnaît déjà ce qu'elle n'a pas à dessiner.
+func (s *Stage) bordDIcone(nom string) scene.Aspect { return s.bordsDIcone[nom] }
 
-// prop est ce qu'un objet donne à peindre.
+// prop est ce qu'un objet donne à poser.
+//
+// **Il ne tient plus de texture, et son décalage a disparu dans l'ancre.** Ce
+// qu'une image donne est un rectangle dans l'atlas et l'ancre qui le pose, ce
+// que `scene.Aspect` réunit déjà.
 type prop struct {
-	images []*ebiten.Image
-	// masques sont les formes des mêmes images, un bit par pixel, et tous les
-	// objets en ont : une gemme ne se révèle pas, mais elle recouvre.
-	masques []*sprite.Mask
-	// cache dit que l'objet dépasse la hauteur d'un personnage. Une vitrine et un
-	// rideau de fer le déclarent au manifeste, une caisse de seize pixels non.
-	cache  bool
-	dx, dy int
+	images []scene.Aspect
 	cycle  game.Cycle
 	// formes sont les mêmes images aplaties en blanc, et seul le projectile de
-	// la horde en a : c'est le second des deux que la conception révèle quand
-	// quelque chose les cache, avec le joueur.
-	formes []*ebiten.Image
+	// la horde en a besoin : c'est le second des deux que la conception révèle
+	// quand quelque chose les cache, avec le joueur.
+	formes []scene.Aspect
 }
 
 // NewStage résout le catalogue d'objets en images posables.
@@ -144,8 +143,9 @@ type prop struct {
 //
 // `source` est le manifeste à citer dans un manquement, jamais un fichier à
 // ouvrir : le catalogue arrive décodé.
-func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, error) {
-	catalogue, err := sprite.LoadProps(fsys, racine, source, objets)
+func NewStage(fsys fs.FS, racine, source string, objets *game.Objects,
+	atlas *raster.Atlas) (*Stage, error) {
+	catalogue, err := sprite.LoadProps(fsys, racine, source, objets, atlas)
 	if err != nil {
 		return nil, err
 	}
@@ -155,10 +155,10 @@ func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, 
 		return nil, fmt.Errorf("objets : « %s » ne declare pas comment elle se casse", objetCaisse)
 	}
 
-	scene := &Stage{
+	plateau := &Stage{
 		objets:      map[string]prop{},
-		icones:      map[string]*ebiten.Image{},
-		bordsDIcone: map[string]*ebiten.Image{},
+		icones:      map[string]scene.Aspect{},
+		bordsDIcone: map[string]scene.Aspect{},
 		caisse:      *caisse.Destruction,
 		cassables:   map[string]game.Destruction{},
 		pivots:      map[string]string{},
@@ -183,52 +183,57 @@ func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, 
 		if d == nil {
 			continue
 		}
-		scene.cassables[nom] = *d
+		plateau.cassables[nom] = *d
 		for _, cle := range []string{nom, d.Ruin, d.Shards, d.PressCycle, d.BreakCycle} {
 			if cle == "" {
 				continue
 			}
 			noms = append(noms, cle)
 			if pivot := objets.Items[cle].Pivot; pivot != "" {
-				scene.pivots[cle] = pivot
+				plateau.pivots[cle] = pivot
 				noms = append(noms, pivot)
 			}
 		}
 	}
 
 	for _, nom := range noms {
-		if _, chargee := scene.objets[nom]; chargee {
+		if _, chargee := plateau.objets[nom]; chargee {
 			continue
 		}
 		objet, connu := catalogue.Prop(nom)
 		if !connu {
 			return nil, fmt.Errorf("objets : « %s » n'est pas au catalogue", nom)
 		}
-		images := make([]*ebiten.Image, 0, len(objet.Images))
-		masques := make([]*sprite.Mask, 0, len(objet.Images))
-		var formes []*ebiten.Image
-		for _, img := range objet.Images {
-			images = append(images, ebiten.NewImageFromImage(img))
-			masques = append(masques, sprite.NewMask(img))
-			if nom == objetTirHorde {
-				formes = append(formes, aplatir(img))
+
+		// **L'aplat se demande, et les deux usages ne se confondent pas** : le
+		// projectile de la horde se révèle quand quelque chose le cache, une
+		// icône posée dans le monde se liseré pour se détacher d'un sol clair.
+		// Une arme a les deux dessins et n'en révèle aucun — seule son icône
+		// prend un liseré —, donc les dériver ensemble rangerait une planche que
+		// personne ne pose.
+		if nom == objetTirHorde {
+			if err := catalogue.Silhouette(atlas, nom); err != nil {
+				return nil, err
 			}
 		}
-		scene.objets[nom] = prop{
-			images:  images,
-			masques: masques,
-			cache:   objet.Masking,
-			dx:      objet.Offset[0],
-			dy:      objet.Offset[1],
-			cycle:   objet.Cycle,
-			formes:  formes,
+		if objet.Icon.Width != 0 {
+			if err := catalogue.IconSilhouette(atlas, nom); err != nil {
+				return nil, err
+			}
 		}
-		if objet.Icon != nil {
-			scene.icones[nom] = ebiten.NewImageFromImage(objet.Icon)
-			scene.bordsDIcone[nom] = cerner(objet.Icon)
+		objet, _ = catalogue.Prop(nom)
+
+		plateau.objets[nom] = prop{
+			images: objet.Images,
+			cycle:  objet.Cycle,
+			formes: objet.Shapes,
+		}
+		if objet.Icon.Width != 0 {
+			plateau.icones[nom] = objet.Icon
+			plateau.bordsDIcone[nom] = objet.IconShape
 		}
 	}
-	return scene, nil
+	return plateau, nil
 }
 
 // image rend l'image d'un objet au tick donné, décalée par une identité.
@@ -240,7 +245,7 @@ func NewStage(fsys fs.FS, racine, source string, objets *game.Objects) (*Stage, 
 //
 // Un objet d'une seule image ignore l'un et l'autre : sa cadence est nulle, et
 // `Loop` rend alors la première.
-func (s *Stage) image(nom string, tick game.Tick, identite int) (prop, *ebiten.Image) {
+func (s *Stage) image(nom string, tick game.Tick, identite int) (prop, int, bool) {
 	return s.rendre(nom, func(objet prop) int {
 		return sprite.Loop(objet.cycle, tick, identite)
 	})
@@ -254,37 +259,42 @@ func (s *Stage) image(nom string, tick game.Tick, identite int) (prop, *ebiten.I
 // de route. L'étincelle est dans ce dernier cas — trois images de deux ticks
 // pour un éclair qui en dure quatre —, si bien qu'on en voit la fin. Ce qu'elle
 // doit dire est que le tir a porté, pas comment l'impact se déroule.
-func (s *Stage) effet(nom string, reste game.Tick) (prop, *ebiten.Image) {
+func (s *Stage) effet(nom string, reste game.Tick) (prop, int, bool) {
 	return s.rendre(nom, func(objet prop) int {
 		return sprite.Once(objet.cycle, reste)
 	})
 }
 
-// forme rend l'aplat d'une image de l'objet, ou nil quand il n'en a pas.
-func (p prop) forme(i int) *ebiten.Image {
+// image rend de quoi poser une image de l'objet, et faux quand le rang n'en a
+// pas.
+func (p prop) image(i int) (scene.Aspect, bool) {
+	if i < 0 || i >= len(p.images) {
+		return scene.Aspect{}, false
+	}
+	return p.images[i], true
+}
+
+// forme rend l'aplat d'une image de l'objet, et faux quand il n'en a pas.
+func (p prop) forme(i int) (scene.Aspect, bool) {
 	if i < 0 || i >= len(p.formes) {
-		return nil
+		return scene.Aspect{}, false
 	}
-	return p.formes[i]
+	return p.formes[i], true
 }
 
-// masque rend la forme d'une image de l'objet, ou nil quand le rang n'en a pas.
-func (p prop) masque(i int) *sprite.Mask {
-	if i < 0 || i >= len(p.masques) {
-		return nil
-	}
-	return p.masques[i]
-}
-
-// rendre résout un objet et l'image que son cadencement désigne.
-func (s *Stage) rendre(nom string, quelle func(prop) int) (prop, *ebiten.Image) {
+// rendre résout un objet et le rang que son cadencement désigne.
+//
+// Le rang plutôt que l'image : l'appelant en tire le dessin et son aplat, qui
+// sont deux lectures du même numéro. Lui rendre l'un des deux l'obligerait à
+// redemander l'autre.
+func (s *Stage) rendre(nom string, quelle func(prop) int) (prop, int, bool) {
 	objet, connu := s.objets[nom]
 	if !connu || len(objet.images) == 0 {
-		return prop{}, nil
+		return prop{}, 0, false
 	}
 	i := quelle(objet)
 	if i < 0 || i >= len(objet.images) {
 		i = 0
 	}
-	return objet, objet.images[i]
+	return objet, i, true
 }

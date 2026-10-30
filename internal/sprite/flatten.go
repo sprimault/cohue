@@ -1,17 +1,19 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// L'aplatissement d'un dessin en sa seule forme : ce qui reste d'un sprite quand
-// on ne garde que sa découpe.
+// L'aplatissement d'une planche en sa seule forme : ce qui reste d'un dessin
+// quand on ne garde que sa découpe.
 
 package sprite
 
 import (
-	"image"
-	"image/color"
+	"slices"
+
+	"github.com/sprimault/lozengine/raster"
+	"github.com/sprimault/lozengine/render"
 )
 
-// Flatten rend la forme d'une image, tous ses pixels opaques en blanc.
+// Flatten rend la forme d'une planche, tous ses pixels opaques en blanc.
 //
 // **Un aplat ne se tire pas d'un sprite coloré par une teinte.** L'échelle de
 // couleur du rendu multiplie, et multiplier ne remplace pas : aucune valeur ne
@@ -29,23 +31,22 @@ import (
 // dessin qui aurait des bords fondus donnerait une silhouette aux bords fondus,
 // ce qui est la réponse juste — la forme est celle du dessin, pas une idée de sa
 // forme.
-func Flatten(src image.Image) image.Image {
-	boite := src.Bounds()
-	forme := image.NewNRGBA(image.Rect(0, 0, boite.Dx(), boite.Dy()))
-	// Le passage par le modèle plutôt que par `RGBA` et un décalage : celui-ci
-	// rend des composantes sur seize bits qu'il faudrait rétrécir, et une
-	// conversion qu'aucun outil ne peut borner devient une alerte à taire. Le
-	// modèle rend l'octet directement, et il dépremultiplie au passage — ce qui
-	// est ce qu'on veut, la forme étant l'alpha et non ce que la couleur en a
-	// déjà consommé.
-	for y := range boite.Dy() {
-		for x := range boite.Dx() {
-			c := color.NRGBAModel.Convert(src.At(boite.Min.X+x, boite.Min.Y+y)).(color.NRGBA)
-			if c.A == 0 {
-				continue
-			}
-			forme.SetNRGBA(x, y, color.NRGBA{R: 255, G: 255, B: 255, A: c.A})
+//
+// **La découpe suit, parce qu'une forme se découpe comme son dessin.** Les deux
+// planches entrent séparément dans l'atlas et un aspect y prend le même
+// rectangle ; redécouper la dérivée à côté serait une seconde description de la
+// même grille.
+func Flatten(p raster.Sheet) raster.Sheet {
+	forme := raster.NewSheet(p.Width, p.Height)
+	forme.Rectangles = slices.Clone(p.Rectangles)
+	// L'alpha d'une couleur prémultipliée est l'alpha du dessin : la
+	// prémultiplication ne touche que les trois autres composantes, si bien que
+	// la forme se lit sans dépremultiplier quoi que ce soit.
+	for i, c := range p.Pixels {
+		if c.A == 0 {
+			continue
 		}
+		forme.Pixels[i] = render.Premultiply(255, 255, 255, c.A)
 	}
 	return forme
 }

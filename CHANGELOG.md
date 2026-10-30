@@ -62,6 +62,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
   pick-up, camion de livraison, benne à ordures, citadine, et trois bâtiments
   qui s'étagent de la maison de pierre à la tour de six étages. Cinq se posent
   dans la place, les autres attendent un lieu qui les emploie.
+- **La fenêtre se redimensionne et le jeu la remplit**, sans bandes noires. La
+  résolution interne devient un plancher, l'agrandissement reste entier, et une
+  fenêtre plus grande montre un peu plus du lieu.
+- **Le personnage porte un liseré permanent**, qui permet de le suivre dans une
+  mêlée où il partage les gris du décor.
 
 ### Modifié
 
@@ -73,6 +78,15 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Là où deux formes se disputent une case, la plus coûteuse l'emporte.** Une
   enseigne qui déborde sur un mur ne l'ouvre pas, et l'ordre dans lequel les
   pièces ont été écrites ne décide plus de rien.
+- **Le bandeau ne recouvre plus le jeu.** Il occupe une bande au-dessus de
+  l'aire de jeu, de hauteur constante quelle que soit la fenêtre.
+
+### Corrigé
+
+- **Une créature atteinte le montre à nouveau.** L'éclair d'impact s'était éteint
+  quand les sprites ont remplacé les aplats de couleur : le tir partait sans
+  retour visible, et le combat se lisait d'autant plus mal que la horde est
+  dense.
 
 ***
 
@@ -94,6 +108,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
   van, a pickup, a box truck, a refuse lorry, a hatchback, and three buildings
   ranging from a stone house to a six-storey tower. Five stand in the square,
   the rest await a level that uses them.
+- **The window resizes and the game fills it**, with no black bars. The internal
+  resolution becomes a floor, upscaling stays integer, and a larger window shows
+  a little more of the level.
+- **The character now carries a permanent outline**, so you can follow them
+  through a melee where they share the scenery's greys.
 
 ### Changed
 
@@ -104,6 +123,14 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Where two shapes claim a cell, the costlier one wins.** A sign overhanging a
   wall no longer opens it, and the order in which rooms were written decides
   nothing.
+- **The bar no longer covers the game.** It sits in a band above the play area,
+  of constant height whatever the window size.
+
+### Fixed
+
+- **A creature that gets hit shows it again.** The impact flash had gone out when
+  sprites replaced the flat colours: shots left without visible feedback, and the
+  denser the horde, the harder the fight was to read.
 
 ## [0.7.2] — 2026-09-19 — Le décor prend matière
 

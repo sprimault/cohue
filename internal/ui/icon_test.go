@@ -31,11 +31,20 @@ func TestLesIconesLivreesSeChargent(t *testing.T) {
 
 	// Carrées, parce qu'un gestionnaire de fenêtres qui reçoit un rectangle
 	// l'étire : l'icône ne serait pas refusée, elle serait déformée.
+	//
+	// **Et de tailles distinctes**, parce que c'est à cela que servent
+	// plusieurs planches : le moteur retient la plus proche de ce que le système
+	// demande et n'en redimensionne aucune, donc deux fois la même taille
+	// laisserait une demande sans réponse voisine.
+	cotes := map[uint16]bool{}
 	for _, icone := range icones {
-		b := icone.Bounds()
-		if b.Dx() != b.Dy() {
-			t.Errorf("icône de %dx%d, une icône est carrée", b.Dx(), b.Dy())
+		if icone.Width != icone.Height {
+			t.Errorf("icône de %dx%d, une icône est carrée", icone.Width, icone.Height)
 		}
+		if cotes[icone.Width] {
+			t.Errorf("deux icônes de %d pixels de côté", icone.Width)
+		}
+		cotes[icone.Width] = true
 	}
 }
 

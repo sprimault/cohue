@@ -78,7 +78,14 @@ func TestLesReglagesRefusentCeQuiEstIncoherent(t *testing.T) {
 		// peut dépasser 255, et le cas ne se poserait pas.
 		{"teinte non prémultipliée", `"vignette_danger": [28, 10, 9, 40]`,
 			`"vignette_danger": [176, 62, 58, 40]`,
-			"reglages.teintes.vignette_danger : rouge à 176 au-dessus de l'alpha 40"},
+			"reglages.teintes.vignette_danger : rouge à 176, vert à 62, bleu à 58 " +
+				"au-dessus de l'alpha 40"},
+		// Une teinte fausse est un défaut et non trois : le refus vient d'un seul
+		// appel, et la phrase nomme tout ce qui déborde plutôt que de rendre une
+		// ligne par composante.
+		{"teinte dont un seul canal déborde", `"vignette_danger": [28, 10, 9, 40]`,
+			`"vignette_danger": [28, 62, 9, 40]`,
+			"reglages.teintes.vignette_danger : vert à 62 au-dessus de l'alpha 40"},
 	}
 
 	for _, c := range cas {

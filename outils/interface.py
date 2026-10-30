@@ -105,7 +105,7 @@ REGLAGES = {
         # que le bord reçoit plusieurs fois cette valeur et le centre aucune.
         #
         # **Une teinte translucide s'écrit prémultipliée par son alpha**, comme
-        # les deux fonds ci-dessus : le rendu la passe telle quelle à Ebitengine,
+        # les deux fonds ci-dessus : le rendu la passe telle quelle à lozengine,
         # qui l'attend sous cette forme. Écrite à plat, elle donnait un aplat
         # trois fois trop dense — 176 par-dessus un décor à 86, alors qu'un quart
         # d'opacité en demande 44. Aucun contrôle ne l'aurait dit : seule une

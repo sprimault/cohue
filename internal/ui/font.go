@@ -8,8 +8,8 @@
 // Package ui porte ce que l'interface lit, sans rien afficher.
 //
 // Il existe pour que le décodage d'un manifeste d'interface reste vérifiable :
-// `internal/render` importe Ebitengine, donc n'a pas de test et n'en aura pas,
-// alors que refuser un manifeste incohérent est exactement ce qui doit l'être.
+// `internal/render` n'a pas de test, alors que refuser un manifeste incohérent
+// est exactement ce qui doit l'être.
 // La frontière est celle du pixel : ce qui mesure vit ici, ce qui peint vit là.
 package ui
 

@@ -16,6 +16,8 @@ import (
 	"os"
 	"slices"
 
+	"github.com/sprimault/lozengine"
+
 	"github.com/sprimault/cohue/internal/session"
 )
 
@@ -105,11 +107,11 @@ func ticksAvantLaMort(assets fs.FS, campagne string, graine uint64, plafond int)
 // La palette est commune à toutes les images plutôt que calculée par image :
 // une palette par image ferait clignoter les teintes d'une image à l'autre là
 // où rien n'a bougé.
-func palettePartagee(images [][]byte) color.Palette {
+func palettePartagee(images [][]lozengine.Color) color.Palette {
 	compte := map[color.RGBA]int{}
 	for _, pixels := range images {
-		for i := 0; i+3 < len(pixels); i += 4 {
-			compte[color.RGBA{pixels[i], pixels[i+1], pixels[i+2], pixels[i+3]}]++
+		for _, c := range pixels {
+			compte[color.RGBA(c)]++
 		}
 	}
 
@@ -169,13 +171,11 @@ func trierParUsage(teintes []color.RGBA, compte map[color.RGBA]int) {
 //
 // Un rectangle vide dit que rien n'a bougé ; l'appelant écrit alors un point,
 // parce qu'une image de surface nulle n'est pas représentable.
-func difference(avant, apres []byte, taille image.Point) image.Rectangle {
+func difference(avant, apres []lozengine.Color, taille image.Point) image.Rectangle {
 	minX, minY, maxX, maxY := taille.X, taille.Y, -1, -1
 	for y := range taille.Y {
 		for x := range taille.X {
-			i := 4 * (y*taille.X + x)
-			if avant[i] == apres[i] && avant[i+1] == apres[i+1] &&
-				avant[i+2] == apres[i+2] && avant[i+3] == apres[i+3] {
+			if i := y*taille.X + x; avant[i] == apres[i] {
 				continue
 			}
 			minX, maxX = min(minX, x), max(maxX, x)
@@ -190,11 +190,11 @@ func difference(avant, apres []byte, taille image.Point) image.Rectangle {
 
 // ecrireGIF assemble les images lues du tampon et les écrit.
 //
-// Les pixels arrivent tels que le tampon les rend, quatre octets par point dans
-// l'ordre RGBA, et l'index de palette se cherche d'abord dans une table : la
-// recherche linéaire de `color.Palette.Index` coûterait deux cent cinquante-six
-// comparaisons par point, soit des milliards pour une séquence entière.
-func ecrireGIF(chemin string, taille image.Point, images [][]byte) error {
+// Les pixels arrivent tels que le moteur les rend, un par point, et l'index de
+// palette se cherche d'abord dans une table : la recherche linéaire de
+// `color.Palette.Index` coûterait deux cent cinquante-six comparaisons par
+// point, soit des milliards pour une séquence entière.
+func ecrireGIF(chemin string, taille image.Point, images [][]lozengine.Color) error {
 	palette := palettePartagee(images)
 	index := make(map[color.RGBA]uint8, len(palette))
 	for i, teinte := range palette {
@@ -231,15 +231,11 @@ func ecrireGIF(chemin string, taille image.Point, images [][]byte) error {
 		cadre := image.NewPaletted(rect, palette)
 		for y := rect.Min.Y; y < rect.Max.Y; y++ {
 			for x := rect.Min.X; x < rect.Max.X; x++ {
-				i := 4 * (y*taille.X + x)
-				if n > 0 && images[n-1][i] == pixels[i] &&
-					images[n-1][i+1] == pixels[i+1] &&
-					images[n-1][i+2] == pixels[i+2] &&
-					images[n-1][i+3] == pixels[i+3] {
+				i := y*taille.X + x
+				if n > 0 && images[n-1][i] == pixels[i] {
 					continue // l'index zéro est déjà là, et il est transparent
 				}
-				cadre.SetColorIndex(x, y, place(color.RGBA{
-					pixels[i], pixels[i+1], pixels[i+2], pixels[i+3]}))
+				cadre.SetColorIndex(x, y, place(color.RGBA(pixels[i])))
 			}
 		}
 		anime.Image = append(anime.Image, cadre)

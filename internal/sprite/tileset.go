@@ -1,19 +1,21 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// Les formes du décor : leurs images, confrontées au manifeste, et le coin où
-// les poser. Comme les feuilles de personnages, rien ici n'affiche.
+// Les formes du décor : leurs planches, confrontées au manifeste, et l'ancre qui
+// les pose. Comme les feuilles de personnages, rien ici n'affiche.
 
 package sprite
 
 import (
 	"fmt"
-	"image"
 	"io/fs"
 	"maps"
 	"math"
 	"path"
 	"slices"
+
+	"github.com/sprimault/lozengine/raster"
+	"github.com/sprimault/lozengine/scene"
 
 	"github.com/sprimault/cohue/internal/level"
 	"github.com/sprimault/cohue/internal/manifest"
@@ -21,16 +23,14 @@ import (
 
 // Tile est une forme du décor, prête à être posée.
 type Tile struct {
-	// Image est le dessin de la forme.
-	Image image.Image
-	// Offset est le coin haut-gauche où poser l'image, en pixels, relatif au
-	// sommet nord de la case qui la porte.
+	// Aspect est le dessin de la forme et l'ancre qui le place autour du point de
+	// sa case.
 	//
-	// Il est calculé ici plutôt qu'au dessin parce que c'est de l'arithmétique
-	// de manifeste — un ancrage, une emprise, une taille de tuile — et que le
-	// rendu n'a aucun test pour la garder. Ce qui se pose sur l'écran vaut mieux
-	// d'être fixé là où un test peut l'épingler.
-	Offset [2]int
+	// L'ancre est calculée ici plutôt qu'au dessin parce que c'est de
+	// l'arithmétique de manifeste — un ancrage, une emprise, une taille de
+	// tuile — et que le rendu n'a aucun test pour la garder. Ce qui se pose sur
+	// l'écran vaut mieux d'être fixé là où un test peut l'épingler.
+	Aspect scene.Aspect
 	// Elevation est la hauteur au-dessus du sol, en pixels. Zéro dit que la
 	// forme est un sol, donc qu'elle ne peut rien recouvrir.
 	Elevation int
@@ -59,14 +59,15 @@ type Tile struct {
 // ailleurs déjà dans le binaire, décodées ou non.
 type Tileset struct {
 	// taille est la taille de tuile du manifeste, celle contre laquelle les
-	// coins ont été calculés. Elle voyage avec eux plutôt que d'être redemandée
-	// à l'appelant : deux tailles pour un même jeu de formes poseraient tout de
-	// travers, et rien ne le dirait.
+	// ancres ont été calculées. Elle voyage avec elles plutôt que d'être
+	// redemandée à l'appelant : deux tailles pour un même jeu de formes
+	// poseraient tout de travers, et rien ne le dirait.
 	taille [2]int
 	tuiles map[string]Tile
 }
 
-// LoadTiles lit les images du décor et calcule où chacune se pose.
+// LoadTiles range les images du décor dans l'atlas et calcule où chacune se
+// pose.
 //
 // La racine est le dossier des thèmes : une forme vit dans celui que son
 // manifeste lui donne, et son nom de fichier est le sien. C'est le manifeste qui
@@ -74,25 +75,27 @@ type Tileset struct {
 //
 // Les manquements sont accumulés, comme pour les feuilles de personnages : qui
 // régénère le décor veut la liste de ce qui cloche.
-func LoadTiles(fsys fs.FS, racine string, decor *level.Decor) (*Tileset, error) {
+func LoadTiles(fsys fs.FS, racine string, decor *level.Decor, atlas *raster.Atlas) (*Tileset, error) {
 	jeu := &Tileset{taille: decor.Tile, tuiles: make(map[string]Tile, len(decor.Shapes))}
 
 	var manques []string
 	for _, nom := range slices.Sorted(maps.Keys(decor.Shapes)) {
 		forme := decor.Shapes[nom]
-		chemin := path.Join(racine, forme.Theme, nom+".png")
-		img, err := lire(fsys, chemin, forme.Size)
-		if err != nil {
-			manques = append(manques, err.Error())
-			continue
-		}
+		// Le manifeste se juge avant d'ouvrir quoi que ce soit : une emprise
+		// nulle ne désigne aucun losange, donc l'ancre qu'on en tirerait ne
+		// voudrait rien dire.
 		if defaut := controlerForme(forme); defaut != "" {
 			manques = append(manques, nom+" : "+defaut)
 			continue
 		}
+		chemin := path.Join(racine, forme.Theme, nom+".png")
+		poses, err := poser(fsys, atlas, chemin, forme.Size, forme.Size, coin(forme, decor.Tile))
+		if err != nil {
+			manques = append(manques, err.Error())
+			continue
+		}
 		jeu.tuiles[nom] = Tile{
-			Image:        img,
-			Offset:       coin(forme, decor.Tile),
+			Aspect:       poses[0],
 			Elevation:    forme.Elevation,
 			Covers:       forme.Covering,
 			GroundHeight: hauteurSol(forme),
@@ -106,7 +109,7 @@ func LoadTiles(fsys fs.FS, racine string, decor *level.Decor) (*Tileset, error) 
 	return jeu, nil
 }
 
-// TileSize rend la taille de tuile contre laquelle les coins ont été calculés.
+// TileSize rend la taille de tuile contre laquelle les ancres ont été calculées.
 func (t *Tileset) TileSize() [2]int { return t.taille }
 
 // Tile rend une forme du décor, ou dit qu'elle n'existe pas.
@@ -216,27 +219,4 @@ func hauteurSol(f level.Shape) int {
 // ce qui marche sur la forme.
 func occulte(f level.Shape) bool {
 	return f.Masking || f.Blocking
-}
-
-// lire ouvre l'image d'une forme et la confronte à la taille annoncée.
-//
-// **La taille vient du manifeste, jamais du fichier.** C'est le contrat que le
-// manifeste existe pour tenir : une forme redessinée plus haute sans que son
-// manifeste bouge se poserait décalée de la différence, et rien ne le dirait.
-func lire(fsys fs.FS, chemin string, taille [2]int) (image.Image, error) {
-	f, err := fsys.Open(chemin)
-	if err != nil {
-		return nil, fmt.Errorf("%s : %w", chemin, err)
-	}
-	img, _, err := image.Decode(f)
-	_ = f.Close()
-	if err != nil {
-		return nil, fmt.Errorf("%s : %w", chemin, err)
-	}
-
-	if vue := img.Bounds().Size(); vue.X != taille[0] || vue.Y != taille[1] {
-		return nil, fmt.Errorf("%s : %dx%d, le manifeste annonce %dx%d",
-			chemin, vue.X, vue.Y, taille[0], taille[1])
-	}
-	return img, nil
 }

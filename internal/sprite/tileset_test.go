@@ -13,6 +13,8 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/sprimault/lozengine/raster"
+
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/level"
 )
@@ -53,7 +55,7 @@ func TestLeCatalogueLivreSeCharge(t *testing.T) {
 		t.Fatalf("manifeste de décor : %v", err)
 	}
 
-	jeu, err := LoadTiles(cohue.Assets, cohue.DecorDir, decor)
+	jeu, err := LoadTiles(cohue.Assets, cohue.DecorDir, decor, &raster.Atlas{})
 	if err != nil {
 		t.Fatalf("formes livrées : %v", err)
 	}
@@ -65,9 +67,9 @@ func TestLeCatalogueLivreSeCharge(t *testing.T) {
 			t.Errorf("« %s » est au manifeste et pas au catalogue chargé", nom)
 			continue
 		}
-		if taille := tuile.Image.Bounds().Size(); taille.X != forme.Size[0] {
+		if largeur := int(tuile.Aspect.Width); largeur != forme.Size[0] {
 			t.Errorf("« %s » : image large de %d, le manifeste annonce %d",
-				nom, taille.X, forme.Size[0])
+				nom, largeur, forme.Size[0])
 		}
 		if tuile.Elevation != 0 {
 			eleves++
@@ -93,7 +95,7 @@ func TestUneImageQuiDementSonManifesteEstRefusee(t *testing.T) {
 		"d/commun/sol.png": &fstest.MapFile{Data: bande(t, forme.Size[0], forme.Size[1]+8)},
 	}
 
-	if _, err := LoadTiles(fsys, "d", decorDEssai("sol", forme)); err == nil {
+	if _, err := LoadTiles(fsys, "d", decorDEssai("sol", forme), &raster.Atlas{}); err == nil {
 		t.Fatal("image de huit pixels trop haute acceptée")
 	}
 }
@@ -109,7 +111,7 @@ func TestUneFormeIntrouvableSeDit(t *testing.T) {
 		"d/quartier/sol.png": &fstest.MapFile{Data: bande(t, forme.Size[0], forme.Size[1])},
 	}
 
-	if _, err := LoadTiles(fsys, "d", decorDEssai("sol", forme)); err == nil {
+	if _, err := LoadTiles(fsys, "d", decorDEssai("sol", forme), &raster.Atlas{}); err == nil {
 		t.Fatal("forme déclarée dans « commun » et rangée dans « quartier » acceptée")
 	}
 }
@@ -193,7 +195,7 @@ func TestUnAncrageHorsDeLImageEstRefuse(t *testing.T) {
 		"d/commun/sol.png": &fstest.MapFile{Data: bande(t, forme.Size[0], forme.Size[1])},
 	}
 
-	if _, err := LoadTiles(fsys, "d", decorDEssai("sol", forme)); err == nil {
+	if _, err := LoadTiles(fsys, "d", decorDEssai("sol", forme), &raster.Atlas{}); err == nil {
 		t.Fatal("ancrage d'une rangée hors de l'image accepté")
 	}
 }
@@ -249,7 +251,7 @@ func TestLesSolsSurelevesDuCatalogueSontEpingles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	jeu, err := LoadTiles(cohue.Assets, "assets/decors", decor)
+	jeu, err := LoadTiles(cohue.Assets, "assets/decors", decor, &raster.Atlas{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -287,7 +289,7 @@ func TestSeulesLesFormesHautesCachentUnPersonnage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	jeu, err := LoadTiles(cohue.Assets, "assets/decors", decor)
+	jeu, err := LoadTiles(cohue.Assets, "assets/decors", decor, &raster.Atlas{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -363,7 +365,7 @@ func TestLeCatalogueLivreNeTriePasSesTrottoirs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	jeu, err := LoadTiles(cohue.Assets, "assets/decors", decor)
+	jeu, err := LoadTiles(cohue.Assets, "assets/decors", decor, &raster.Atlas{})
 	if err != nil {
 		t.Fatal(err)
 	}

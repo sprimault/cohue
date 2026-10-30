@@ -7,8 +7,10 @@
 package sprite
 
 import (
-	"image"
-	"image/color"
+	"slices"
+
+	"github.com/sprimault/lozengine/raster"
+	"github.com/sprimault/lozengine/render"
 )
 
 // Les huit voisins d'un pixel, ceux dont l'absence fait un bord.
@@ -41,29 +43,57 @@ var autour = [8][2]int{
 // **Le seuil est celui de `Flatten`, et il ne peut pas en différer** : un pixel
 // appartient à la forme dès que son alpha n'est pas nul, faute de quoi le bord
 // rendu ici ne cernerait pas la forme que le masque a mesurée.
-func Outline(src image.Image) image.Image {
-	boite := src.Bounds()
-	largeur, hauteur := boite.Dx(), boite.Dy()
-	bord := image.NewNRGBA(image.Rect(0, 0, largeur, hauteur))
+//
+// **Les bandes voisines d'une planche ne se voient pas l'une l'autre.** Le bord
+// se relève par case de la découpe et non sur la planche entière : deux images
+// d'un cycle se touchent, et un pixel du bord droit de la première y perdrait
+// son bord parce que la seconde commence là. Une planche sans découpe vaut pour
+// elle-même, comme partout ailleurs dans le moteur.
+func Outline(p raster.Sheet) raster.Sheet {
+	bord := raster.NewSheet(p.Width, p.Height)
+	bord.Rectangles = slices.Clone(p.Rectangles)
+
+	for _, r := range decoupeOuEntier(p) {
+		cerner(p, bord, r)
+	}
+	return bord
+}
+
+// cerner relève le bord des pixels opaques d'une case, sans regarder au-delà.
+func cerner(src, dst raster.Sheet, r raster.Rectangle) {
+	largeur, hauteur := int(r.Width), int(r.Height)
+	x0, y0 := int(r.X), int(r.Y)
+	pas := int(src.Width)
 
 	opaque := func(x, y int) bool {
 		if x < 0 || y < 0 || x >= largeur || y >= hauteur {
 			return false
 		}
-		return color.NRGBAModel.Convert(src.At(boite.Min.X+x, boite.Min.Y+y)).(color.NRGBA).A != 0
+		return src.Pixels[(y0+y)*pas+x0+x].A != 0
 	}
 	for y := range hauteur {
 		for x := range largeur {
 			if !opaque(x, y) {
 				continue
 			}
-			for _, pas := range autour {
-				if !opaque(x+pas[0], y+pas[1]) {
-					bord.SetNRGBA(x, y, color.NRGBA{R: 255, G: 255, B: 255, A: 255})
+			for _, voisin := range autour {
+				if !opaque(x+voisin[0], y+voisin[1]) {
+					dst.Pixels[(y0+y)*pas+x0+x] = render.White()
 					break
 				}
 			}
 		}
 	}
-	return bord
+}
+
+// decoupeOuEntier rend les cases d'une planche, ou la planche entière quand
+// elle n'est pas découpée.
+//
+// Une planche vaut pour elle-même faute de découpe, et c'est la convention du
+// moteur plutôt qu'un repli : une tuile unique n'a rien à trancher.
+func decoupeOuEntier(p raster.Sheet) []raster.Rectangle {
+	if len(p.Rectangles) > 0 {
+		return p.Rectangles
+	}
+	return []raster.Rectangle{{Width: p.Width, Height: p.Height}}
 }

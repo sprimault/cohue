@@ -7,8 +7,6 @@
 
 package render
 
-import "github.com/hajimehoshi/ebiten/v2"
-
 // La relance emprunte les touches de validation, et c'est le même geste : le
 // chapitre 2 compte quatre frictions à la relance, et la première est de devoir
 // chercher quoi presser. Deux touches larges et connues plutôt qu'« une touche
@@ -26,10 +24,10 @@ import "github.com/hajimehoshi/ebiten/v2"
 // partie, ces touches ne font rien hors du panneau de choix, qui met la fin hors
 // de portée puisque `Update` traite l'une avant l'autre.
 func (s *Screen) WantsRestart(in Input) bool {
-	return s.monde.Over() && in.JustPressed(validation...)
+	return s.monde.Over() && pressee(in, validation...)
 }
 
-// peindreFin couvre l'écran et dit comment repartir.
+// poserFin couvre l'écran et dit comment repartir.
 //
 // **Le monde reste visible dessous.** La conception veut que le joueur puisse se
 // raconter sa mort : l'écran qui la masquerait retirerait ce qu'il y a à
@@ -45,22 +43,27 @@ func (s *Screen) WantsRestart(in Input) bool {
 // temps mort et le choix de branche —, si bien qu'un écran propre à la sortie
 // n'aurait rien de plus à montrer que celui-ci. Ce qui compte pour l'instant est
 // que la fin se voie et se distingue.
-func (s *Screen) peindreFin(ecran *ebiten.Image) {
+func (s *Screen) poserFin() {
 	if s.hud == nil {
 		return
 	}
 
+	// **Le voile couvre la surface entière, et c'est le seul écran qui le fasse.**
+	// Il ne cohabite pas avec le jeu : laisser la marge non voilée donnerait un
+	// cadre clair autour d'un écran de fin, ce qui se lirait comme un défaut
+	// d'affichage plutôt que comme une mise en page.
+	largeur, hauteur := s.scene.Surface()
 	voile := s.hud.Color("bandeau_fond")
-	s.hud.Rect(ecran, 0, 0, Width, Height, voile)
+	s.hud.Rect(s.scene, 0, 0, int(largeur), int(hauteur), voile)
 
 	titre, invite := "Mort", "Entrée pour relancer"
 	if s.monde.Escaped() {
 		titre = "Sorti"
 	}
-	hauteur := s.hud.Font.Height()
-	y := Height/2 - hauteur
+	ligne := s.hud.Font.Height()
+	y := int(hauteur)/2 - ligne
 
-	s.hud.Font.Draw(ecran, titre, (Width-s.hud.Font.Advance(titre))/2, y,
+	s.hud.Font.Draw(s.scene, titre, (int(largeur)-s.hud.Font.Advance(titre))/2, y,
 		s.hud.Color("texte"))
 
 	// **L'invite en pleine teinte, comme le titre.** Atténuer range un texte au
@@ -69,6 +72,6 @@ func (s *Screen) peindreFin(ecran *ebiten.Image) {
 	// système : la décision de rejouer se prend en trois secondes, et « Entrée
 	// pour relancer » doit être en évidence plutôt que rangé sous le résumé.
 	// C'est le même défaut que le bandeau portait sur son niveau.
-	s.hud.Font.Draw(ecran, invite, (Width-s.hud.Font.Advance(invite))/2,
-		y+2*hauteur, s.hud.Color("texte"))
+	s.hud.Font.Draw(s.scene, invite, (int(largeur)-s.hud.Font.Advance(invite))/2,
+		y+2*ligne, s.hud.Color("texte"))
 }

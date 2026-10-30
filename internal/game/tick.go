@@ -15,9 +15,17 @@ import (
 
 // TPS est le nombre de pas de simulation par seconde. Fixe, et jamais réglable.
 //
-// Ebitengine appelle la mise à jour à cadence constante et rattrape un retard en
-// l'appelant plusieurs fois d'affilée : la simulation n'a donc jamais à
-// connaître le temps écoulé, et n'accepte aucun delta.
+// La boucle de `lozengine` appelle la mise à jour à cadence constante, donc la
+// simulation n'a jamais à connaître le temps écoulé et n'accepte aucun delta.
+//
+// **Elle ne rattrape pas un retard, et cette godoc disait le contraire.** Au-delà
+// de deux pas de retard, la boucle abandonne ce qu'elle n'a pas joué plutôt que
+// d'enchaîner les appels. L'invariant tient quand même — soixante pas fixes,
+// aucun delta —, mais le corollaire change : **un compte de ticks est un nombre
+// d'images et non une horloge**, donc il dérive de l'horloge murale sur une
+// machine chargée. Ce qui en dépend n'est que le minuteur du bandeau, et le
+// déterminisme de la run n'en souffre pas, puisqu'il porte sur la suite des pas
+// et non sur leur date.
 const TPS = 60
 
 // Tick est l'unité de temps du paquet, et la seule.

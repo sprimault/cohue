@@ -1,8 +1,9 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// Ce que le chargeur de feuilles garde : les bandes livrées se découpent, une
-// taille qui ment se refuse, et un cycle absent se dit au lieu de se deviner.
+// Ce que le chargeur de feuilles garde : les bandes livrées se rangent dans
+// l'atlas, une taille qui ment se refuse, et un cycle absent se dit au lieu de
+// se deviner.
 
 package sprite
 
@@ -13,6 +14,9 @@ import (
 	"image/png"
 	"testing"
 	"testing/fstest"
+
+	"github.com/sprimault/lozengine/raster"
+	"github.com/sprimault/lozengine/scene"
 
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/game"
@@ -63,6 +67,10 @@ func figureDEssai() game.Figure {
 // Il compte ce qu'il a visité et le dit : une boucle qui ne trouverait aucun
 // profil passerait au vert en ne vérifiant rien, ce qui est le motif du contrôle
 // privé de son entrée.
+//
+// **Et il compte les planches**, parce que c'est la borne du moteur qui décide
+// de la découpe : un atlas en porte mille vingt-quatre, et une planche par image
+// d'animation au lieu d'une par fichier la dépasserait.
 func TestLesFeuillesLivreesSeChargent(t *testing.T) {
 	profils, err := game.LoadProfiles(cohue.Assets, manifesteLivre)
 	if err != nil {
@@ -77,9 +85,10 @@ func TestLesFeuillesLivreesSeChargent(t *testing.T) {
 		figures = append(figures, p.Figure)
 	}
 
-	bandes := 0
+	atlas := &raster.Atlas{}
+	bandes, images := 0, 0
 	for _, f := range figures {
-		feuille, err := Load(cohue.Assets, racineLivree, f)
+		feuille, err := Load(cohue.Assets, racineLivree, f, atlas)
 		if err != nil {
 			t.Fatalf("feuille de %s : %v", f.Key, err)
 		}
@@ -87,6 +96,7 @@ func TestLesFeuillesLivreesSeChargent(t *testing.T) {
 			for _, direction := range f.Directions {
 				for variante := range f.Variants {
 					bandes++
+					images += c.Frames
 					if _, ok := feuille.Frame(cycle, direction, variante, c.Frames-1); !ok {
 						t.Errorf("%s : dernière image de %s_%s manquante en v%d",
 							f.Key, cycle, direction, variante)
@@ -100,7 +110,12 @@ func TestLesFeuillesLivreesSeChargent(t *testing.T) {
 		t.Fatalf("%d profils et %d bandes visités : trop peu pour que ce test dise quelque chose",
 			len(figures), bandes)
 	}
-	t.Logf("%d profils, %d bandes découpées", len(figures), bandes)
+	if len(atlas.Sheets) != bandes {
+		t.Errorf("%d planches pour %d bandes : la découpe n'est plus de la donnée",
+			len(atlas.Sheets), bandes)
+	}
+	t.Logf("%d profils, %d bandes, %d images, %d planches",
+		len(figures), bandes, images, len(atlas.Sheets))
 }
 
 // TestUneBandeQuiMentSurSaTailleEstRefusee garde le manifeste-contrat.
@@ -116,24 +131,25 @@ func TestUneBandeQuiMentSurSaTailleEstRefusee(t *testing.T) {
 		"p/marcheur/marche_S.png": &fstest.MapFile{Data: bande(t, 4*f.Side, f.Side)},
 	}
 
-	if _, err := Load(fsys, "p", f); err == nil {
+	if _, err := Load(fsys, "p", f, &raster.Atlas{}); err == nil {
 		t.Fatal("bande de quatre images acceptée pour un cycle qui en annonce trois")
 	}
 }
 
-// TestUnCycleAbsentSeDitAuLieuDeSeDeviner garde le second retour de `Frame`.
+// TestUnCycleAbsentSeDitAuLieuDeSeDeviner garde le second retour de `Pose`.
 //
 // Tous les profils n'ont pas les mêmes cycles : le Molosse n'a ni repos ni
-// attaque. Rendre une image vide plutôt qu'un refus ferait disparaître une
-// créature à l'arrêt sans qu'aucune erreur ne le dise, et le rendu ne saurait
-// pas qu'il doit se replier sur une pose existante.
+// attaque. Rendre un aspect vide plutôt qu'un refus ferait disparaître une
+// créature à l'arrêt sans qu'aucune erreur ne le dise — la valeur zéro d'un
+// aspect ne dessinant rien —, et le rendu ne saurait pas qu'il doit se replier
+// sur une pose existante.
 func TestUnCycleAbsentSeDitAuLieuDeSeDeviner(t *testing.T) {
 	f := figureDEssai()
 	fsys := fstest.MapFS{
 		"p/marcheur/marche_S.png": &fstest.MapFile{Data: bande(t, 3*f.Side, f.Side)},
 	}
 
-	feuille, err := Load(fsys, "p", f)
+	feuille, err := Load(fsys, "p", f, &raster.Atlas{})
 	if err != nil {
 		t.Fatalf("chargement : %v", err)
 	}
@@ -145,6 +161,148 @@ func TestUnCycleAbsentSeDitAuLieuDeSeDeviner(t *testing.T) {
 	}
 	if _, ok := feuille.Frame("marche", "S", 0, 2); !ok {
 		t.Error("la troisième image d'un cycle qui en porte trois manque")
+	}
+}
+
+// TestLesImagesDUneBandeSeSuiventDansLaPlanche garde la découpe.
+//
+// Les trois images d'un cycle vivent dans une planche et s'y distinguent par
+// leur seule abscisse de source. Une découpe qui les ferait coïncider rendrait
+// une animation figée, ce qu'aucune erreur ne dirait : les trois aspects
+// resteraient valides.
+func TestLesImagesDUneBandeSeSuiventDansLaPlanche(t *testing.T) {
+	f := figureDEssai()
+	fsys := fstest.MapFS{
+		"p/marcheur/marche_S.png": &fstest.MapFile{Data: bande(t, 3*f.Side, f.Side)},
+	}
+	feuille, err := Load(fsys, "p", f, &raster.Atlas{})
+	if err != nil {
+		t.Fatalf("chargement : %v", err)
+	}
+
+	for image := range 3 {
+		pose, ok := feuille.Frame("marche", "S", 0, image)
+		if !ok {
+			t.Fatalf("image %d manquante", image)
+		}
+		if got, veut := int(pose.SourceX), image*f.Side; got != veut {
+			t.Errorf("image %d : source en %d, attendue en %d", image, got, veut)
+		}
+		if pose.SourceY != 0 {
+			t.Errorf("image %d : source en ordonnée %d, une bande est sur une ligne",
+				image, pose.SourceY)
+		}
+		if int(pose.Width) != f.Side || int(pose.Height) != f.Side {
+			t.Errorf("image %d : %dx%d, attendu %dx%d",
+				image, pose.Width, pose.Height, f.Side, f.Side)
+		}
+	}
+}
+
+// TestLancrageDUnePoseVientDeLappui garde la conversion des deux conventions.
+//
+// Le dépôt retranche un point d'appui du pixel visé, le moteur centre le pied de
+// l'image : `AnchorFromFooting` est le passage entre les deux, et c'est ici
+// qu'il reçoit son premier appelant. Reporter l'appui tel quel poserait la
+// créature à cent vingt-six pixels de là sans qu'aucune valeur ne le trahisse.
+func TestLancrageDUnePoseVientDeLappui(t *testing.T) {
+	f := figureDEssai()
+	fsys := fstest.MapFS{
+		"p/marcheur/marche_S.png": &fstest.MapFile{Data: bande(t, 3*f.Side, f.Side)},
+	}
+	feuille, err := Load(fsys, "p", f, &raster.Atlas{})
+	if err != nil {
+		t.Fatalf("chargement : %v", err)
+	}
+
+	pose, ok := feuille.Frame("marche", "S", 0, 0)
+	if !ok {
+		t.Fatal("première image manquante")
+	}
+	x, y := AnchorFromFooting(f.Anchor, [2]int{f.Side, f.Side})
+	if int(pose.AnchorX) != x || int(pose.AnchorY) != y {
+		t.Errorf("ancre (%d,%d), attendue (%d,%d)",
+			pose.AnchorX, pose.AnchorY, x, y)
+	}
+}
+
+// TestUnAspectRenduSeDessine garde la teinte neutre.
+//
+// La valeur zéro d'une couleur est transparente : un aspect livré sans teinte ne
+// dessinerait rien, et le défaut se chercherait dans le tri ou dans la position.
+// Le blanc est l'élément neutre de la multiplication, donc l'absence de teinte
+// plutôt que l'absence de couleur.
+func TestUnAspectRenduSeDessine(t *testing.T) {
+	f := figureDEssai()
+	fsys := fstest.MapFS{
+		"p/marcheur/marche_S.png": &fstest.MapFile{Data: bande(t, 3*f.Side, f.Side)},
+	}
+	feuille, err := Load(fsys, "p", f, &raster.Atlas{})
+	if err != nil {
+		t.Fatalf("chargement : %v", err)
+	}
+
+	pose, _ := feuille.Frame("marche", "S", 0, 0)
+	if pose.Tint.A == 0 {
+		t.Error("teinte transparente : l'aspect ne dessinerait rien")
+	}
+}
+
+// TestLaSilhouetteAjouteDeuxPlanchesParBande garde ce que la borne de l'atlas
+// impose.
+//
+// L'aplat et le bord d'une bande sont deux planches, pas deux par image : à six
+// images par cycle, dériver image par image multiplierait par sept ce que le
+// catalogue occupe et franchirait le plafond. Et les cases suivent, pour qu'un
+// aspect prenne le même rectangle dans la forme que dans le dessin.
+func TestLaSilhouetteAjouteDeuxPlanchesParBande(t *testing.T) {
+	f := figureDEssai()
+	fsys := fstest.MapFS{
+		"p/marcheur/marche_S.png": &fstest.MapFile{Data: bande(t, 3*f.Side, f.Side)},
+	}
+	atlas := &raster.Atlas{}
+	feuille, err := Load(fsys, "p", f, atlas)
+	if err != nil {
+		t.Fatalf("chargement : %v", err)
+	}
+	if len(atlas.Sheets) != 1 {
+		t.Fatalf("%d planche(s) pour une bande", len(atlas.Sheets))
+	}
+
+	if _, ok := feuille.Shape("marche", "S", 0, 0); ok {
+		t.Error("un aplat existe avant qu'on l'ait demandé")
+	}
+	if err := feuille.Silhouette(atlas); err != nil {
+		t.Fatalf("silhouette : %v", err)
+	}
+	if len(atlas.Sheets) != 3 {
+		t.Errorf("%d planches après la silhouette, attendu 3", len(atlas.Sheets))
+	}
+
+	pose, _ := feuille.Frame("marche", "S", 0, 2)
+	forme, ok := feuille.Shape("marche", "S", 0, 2)
+	if !ok {
+		t.Fatal("aplat de la troisième image manquant")
+	}
+	bord, ok := feuille.Edge("marche", "S", 0, 2)
+	if !ok {
+		t.Fatal("bord de la troisième image manquant")
+	}
+	for _, c := range []struct {
+		quoi   string
+		aspect scene.Aspect
+	}{
+		{"aplat", forme},
+		{"bord", bord},
+	} {
+		if c.aspect.SourceX != pose.SourceX || c.aspect.Width != pose.Width {
+			t.Errorf("%s : source %d largeur %d, attendu %d et %d",
+				c.quoi, c.aspect.SourceX, c.aspect.Width,
+				pose.SourceX, pose.Width)
+		}
+		if c.aspect.Sheet == pose.Sheet {
+			t.Errorf("%s : même planche que le dessin, le dérivé n'en est pas un", c.quoi)
+		}
 	}
 }
 
@@ -172,14 +330,14 @@ func TestLeSousDossierNexisteQuAuDelaDUneTeinte(t *testing.T) {
 				"p/marcheur/v1/marche_S.png"} {
 				fsys[chemin] = &fstest.MapFile{Data: bande(t, 3*f.Side, f.Side)}
 			}
-			if _, err := Load(fsys, "p", f); err != nil {
+			if _, err := Load(fsys, "p", f, &raster.Atlas{}); err != nil {
 				t.Fatalf("chargement : %v", err)
 			}
 
 			// Le fichier attendu est retiré : ce qui doit échouer est le chemin
 			// que le chargeur construit, et non un fichier qui manquerait aussi.
 			delete(fsys, cas.chemin)
-			if _, err := Load(fsys, "p", f); err == nil {
+			if _, err := Load(fsys, "p", f, &raster.Atlas{}); err == nil {
 				t.Errorf("chargement réussi alors que %s manque", cas.chemin)
 			}
 		})
@@ -210,7 +368,7 @@ func TestUneFigureSansCoteEstRefusee(t *testing.T) {
 		t.Run(cas.quoi, func(t *testing.T) {
 			f := figureDEssai()
 			cas.abimer(&f)
-			if _, err := Load(fstest.MapFS{}, "p", f); err == nil {
+			if _, err := Load(fstest.MapFS{}, "p", f, &raster.Atlas{}); err == nil {
 				t.Fatalf("figure acceptée alors que %s est fautif", cas.attendu)
 			}
 		})

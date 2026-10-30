@@ -5,24 +5,32 @@ permissives exigent que leur notice suive toute copie du logiciel, et un binaire
 qui les compile en est une.
 
 Le périmètre est ce que `go list -deps` rapporte pour les cibles publiées, et
-non le contenu de `go.mod`. La nuance compte : `github.com/ebitengine/gomobile`
-y figure comme dépendance indirecte sans qu'aucun de ses paquets ne soit lié,
-donc il n'a pas de notice ici. `github.com/jezek/xgb` en a une parce que
-l'archive Linux existe, alors qu'il n'entre ni dans le binaire Windows ni dans
-celui de macOS.
+non le contenu de `go.mod`. La nuance compte : un module peut figurer en
+dépendance indirecte sans qu'aucun de ses paquets ne soit lié, et il n'a alors
+pas de notice ici.
 
-Les modules qui partagent un texte de licence identique le partagent aussi ici :
-les regrouper évite trois copies de la licence Apache, et l'identité des textes
-est vérifiée plutôt que supposée.
+Les modules qui partagent un texte de licence identique le partagent aussi ici,
+et l'identité des textes est vérifiée plutôt que supposée.
+
+Un module offert sous plusieurs licences laisse le choix à qui redistribue :
+`lozengine` est publié sous MIT ou Apache-2.0, et c'est Apache-2.0 qui est
+exercée, celle du dépôt. La ligne de déclaration ne porte donc qu'elle — le
+contrôle attend un jeton sans espace, et « MIT OR Apache-2.0 » n'en est pas un.
+
+**Une section ne déclare aucun module, et c'est voulu.** Le texte BSD-3 des Go
+Authors couvre la bibliothèque standard, qui est liée statiquement dans chaque
+binaire publié sans être un module : `go list -deps` ne la rapporte pas, donc le
+contrôle ne peut pas la voir. Lui donner une ligne de déclaration la ferait
+signaler comme une notice sans module lié ; la lui retirer ferait disparaître une
+notice qu'une archive doit porter. Elle reste donc, sans déclaration, et le
+contrôle l'ignore parce qu'il ne lit que les lignes « module version — licence ».
 
 Les ressources graphiques et sonores suivent un chemin distinct : voir
 CREDITS.md.
 
 ------------------------------------------------------------------------------
 
-github.com/hajimehoshi/ebiten/v2 v2.9.10 — Apache-2.0
-github.com/ebitengine/purego v0.9.0 — Apache-2.0
-github.com/ebitengine/hideconsole v1.0.0 — Apache-2.0
+github.com/sprimault/lozengine v0.5.6 — Apache-2.0
 
                                  Apache License
                            Version 2.0, January 2004
@@ -228,8 +236,7 @@ github.com/ebitengine/hideconsole v1.0.0 — Apache-2.0
 
 ------------------------------------------------------------------------------
 
-golang.org/x/sync v0.21.0 — BSD-3-Clause
-golang.org/x/sys v0.44.0 — BSD-3-Clause
+Les Go Authors — BSD-3-Clause, et cette section ne déclare aucun module.
 
 Copyright 2009 The Go Authors.
 
@@ -258,50 +265,3 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-------------------------------------------------------------------------------
-
-github.com/jezek/xgb v1.1.1 — BSD-3-Clause
-
-// Copyright (c) 2009 The XGB Authors. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//    * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//    * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//    * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Subject to the terms and conditions of this License, Google hereby
-// grants to You a perpetual, worldwide, non-exclusive, no-charge,
-// royalty-free, irrevocable (except as stated in this section) patent
-// license to make, have made, use, offer to sell, sell, import, and
-// otherwise transfer this implementation of XGB, where such license
-// applies only to those patent claims licensable by Google that are
-// necessarily infringed by use of this implementation of XGB. If You
-// institute patent litigation against any entity (including a
-// cross-claim or counterclaim in a lawsuit) alleging that this
-// implementation of XGB or a Contribution incorporated within this
-// implementation of XGB constitutes direct or contributory patent
-// infringement, then any patent licenses granted to You under this
-// License for this implementation of XGB shall terminate as of the date
-// such litigation is filed.

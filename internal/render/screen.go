@@ -13,40 +13,84 @@
 // déterminisme de la run, et ce qui interdit à une notion d'écran de redescendre
 // dans la simulation.
 //
-// **Ce paquet n'a pas de fichier de test, et n'en aura pas.** Importer
-// Ebitengine initialise GLFW, qui panique sans `DISPLAY` : sur un runner sans
-// écran, n'importe quel test du paquet tombe avant d'avoir commencé, y compris
-// un test qui n'ouvrirait aucune fenêtre. La suite par défaut reste donc
-// exécutable partout, et le rendu se juge à l'œil — c'est ce que la doctrine de
-// test énonçait déjà, et l'absence de tests ici en est la conséquence et non un
-// oubli. Ce qui doit être vérifié mécaniquement vit du côté simulation, qui
-// n'importe pas Ebitengine.
+// **Ce paquet n'a pas de fichier de test, et la contrainte qui l'imposait est
+// tombée.** Importer Ebitengine initialisait GLFW, qui panique sans `DISPLAY` :
+// sur un runner sans écran, n'importe quel test du paquet tombait avant d'avoir
+// commencé, y compris un test qui n'ouvrait aucune fenêtre. `lozengine` calcule
+// ses images sans fenêtre, donc plus rien n'empêche d'en écrire.
+//
+// Ce qui reste vrai est que le rendu se juge à l'œil, et que ce qui doit être
+// vérifié mécaniquement vit du côté simulation. La doctrine qui l'énonce est
+// dans `docs/go.md` ; c'est elle qui dira ce qui la remplace, et ce n'est pas
+// cette godoc qui le décide.
 package render
 
 import (
-	"image/color"
+	"fmt"
 	"math"
-	"strconv"
 
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sprimault/lozengine/geometry"
+	"github.com/sprimault/lozengine/input"
+	"github.com/sprimault/lozengine/raster"
+	"github.com/sprimault/lozengine/render"
+	"github.com/sprimault/lozengine/scene"
 
 	"github.com/sprimault/cohue/internal/game"
-	"github.com/sprimault/cohue/internal/sprite"
 )
 
-// Les dimensions du tampon interne, fixes.
+// Le plancher de la surface de dessin, en pixels.
 //
-// Un tampon de 480×270 ne montrerait que sept tuiles de large, bien trop serré
+// Une surface de 480×270 ne montrerait que sept tuiles de large, bien trop serré
 // pour voir la horde arriver ; 960×540 en donne une quinzaine et se multiplie
 // par deux pour du 1080p.
 //
-// C'est leur fixité qui est la règle de pixel art. Le facteur qui les agrandit
-// vers la fenêtre est un réglage d'affichage, que l'étape 15 tranchera — voir
-// `Layout`, qui dit ce qu'il en est aujourd'hui.
+// **Un plancher et non une taille fixe**, et c'est ce que le moteur a changé :
+// la surface suit la fenêtre, au facteur entier près, si bien qu'il ne reste
+// aucune bande. Ce qui en est retiré est la bande du bandeau — `HUD.Inset` la
+// déclare —, et l'aire de jeu prend tout le reste : agrandir la fenêtre montre
+// donc un peu plus de lieu, ce qui est l'arbitrage jugé à l'écran.
+//
+// Ce qui ne bouge pas est le **grain** : le facteur d'agrandissement reste
+// entier, donc une tuile couvre toujours un nombre entier de pixels de fenêtre,
+// et c'est là qu'est la règle de pixel art — pas dans une aire de taille fixe.
+//
+// Rien ne se place plus contre ces deux nombres. Une pièce d'interface lit
+// `Scene.Surface` pour son étendue et `Scene.WorldOrigin` pour s'accrocher au
+// bord de l'aire ; les y remplacer par une constante poserait juste à
+// l'ouverture et faux partout ailleurs, sans que rien ne le signale.
 const (
 	Width  = 960
 	Height = 540
 )
+
+// aireDans rend le rectangle de l'aire de jeu dans la surface : son coin
+// haut-gauche, puis sa taille.
+//
+// C'est la référence de tout ce que l'interface accroche au jeu — le bandeau
+// au-dessus, le panneau des cartes en dessous, la vignette sur son bord. **Elle
+// forme un bloc avec l'aire** plutôt que de se coller aux bords de la fenêtre :
+// sur un grand écran, un bandeau au bord supérieur serait à trente centimètres
+// de ce qu'on regarde, et la marge entre les deux se lirait comme un défaut.
+//
+// Le moteur rend l'origine et la taille séparément parce qu'un jeu qui ne borne
+// pas son aire n'a besoin que de la seconde ; ici les deux comptent.
+func aireDans(sc *scene.Scene) (x, y, largeur, hauteur int) {
+	ox, oy := sc.WorldOrigin()
+	_, _, w, h := sc.View()
+	return int(ox), int(oy), int(w), int(h)
+}
+
+// Background est le fond du tampon, sous tout ce que la scène décrit.
+//
+// **Exporté parce que c'est le moteur qui l'efface désormais.** Le rendu
+// peignait le tampon avant de dessiner ; la boucle le fait, et le fond est un
+// réglage qu'elle reçoit au montage. Il reste déclaré ici — c'est une décision
+// d'apparence, au même titre que les teintes d'en dessous — et c'est l'appelant
+// qui le passe.
+//
+// Il se voit là où aucune case n'est posée : le hors-carte d'un lieu plus petit
+// que l'écran, et la bordure pendant un cadrage.
+var Background = render.Premultiply(24, 24, 28, 255)
 
 // La vignette de danger : jusqu'où elle mord sur l'écran, et en combien de
 // paliers d'opacité.
@@ -94,41 +138,17 @@ const emprisePlancher = 0.45
 // confondre donnerait un profil plus visible que les autres, décision de
 // conception que personne n'a prise.
 var (
-	fond = color.RGBA{R: 24, G: 24, B: 28, A: 255}
-
-	// La porte, dans ses deux états. Elle teinte le décor de sa case au lieu de
-	// le remplacer, parce qu'elle n'y change rien : fermée elle est un mur comme
-	// un autre, ouverte elle l'est encore. Ce que ces deux teintes disent est ce
-	// qu'aucune forme ne porte — le lieu est gagné, et la sortie est là.
-	//
-	// **Une seule teinte, éteinte puis vive**, plutôt que deux couleurs : c'est
-	// le même objet dans deux états, et l'écart de valeur se voit en périphérie
-	// là où un changement de teinte demande de regarder. Un cyan, parce que le
-	// vert appartient à l'éclair de soin et qu'ouvrir une porte n'a rien à voir
-	// avec lui — le voisin le plus proche est la gemme, à 28,5, et elle est au
-	// sol quand la porte est sur un mur.
-	//
-	// **Deux écarts de valeur à tenir, et le premier jet n'en a tenu qu'un.**
-	// L'écart entre les deux états était bon ; celui entre la porte fermée et le
-	// mur qui l'entoure ne l'était pas, si bien qu'une partie jouée n'a pas
-	// trouvé la porte en faisant les quatre coins de la salle. Une teinte ne se
-	// choisit pas contre l'autre état du même objet, elle se choisit **aussi**
-	// contre ce qui l'entoure — ici le mur de l'enceinte, sur lequel la porte
-	// est posée et que ces deux teintes multiplient.
-	porteFermee  = color.RGBA{R: 48, G: 132, B: 152, A: 255}
-	porteOuverte = color.RGBA{R: 120, G: 232, B: 248, A: 255}
-
-	// intact est l'élément neutre de la multiplication qu'Ebitengine applique :
+	// intact est l'élément neutre de la multiplication qu'une teinte applique :
 	// une image posée sous cette échelle sort telle qu'elle est dessinée. C'est
 	// de quoi partir quand on veut retirer de la lumière à un sprite sans avoir
 	// à en connaître les couleurs.
-	intact = color.RGBA{R: 255, G: 255, B: 255, A: 255}
+	intact = render.White()
 
 	// L'emprise d'une explosion se pose sur le sol et doit rester lisible sous
 	// les corps qui la traversent : une teinte chaude que ni la horde ni le
 	// joueur ne portent, et translucide **prémultipliée par son alpha** — écrite
 	// à plat, elle rendrait un aplat trois fois trop dense.
-	teinteEmprise = color.RGBA{R: 108, G: 54, B: 24, A: 132}
+	teinteEmprise = render.Color{R: 108, G: 54, B: 24, A: 132}
 	// Le lit de braise sous les langues de feu, à la teinte de leur pied.
 	//
 	// **Il existe parce qu'un dessin par case ne joint pas ses voisines.** Les
@@ -140,12 +160,12 @@ var (
 	// **Sombre, et c'est ce qui le sépare de l'aplat qu'il remplace.** Une nappe
 	// orange se lit comme un tapis posé sur le sol ; des braises sous des flammes
 	// se lisent comme ce qui brûle, et ce sont les langues qui portent la couleur.
-	teinteBraise = color.RGBA{R: 96, G: 20, B: 14, A: 190}
+	teinteBraise = render.Color{R: 96, G: 20, B: 14, A: 190}
 	// **L'éclair d'une créature touchée est la même teinte, éclaircie**, et non
 	// une couleur nouvelle : ce qu'il doit dire est « celle-ci vient d'être
 	// atteinte », pas « ceci est autre chose ». Un blanc franc ferait clignoter
 	// une foule dense en bandes qu'on ne relierait plus à des créatures.
-	teinteImpact = color.RGBA{R: 236, G: 186, B: 178, A: 255}
+	teinteImpact = render.Premultiply(236, 186, 178, 255)
 	// **L'annonce d'une charge bat, elle ne se contente pas d'une couleur.** Une
 	// teinte fixe se perd dans une foule qui porte déjà le rouge, et c'est
 	// justement au milieu de la foule qu'il faut la repérer pour mettre un
@@ -154,7 +174,7 @@ var (
 	//
 	// La course, elle, n'est pas peinte : elle va vite et droit, ce qui est déjà
 	// à l'image. Un signal ne redit pas ce qu'on voit.
-	teinteAnnonce = color.RGBA{R: 232, G: 96, B: 72, A: 255}
+	teinteAnnonce = render.Premultiply(232, 96, 72, 255)
 	// **Le soigneur tranche, la soignée nuance.** Les deux disent le même
 	// événement mais n'apprennent pas la même chose : qu'une créature récupère
 	// explique pourquoi elle ne tombe pas, et cela peut rester dans la famille du
@@ -164,8 +184,8 @@ var (
 	// D'où un vert franc pour l'un et un rouge éclairci vers le vert pour
 	// l'autre : les relier tient à la teinte commune, les séparer à la distance
 	// qui les sépare du fond de la horde.
-	teinteSoigneur = color.RGBA{R: 120, G: 226, B: 132, A: 255}
-	teinteSoigne   = color.RGBA{R: 172, G: 178, B: 108, A: 255}
+	teinteSoigneur = render.Premultiply(120, 226, 132, 255)
+	teinteSoigne   = render.Premultiply(172, 178, 108, 255)
 
 	// **Le contour du joueur, et sa silhouette : la même teinte.** C'est la même
 	// chose qui le détache — cernée quand on le voit, pleine quand une forme ou
@@ -176,7 +196,7 @@ var (
 	// un blanc bleuté, et le personnage doit s'en distinguer autant que du reste.
 	// La luminance reste au-delà de 240, ce que la mesure demande — le pixel le
 	// plus clair d'un profil monte à 162, celui d'un figurant à 175.
-	teinteContour = color.RGBA{R: 252, G: 246, B: 226, A: 255}
+	teinteContour = render.Premultiply(252, 246, 226, 255)
 
 	// **Le contour d'une icône posée dans le monde, et il va dans l'autre
 	// sens.** Celui du joueur éclaircit parce qu'il cerne une silhouette sombre
@@ -188,7 +208,7 @@ var (
 	//
 	// Le presque-noir est celui que `outils/objets.py` donne aux objets du monde,
 	// pour que ce qui cerne dans la scène cerne partout de la même façon.
-	teinteContourSombre = color.RGBA{R: 24, G: 24, B: 28, A: 255}
+	teinteContourSombre = render.Premultiply(24, 24, 28, 255)
 
 	// **Le projectile de la horde porte une teinte qu'aucune autre ne dispute.**
 	// C'est entre projectiles que la distinction doit être maximale : « est-ce
@@ -199,15 +219,16 @@ var (
 	// Ce n'en est donc pas une copie : un aplat n'a pas de masse sombre ni de
 	// liseré clair, et ce qu'on lui demande est de se voir à travers ce qui le
 	// cache.
-	teinteTirHorde = color.RGBA{R: 186, G: 138, B: 232, A: 255}
+	teinteTirHorde = render.Premultiply(186, 138, 232, 255)
 
 	// La teinte de l'aimant, qui ne sert plus qu'à la case du bandeau : au sol,
 	// c'est son sprite qu'on voit. Elle survit parce que l'objet n'a pas d'icône
 	// d'interface, et `HUD.emplacement` dit ce qu'il faudrait pour l'éteindre.
-	teinteAimant = color.RGBA{R: 198, G: 126, B: 78, A: 255}
+	teinteAimant = render.Premultiply(198, 126, 78, 255)
 )
 
-// Screen est le jeu tel qu'Ebitengine le voit.
+// Screen est le jeu tel que `lozengine` le voit : une scène qu'il décrit, et non
+// une image qu'il peint.
 type Screen struct {
 	monde  *game.World
 	carte  *game.CostGrid
@@ -216,15 +237,21 @@ type Screen struct {
 	objets *Stage
 	cam    *camera
 
-	scene *scene
+	// scene porte ce que l'image contient, et c'est le moteur qui la trie. Le
+	// champ garde le nom du paquet sans l'ombrer : les deux vivent dans des
+	// espaces distincts, et l'appeler autrement ferait chercher la scène sous un
+	// autre mot.
+	scene *scene.Scene
 
-	// face est le losange blanc que le dessin teinte au blit.
+	// face est la planche du losange blanc que la nappe teinte.
 	//
-	// **C'est le dernier aplat, et il ne disparaîtra pas** : il marque l'emprise
-	// d'une explosion, et le télégraphe s'y peint en cases pleines parce que le
-	// rendu n'a rien à agrandir — redimensionner une image par une fraction
-	// casserait le pixel entier. Tous les autres ont cédé la place à des sprites.
-	face *ebiten.Image
+	// **C'est le dernier dessin que le rendu calcule, et il ne disparaîtra pas** :
+	// il marque l'emprise d'une explosion, et le télégraphe s'y peint en cases
+	// pleines parce qu'il n'y a rien à agrandir — redimensionner une image par une
+	// fraction casserait le pixel entier. Un aplat du moteur ne le remplacerait
+	// pas davantage : `render.Flat` peint un rectangle, quand une case est un
+	// losange.
+	face uint16
 
 	// emprises porte, par case et le temps d'une image, la nappe qui s'y peint —
 	// l'alpha nul disant qu'aucune zone ne la couvre.
@@ -239,10 +266,14 @@ type Screen struct {
 	emprises []nappe
 
 	// aRevoir porte, le temps d'une image, ce qu'on redessinera si quelque chose
-	// le recouvre. Réutilisée avec `[:0]` : la séquence la remplit soixante fois
+	// le recouvre. Réutilisée avec `[:0]` : la passe la remplit soixante fois
 	// par seconde, et une tranche qui croîtrait ferait passer le ramasse-miettes
 	// là où il se voit.
 	aRevoir []revele
+
+	// attaches relient chaque bassin à la scène, indexées par sorte — qui n'est
+	// plus un critère de rang mais exactement cet aiguillage.
+	attaches [sorteLisere + 1]*attache
 
 	// demiTuile est l'abscisse du sommet dans l'image d'une face, ce que le
 	// manifeste appellera son ancrage quand les images viendront de lui.
@@ -266,9 +297,10 @@ type Screen struct {
 	// jeu.
 	hud *HUD
 
-	// op est réutilisée d'un blit à l'autre, et remise à zéro à chaque fois :
-	// une case visible en produit un millier par image.
-	op ebiten.DrawImageOptions
+	// recouvrements est le relevé que le moteur a rendu pour l'image précédente,
+	// recopié parce que la tranche qu'il passe ne vaut que pendant l'appel.
+	// Réutilisée avec `[:0]`, comme tout ce que ce paquet remplit par image.
+	recouvrements render.OverlapList
 }
 
 // WithHUD attache l'interface à un écran.
@@ -281,16 +313,63 @@ func (s *Screen) WithHUD(h *HUD) *Screen {
 	return s
 }
 
+// projection rend la matrice de cohue : `u` vers la droite, `v` vers la gauche,
+// le sommet nord du losange en (0, 0).
+//
+// **Écrite à la main plutôt que prise à `Dimetric`, et le sens est la seule
+// raison.** Le constructeur du cas courant fait croître la première coordonnée
+// vers la **gauche** — sa godoc donne l'avance en pixels par cellule et jamais
+// son signe, donc cela se mesure. Cohue pose l'est à droite depuis la première
+// ligne : les noms de direction des bandes dessinées, les touches, et les lieux
+// déjà écrits en dépendent tous. Prendre l'autre sens retournerait le monde en
+// miroir, ce qui se voit sur chaque personnage.
+//
+// L'étage vaut un pixel, ce qui permet à `Entity.Z` de porter directement ceux
+// que le manifeste donne — six pour un trottoir, dix pour un quai. Sans ce
+// réglage, l'étage monterait d'une hauteur de cellule et la moindre bordure
+// décollerait le personnage du sol.
+func projection(tuile [2]int) geometry.Matrix {
+	demi, moitie := float64(tuile[0])/2, float64(tuile[1])/2
+	return geometry.Raw(demi, -demi, moitie, moitie).WithFloorHeight(1)
+}
+
 // NewScreen monte le rendu sur une partie et le lieu qu'elle joue.
 //
 // Le décor apporte sa taille de tuile, celle du manifeste et jamais une
 // constante : le chargeur en exige le rapport de deux pour un, et c'est de lui
 // que la projection la tient. La recevoir à part du terrain qui la porte aurait
 // laissé deux appelants la prendre à deux endroits.
+// **La scène se monte ici parce que c'est l'écran qui la décrit.** Sa capacité
+// d'entités reste au défaut du moteur jusqu'à ce que les entités y entrent : la
+// fixer maintenant serait un chiffre qu'aucune pose n'exerce, et le majorant est
+// la somme des bassins, qu'on relève en les parcourant.
+//
+// **Le retrait est celui que les options du moteur reçoivent**, et c'est la
+// seule chose à ne pas laisser diverger entre les deux : il sert ici à cadrer la
+// première image, et là à dimensionner toutes les suivantes. L'arithmétique est
+// celle du moteur et n'est pas recopiée — `scene.Inset.Available` est publique
+// pour cela.
 func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Cast,
-	objets *Stage) *Screen {
+	objets *Stage, atlas *raster.Atlas, retrait scene.Inset) (*Screen, error) {
 	tuile := sol.TileSize()
-	cam := nouvelleCamera(tuile, carte)
+	sc, err := scene.New(carte.Width(), carte.Height(), projection(tuile), scene.Options{})
+	if err != nil {
+		return nil, fmt.Errorf("scene du lieu : %w", err)
+	}
+
+	// **La vue prend la taille de l'aire de jeu ici, et pas plus tard.** Le
+	// moteur ne pose son propre cadrage que sur une scène dont la vue n'a pas de
+	// taille — il recentrerait alors sur le milieu du lieu, loin du joueur —, et
+	// il ne redimensionne la vue ensuite que par la boucle de `Run`, qu'un hôte
+	// sans fenêtre n'emprunte pas. Une vue laissée à zéro donnerait donc un
+	// cadrage faux au jeu et une aire fausse à la planche.
+	sc.ResizeView(retrait.Available(Width, Height))
+	losange, err := face(tuile, atlas)
+	if err != nil {
+		return nil, err
+	}
+
+	cam := nouvelleCamera(sc, carte)
 	s := &Screen{
 		monde:     monde,
 		carte:     carte,
@@ -298,17 +377,22 @@ func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Ca
 		troupe:    troupe,
 		objets:    objets,
 		cam:       cam,
-		scene:     nouvelleScene(carte, monde, sol, cam),
-		face:      face(tuile),
+		scene:     sc,
+		face:      losange,
 		demiTuile: tuile[0] / 2,
 		// Le joueur et, au pire, tous les projectiles de la horde en vol : c'est
 		// exactement ce que la conception révèle, donc le majorant est le bassin
 		// lui-même.
-		aRevoir:  make([]revele, 0, 1+monde.EnemyShots().Cap()),
-		emprises: make([]nappe, carte.Width()*carte.Height()),
+		aRevoir:       make([]revele, 0, 1+monde.EnemyShots().Cap()),
+		recouvrements: make(render.OverlapList, 0, 1+monde.EnemyShots().Cap()),
+		emprises:      make([]nappe, carte.Width()*carte.Height()),
 	}
+	s.attacher(monde)
 	s.cam.suivre(monde.Player())
-	return s
+	if err := s.LeDecor(); err != nil {
+		return nil, err
+	}
+	return s, nil
 }
 
 // emplacement1 est la touche qui dépense la charge du premier emplacement, celui
@@ -318,20 +402,20 @@ func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Ca
 // tombe sous la main droite quand la gauche tient le déplacement, et un joueur
 // qui appuie sur le 1 qu'il a sous les doigts n'a aucun moyen de savoir que le
 // jeu écoutait l'autre.
-var emplacement1 = []ebiten.Key{ebiten.Key1, ebiten.KeyNumpad1}
+var emplacement1 = []input.Key{input.Key1, input.KeyNumpad1}
 
 // emplacement2 est la touche qui déclenche l'arme lourde tenue.
 //
 // **L'aimant garde son emplacement propre**, ce que la conception exige de lui :
 // mis en concurrence avec ce qui se déclenche, il ne serait jamais gardé. Les
 // deux places du chiffre pour la raison écrite au-dessus.
-var emplacement2 = []ebiten.Key{ebiten.Key2, ebiten.KeyNumpad2}
+var emplacement2 = []input.Key{input.Key2, input.KeyNumpad2}
 
 // emplacement3 est la touche du second emplacement d'arme lourde.
 //
 // Deux emplacements et non trois : la conception en fait une règle, le joueur
 // ayant une décision — laquelle garder — et non une gestion.
-var emplacement3 = []ebiten.Key{ebiten.Key3, ebiten.KeyNumpad3}
+var emplacement3 = []input.Key{input.Key3, input.KeyNumpad3}
 
 // emplacement4 est la touche qui boit une fiole.
 //
@@ -339,7 +423,7 @@ var emplacement3 = []ebiten.Key{ebiten.Key3, ebiten.KeyNumpad3}
 // pourraient contenir que la même chose seraient un compteur de deux avec une
 // interface en plus ; ce que la conception limite à deux ou trois est le nombre
 // de sortes de consommables, et la seconde case arrivera avec la seconde sorte.
-var emplacement4 = []ebiten.Key{ebiten.Key4, ebiten.KeyNumpad4}
+var emplacement4 = []input.Key{input.Key4, input.KeyNumpad4}
 
 // interaction est la touche qui force un obstacle fragile.
 //
@@ -349,21 +433,27 @@ var emplacement4 = []ebiten.Key{ebiten.Key4, ebiten.KeyNumpad4}
 // la horde arrive. Maj droite se tient sans rien lâcher, et le 0 du pavé
 // numérique est la seconde place, à côté des emplacements que la même main y
 // tient déjà.
-var interaction = []ebiten.Key{ebiten.KeyShiftRight, ebiten.KeyNumpad0}
+var interaction = []input.Key{input.KeyRightShift, input.KeyNumpad0}
 
-// Update avance la simulation d'un pas, puis recadre.
+// Step avance la simulation d'un pas, puis recadre.
 //
-// Un pas par appel et rien qui lise l'horloge : Ebitengine appelle cette méthode
-// à cadence fixe et rattrape un retard en l'appelant plusieurs fois d'affilée,
-// ce qui est exactement ce que la simulation attend d'un appelant.
-func (s *Screen) Update(in Input) error {
+// **Un pas par appel, et rien qui lise l'horloge.** La boucle du moteur appelle
+// à pas fixe et **abandonne** le retard au-delà de deux pas au lieu de le
+// rattraper — c'est ce que sa godoc énonce, et c'est ce qu'il faut : la
+// simulation ne veut qu'« avance d'un pas », jamais « voici le temps écoulé ».
+//
+// Le corollaire vaut d'être su : le compteur de ticks est un nombre d'images et
+// non une horloge, donc le minuteur du bandeau dérive de l'heure murale sur une
+// machine chargée. Le déterminisme n'en souffre pas, puisque rien de ce qui
+// décide ne lit autre chose que le compteur.
+func (s *Screen) Step(in Input) {
 	// **La mort fige la scène**, et c'est ici que la décision se prend puisque
 	// `World.Step` la laisse ouverte. Le chapitre 2 veut que le joueur puisse se
 	// raconter sa mort ; une horde qui continue d'avancer sous le voile efface
 	// en deux secondes la configuration qui l'a tué, c'est-à-dire ce qu'il y
 	// avait à comprendre.
 	if s.monde.Over() {
-		return nil
+		return
 	}
 
 	// **La pause du choix est réelle, et elle se tient ici pour la même raison.**
@@ -373,10 +463,10 @@ func (s *Screen) Update(in Input) error {
 	// trois cartes suspendues au-dessus d'un cadavre.
 	if s.monde.Choosing() {
 		s.choisir(in)
-		return nil
+		return
 	}
 
-	if in.JustPressed(emplacement1...) {
+	if pressee(in, emplacement1...) {
 		// Sur l'enfoncement, comme la relance et le choix d'une carte : au
 		// maintien, la charge partirait à l'image où le doigt se pose et le
 		// joueur ne saurait jamais s'il l'a dépensée exprès.
@@ -388,8 +478,8 @@ func (s *Screen) Update(in Input) error {
 	// l'emplacement tient. Sans cette priorité, presser la touche en passant sur
 	// une trouvaille dépenserait une charge au lieu de la ramasser, et le joueur
 	// verrait son arme partir en croyant en prendre une.
-	for place, touches := range [][]ebiten.Key{emplacement2, emplacement3} {
-		if !in.JustPressed(touches...) {
+	for place, touches := range [][]input.Key{emplacement2, emplacement3} {
+		if !pressee(in, touches...) {
 			continue
 		}
 		if !s.monde.TakeDrop(place) {
@@ -397,7 +487,7 @@ func (s *Screen) Update(in Input) error {
 		}
 	}
 
-	if in.JustPressed(emplacement4...) {
+	if pressee(in, emplacement4...) {
 		// Sur l'enfoncement comme l'aimant, et pour la même raison : au maintien,
 		// la fiole partirait à l'image où le doigt se pose. Rien à prendre au sol
 		// ici — une fiole se ramasse en marchant dessus, la touche ne fait que
@@ -405,58 +495,91 @@ func (s *Screen) Update(in Input) error {
 		s.monde.Drink()
 	}
 
-	if in.JustPressed(repere...) {
+	if pressee(in, repere...) {
 		s.poserRepere()
 	}
 
 	// **Au maintien, à la différence des emplacements** : on force un obstacle
 	// en tenant la touche, une frappe par cadence. Marteler douze fois un rideau
 	// de fer serait une corvée des doigts, pas une décision.
-	if in.Held(interaction...) {
+	if tenue(in, interaction...) {
 		s.monde.Interact()
 	}
 
 	s.monde.Step(voulu(in))
 	s.cam.suivre(s.monde.Player())
+}
+
+// Rebind rattache l'écran à la run qui remplace la précédente.
+//
+// **Relier plutôt que remonter, et ce n'est pas une économie de lignes.** La
+// boucle du moteur reçoit une scène et la garde : un écran neuf en construirait
+// une seconde, que personne ne présenterait. Ce qui l'accompagne est que la
+// relance n'alloue rien — ni scène, ni attaches, ni relevé d'emprises —, ce que
+// le budget d'allocation demande et que la seconde de relance de la conception
+// demandait déjà.
+//
+// **Le lieu ne change pas, et c'est la condition.** Une relance rejoue la même
+// salle sur une graine dérivée : la carte garde ses dimensions, donc les bornes
+// de la caméra et le relevé par case restent justes. Le décor se repose quand
+// même, parce que la porte y porte un état de partie et qu'elle vient de se
+// refermer.
+func (s *Screen) Rebind(monde *game.World, carte *game.CostGrid) error {
+	for _, a := range s.attaches {
+		a.vider(s.scene)
+	}
+	s.monde, s.carte = monde, carte
+	s.carteChoisie = 0
+	s.finRepere = 0
+	s.aRevoir = s.aRevoir[:0]
+	s.recouvrements = s.recouvrements[:0]
+	clear(s.emprises)
+
+	if err := s.LeDecor(); err != nil {
+		return err
+	}
+	s.cam.suivre(monde.Player())
 	return nil
 }
 
 // Follow recadre la caméra sur le joueur.
 //
-// **`Update` le fait déjà, et cette méthode est pour ce qui n'y passe pas.** La
+// **`Step` le fait déjà, et cette méthode est pour ce qui n'y passe pas.** La
 // planche de relecture avance le monde elle-même — elle n'a ni touches à lire
 // ni pause à tenir — puis dessine ; sans ce recadrage, sa caméra reste où le
 // montage l'a posée et le joueur sort du champ au bout de quelques pas.
 // L'aperçu animé l'a montré en soixante images où le décor ne bougeait pas.
 func (s *Screen) Follow() { s.cam.suivre(s.monde.Player()) }
 
-// Draw peint le tampon interne : le sol, ce qui s'y tient en profondeur, puis
-// l'interface par-dessus.
-func (s *Screen) Draw(ecran *ebiten.Image) {
-	ecran.Fill(fond)
+// Scene rend la scène que l'écran décrit, à qui la présente.
+//
+// **Le moteur la reçoit de l'extérieur** — `NewEngine` et `Run` la prennent tous
+// deux en premier argument —, donc un descripteur qui la garderait pour lui
+// n'aurait aucun appelant. Ce qu'elle expose est une description et jamais une
+// image : ce paquet pose, le moteur trie et peint.
+func (s *Screen) Scene() *scene.Scene { return s.scene }
+
+// Describe décrit l'image : ce que les zones marquent au sol, les entités, leurs
+// effets, puis l'interface par-dessus.
+func (s *Screen) Describe() {
+	// **Les quads d'écran se vident, le monde ne se vide pas.** L'interface est
+	// recomposée à chaque image — une jauge suit la vie, un compteur change —
+	// quand le décor reste posé depuis le montage et les entités sont suivies par
+	// leur poignée. Le moteur ne vide jamais de lui-même, et c'est ce qui laisse
+	// ce choix au jeu.
+	s.scene.ClearScreen()
+
 	s.releverEmprises()
-	s.peindreSol(ecran)
-	s.peindreEntites(ecran)
-	s.peindreEffets(ecran)
-	s.peindreDanger(ecran)
-	s.peindreBandeau(ecran)
+	s.poserLaNappe()
+	s.poserEntites()
+	s.poserEffets()
+	s.poserDanger()
+	s.poserBandeau()
 	if s.monde.Over() {
-		s.peindreFin(ecran)
+		s.poserFin()
 		return
 	}
-	s.peindreCartes(ecran)
-}
-
-// Layout fixe la taille du tampon interne, quelle que soit celle de la fenêtre.
-//
-// Ebitengine agrandit ensuite vers la fenêtre, et le facteur n'est pas
-// nécessairement entier : une fenêtre large de 1400 pixels montre le tampon
-// agrandi de 1,45 fois, donc des pixels de tailles inégales. Ce qui reste à
-// trancher n'appartient ni à la projection ni à la caméra, qui travaillent
-// toutes deux dans le tampon : c'est le facteur d'échelle du système qui décide,
-// il se lit par `LayoutF`, et aucun des deux ne le connaît.
-func (s *Screen) Layout(largeurFenetre, hauteurFenetre int) (int, int) {
-	return Width, Height
+	s.poserCartes()
 }
 
 // peindreDanger cerne l'écran de rouge quand la vie passe sous son seuil.
@@ -479,132 +602,48 @@ func (s *Screen) Layout(largeurFenetre, hauteurFenetre int) (int, int) {
 // la marche fait seize pixels et la vignette se lit comme un cadre d'interface,
 // c'est-à-dire comme un élément posé sur le jeu plutôt que comme un état du
 // joueur. Huit pixels la ramènent à ce qu'elle doit être, une teinte qui monte.
-func (s *Screen) peindreDanger(ecran *ebiten.Image) {
+func (s *Screen) poserDanger() {
 	if s.hud == nil || !s.monde.InDanger() {
 		return
 	}
+	// **Elle cerne l'aire de jeu et non la surface**, parce qu'elle s'adresse à
+	// la vision périphérique de qui regarde le jeu : au bord d'une fenêtre en
+	// 4K, elle serait loin de là où l'œil est posé, et elle cesserait de dire ce
+	// qu'elle existe pour dire.
+	x, y, largeur, hauteur := aireDans(s.scene)
 	teinte := s.hud.Color("vignette_danger")
 	for palier := range paliersVignette {
 		e := epaisseurVignette * (paliersVignette - palier) / paliersVignette
-		s.hud.Rect(ecran, 0, 0, Width, e, teinte)
-		s.hud.Rect(ecran, 0, Height-e, Width, e, teinte)
-		s.hud.Rect(ecran, 0, e, e, Height-2*e, teinte)
-		s.hud.Rect(ecran, Width-e, e, e, Height-2*e, teinte)
+		s.hud.Rect(s.scene, x, y, largeur, e, teinte)
+		s.hud.Rect(s.scene, x, y+hauteur-e, largeur, e, teinte)
+		s.hud.Rect(s.scene, x, y+e, e, hauteur-2*e, teinte)
+		s.hud.Rect(s.scene, x+largeur-e, y+e, e, hauteur-2*e, teinte)
 	}
 }
 
-// peindreSol pose le décor de chaque case visible qui ne dépasse pas du sol.
+// LeDecor pose le décor du lieu dans la scène, une fois pour toutes.
 //
-// **Ce qui dépasse n'est pas ici mais dans la séquence**, où il dispute sa
-// profondeur au reste. Un sol, lui, est toujours dessous : l'ordre entre deux
-// cases plates ne décide de rien, puisqu'elles pavent sans se recouvrir, et le
-// balayage par rangées suffit.
-//
-// **Le tri par coût que ce sol montrait a disparu avec l'aplat**, et rien ne
-// s'est perdu à le retirer : la grille descend désormais de la même carte de
-// formes que ces images, si bien qu'un écart entre ce qu'on voit et ce que le
-// champ de flux lit n'est plus exprimable.
-func (s *Screen) peindreSol(ecran *ebiten.Image) {
-	u0, v0, u1, v1 := s.cam.casesVisibles()
-	for v := v0; v <= v1; v++ {
-		for u := u0; u <= u1; u++ {
-			if f, posee := s.sol.formeDe(u, v); posee && !f.triee {
-				s.poserCase(ecran, u, v, f, true)
-			}
-		}
-	}
-
-	// **Les couches viennent après tout le terrain, et non case par case.** Une
-	// couche posée dans la même passe se ferait recouvrir par le revêtement de
-	// la case suivante, dont l'image déborde vers le sud : c'est la raison qui
-	// fait déjà peindre le sol par rangées plutôt que par colonne.
-	for couche := range s.sol.Couches() {
-		for v := v0; v <= v1; v++ {
-			for u := u0; u <= u1; u++ {
-				if f, posee := s.sol.coucheDe(couche, u, v); posee && !f.triee {
-					s.poserCase(ecran, u, v, f, false)
-				}
-			}
-		}
-	}
+// **Il n'y a plus de passe de sol**, et c'est ce que la scène a retiré : le
+// décor se range au montage et le moteur ne relit que la fenêtre visible, là où
+// deux boucles balayaient un millier de cases à chaque image. Ce qui dépasse du
+// sol n'est plus peint à part non plus — son étage le range sous les vivants
+// sans qu'aucune passe l'y mette.
+func (s *Screen) LeDecor() error {
+	return poserLeDecor(s.scene, s.sol, s.monde, s.carte)
 }
 
-// poserCase pose l'image d'une case, à l'ancrage que son manifeste lui donne, le
-// sol du thème sous ce qui ne remplit pas son losange, et le télégraphe d'une
-// explosion par-dessus.
+// LaPorte repose la case de sortie, dont l'état de partie change l'apparence.
 //
-// **Le sol vient juste avant la forme et non dans une passe à part.** Un pilier
-// se trie, un rail ne se trie pas, et ce qui les comble doit suivre chacun dans
-// sa passe : une passe de sol posée d'un bloc peindrait par-dessus les cases
-// déjà triées de la même image.
-//
-// **La porte garde ses deux teintes, appliquées à ce que le décor y dessine.**
-// Aucune forme du lieu ne dit qu'une case est la sortie — l'ouverture est un
-// état de partie, et le décor n'en sait rien —, or une partie jouée a montré
-// qu'on fait les quatre coins d'une salle sans trouver une porte qui ressemble
-// au mur qui l'entoure. La teinte multiplie l'image au lieu de la remplacer :
-// le mur reste un mur, et il vire au cyan. Le sol n'en prend rien — ce qu'elle
-// désigne est la porte, pas la case qui la porte.
-//
-// **Le télégraphe d'une explosion suit la surface qu'il marque**, donc il
-// s'intercale et ne se peint pas d'un bloc. Une forme qui remplit son losange
-// *est* la surface, et le marquage se pose dessus, à son élévation ; une forme
-// qui ne la remplit pas la traverse, et c'est le sol du thème, sous elle, qu'on
-// marche. La passe unique qu'il remplaçait tombait sous le trottoir et le quai,
-// qui ont une élévation et se trient donc.
-func (s *Screen) poserCase(ecran *ebiten.Image, u, v int, f forme, comble bool) trace {
-	x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
-	if f.nue {
-		// **Une couche ne comble pas, et c'est tout l'objet des couches.** Ce
-		// qui est sous elle vient d'être peint : y remettre le sol du thème
-		// effacerait la chaussée juste avant d'y poser le véhicule, ce qui est
-		// exactement le défaut que le calque existe pour fermer.
-		if comble && s.sol.sol != nil {
-			s.poser(ecran, x, y, *s.sol.sol)
-		}
-		s.marquerEmprise(ecran, u, v, f)
+// **C'est la seule case qui se repose**, et elle existe parce qu'aucune forme du
+// lieu ne dit qu'une case est la sortie : l'ouverture est un état de partie, et
+// le décor n'en sait rien. Une partie jouée a montré qu'on fait les quatre coins
+// d'une salle sans trouver une porte qui ressemble au mur qui l'entoure.
+func (s *Screen) LaPorte() {
+	sortie := s.monde.Exit()
+	if sortie == nil {
+		return
 	}
-
-	s.op.ColorScale.Reset()
-	if sortie := s.monde.Exit(); sortie != nil && sortie.U == u && sortie.V == v {
-		if s.monde.DoorOpen() {
-			s.op.ColorScale.ScaleWithColor(porteOuverte)
-		} else {
-			s.op.ColorScale.ScaleWithColor(porteFermee)
-		}
-	}
-	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(x+f.dx), float64(y+f.dy))
-	ecran.DrawImage(f.image, &s.op)
-
-	if !f.nue {
-		s.marquerEmprise(ecran, u, v, f)
-	}
-	return trace{x: x + f.dx, y: y + f.dy, masque: f.masque, cache: f.cache}
-}
-
-// ecranAuSol projette une position du monde en la posant sur la surface qu'on y
-// foule, et non sur le plan du sol.
-//
-// **Un trottoir a une marche, et ce qui marche dessus est six pixels plus haut.**
-// La projection seule ignore l'élévation — elle ne connaît que deux axes —, si
-// bien qu'un personnage sur une bordure était dessiné à l'intérieur : le décor
-// perdait sa matière, il n'arrêtait rien et ne portait rien.
-//
-// **Le passage d'un niveau à l'autre saute, il ne s'interpole pas.** Une montée
-// progressive ferait gravir une pente invisible là où le dessin montre une
-// marche franche ; six pixels d'un coup sont ce qu'un pas sur un trottoir fait.
-func (s *Screen) ecranAuSol(x, y game.Fixed) (int, int) {
-	ex, ey := s.cam.ecran(x, y)
-	return ex, ey - s.sol.hauteurSolEn(x, y)
-}
-
-// poser pose une forme sans la teinter, au coin que son ancrage lui donne.
-func (s *Screen) poser(ecran *ebiten.Image, x, y int, f forme) {
-	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(x+f.dx), float64(y+f.dy))
-	s.op.ColorScale.Reset()
-	ecran.DrawImage(f.image, &s.op)
+	poserLaCase(s.scene, s.sol, s.monde, sortie.U, sortie.V)
 }
 
 // nappe est ce qu'une case porte d'une zone, le temps d'une image.
@@ -617,7 +656,7 @@ func (s *Screen) poser(ecran *ebiten.Image, x, y int, f forme) {
 type nappe struct {
 	// vif est la teinte de l'aplat, ou l'atténuation du dessin. L'alpha nul dit
 	// qu'aucune zone ne couvre la case.
-	vif color.RGBA
+	vif render.Color
 	// feu dit que la case porte des flammes plutôt que le télégraphe d'une
 	// explosion.
 	feu bool
@@ -681,8 +720,8 @@ func (s *Screen) releverEmprises() {
 		// virerait au brun, ce qui est l'accident qui avait éteint l'éclair
 		// d'impact le jour où les créatures ont eu leurs bandes. Ce qui s'éteint
 		// ici est l'opacité, et elle faiblit là où une mèche s'intensifie.
-		reste := float32(s.monde.FireLeft(f)) / 1000
-		vif := attenuer(intact, emprisePlancher+(1-emprisePlancher)*reste)
+		reste := float64(s.monde.FireLeft(f)) / 1000
+		vif := intact.Scale(fraction(emprisePlancher + (1-emprisePlancher)*reste))
 
 		fu0, fv0, fu1, fv1 := s.monde.FireBounds(f)
 		for v := max(fv0, v0); v <= min(fv1, v1); v++ {
@@ -701,8 +740,8 @@ func (s *Screen) releverEmprises() {
 
 		// L'imminence monte quand la mèche descend : le rapport rendu est ce
 		// qu'il reste, et c'est son complément qui s'affiche.
-		imminence := float32(1000-s.monde.FuseLeft(b)) / 1000
-		vif := attenuer(teinteEmprise, emprisePlancher+(1-emprisePlancher)*imminence)
+		imminence := float64(1000-s.monde.FuseLeft(b)) / 1000
+		vif := teinteEmprise.Scale(fraction(emprisePlancher + (1-emprisePlancher)*imminence))
 
 		bu0, bv0, bu1, bv1 := s.monde.BlastBounds(b)
 		for v := max(bv0, v0); v <= min(bv1, v1); v++ {
@@ -714,213 +753,6 @@ func (s *Screen) releverEmprises() {
 			}
 		}
 	}
-}
-
-// marquerEmprise pose sur une case la nappe qu'une zone y a relevée.
-//
-// **Le marquage monte à la hauteur de ce qu'on marche.** Sur un trottoir ou un
-// quai, la face supérieure est la surface, et le losange s'y superpose au pixel
-// près — l'élévation que le générateur écrit *est* la distance entre le plan du
-// sol et cette face. Posé à plat, il s'afficherait au pied de la marche.
-//
-// Sur un rail ou une porte ouverte, `hauteurSol` vaut zéro : ce qu'on y marche
-// est le sol du thème, et l'appelant peint alors le marquage avant la forme,
-// qui doit continuer de passer devant.
-func (s *Screen) marquerEmprise(ecran *ebiten.Image, u, v int, f forme) {
-	n := s.emprises[v*s.sol.carte.Width()+u]
-	if n.vif.A == 0 {
-		return
-	}
-	if n.feu {
-		s.marquerFlammes(ecran, u, v, f, n.vif)
-		return
-	}
-	x, y := s.cam.ecran(game.FromInt(u), game.FromInt(v))
-	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(x-s.demiTuile), float64(y-f.hauteurSol))
-	s.op.ColorScale.Reset()
-	s.op.ColorScale.ScaleWithColor(n.vif)
-	ecran.DrawImage(s.face, &s.op)
-}
-
-// marquerFlammes pose sur une case le dessin de feu, à la phase que sa place lui
-// donne.
-//
-// **La phase se décale par la case, et c'est ce qui sépare un feu d'un tapis.**
-// Toutes les cases d'une flaque portent le même dessin ; peintes en phase, elles
-// montent et redescendent d'un bloc, ce qui est précisément l'aplat uniforme
-// qu'un sprite devait remplacer. C'est le geste des gemmes, où deux cents
-// scintillements accordés feraient un stroboscope.
-//
-// **Le décalage mêle les deux axes par un facteur impair** : `u+v` est constant
-// le long d'une diagonale, c'est-à-dire exactement les cases qu'une même
-// profondeur aligne à l'écran, et la nappe s'y peindrait en bandes accordées.
-//
-// Le dessin est posé par son ancrage, au centre de la case et à la hauteur de ce
-// qu'on y marche : des flammes sur un trottoir brûlent sur sa face, pas à son
-// pied.
-func (s *Screen) marquerFlammes(ecran *ebiten.Image, u, v int, f forme, vif color.RGBA) {
-	part := float32(vif.A) / 255
-
-	// Le lit d'abord, les langues par-dessus : elles montent de la braise.
-	bx, by := s.cam.ecran(game.FromInt(u), game.FromInt(v))
-	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(bx-s.demiTuile), float64(by-f.hauteurSol))
-	s.op.ColorScale.Reset()
-	s.op.ColorScale.ScaleWithColor(attenuer(teinteBraise, part))
-	ecran.DrawImage(s.face, &s.op)
-
-	objet, img := s.objets.image(objetFlammes, s.monde.Tick(), u*7+v*3)
-	if img == nil {
-		return
-	}
-	x, y := s.ecranAuSol(game.FromInt(u)+game.One/2, game.FromInt(v)+game.One/2)
-	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(x+objet.dx), float64(y+objet.dy-f.hauteurSol))
-	s.op.ColorScale.Reset()
-	s.op.ColorScale.ScaleWithColor(vif)
-	ecran.DrawImage(img, &s.op)
-}
-
-// peindreEntites pose ce qui se tient sur le sol, du plus lointain au plus
-// proche.
-//
-// La position est relue dans le bassin plutôt que portée par la séquence : le
-// tri range des rangs, pas des coordonnées, et une copie faite au moment du tri
-// aurait une image de retard le jour où quelque chose bougera entre les deux.
-func (s *Screen) peindreEntites(ecran *ebiten.Image) {
-	largeur := s.sol.carte.Width()
-	s.aRevoir = s.aRevoir[:0]
-	for _, e := range s.scene.ranger(s.monde) {
-		var t trace
-		switch e.sorte {
-		case sorteDecor:
-			couche, place := coucheEtCase(e.place, largeur*s.sol.carte.Height())
-			u, v := place%largeur, place/largeur
-			f, _ := s.sol.formeDe(u, v)
-			if couche >= 0 {
-				f, _ = s.sol.coucheDe(couche, u, v)
-			}
-			t = s.poserCase(ecran, u, v, f, couche < 0)
-		case sorteEnnemi:
-			c := s.monde.Enemies().At(e.place)
-			f := s.troupe.ennemis[c.Profile]
-			t = s.peindreCreature(ecran, f, f.poseEnnemi(c, s.regardDe(c)),
-				c.X, c.Y, e.identite, etatDe(c))
-			if c.Flash > 0 {
-				s.peindreEtincelle(ecran, t, c.Flash)
-			}
-		case sorteAmbiance:
-			a := s.monde.Ambients().At(e.place)
-			f := s.troupe.ambiants[a.Profile]
-			t = s.peindreCreature(ecran, f, f.posePersonnage(a.Step, a.Step, a.Variant),
-				a.X, a.Y, e.identite, nil)
-		case sorteTir:
-			p := s.monde.Shots().At(e.place)
-			s.peindreTrainee(ecran, p.X, p.Y, p.Step, e.identite)
-			t = s.peindreObjet(ecran, objetTir, p.X, p.Y, e.identite, nil)
-		case sorteTirHorde:
-			p := s.monde.EnemyShots().At(e.place)
-			t = s.peindreObjet(ecran, objetTirHorde, p.X, p.Y, e.identite, nil)
-		case sorteGemme:
-			g := s.monde.Gems().At(e.place)
-			// **Une gemme attirée reprend sa teinte pleine.** L'extinction dit
-			// « ceci va disparaître » ; une gemme que l'aimant tient ne
-			// disparaîtra pas, et la montrer éteinte serait montrer une
-			// information fausse. Accessoirement, une ruée de gemmes anciennes
-			// serait un feu d'artifice en gris — l'inverse de ce que la
-			// conception appelle le moment de plaisir maximal du genre.
-			//
-			// **Sur un dessin, l'extinction multiplie**, et c'est ici le bon
-			// sens : ce qu'elle dit est que la gemme s'efface, donc qu'elle perd
-			// de sa lumière. C'est l'inverse d'un éclair d'état, qui ajoute.
-			var voile *color.RGBA
-			if !g.Pulled {
-				eteinte := eteindre(intact, s.monde.GemAge(g), s.monde.GemLife())
-				voile = &eteinte
-			}
-			t = s.peindreObjet(ecran, objetGemme, g.X, g.Y, e.identite, voile)
-		case sorteAimant:
-			a := s.monde.Magnets().At(e.place)
-			t = s.peindreObjet(ecran, objetAimant, a.X, a.Y, e.identite, nil)
-		case sorteEpave:
-			w := s.monde.Wrecks().At(e.place)
-			t = s.peindreEpave(ecran, w, e.identite)
-		case sorteObstacle:
-			t = s.peindreObstacle(ecran, s.monde.Breakables().At(e.place), e.identite)
-		case sorteCaisse:
-			c := s.monde.Crates().At(e.place)
-			// **La déformation dit qu'on est en train de casser**, et c'est tout
-			// ce qui sépare un délai d'un blocage : sans elle, un joueur qui
-			// pousse contre une caisse ralentie croit avoir buté sur un mur.
-			//
-			// **Elle se dérive du décompte d'appui et non du tick**, ce qui est
-			// le régime de toute animation qui s'achève : l'écrasement se complète
-			// à l'instant où la caisse cède. Cadencée sur le tick, sa phase
-			// n'aurait aucun rapport avec la poussée — on toucherait une caisse
-			// déjà écrasée, qui se redresserait ensuite.
-			if c.Press < s.monde.CratePress() {
-				objet, img := s.objets.effet(s.objets.caisse.PressCycle, c.Press)
-				t = s.poserObjet(ecran, objet, img, c.X, c.Y, nil)
-			} else {
-				t = s.peindreObjet(ecran, objetCaisse, c.X, c.Y, e.identite, nil)
-			}
-			// **L'annonce reste pendant l'appui**, et ce n'est pas indifférent :
-			// elle disparaîtrait au moment précis où le joueur décide de rester
-			// ou de repartir, c'est-à-dire là où elle sert le plus.
-			s.annoncerLeContenu(ecran, c)
-		case sorteArmeAuSol:
-			d := s.monde.Drops().At(e.place)
-			t = s.peindreObjet(ecran, s.monde.DropWeapon(d).Key, d.X, d.Y, e.identite, nil)
-		case sorteFioleAuSol:
-			f := s.monde.Vials().At(e.place)
-			t = s.peindreObjet(ecran, objetFiole, f.X, f.Y, e.identite, nil)
-		case sorteTourelle:
-			// Le même dessin que l'arme au sol : ce qu'on pose est l'objet qu'on
-			// tenait, et le distinguer demanderait un second dessin pour dire ce
-			// que la position dit déjà — une tourelle posée est là où le joueur
-			// n'est plus.
-			tr := s.monde.Turrets().At(e.place)
-			t = s.peindreObjet(ecran, s.monde.TurretWeapon(tr).Key,
-				tr.X, tr.Y, e.identite, nil)
-		case sorteJoueur:
-			x, y := s.monde.Player()
-			f := s.troupe.joueur
-			pas := s.monde.PlayerStep()
-			t = s.peindreCreature(ecran, f,
-				f.posePersonnage(pas, s.regardDuJoueur(pas), 0), x, y, 0, nil)
-		}
-
-		// **Le recouvrement se constate en dessinant, dans l'ordre où l'on
-		// dessine.** Ce qui masque une chose est ce qui vient après elle, et la
-		// séquence le dit déjà : il suffit de retenir la forme de ce qu'on
-		// révélera, puis de confronter chaque dessin suivant. C'est ce que la
-		// conception annonçait — « savoir quelle entité est masquée, c'est-à-dire
-		// ce que le tri en profondeur calcule ».
-		//
-		// Le test précède l'inscription, sans quoi une chose se masquerait
-		// elle-même.
-		//
-		// **On continue de confronter une chose déjà couverte tant qu'aucune
-		// créature ne l'a couverte.** Ce n'est plus seulement le fait d'être
-		// recouvert qui se relève, c'est par quoi : un mur d'abord puis une foule
-		// ne se rappelle pas comme un mur seul, et s'arrêter au premier
-		// recouvrement rendrait la forme du rappel dépendante de l'ordre du tri.
-		for i := range s.aRevoir {
-			if s.aRevoir[i].parUnVivant || !s.aRevoir[i].recouvertPar(t) {
-				continue
-			}
-			s.aRevoir[i].couvert = true
-			s.aRevoir[i].parUnVivant = t.vivant
-		}
-		if t.forme != nil {
-			s.aRevoir = append(s.aRevoir, revele{
-				forme: t.forme, bord: t.bord, masque: t.masque, x: t.x, y: t.y,
-				teinte: teinteDeLaSorte(e.sorte),
-			})
-		}
-	}
-	s.reveler(ecran)
 }
 
 // reveler redessine en aplat ce que la scène a recouvert.
@@ -949,22 +781,6 @@ func (s *Screen) peindreEntites(ecran *ebiten.Image) {
 // reste : ce qu'il faut alors est de retrouver le joueur dans une masse qui
 // partage sa gamme, et un liseré s'y perdrait — c'est la mesure qui avait fait
 // écarter la valeur au profit de la forme.
-func (s *Screen) reveler(ecran *ebiten.Image) {
-	for _, r := range s.aRevoir {
-		if !r.couvert {
-			continue
-		}
-		rappel := r.forme
-		if !r.parUnVivant && r.bord != nil {
-			rappel = r.bord
-		}
-		s.op.GeoM.Reset()
-		s.op.GeoM.Translate(float64(r.x), float64(r.y))
-		s.op.ColorScale.Reset()
-		s.op.ColorScale.ScaleWithColor(r.teinte)
-		ecran.DrawImage(rappel, &s.op)
-	}
-}
 
 // teinteDeLaSorte rend la couleur qu'une silhouette prend.
 //
@@ -973,12 +789,6 @@ func (s *Screen) reveler(ecran *ebiten.Image) {
 // ne le voit plus. Le projectile de la horde garde le violet que le chapitre 14
 // lui réserve — « une couleur qui n'existe nulle part ailleurs dans le
 // catalogue ».
-func teinteDeLaSorte(quoi sorte) color.RGBA {
-	if quoi == sorteTirHorde {
-		return teinteTirHorde
-	}
-	return teinteContour
-}
 
 // regardDuJoueur rend ce que le personnage regarde : sa cible s'il en a une, son
 // déplacement sinon.
@@ -1018,97 +828,6 @@ func (s *Screen) regardDe(e *game.Enemy) game.Vec {
 	return game.Vec{X: x - e.X, Y: y - e.Y}
 }
 
-// peindreCreature pose l'image d'un personnage, son appui sur le point où le
-// monde le situe.
-//
-// **L'image se dérive, elle ne se stocke pas.** Un cycle qui boucle se cadence
-// sur le tick, décalé par l'identifiant de l'entité pour qu'une horde ne marche
-// pas au pas ; un cycle qui s'achève se cadence sur le décompte de l'état qui le
-// porte. Aucune des deux ne demande de compteur, donc aucune ne pose la question
-// de savoir qui l'avance ni s'il entre dans l'empreinte d'une run.
-//
-// **L'orientation et la teinte viennent de la pose**, que l'appelant a bâtie :
-// elles dépendent l'une de ce que le personnage regarde, l'autre de ce que son
-// apparition a tiré, et aucune des deux n'est une propriété de son dessin.
-// Le second retour est l'aplat de la pose posée, nul pour qui n'en a pas : seul
-// le joueur en porte, et c'est ce qui décide de son contour comme de sa
-// silhouette. L'appelant n'a donc pas à savoir lequel des personnages se révèle.
-func (s *Screen) peindreCreature(ecran *ebiten.Image, f *figure, a anim,
-	x, y game.Fixed, identite int, eclat *color.RGBA) trace {
-	if a.nom == "" || a.direction == "" {
-		return trace{}
-	}
-
-	i := sprite.Loop(a.cycle, s.monde.Tick(), identite)
-	if !a.cycle.Loop {
-		i = sprite.Once(a.cycle, a.reste)
-	}
-	p := pose{a.nom, a.direction, a.variante, i}
-	img := f.image(p)
-	if img == nil {
-		return trace{}
-	}
-
-	ex, ey := s.ecranAuSol(x, y)
-	coinX, coinY := ex-f.appui[0], ey-f.appui[1]
-
-	// Le contour vient avant le sprite, qui le recouvre en son centre : ce qui
-	// dépasse est le liseré, et il n'a pas d'autre épaisseur que ce dépassement.
-	forme := f.forme(p)
-	if forme != nil {
-		s.contour(ecran, forme, coinX, coinY, teinteContour)
-	}
-
-	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(coinX), float64(coinY))
-	s.op.ColorScale.Reset()
-	ecran.DrawImage(img, &s.op)
-
-	if eclat != nil {
-		s.eclairer(ecran, img, *eclat)
-	}
-	// **Une créature cache toujours, sans que le manifeste ait à le dire.** Elle
-	// fait la taille d'un personnage par définition, et le chapitre 2 nomme
-	// précisément ce cas : « ce qu'un mur ou une foule recouvre ».
-	return trace{
-		x: coinX, y: coinY,
-		masque: f.masque(p), cache: true, vivant: true,
-		forme: forme, bord: f.bord(p),
-	}
-}
-
-// intensiteEclair est la part de sa teinte qu'un éclair d'état ajoute au sprite.
-//
-// **Une valeur à juger à l'œil, et le premier chiffre est bas exprès.** Ce que
-// l'éclair doit dire est « celle-ci vient d'être atteinte », pas « celle-ci est
-// blanche » : au-delà, une mêlée dense devient une nappe claire où les
-// silhouettes se perdent, ce qui coûte la lisibilité qu'on cherchait.
-const intensiteEclair = 0.45
-
-// eclairer rajoute la teinte d'un état par-dessus le sprite déjà posé.
-//
-// **Une passe additive et non une teinte multipliée**, et c'est ce que les
-// sprites ont changé. Sur un aplat blanc, multiplier *était* colorer ; sur un
-// dessin, multiplier par un rose presque blanc ne change à peu près rien, et
-// l'éclair d'impact — le retour qui manque le plus quand on tire sans le voir —
-// avait disparu sans qu'aucun test ne puisse le dire.
-//
-// La géométrie est celle de la passe précédente, laissée en place : ce qui
-// s'ajoute doit se superposer au pixel près, et la recalculer ouvrirait la
-// possibilité qu'elle diverge.
-//
-// Le mélange revient à sa valeur nulle en sortant, qui est l'alpha ordinaire :
-// l'option est réutilisée d'un blit à l'autre, et un mélange laissé additif
-// éclaircirait tout ce que l'image dessine ensuite.
-func (s *Screen) eclairer(ecran, forme *ebiten.Image, teinte color.RGBA) {
-	s.op.Blend = ebiten.BlendLighter
-	s.op.ColorScale.Reset()
-	s.op.ColorScale.ScaleWithColor(teinte)
-	s.op.ColorScale.ScaleAlpha(intensiteEclair)
-	ecran.DrawImage(forme, &s.op)
-	s.op.Blend = ebiten.Blend{}
-}
-
 // etatDe rend la teinte que l'état d'une créature ajoute, ou rien.
 //
 // **Les éclairs d'état survivent aux sprites, la table par profil non.** Une
@@ -1116,7 +835,7 @@ func (s *Screen) eclairer(ecran, forme *ebiten.Image, teinte color.RGBA) {
 // mieux ; un impact ou un soigneur qui s'allume disent ce qui vient de se
 // passer, et aucune pose ne le dirait à cent créatures à l'écran. Les premiers
 // s'éteignent donc avec la dérogation, les seconds restent.
-func etatDe(e *game.Enemy) *color.RGBA {
+func etatDe(e *game.Enemy) *render.Color {
 	switch {
 	case e.Healing > 0:
 		return &teinteSoigneur
@@ -1128,339 +847,6 @@ func etatDe(e *game.Enemy) *color.RGBA {
 		return &teinteAnnonce
 	}
 	return nil
-}
-
-// peindreObjet pose un objet du catalogue, son ancrage sur le point où le monde
-// le situe.
-//
-// Le voile multiplie l'image quand il est donné : c'est ce que veut une
-// extinction, qui retire de la lumière, et l'inverse de l'éclair d'un état, qui
-// en ajoute.
-// Le second retour est l'aplat de l'image posée, nul pour qui n'en a pas : seul
-// le projectile de la horde en porte.
-func (s *Screen) peindreObjet(ecran *ebiten.Image, nom string, x, y game.Fixed,
-	identite int, voile *color.RGBA) trace {
-	objet, img := s.objets.image(nom, s.monde.Tick(), identite)
-	i := sprite.Loop(objet.cycle, s.monde.Tick(), identite)
-	t := s.poserObjet(ecran, objet, img, x, y, voile)
-	t.masque, t.forme, t.cache = objet.masque(i), objet.forme(i), objet.cache
-	return t
-}
-
-// hauteurAnnonce est ce dont l'icône d'une caisse flotte au-dessus du sol, en
-// pixels.
-//
-// La caisse culmine à trente-deux pixels ; au-delà, l'icône décolle et cesse
-// d'appartenir à l'objet qu'elle annonce.
-const hauteurAnnonce = 38
-
-// annoncerLeContenu pose au-dessus d'une caisse l'icône de ce qu'elle porte.
-//
-// **Le contenu est visible avant la casse, sans quoi on casse tout
-// systématiquement et ce n'est plus un choix.** C'est la règle du chapitre 7, et
-// la seule information qui la remplisse est ce que la caisse a **de plus** que
-// les autres : toutes laissent des gemmes, donc les annoncer ne dirait rien et
-// couvrirait l'écran de marques qui ne départagent aucune.
-//
-// **L'icône plutôt que le liseré coloré, que la conception donnait pour
-// alternative**, et deux raisons vont dans le même sens. Elle dit **laquelle**,
-// ce qui décide dès que le catalogue portera ses quatre lourdes : un liseré ne
-// sait dire que « il y a quelque chose », et il faudrait alors une teinte par
-// arme. Or la palette n'a plus de place — le violet du projectile ennemi a coûté
-// une exploration entière pour trouver son seul creux —, si bien que quatre
-// teintes d'armes rouvriraient quatre fois ce problème, en portant en prime dans
-// le manifeste une décision d'apparence que le chapitre 14 lui refuse.
-//
-// **Le dessin de face au milieu de l'isométrie est le vrai coût, et il est plus
-// étroit qu'il n'y paraît** : le bandeau pose déjà ces mêmes icônes dans ses
-// emplacements. Ce que le joueur lit ici est donc l'objet qu'il connaît, au même
-// endroit du langage visuel — « tu l'auras dans ta case ». C'est une continuité
-// entre le monde et le bandeau, pas un registre mêlé.
-//
-// **La fiole s'y annonce comme une arme**, et c'est ce que l'argument du dessus
-// prédisait : elle a sa case au bandeau, donc son icône y est déjà connue. La
-// clé vient du monde, si bien que rien ici ne distingue les deux sortes — une
-// icône se pose, quelle que soit la chose qu'elle nomme.
-func (s *Screen) annoncerLeContenu(ecran *ebiten.Image, c *game.Crate) {
-	cle, porte := s.monde.CrateContent(c)
-	if !porte {
-		return
-	}
-	icone := s.objets.Icon(cle)
-	if icone == nil {
-		return
-	}
-
-	ex, ey := s.ecranAuSol(c.X, c.Y)
-	taille := icone.Bounds().Size()
-	coinX, coinY := ex-taille.X/2, ey-hauteurAnnonce-taille.Y
-
-	// **Le liseré vient avant l'icône, qui le recouvre en son centre**, comme
-	// pour le personnage : ce qui dépasse est le contour, et il n'a pas d'autre
-	// épaisseur que ce dépassement. Sans lui, une icône de gris clairs posée sur
-	// un sol clair ne se détache pas — c'est la règle que le chapitre 14 pose
-	// pour les chiffres de dégâts, et une icône flottante est dans le même cas.
-	if bord := s.objets.bordDIcone(cle); bord != nil {
-		s.contour(ecran, bord, coinX, coinY, teinteContourSombre)
-	}
-	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(coinX), float64(coinY))
-	s.op.ColorScale.Reset()
-	ecran.DrawImage(icone, &s.op)
-}
-
-// peindreEpave pose ce qu'un objet cédé a laissé : sa rupture tant qu'elle se
-// déroule, sa ruine au sol ensuite. Un objet sans cycle de rupture — les
-// obstacles fragiles — passe directement à sa ruine, ses éclats disant la
-// rupture à sa place.
-//
-// **L'avancement se prend sur l'âge et non sur un décompte**, à l'inverse de
-// toutes les autres animations de ce fichier. La règle générale ancre sur la fin
-// parce que le rendu n'a que le reste d'un état ; ici il n'y a pas d'état qui
-// finisse — l'épave demeure —, et la durée de la bande est connue puisque le
-// cycle est chargé. Le reste s'en déduit, et `Once` retrouve son régime
-// habituel.
-func (s *Screen) peindreEpave(ecran *ebiten.Image, e *game.Wreck, identite int) trace {
-	d := s.objets.cassable(e.Object)
-	if age, duree := s.monde.WreckAge(e), s.objets.duree(d.BreakCycle); age < duree {
-		objet, img := s.objets.effet(d.BreakCycle, duree-age)
-		return s.poserObjet(ecran, objet, img, e.X, e.Y, nil)
-	}
-	return s.peindreObjet(ecran, s.objets.sens(d.Ruin, e.Across), e.X, e.Y, identite, nil)
-}
-
-// peindreObstacle pose un obstacle fragile debout, éclairé quand une touche
-// vient de porter.
-//
-// **L'éclair est le seul retour d'une touche qui ne casse pas encore.** Huit
-// secondes contre un rideau de fer sans lui ressembleraient à une touche qui ne
-// fait rien, et c'est ce qui sépare un prix qu'on paie d'un blocage qu'on subit.
-// C'est l'éclair des créatures, ajouté par-dessus le dessin et non multiplié.
-func (s *Screen) peindreObstacle(ecran *ebiten.Image, o *game.Breakable, identite int) trace {
-	nom := s.objets.sens(s.monde.BreakableKey(o.Kind), o.Across)
-	objet, img := s.objets.image(nom, s.monde.Tick(), identite)
-	t := s.poserObjet(ecran, objet, img, o.X, o.Y, nil)
-	if img != nil && o.Flash > 0 {
-		s.eclairer(ecran, img, teinteImpact)
-	}
-	i := sprite.Loop(objet.cycle, s.monde.Tick(), identite)
-	t.masque, t.forme, t.cache = objet.masque(i), objet.forme(i), objet.cache
-	return t
-}
-
-// peindreTrainee relie un tir à la place qu'il occupait au tick précédent.
-//
-// **Un point de six pixels qui saute de sept ne se lit pas comme un tir.** Relevé
-// le 6 septembre 2026 : les projectiles du joueur sont à l'image sur 23,5 % d'une
-// partie de dix minutes, ils portent et ils tuent, et on ne les voit pas partir.
-// Le contraste n'était pas en cause — 84 de luminance contre le sol, 85 contre un
-// Quidam, c'est-à-dire les deux à la fois. Ce qui manquait est la trajectoire,
-// que rien ne montrait entre deux positions.
-//
-// C'est le sprite lui-même qui comble l'écart, plutôt qu'un trait tracé au code :
-// aucune forme nouvelle à dessiner, et le pixel entier tient puisque aucune image
-// n'est étirée ni pivotée.
-//
-// **Le nombre de copies se dérive du pas et de la largeur du sprite**, et n'est
-// pas un chiffre choisi : une arme plus rapide écarte davantage ses positions, et
-// une valeur figée y laisserait des trous le jour où
-// `vitesse_projectile_tuiles_s` monte. Un pas plus court que le sprite ne laisse
-// rien à combler, et la fonction ne pose alors personne.
-//
-// **Elle ne rend aucune trace.** Un tir ne recouvre rien, et le faire entrer dans
-// ce que la silhouette consulte en ferait un occulteur.
-//
-// Au premier tick de vie d'un projectile, la place précédente est celle du
-// joueur : la traînée part alors du canon, ce qui est l'autre moitié de ce que la
-// mesure demandait.
-func (s *Screen) peindreTrainee(ecran *ebiten.Image, x, y game.Fixed,
-	pas game.Vec, identite int) {
-	objet, img := s.objets.image(objetTir, s.monde.Tick(), identite)
-	if img == nil {
-		return
-	}
-
-	ex, ey := s.ecranAuSol(x, y)
-	ax, ay := s.ecranAuSol(x-pas.X, y-pas.Y)
-	dx, dy := float64(ex-ax), float64(ey-ay)
-
-	largeur := float64(img.Bounds().Dx())
-	saut := math.Hypot(dx, dy)
-	if saut <= largeur {
-		return
-	}
-
-	copies := int(math.Ceil(saut / largeur))
-	for k := 1; k < copies; k++ {
-		part := float64(k) / float64(copies)
-		s.op.GeoM.Reset()
-		s.op.GeoM.Translate(
-			math.Round(float64(ax)+dx*part)+float64(objet.dx),
-			math.Round(float64(ay)+dy*part)+float64(objet.dy),
-		)
-		s.op.ColorScale.Reset()
-		ecran.DrawImage(img, &s.op)
-	}
-}
-
-// peindreEffets pose ce qui reste d'une chose qui n'existe plus.
-//
-// **Après la séquence et sans y entrer.** Un éclat vole au-dessus du sol et ne
-// dispute sa profondeur à personne : le trier lui vaudrait de passer sous la
-// créature qui piétine la caisse, ce qui est exactement l'inverse de ce qu'il
-// doit montrer. Il en va de même de l'onde d'une déflagration, qui recouvre par
-// définition ce qu'elle emporte.
-//
-// **Le bassin ne porte qu'un point et un décompte** ; la volée, ses directions
-// et sa parabole se dérivent du rang de chaque éclat. C'est ce qui permet à
-// huit éclats de ne rien coûter à la simulation, et de changer d'apparence sans
-// qu'elle bouge.
-func (s *Screen) peindreEffets(ecran *ebiten.Image) {
-	effets := s.monde.Fxs()
-	for i := range effets.Active() {
-		e := effets.At(i)
-		age := e.Total - e.Life
-		switch e.Kind {
-		case game.FxBlast:
-			objet, img := s.objets.effet(objetSouffle, e.Life)
-			s.poserObjet(ecran, objet, img, e.X, e.Y, nil)
-		case game.FxBreak:
-			s.peindreVolee(ecran, s.objets.cassable(e.Object).Shards, e.X, e.Y, age, e.Total)
-		case game.FxDamage:
-			s.peindreChiffre(ecran, e, age)
-		}
-	}
-}
-
-// montantMarquant est le montant à partir duquel un chiffre passe en pleine
-// teinte.
-//
-// **Trois, parce que c'est ce qu'un Quidam encaisse en entier.** En dessous, le
-// coup est ordinaire et le chiffre reste discret ; au-dessus, il vient d'une
-// arme lourde ou d'une build montée, et c'est ce que le joueur doit remarquer. Le
-// seuil suit donc une unité du jeu plutôt qu'un nombre choisi — le jour où la
-// résistance de base changera, c'est là qu'il faudra revenir.
-const montantMarquant = 3
-
-// hauteurChiffre est ce dont un chiffre s'élève sur sa vie, et departChiffre ce
-// dont il part au-dessus du sol.
-//
-// Le départ vaut la moitié d'un sprite de créature : posé à ses pieds, le chiffre
-// serait recouvert par elle ; posé au-dessus de sa tête, il flotterait sans dire
-// ce qu'il compte.
-const (
-	hauteurChiffre = 10
-	departChiffre  = 32
-)
-
-// peindreChiffre pose ce qu'un coup vient de retirer, au-dessus de ce qu'il a
-// touché.
-//
-// **Ce qui distingue deux chiffres est leur montant, jamais leur nature.** Une
-// horde dense en produit des dizaines par seconde, et le chapitre 14 veut que
-// l'écran chargé appartienne au joueur et aux menaces : les petits restent
-// atténués, les gros passent en pleine teinte. C'est la variation que la teinte
-// des critiques aurait apportée, obtenue sans mécanisme — aucun axe ni aucune
-// arme ne produit de coup critique, et la conception date cette teinte du jour où
-// l'un d'eux le fera.
-//
-// **Il monte et s'efface**, sur la même parabole que les éclats : ce qui jaillit
-// se lit comme un événement, ce qui reste en place se lit comme un état.
-func (s *Screen) peindreChiffre(ecran *ebiten.Image, e *game.Fx, age game.Tick) {
-	texte := strconv.Itoa(e.Amount)
-	ex, ey := s.ecranAuSol(e.X, e.Y)
-
-	// La montée est linéaire et non parabolique : un chiffre n'est pas un objet
-	// qui retombe, c'est une valeur qui s'en va.
-	monte := hauteurChiffre * int(age) / int(e.Total)
-	x := ex - s.hud.Font.Advance(texte)/2
-	y := ey - departChiffre - monte
-
-	teinte := s.hud.Color("texte_attenue")
-	if e.Amount >= montantMarquant {
-		teinte = s.hud.Color("texte")
-	}
-
-	// Le contour d'un pixel, que le chapitre 14 exige : un chiffre jaillit
-	// au-dessus de n'importe quoi — décor clair, flaque, carrelage —, et sa seule
-	// couleur ne suffit pas à le détacher du fond.
-	s.hud.Font.DrawOutlined(ecran, texte, x, y, teinte, s.hud.Color("texte_contour"))
-}
-
-// peindreVolee ouvre une gerbe d'éclats depuis le point où quelque chose a cédé.
-//
-// La hauteur se retranche à l'ordonnée d'écran : monter est aller vers le haut,
-// et c'est la seule endroit du rendu où l'élévation d'une chose se calcule au
-// lieu de venir d'un manifeste — un éclat n'a pas d'ancrage, il a une
-// trajectoire.
-func (s *Screen) peindreVolee(ecran *ebiten.Image, nom string, x, y game.Fixed,
-	age, total game.Tick) {
-	objet, connu := s.objets.objets[nom]
-	if !connu || len(objet.images) == 0 {
-		return
-	}
-
-	for rang := range sprite.Shards {
-		ecart, hauteur := sprite.Shard(rang, age, total)
-		ex, ey := s.ecranAuSol(x+ecart.X, y+ecart.Y)
-		s.op.GeoM.Reset()
-		s.op.GeoM.Translate(float64(ex+objet.dx), float64(ey+objet.dy-hauteur))
-		s.op.ColorScale.Reset()
-		ecran.DrawImage(objet.images[rang%len(objet.images)], &s.op)
-	}
-}
-
-// peindreEtincelle marque un tir qui vient de porter.
-//
-// **Elle dit que le coup est parti et qu'il a touché**, là où l'éclair de la
-// créature dit laquelle a été touchée : deux retours pour un même événement,
-// mais qui n'apprennent pas la même chose — c'est le partage qui vaut déjà pour
-// le soigneur et la soignée. Sur une créature collée au joueur, l'éclair passe
-// sous le personnage et l'étincelle non, ce qui la rend d'autant plus utile là
-// où la conception dit que le retour manque le plus.
-//
-// **Elle se pose au milieu du dessin de la créature, et non à ses pieds.** Une
-// position du monde est un point au sol : centrée dessus, la gerbe s'affichait
-// sous une créature de quarante-cinq pixels, là où l'œil ne suit ni le tir ni
-// la cible. Le milieu se prend sur la forme réellement dessinée plutôt que sur
-// la bande, dont les trois quarts sont transparents.
-//
-// Une méthode pour un seul effet, et non une machinerie pour la famille : le
-// souffle d'une déflagration est le second, il vient avec son bassin, et c'est
-// alors qu'on saura ce que les deux partagent.
-func (s *Screen) peindreEtincelle(ecran *ebiten.Image, sur trace, reste game.Tick) {
-	_, img := s.objets.effet(objetEtincelle, reste)
-	if img == nil || sur.masque == nil {
-		return
-	}
-
-	corps := sur.masque.Bounds()
-	taille := img.Bounds().Size()
-	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(
-		float64(sur.x+corps.Min.X+corps.Dx()/2-taille.X/2),
-		float64(sur.y+corps.Min.Y+corps.Dy()/2-taille.Y/2))
-	s.op.ColorScale.Reset()
-	ecran.DrawImage(img, &s.op)
-}
-
-// poserObjet blitte une image d'objet au décalage que son manifeste lui donne.
-func (s *Screen) poserObjet(ecran *ebiten.Image, objet prop, img *ebiten.Image,
-	x, y game.Fixed, voile *color.RGBA) trace {
-	if img == nil {
-		return trace{}
-	}
-
-	ex, ey := s.ecranAuSol(x, y)
-	coinX, coinY := ex+objet.dx, ey+objet.dy
-	s.op.GeoM.Reset()
-	s.op.GeoM.Translate(float64(coinX), float64(coinY))
-	s.op.ColorScale.Reset()
-	if voile != nil {
-		s.op.ColorScale.ScaleWithColor(*voile)
-	}
-	ecran.DrawImage(img, &s.op)
-	return trace{x: coinX, y: coinY}
 }
 
 // braiseGemme est ce qu'il reste d'une gemme au dernier tick de sa vie.
@@ -1494,12 +880,19 @@ const braiseGemme = 0.25
 // rouvrirait l'écart — une vie rallongée sans que l'extinction le soit rendrait
 // des gemmes éteintes bien avant de partir, et la braise ne protégerait plus de
 // rien.
-func eteindre(teinte color.RGBA, age, vie game.Tick) color.RGBA {
+// **Elle survit à `render.Color.Scale`, qui ne sait pas faire cela.** Celle du
+// moteur met les quatre composantes à l'échelle, alpha compris, et sa godoc le
+// justifie : amputer les trois couleurs seules donnerait « quelque chose qui
+// n'est plus une couleur prémultipliée du tout ». C'est pourtant exactement ce
+// qu'il faut ici — un assombrissement d'opaque, et non un estompement. Les vingt
+// lignes qui l'expliquent restent donc, et c'est le seul endroit du rendu où une
+// teinte se calcule à la main.
+func eteindre(teinte render.Color, age, vie game.Tick) render.Color {
 	if vie <= 0 {
 		return teinte
 	}
 	part := 1 - (1-braiseGemme)*min(float64(age)/float64(vie), 1)
-	return color.RGBA{
+	return render.Color{
 		R: uint8(float64(teinte.R) * part),
 		G: uint8(float64(teinte.G) * part),
 		B: uint8(float64(teinte.B) * part),
@@ -1523,13 +916,15 @@ func eteindre(teinte color.RGBA, age, vie game.Tick) color.RGBA {
 //
 // `eteindre` est sa voisine et ne s'y ramène pas : elle assombrit une teinte
 // opaque, où l'alpha n'a rien à dire.
-func attenuer(teinte color.RGBA, part float32) color.RGBA {
-	return color.RGBA{
-		R: uint8(float32(teinte.R) * part),
-		G: uint8(float32(teinte.G) * part),
-		B: uint8(float32(teinte.B) * part),
-		A: uint8(float32(teinte.A) * part),
-	}
+// fraction convertit une part de un en la fraction de 255 que le moteur attend.
+//
+// **`render.Color.Scale` remplace `attenuer`**, et le gain n'est pas d'avoir
+// retiré huit lignes : sa fraction entière rend les mêmes pixels d'une machine à
+// l'autre, là où un facteur flottant appliqué composante par composante
+// dépendait de l'arrondi du poste. C'est le même argument que la virgule fixe de
+// la simulation, appliqué à une couleur.
+func fraction(part float64) uint8 {
+	return uint8(min(max(part, 0), 1) * 255)
 }
 
 // voulu rend la direction que les touches tenues demandent, dans le repère du
@@ -1546,21 +941,21 @@ func attenuer(teinte color.RGBA, part float32) color.RGBA {
 // avec l'arrondi que le déterminisme exige, et le refaire ici en flottants
 // donnerait deux réponses pour une question.
 //
-// `ebiten.Key` désigne une touche par sa **place** sur un clavier américain :
+// `input.Key` désigne une touche par sa **place** sur un clavier américain :
 // `KeyW` est la touche marquée Z sur un clavier français, et le carré ZQSD tombe
 // donc juste sans qu'on ait à le nommer.
 func voulu(in Input) game.Vec {
 	var v game.Vec
-	if in.Held(ebiten.KeyW, ebiten.KeyArrowUp) {
+	if tenue(in, input.KeyW, input.KeyUp) {
 		v = v.Add(game.Vec{X: -game.One, Y: -game.One})
 	}
-	if in.Held(ebiten.KeyS, ebiten.KeyArrowDown) {
+	if tenue(in, input.KeyS, input.KeyDown) {
 		v = v.Add(game.Vec{X: game.One, Y: game.One})
 	}
-	if in.Held(ebiten.KeyA, ebiten.KeyArrowLeft) {
+	if tenue(in, input.KeyA, input.KeyLeft) {
 		v = v.Add(game.Vec{X: -game.One, Y: game.One})
 	}
-	if in.Held(ebiten.KeyD, ebiten.KeyArrowRight) {
+	if tenue(in, input.KeyD, input.KeyRight) {
 		v = v.Add(game.Vec{X: game.One, Y: -game.One})
 	}
 	return v
@@ -1573,8 +968,19 @@ func voulu(in Input) game.Vec {
 // jointent comme le feront les images du décor. Ce n'est pas une seconde
 // description qu'il faudrait tenir d'accord avec lui : les deux ne s'affichent
 // jamais ensemble, et celle-ci s'en va quand l'atlas entre.
-func face(tuile [2]int) *ebiten.Image {
+// **Elle entre dans l'atlas par `NewSheetFromStraight`**, qui est la porte du
+// moteur pour qui tient déjà ses pixels : la prémultiplication y a lieu une fois,
+// comme au chargement d'un PNG, au lieu d'être refaite ou oubliée ici.
+//
+// C'est le dernier dessin que cohue calcule plutôt que de le charger, et il le
+// reste : un losange plein dont la taille suit la tuile n'est pas une ressource
+// mais une conséquence du manifeste de décor.
+func face(tuile [2]int, atlas *raster.Atlas) (uint16, error) {
 	largeur, hauteur := tuile[0], tuile[1]
+	if largeur < 1 || hauteur < 1 || largeur > math.MaxUint16 || hauteur > math.MaxUint16 {
+		return 0, fmt.Errorf("losange de %dx%d, hors de ce qu'une planche mesure",
+			largeur, hauteur)
+	}
 	demi := float64(largeur) / 2
 	marge := 0.5 / float64(largeur)
 
@@ -1592,7 +998,10 @@ func face(tuile [2]int) *ebiten.Image {
 		}
 	}
 
-	img := ebiten.NewImage(largeur, hauteur)
-	img.WritePixels(pixels)
-	return img
+	// #nosec G115 -- bornés à l'entrée
+	p, err := raster.NewSheetFromStraight(uint16(largeur), uint16(hauteur), pixels)
+	if err != nil {
+		return 0, fmt.Errorf("losange : %w", err)
+	}
+	return atlas.Add(p)
 }

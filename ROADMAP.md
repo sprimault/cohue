@@ -101,11 +101,12 @@ des obstacles, à budget d'allocation constant sur mille itérations.
 `internal/render` : conversion écran/tuile, tri en profondeur par compartiments,
 caméra en pixels entiers, tampon interne de 960×540.
 
-**L'agrandissement du tampon vers la fenêtre n'est pas ici, mais à l'étape 15.**
-Le tampon est fixe dès cette étape-ci, ce qui est la règle de pixel art ; le
-facteur qui l'agrandit, lui, oblige à choisir entre bandes noires, taille de
-fenêtre contrainte et redimensionnement par pas, et il se lit sur le facteur
-d'échelle du système. C'est un réglage d'affichage, pas une décision de caméra.
+**L'agrandissement du tampon vers la fenêtre est acquis ici**, et il n'attend
+plus l'étape 15 : `lozengine` l'applique par un facteur entier, la surface
+remplissant la fenêtre. Le choix que cette étape laissait ouvert — bandes
+noires, fenêtre contrainte ou redimensionnement par pas — n'a donc plus d'objet.
+Ce qui reste à l'étape 15 est le plein écran, qui est un réglage et non une
+décision de rendu.
 
 Aucun asset final : des rectangles colorés. C'est le premier moment où la boucle
 se juge à l'œil plutôt qu'en test.
@@ -287,9 +288,8 @@ raisons : le champ existe dans le format depuis l'étape 10, mais rien ne l'écr
 ## 15 — Les écrans de réglages
 
 Sensibilité, volumes par catégorie de mixage, remappage des touches, difficulté,
-et l'agrandissement du tampon interne vers la fenêtre — en entier, par `LayoutF`
-et le facteur d'échelle du système, avec ce qu'il faut décider autour : plein
-écran, bandes noires ou fenêtre contrainte.
+et le plein écran. L'agrandissement du tampon vers la fenêtre n'y est plus : le
+moteur l'applique à l'étape 2, par un facteur entier et sans bandes.
 
 Ici et pas plus tôt parce que leur contenu dépend de ce qu'il y aura à régler, et
 que la moitié n'existe pas avant : les catégories de mixage sont posées dès le
@@ -340,11 +340,18 @@ et **rien ne les joue** : aucun `audio` dans `internal/render`, dans
 `internal/session` ni dans `cmd/`. Le catalogue existe, chaque son porte son gain
 et sa catégorie de mixage, et aucune ligne ne les lit.
 
-**Une étape à brancher et non à concevoir**, ce qui explique qu'elle vienne à la
-fin sans en souffrir : les fichiers sont là depuis le premier jour, les catégories
-de mixage sont dans le manifeste, et la conception dit déjà ce que chaque son doit
-faire. Ce qui manque est le moteur de lecture, le mixage par catégorie, et le
-branchement de chaque déclenchement.
+**Elle était à brancher et non à concevoir ; elle ne l'est plus.** Les fichiers
+sont là depuis le premier jour, les catégories de mixage sont dans le manifeste,
+et la conception dit déjà ce que chaque son doit faire — mais **il n'y a plus de
+moteur de lecture du tout**. Ebitengine en fournissait un ; `lozengine`, qui l'a
+remplacé, ne porte pas encore l'audio, qui vient plus tard dans sa feuille de
+route.
+
+**C'est donc un blocage externe et nommé**, pas une dette de conception : ce qui
+manque est la lecture elle-même, puis le mixage par catégorie et le branchement
+de chaque déclenchement. Tant qu'elle n'est pas servie, cette étape ne se commence
+pas — écrire une couche d'abstraction sur un moteur qui n'existe pas serait du
+code fait pour être jeté.
 
 **Elle arrive à la fin parce qu'une étape qui apparaît s'ajoute à la fin**, quelle
 que soit sa place logique. Sa place logique était l'étape 3, dont le jalon juge

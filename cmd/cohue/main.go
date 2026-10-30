@@ -21,7 +21,6 @@ import (
 	"github.com/sprimault/cohue/internal/render"
 	"github.com/sprimault/cohue/internal/session"
 	"github.com/sprimault/cohue/internal/sprite"
-	"github.com/sprimault/cohue/internal/ui"
 )
 
 // titreFenetre est ce que le gestionnaire de fenêtres affiche.
@@ -159,7 +158,7 @@ func run() error {
 
 	// Les icônes ne passent pas par l'atlas : la fenêtre les porte, aucun quad
 	// n'y puise.
-	icones, err := ui.LoadIcons(cohue.Assets, cohue.InterfaceManifest)
+	icones, err := render.LoadIcons(cohue.Assets, cohue.InterfaceManifest)
 	if err != nil {
 		return err
 	}

@@ -13,8 +13,6 @@ import (
 	"github.com/sprimault/lozengine/raster"
 	"github.com/sprimault/lozengine/render"
 	"github.com/sprimault/lozengine/scene"
-
-	"github.com/sprimault/cohue/internal/ui"
 )
 
 // HUD pose l'interface : le texte et ce qui l'entoure.
@@ -33,7 +31,7 @@ type HUD struct {
 	// Font pose le texte. Il est exporté parce que la mesure d'une chaîne
 	// décide de la taille de ce qui l'entoure, et que l'appelant compose.
 	Font  *Font
-	theme *ui.Theme
+	theme *Theme
 }
 
 // LoadHUD lit le manifeste d'interface : la police et les réglages.
@@ -42,7 +40,7 @@ func LoadHUD(fsys fs.FS, chemin string, atlas *raster.Atlas) (*HUD, error) {
 	if err != nil {
 		return nil, err
 	}
-	theme, err := ui.LoadTheme(fsys, chemin)
+	theme, err := LoadTheme(fsys, chemin)
 	if err != nil {
 		return nil, err
 	}

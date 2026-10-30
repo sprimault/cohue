@@ -5,7 +5,7 @@
 // planches. Rien n'est dessiné ici — le gestionnaire de fenêtres choisit la
 // taille qui convient à l'endroit où il l'affiche.
 
-package ui
+package render
 
 import (
 	"fmt"
@@ -37,9 +37,9 @@ func LoadIcons(fsys fs.FS, chemin string) ([]raster.Sheet, error) {
 	if err != nil {
 		return nil, err
 	}
-	if brut.Format != FormatFont {
+	if brut.Format != FormatInterface {
 		return nil, fmt.Errorf("%s: %w : %d, ce binaire lit la %d",
-			chemin, manifest.ErrUnsupportedFormat, brut.Format, FormatFont)
+			chemin, manifest.ErrUnsupportedFormat, brut.Format, FormatInterface)
 	}
 
 	fichiers := brut.Interface.Icon.Files

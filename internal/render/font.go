@@ -15,24 +15,21 @@ import (
 	"github.com/sprimault/lozengine/raster"
 	"github.com/sprimault/lozengine/render"
 	"github.com/sprimault/lozengine/scene"
-
-	"github.com/sprimault/cohue/internal/ui"
 )
 
 // Font pose du texte à partir de la planche de glyphes.
 //
-// Les mesures viennent de `internal/ui`, qui les décode et les vérifie sans
-// écran ; ce type n'ajoute que la planche et le quad. Aucune métrique n'est
-// écrite ici : le manifeste fait contrat, et changer de fonte ne touche pas ce
-// fichier.
+// Les mesures viennent de `Metrics`, qui les décode et les vérifie sans atlas ;
+// ce type n'ajoute que la planche et le quad. Aucune métrique n'est écrite ici :
+// le manifeste fait contrat, et changer de fonte ne touche pas ce fichier.
 //
 // **La mise en page reste à cohue, et ce n'est pas un choix.** Le moteur sait
 // lire une planche de glyphes à chasse fixe ou uniformément resserrée ; la fonte
 // du jeu a sept avances distinctes, de quatre à onze pixels pour une cellule de
-// onze. Mesurer une ligne demande donc l'avance par glyphe, que `ui.Font` porte
+// onze. Mesurer une ligne demande donc l'avance par glyphe, que `Metrics` porte
 // et que `Advance` rend.
 type Font struct {
-	mesures *ui.Font
+	mesures *Metrics
 	// planche est l'index de la planche de glyphes dans l'atlas, et cases sa
 	// découpe — une colonne par glyphe, dans l'ordre de la chaîne du manifeste.
 	planche uint16
@@ -46,10 +43,10 @@ type Font struct {
 //
 // **La découpe vient du moteur et non d'une boucle de sous-images.** `CutGrid`
 // range ses cases de gauche à droite, ce qui est l'ordre de la chaîne de glyphes
-// du manifeste : `ui.Font.Place` indexe donc directement la découpe, et un
+// du manifeste : `Metrics.Place` indexe donc directement la découpe, et un
 // glyphe ne coûte plus une image à part.
 func LoadFont(fsys fs.FS, chemin string, atlas *raster.Atlas) (*Font, error) {
-	mesures, err := ui.LoadFont(fsys, chemin)
+	mesures, err := LoadMetrics(fsys, chemin)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +170,7 @@ func (f *Font) poser(sc *scene.Scene, texte string, x, y int,
 	for _, r := range texte {
 		place, connu := f.mesures.Place(r)
 		if !connu || place >= len(f.cases) {
-			// Le trou que `ui.Font.Advance` compte : rien n'est posé, mais la
+			// Le trou que `Metrics.Advance` compte : rien n'est posé, mais la
 			// cellule est franchie, si bien qu'un caractère manquant se voit au
 			// lieu de se fondre dans un texte plausible.
 			x += f.mesures.Cell[0]

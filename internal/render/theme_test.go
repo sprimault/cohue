@@ -4,7 +4,7 @@
 // Ce que les réglages d'apparence doivent refuser, et ce que le thème livré doit
 // porter.
 
-package ui
+package render
 
 import (
 	"strings"

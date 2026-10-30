@@ -19,7 +19,7 @@ PYTHON    ?= python3
 # directement perd ces variables, et l'échec est intermittent.
 -include makefile.local
 
-.PHONY: build run test race fmt lint vulncheck sec notices cover binary binaries clean tools ressources ressources-verif decors figurines objets sons interface controle entetes sommaire apercus anime
+.PHONY: build run test race fmt lint vulncheck sec notices cover binary binaries clean tools ressources ressources-verif decors figurines objets sons interface controle entetes sommaire apercus apercus-verif anime
 
 build:
 	go build -trimpath -ldflags "$(LDFLAGS)" -o $(SORTIE)/$(BINAIRE) ./cmd/cohue
@@ -32,6 +32,22 @@ run:
 # moteur calculant ses images sans écran.
 apercus:
 	go run ./cmd/preview
+
+# La planche se juge à l'œil, mais sa reproductibilité se contrôle : comparer
+# une image d'avant et d'après un changement suppose que celle d'avant ne
+# dépendait que du code. Deux passes, et l'identique exigé — aucune image de
+# référence n'est versionnée, ce qui rendrait rouge un correctif juste.
+#
+# C'est l'autre moitié de ce que garde `TestDeuxMontagesPeignentLesMemesOctets`.
+# Celui-là éprouve le chemin du rendu dans un processus ; celui-ci éprouve ce
+# que le jeu produit vraiment — deux processus, les trente-quatre vues, le GIF
+# compris — et il attrape en prime la vue qui ne se dessine plus.
+apercus-verif:
+	rm -rf $(SORTIE)/apercus $(SORTIE)/apercus-verif
+	$(MAKE) apercus
+	mv $(SORTIE)/apercus $(SORTIE)/apercus-verif
+	$(MAKE) apercus
+	diff -r $(SORTIE)/apercus-verif $(SORTIE)/apercus
 
 # L'aperçu animé en WebP : le même contenu que le GIF que `apercus` écrit, douze
 # fois plus léger, pour ce qui se publie. Le GIF reste la sortie du générateur,

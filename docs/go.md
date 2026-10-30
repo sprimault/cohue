@@ -45,7 +45,8 @@ index.
 | contre quoi éprouver un test qui garde une décision | [L'implémentation abandonnée](#un-test-qui-garde-une-décision-séprouve-contre-limplémentation-abandonnée) |
 | comment défendre un test qu'on croirait faux | [Le test contre-intuitif](#le-test-qui-garde-une-propriété-contre-intuitive) |
 | pourquoi un contrôle passe sans rien vérifier | [Un contrôle privé de son entrée](#un-contrôle-privé-de-son-entrée-échoue-il-ne-passe-pas) |
-| si une déclaration peut s'écrire avant son appelant | [Ce que rien n'exerce](#dans-un-paquet-sans-tests-ce-que-rien-nexerce-est-invérifiable) |
+| si une déclaration peut s'écrire avant son appelant | [Ce que rien n'exerce](#une-déclaration-que-rien-nexerce-est-une-anticipation) |
+| ce qu'une machine peut vérifier d'une image | [Ce qu'une machine sait dire d'un rendu](#ce-quune-machine-sait-dire-dun-rendu-et-ce-quelle-ne-sait-pas) |
 
 <!-- fin du sommaire -->
 
@@ -870,19 +871,41 @@ moteur, ce qui rend la règle facile à tenir.
 Un test qui exigerait un serveur X virtuel est le signe qu'il n'a rien à faire
 dans la suite par défaut : le rendu se juge à l'œil.
 
-**`internal/render` n'a aucun fichier de test, et c'était une contrainte avant
-d'être une règle.** Importer Ebitengine initialisait GLFW, qui paniquait sans
-`DISPLAY` : n'importe quel test de ce paquet tombait avant d'avoir commencé, y
-compris un qui n'ouvrait aucune fenêtre et se contentait de lire deux
-constantes. Ce n'était donc pas « ne pas ouvrir de fenêtre dans un test »,
-c'était « ne pas tester un paquet qui lie la bibliothèque ».
+**`internal/render` n'a longtemps eu aucun fichier de test, et c'était une
+contrainte avant d'être une règle.** Importer la bibliothèque de rendu
+précédente initialisait GLFW, qui paniquait sans `DISPLAY` : n'importe quel test
+de ce paquet tombait avant d'avoir commencé, y compris un qui n'ouvrait aucune
+fenêtre et se contentait de lire deux constantes. Ce n'était donc pas « ne pas
+ouvrir de fenêtre dans un test », c'était « ne pas tester un paquet qui lie la
+bibliothèque ».
 
-**`lozengine` calcule ses images sans fenêtre, donc la contrainte est tombée** et
-ce paquet pourrait être testé. Ce qui reste vrai est que le rendu se
-juge à l'œil, et que la planche de relecture est ce qui rend ce jugement
-possible ; ce qu'on en vérifiera mécaniquement n'est pas tranché. Un paquet sans
-test étant d'ordinaire un défaut, sa godoc renvoie ici plutôt que de se
-justifier seule.
+**`lozengine` calcule ses images sans fenêtre, donc la contrainte est tombée**,
+et ce paquet est désormais testé comme les autres.
+
+### Ce qu'une machine sait dire d'un rendu, et ce qu'elle ne sait pas
+
+**Le rendu se juge à l'œil, et rien ne remplace ça.** Une image juste n'est pas
+une image qu'on peut décrire : c'est une composition qu'on reconnaît ou non, et
+`make apercus` existe pour la donner à voir. Trois lots de planches ont pourtant
+laissé passer quatre défauts qu'une partie jouée a sortis en dix minutes — une
+planche juge une composition, pas un rapport entre deux choses qui bougent.
+**Ce qui se vérifie mécaniquement est donc étroit, et il vaut mieux le nommer
+que de l'élargir en imagination.**
+
+**Une seule propriété s'y prête : la reproductibilité.** Comparer une image
+d'avant et d'après un changement suppose que celle d'avant ne dépendait que du
+code. `TestDeuxMontagesPeignentLesMemesOctets` l'éprouve sur le chemin du rendu
+— deux montages complets, pas deux passes sur le même, parce que ce qu'on
+cherche est le parcours d'une `map` ou un état qui fuit entre deux exécutions.
+`make apercus-verif` l'éprouve sur ce que le jeu produit vraiment, deux
+processus et les trente-quatre vues, et attrape en prime la vue qui ne se
+dessine plus.
+
+**Aucune image de référence n'est versionnée, et c'est une décision.** Ce paquet
+calcule en flottants, ce que sa godoc autorise ; l'identité de deux images
+prises sur deux systèmes n'est pas promise, et la figer en fichier rendrait
+rouge un correctif juste. L'invariant est la reproductibilité d'une exécution à
+l'autre, jamais d'une cible à l'autre.
 
 ### Le test qui vend le projet
 
@@ -1046,12 +1069,12 @@ appelle aucune, et c'est le cas de la moitié d'entre eux ; ce qu'elle interdit
 est de livrer un dessin, une disposition ou un état d'interface sans qu'une
 planche le donne à relire.
 
-### Dans un paquet sans tests, ce que rien n'exerce est invérifiable
+### Une déclaration que rien n'exerce est une anticipation
 
-`internal/render` n'a pas de fichier de test et n'en aura pas. Une déclaration
-qu'aucun appelant n'atteint y est donc plus qu'invérifiée : rien ne pourra jamais
-la vérifier. Elle compile et elle se relit, ce qui donne exactement l'illusion
-contraire.
+Une déclaration qu'aucun appelant n'atteint compile et se relit, ce qui donne
+l'illusion qu'elle est vérifiée. Elle ne l'est pas, et ce qu'on lui reproche
+n'est pas l'absence d'un test : c'est de l'avoir écrite avant d'en avoir
+l'usage.
 
 Le cas type est la table qu'on écrit d'avance parce qu'on sait déjà ce qu'elle
 contiendra — la correspondance entre les huit orientations du monde et les bandes
@@ -1061,13 +1084,14 @@ sprite qui la lira. Juste ou fausse, personne n'a de prise dessus.
 **Le remède n'est pas celui de la planche, et c'est ce qui mérite d'être
 retenu.** Une planche existe déjà et il lui manque une commande : on la fabrique.
 Ici il n'y a rien à produire — on n'écrit pas la déclaration tant qu'un appelant
-ne l'exerce pas. Une règle dit « produis-le », l'autre dit « pas encore ». Les
-confondre mène à chercher le remède du côté d'un test, dans un paquet qui n'en
-aura jamais.
+ne l'exerce pas. Une règle dit « produis-le », l'autre dit « pas encore ».
 
-Ce qui la ferme : elle ne vaut que là où la doctrine exclut les tests. Ailleurs,
-une déclaration sans appelant se teste, et ce qu'on lui reproche est
-l'anticipation.
+**Elle a longtemps été formulée pour un paquet sans tests, et c'était trop
+étroit.** `internal/render` était ce paquet, si bien qu'on cherchait le remède
+du côté d'un test qui n'existerait jamais. Il est testé comme les autres depuis
+que la bibliothèque de rendu n'exige plus d'écran, et la règle y gagne : un test
+qu'on pourrait écrire ne rachète pas une déclaration écrite trop tôt, il la
+déguise.
 
 ### Un contrôle privé de son entrée échoue, il ne passe pas
 

@@ -6,6 +6,7 @@
 make build      # binaire dans .tmp/
 make run
 make apercus    # les vues du rendu, dans .tmp/apercus/
+make apercus-verif  # les rend deux fois et exige l'identique
 make anime      # l'aperçu animé en WebP, pour ce qui se publie
 make test
 make race
@@ -27,11 +28,16 @@ seul un changement de dépendance fait bouger, et qui est rouge sur toute pull
 request qui en ajoute une sans régénérer le fichier.
 
 `make apercus` écrit des vues du rendu dans `.tmp/apercus/`. C'est le seul moyen
-de relire `internal/render`, qui n'a pas de test et n'en aura pas — importer
-Ebitengine initialise GLFW, qui panique sans écran. La planche pilote le rendu du
-jeu et non une scène montée à côté, et elle est déterministe : c'est ce qui permet
-de comparer une image d'avant et d'après un changement. Elle n'exige aucun
-écran : le moteur de rendu calcule ses images sans fenêtre.
+de **juger** `internal/render`, dont les tests disent la reproductibilité et rien
+de ce qu'on voit : une image juste est une composition qu'on reconnaît, pas une
+propriété qu'on énonce. La planche pilote le rendu du jeu et non une scène montée
+à côté, et elle n'exige aucun écran — le moteur calcule ses images sans fenêtre.
+
+`make apercus-verif` la rend deux fois et exige l'identique. C'est ce qui donne
+son sens à la comparaison d'une image d'avant et d'après un changement, et aucune
+image de référence n'est versionnée pour autant : `internal/render` calcule en
+flottants, donc deux cibles n'ont pas à peindre les mêmes octets. L'intégration
+continue passe cette cible.
 
 **Une des vues n'est pas une image.** `partie.gif` montre six secondes de jeu à
 la troisième minute, jouées par le pilote du test de déterminisme : ce qui ne se

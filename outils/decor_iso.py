@@ -189,24 +189,11 @@ def gondole_courte():
     return garnir(socle, _marchandises(), colonnes=3, rangees=2)
 
 
-def frigo():
-    caisson = rivets(nervures(volume(tx=1, ty=1, elevation=20,
-                                     matiere="acier_sombre"), pas=5))
-    vitre = volume(tx=0.9, ty=0.9, elevation=6, matiere="verre", largeur_tuile=58)
-    return empiler((caisson, 0, 0), (vitre, 3, 22))
-
-
 def comptoir():
     plan = bandeau(volume(tx=2, ty=1, elevation=20, matiere="peinture"),
                    depuis_haut=2, epaisseur=1)
     terminal = volume(elevation=8, matiere="acier_sombre", largeur_tuile=20)
     return empiler((plan, 0, 0), (terminal, 56, 22))
-
-
-def caddie():
-    chassis = volume(elevation=6, matiere="acier_sombre", largeur_tuile=32)
-    panier = volume(elevation=10, matiere="metal", largeur_tuile=28)
-    return empiler((chassis, 0, 0), (panier, 2, 8))
 
 
 # --- Parking ---------------------------------------------------------------
@@ -229,14 +216,6 @@ def voiture():
 
     corps = poser(chassis, (caisse_, 0.85, 0.39))
     return roues(poser(corps, (habitacle, 0.75, 0.39)))
-
-
-def borne():
-    return volume(elevation=18, matiere="jaune", largeur_tuile=16)
-
-
-def plot():
-    return volume(elevation=12, matiere="rouge", largeur_tuile=12)
 
 
 def barriere():
@@ -278,21 +257,10 @@ def banc():
     return empiler((assise, 0, 0), (dossier, 0, 8))
 
 
-def poubelle():
-    return contour(nervures(volume(elevation=18, matiere="vert",
-                                   largeur_tuile=26), pas=4))
-
-
 def lampadaire():
     mat = volume(elevation=52, matiere="acier_sombre", largeur_tuile=8)
     tete = volume(tx=0.6, ty=0.3, elevation=4, matiere="jaune", largeur_tuile=20)
     return empiler((mat, 10, 0), (tete, 0, 50))
-
-
-def jardiniere():
-    bac = volume(elevation=14, matiere="beton_sombre", largeur_tuile=40)
-    feuillage = volume(elevation=10, matiere="vert", largeur_tuile=34)
-    return empiler((bac, 0, 0), (feuillage, 3, 15))
 
 
 # --- Cinéma ----------------------------------------------------------------
@@ -313,12 +281,6 @@ def rangee_fauteuils():
 
 def ecran():
     return volume(tx=2.4, ty=0.15, elevation=46, matiere="verre")
-
-
-def poteau_cordon():
-    socle = volume(elevation=4, matiere="acier_sombre", largeur_tuile=14)
-    mat = volume(elevation=22, matiere="jaune", largeur_tuile=6)
-    return empiler((socle, 0, 0), (mat, 4, 4))
 
 
 def comptoir_confiserie():
@@ -358,12 +320,6 @@ def bande_eveil():
             return beton(u, v)
         return sombre if (int(u * 10) + int(v * 10)) % 2 else BANDE_JAUNE
     return joint(volume(elevation=10, matiere="beton", peinture=bande))
-
-
-def tourniquet():
-    socle = volume(elevation=12, matiere="acier_sombre", largeur_tuile=34)
-    bras = volume(tx=0.5, ty=0.1, elevation=6, matiere="metal")
-    return empiler((socle, 0, 0), (bras, 6, 13))
 
 
 def distributeur():
@@ -526,11 +482,6 @@ def camionnette():
                     graine=34)
 
 
-def tete_gondole():
-    socle = bandeau(nervures(volume(tx=1, ty=1, elevation=14, matiere="metal"), pas=7))
-    return garnir(socle, _marchandises(), colonnes=3, rangees=3)
-
-
 def portique_antivol():
     return aligner(volume(tx=0.14, ty=0.14, elevation=40, matiere="peinture"),
                    volume(tx=0.14, ty=1, elevation=40, matiere="peinture"))
@@ -666,31 +617,30 @@ THEMES = {
         "bouche_egout": bouche_egout, "fleche_sol": fleche_sol,
     },
     "supermarche": {
-        "gondole": gondole, "gondole_courte": gondole_courte, "frigo": frigo,
-        "comptoir": comptoir, "caddie": caddie,
-        "tete_gondole": tete_gondole, "portique_antivol": portique_antivol,
+        "gondole": gondole, "gondole_courte": gondole_courte,
+        "comptoir": comptoir, "portique_antivol": portique_antivol,
     },
     "parking": {
-        "sol_parking": sol_parking, "voiture": voiture, "borne": borne,
-        "plot": plot, "barriere": barriere, "camionnette": camionnette,
+        "sol_parking": sol_parking, "voiture": voiture,
+        "barriere": barriere, "camionnette": camionnette,
         "camion": camion, "camion_benne": camion_benne, "taxi": taxi,
         "voiture_epave": voiture_epave, "ambulance": ambulance,
     },
     "quartier": {
         "trottoir": trottoir, "herbe": herbe, "passage_pieton": passage_pieton,
-        "banc": banc, "poubelle": poubelle,
-        "lampadaire": lampadaire, "jardiniere": jardiniere,
+        "banc": banc,
+        "lampadaire": lampadaire,
         "boutique": boutique, "abribus": abribus, "conteneur": conteneur,
         "feu_tricolore": feu_tricolore,
     },
     "cinema": {
         "moquette": moquette,
         "rangee_fauteuils": rangee_fauteuils, "ecran": ecran,
-        "poteau_cordon": poteau_cordon, "comptoir_confiserie": comptoir_confiserie,
+        "comptoir_confiserie": comptoir_confiserie,
     },
     "station": {
         "quai": quai, "bande_eveil": bande_eveil, "ballast": ballast,
-        "tourniquet": tourniquet, "distributeur": distributeur,
+        "distributeur": distributeur,
         "rail": rail, "wagon": wagon, "wagon_tete": wagon_tete,
         "panneau_horaires": panneau_horaires,
     },
@@ -739,10 +689,10 @@ DESSINES = {
     # **Les rayons du supermarché sont hauts, et c'est ce qui les met ici.** Un
     # meuble à étagères garnies dépasse quarante pixels : aucune composition de
     # volumes ne rend ses niveaux, leurs produits et leurs étiquettes à cette
-    # taille. Les formes basses du même thème — `gondole`, `tete_gondole`,
-    # `comptoir`, `frigo` — restent générées : elles doivent tenir sous les
-    # vingt-quatre pixels de l'obstacle bas, et le modèle ne descend pas sous
-    # trente et un quels que soient la consigne, le cadre ou le sujet.
+    # taille. La `gondole` et le `comptoir` du même thème restent générés : ils
+    # s'étalent sur deux tuiles, et plus une forme est large plus elle doit être
+    # plate pour tenir sous les vingt-quatre pixels de l'obstacle bas — c'est là
+    # que le modèle ne suit pas.
     # **Les voitures particulières sont dessinées et couchées sur `v`**, comme
     # celles du quartier et pour la même raison : le modèle ne rend que cette
     # diagonale. Elles ne remplacent pas les véhicules générés du parking, qui
@@ -753,6 +703,26 @@ DESSINES = {
     # Le cabriolet est le seul véhicule du catalogue à passer sous les
     # vingt-quatre pixels : capote baissée, on voit par-dessus, et il se range
     # donc en obstacle bas sans qu'on l'ait décidé.
+    # **Les petits objets carrés sont dessinés, et leur emprise a servi de
+    # réglage.** Elle est déclarée et non mesurée sur l'image, et comme le bloc
+    # de cases qu'une forme ferme est le plafond entier de son emprise, la
+    # réduire baisse l'élévation sans rien changer à la passabilité : le frigo
+    # passe d'une tuile à six dixièmes, la poubelle de 0,41 à 0,32, et tous
+    # restent sur une case. C'est ce qui les garde sous les vingt-quatre pixels
+    # de l'obstacle bas quand le dessin les rendait plus hauts.
+    #
+    # Le portique antivol n'y est pas : il doit masquer, donc dépasser
+    # vingt-quatre, et le modèle en a fait deux bornes basses. Le généré tient
+    # mieux ce rôle.
+    "caddie": {"theme": "supermarche", "emprise": (0.5, 0.5)},
+    "tourniquet": {"theme": "station", "emprise": (0.531, 0.531)},
+    "tete_gondole": {"theme": "supermarche", "emprise": (1.0, 1.0)},
+    "poteau_cordon": {"theme": "cinema", "emprise": (0.219, 0.219)},
+    "plot": {"theme": "parking", "emprise": (0.188, 0.188)},
+    "frigo": {"theme": "supermarche", "emprise": (0.6, 0.6)},
+    "poubelle": {"theme": "quartier", "emprise": (0.32, 0.32)},
+    "jardiniere": {"theme": "quartier", "emprise": (0.53, 0.53)},
+    "borne": {"theme": "parking", "emprise": (0.19, 0.19)},
     "berline": {"theme": "parking", "emprise": (0.8, 2.0)},
     "break": {"theme": "parking", "emprise": (0.8, 2.2)},
     "suv": {"theme": "parking", "emprise": (0.85, 2.1)},

@@ -54,6 +54,15 @@ publié, et explique les conventions du dépôt à qui y contribue.
   où un parking se remplit de voitures. Le cabriolet est le premier véhicule
   qu'on voit par-dessus, capote baissée.
 
+### Modifié
+
+- **Neuf objets du décor sont redessinés** : le caddie, le tourniquet, la tête
+  de gondole, le frigo, la poubelle, la jardinière, le poteau de cordon, la
+  borne et le plot. C'étaient des cubes empilés ; ce sont maintenant un chariot
+  rempli de courses, un tourniquet à bras, un bac de promotion garni, un
+  congélateur ouvert. Ils occupent la même case qu'avant et arrêtent ce qu'ils
+  arrêtaient.
+
 ### Corrigé
 
 - **La silhouette d'un personnage caché par un mur s'éclaircit au lieu de
@@ -74,6 +83,14 @@ publié, et explique les conventions du dépôt à qui y contribue.
   convertible. The catalogue only offered buses, lorries and a pick-up, where a
   car park fills up with cars. The convertible is the first vehicle you can see
   over, with its roof down.
+
+### Changed
+
+- **Nine pieces of scenery have been redrawn**: the trolley, the turnstile, the
+  end cap, the freezer, the litter bin, the planter, the queue post, the
+  bollard and the cone. They were stacked cubes; they are now a trolley full of
+  groceries, a turnstile with arms, a stocked promotional bin, an open freezer.
+  They sit on the same tile as before and stop what they used to stop.
 
 ### Fixed
 

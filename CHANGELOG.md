@@ -54,6 +54,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
   où un parking se remplit de voitures. Le cabriolet est le premier véhicule
   qu'on voit par-dessus, capote baissée.
 
+- **Une station et un parking peuvent s'orienter dans l'autre sens** : la voie
+  et le marquage au sol existent le long des deux axes, avec deux voitures de
+  métro dessinées pour accompagner la voie tournée. Jusqu'ici un lieu posait ses
+  rails dans un seul sens, et les voitures particulières ne se garaient pas sur
+  les places du parking.
+
 ### Modifié
 
 - **Neuf objets du décor sont redessinés** : le caddie, le tourniquet, la tête
@@ -83,6 +89,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
   convertible. The catalogue only offered buses, lorries and a pick-up, where a
   car park fills up with cars. The convertible is the first vehicle you can see
   over, with its roof down.
+
+- **A station and a car park can face the other way**: the track and the ground
+  markings now exist along both axes, with two drawn metro cars to go with the
+  turned track. Until now a level laid its rails one way only, and passenger
+  cars did not line up with the parking bays.
 
 ### Changed
 

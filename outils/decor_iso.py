@@ -205,6 +205,20 @@ def sol_parking():
     return joint(volume(matiere="bitume", peinture=marquage))
 
 
+def sol_parking_v():
+    """Le même enrobé, ses places tournées d'un quart de tour.
+
+    **Un sol de parking dit dans quel sens on se gare**, et c'est ce qui rendait
+    les cinq voitures dessinées inemployables ici : elles sont couchées le long
+    de `v` quand les places de l'autre revêtement courent le long de `u`. Les
+    bandes se peignent donc sur l'autre axe, et rien d'autre ne change.
+    """
+    enrobe = texture("bitume")
+    def marquage(u, v):
+        return MARQUAGE if u < 0.06 or u > 0.94 else enrobe(u, v)
+    return joint(volume(matiere="bitume", peinture=marquage))
+
+
 def voiture():
     """Trois étages : train roulant sombre, carrosserie, habitacle vitré."""
     chassis = volume(tx=1.7, ty=0.78, elevation=5, matiere="bitume")
@@ -330,6 +344,16 @@ def distributeur():
 
 def rail():
     return volume(tx=2, ty=0.1, elevation=4, matiere="acier_sombre")
+
+
+def rail_v():
+    """La même voie le long de `v`, pour une station orientée dans l'autre sens.
+
+    **Les deux sens se génèrent, là où un véhicule se dessine.** Le modèle ne
+    rend que `v` et un miroir casserait l'ombrage ; mais une voie est deux
+    barres régulières, donc échanger les axes suffit et rien ne se perd.
+    """
+    return volume(tx=0.1, ty=2, elevation=4, matiere="acier_sombre")
 
 
 
@@ -621,7 +645,8 @@ THEMES = {
         "comptoir": comptoir, "portique_antivol": portique_antivol,
     },
     "parking": {
-        "sol_parking": sol_parking, "voiture": voiture,
+        "sol_parking": sol_parking, "sol_parking_v": sol_parking_v,
+        "voiture": voiture,
         "barriere": barriere, "camionnette": camionnette,
         "camion": camion, "camion_benne": camion_benne, "taxi": taxi,
         "voiture_epave": voiture_epave, "ambulance": ambulance,
@@ -641,7 +666,8 @@ THEMES = {
     "station": {
         "quai": quai, "bande_eveil": bande_eveil, "ballast": ballast,
         "distributeur": distributeur,
-        "rail": rail, "wagon": wagon, "wagon_tete": wagon_tete,
+        "rail": rail, "rail_v": rail_v,
+        "wagon": wagon, "wagon_tete": wagon_tete,
         "panneau_horaires": panneau_horaires,
     },
 }
@@ -714,6 +740,15 @@ DESSINES = {
     # Le portique antivol n'y est pas : il doit masquer, donc dépasser
     # vingt-quatre, et le modèle en a fait deux bornes basses. Le généré tient
     # mieux ce rôle.
+    # **Les deux voitures de métro le long de `v`**, qui complètent celles que
+    # le générateur couche sur `u`. Une station peut désormais orienter sa voie
+    # dans les deux sens, `rail_v` donnant les barres qui vont avec.
+    #
+    # Le dessin veut « vu de son côté » dans la consigne : sans cela le modèle
+    # cadre la motrice de face, elle se ramasse, et son élévation passe de
+    # trente-trois à soixante et onze pour la même emprise.
+    "wagon_v": {"theme": "station", "emprise": (0.94, 3.05)},
+    "wagon_tete_v": {"theme": "station", "emprise": (0.94, 2.45)},
     "caddie": {"theme": "supermarche", "emprise": (0.5, 0.5)},
     "tourniquet": {"theme": "station", "emprise": (0.531, 0.531)},
     "tete_gondole": {"theme": "supermarche", "emprise": (1.0, 1.0)},

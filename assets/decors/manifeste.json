@@ -1398,6 +1398,26 @@
       "cout_traversee": 1,
       "masquant": false
     },
+    "rail_v": {
+      "theme": "station",
+      "taille": [
+        67,
+        38
+      ],
+      "ancrage": [
+        3,
+        37
+      ],
+      "elevation": 4,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        0.1,
+        2.0
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": false
+    },
     "rangee_fauteuils": {
       "theme": "cinema",
       "taille": [
@@ -1580,6 +1600,26 @@
       "couvrant": true,
       "bloquant": false,
       "cout_traversee": 1,
+      "masquant": false
+    },
+    "sol_parking_v": {
+      "theme": "parking",
+      "taille": [
+        64,
+        32
+      ],
+      "ancrage": [
+        32,
+        31
+      ],
+      "elevation": 0,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "couvrant": true,
+      "bloquant": true,
       "masquant": false
     },
     "sol_sale": {
@@ -1820,6 +1860,46 @@
       "emprise": [
         2.45,
         0.94
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
+    },
+    "wagon_tete_v": {
+      "theme": "station",
+      "taille": [
+        108,
+        87
+      ],
+      "ancrage": [
+        30,
+        86
+      ],
+      "elevation": 33,
+      "categorie": "haut",
+      "emprise": [
+        0.94,
+        2.45
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
+    },
+    "wagon_v": {
+      "theme": "station",
+      "taille": [
+        128,
+        101
+      ],
+      "ancrage": [
+        30,
+        100
+      ],
+      "elevation": 37,
+      "categorie": "haut",
+      "emprise": [
+        0.94,
+        3.05
       ],
       "couvrant": false,
       "bloquant": true,

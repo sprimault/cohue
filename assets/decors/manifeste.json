@@ -87,21 +87,21 @@
       "cout_traversee": 2,
       "masquant": false
     },
-    "banc": {
+    "banc_v": {
       "theme": "quartier",
       "taille": [
         61,
-        42
+        44
       ],
       "ancrage": [
-        45,
-        41
+        16,
+        43
       ],
-      "elevation": 12,
+      "elevation": 14,
       "categorie": "obstacle_bas",
       "emprise": [
-        1.4,
-        0.5
+        0.5,
+        1.4
       ],
       "couvrant": false,
       "bloquant": true,
@@ -510,41 +510,41 @@
       "bloquant": true,
       "masquant": false
     },
-    "comptoir_confiserie": {
+    "comptoir_confiserie_v": {
       "theme": "cinema",
       "taille": [
         96,
-        70
-      ],
-      "ancrage": [
-        64,
-        69
-      ],
-      "elevation": 22,
-      "categorie": "obstacle_bas",
-      "emprise": [
-        2.0,
-        1.0
-      ],
-      "couvrant": false,
-      "bloquant": true,
-      "masquant": false
-    },
-    "conteneur": {
-      "theme": "quartier",
-      "taille": [
-        54,
-        49
+        112
       ],
       "ancrage": [
         32,
-        48
+        111
       ],
-      "elevation": 22,
-      "categorie": "obstacle_bas",
+      "elevation": 64,
+      "categorie": "haut",
       "emprise": [
         1.0,
-        0.7
+        2.0
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
+    },
+    "conteneur_v": {
+      "theme": "quartier",
+      "taille": [
+        33,
+        40
+      ],
+      "ancrage": [
+        14,
+        39
+      ],
+      "elevation": 23,
+      "categorie": "obstacle_bas",
+      "emprise": [
+        0.43,
+        0.61
       ],
       "couvrant": false,
       "bloquant": true,
@@ -570,21 +570,21 @@
       "bloquant": true,
       "masquant": true
     },
-    "ecran": {
+    "ecran_v": {
       "theme": "cinema",
       "taille": [
         82,
-        87
+        102
       ],
       "ancrage": [
-        77,
-        86
+        5,
+        101
       ],
-      "elevation": 46,
+      "elevation": 61,
       "categorie": "haut",
       "emprise": [
-        2.4,
-        0.15
+        0.15,
+        2.4
       ],
       "couvrant": false,
       "bloquant": true,
@@ -1418,21 +1418,21 @@
       "bloquant": true,
       "masquant": false
     },
-    "rangee_fauteuils": {
+    "rangee_fauteuils_v": {
       "theme": "cinema",
       "taille": [
-        89,
-        57
+        68,
+        58
       ],
       "ancrage": [
-        64,
-        56
+        19,
+        57
       ],
-      "elevation": 12,
+      "elevation": 24,
       "categorie": "obstacle_bas",
       "emprise": [
-        2.0,
-        0.8
+        0.6,
+        1.52
       ],
       "couvrant": false,
       "bloquant": true,

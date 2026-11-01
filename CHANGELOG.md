@@ -54,6 +54,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   où un parking se remplit de voitures. Le cabriolet est le premier véhicule
   qu'on voit par-dessus, capote baissée.
 
+- **Cinq meubles dessinés remplacent leurs cubes** : un banc à lattes dont on
+  voit le vide sous l'assise, une rangée de fauteuils à dossiers séparés, une
+  vitrine de confiserie, un conteneur à couvercle, un écran de cinéma encadré.
+  Les blocs qui en tenaient lieu sont retirés du catalogue.
 - **Une station et un parking peuvent s'orienter dans l'autre sens** : la voie
   et le marquage au sol existent le long des deux axes, avec deux voitures de
   métro dessinées pour accompagner la voie tournée. Jusqu'ici un lieu posait ses
@@ -90,6 +94,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   car park fills up with cars. The convertible is the first vehicle you can see
   over, with its roof down.
 
+- **Five drawn pieces of furniture replace their cubes**: a slatted bench with
+  daylight under the seat, a row of cinema seats with separate backrests, a
+  confectionery display case, a waste container with a lid, a framed cinema
+  screen. The blocks that stood in for them are dropped from the catalogue.
 - **A station and a car park can face the other way**: the track and the ground
   markings now exist along both axes, with two drawn metro cars to go with the
   turned track. Until now a level laid its rails one way only, and passenger

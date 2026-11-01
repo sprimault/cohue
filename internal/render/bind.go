@@ -112,11 +112,15 @@ func poserBassin[T any](s *Screen, quoi sorte, p *game.Pool[T],
 // attacher prépare une correspondance par bassin, à la capacité de chacun.
 //
 // **Le décor n'en a pas, et c'est tout ce que sa sorte dit encore.** Ses
-// cellules sont posées une fois au montage, donc rien ne les repose par
-// identifiant ; garder l'entrée vide coûte un pointeur nul et évite un
-// aiguillage que personne ne consulterait.
-func (s *Screen) attacher(monde *game.World) {
-	s.attaches = [sorteLisere + 1]*attache{
+// cellules sont posées une fois au montage et ses obstacles bas suivent leur
+// propre tranche, donc rien ne les repose par identifiant ; garder l'entrée vide
+// coûte un pointeur nul et évite un aiguillage que personne ne consulterait.
+//
+// **Une fonction plutôt qu'une méthode, parce qu'elle précède la scène** : la
+// capacité d'entités que `scene.New` reçoit se relève sur ces capacités, et un
+// écran qui ne serait pas encore monté n'a pas de scène à leur donner.
+func attacher(monde *game.World) [sorteLisere + 1]*attache {
+	return [sorteLisere + 1]*attache{
 		sorteDecor:      nouvelleAttache(0),
 		sorteObstacle:   nouvelleAttache(monde.Breakables().Cap()),
 		sorteEpave:      nouvelleAttache(monde.Wrecks().Cap()),
@@ -134,6 +138,27 @@ func (s *Screen) attacher(monde *game.World) {
 		sorteJoueur:     nouvelleAttache(1),
 		sorteLisere:     nouvelleAttache(len(contourAutour)),
 	}
+}
+
+// capaciteDeScene rend le nombre d'entités que la scène doit porter : tout ce
+// qu'un bassin peut poser en même temps, plus les obstacles bas du lieu.
+//
+// **Elle se relève et ne s'écrit pas.** Un chiffre fixe ici serait un plafond
+// qu'une capacité de bassin relevée ailleurs dépasserait sans que rien ne le
+// dise : la pose refusée n'est pas une erreur du moteur mais un `false` qui
+// laisse une entité hors de l'image, donc le joueur invisible pour un muret de
+// trop.
+//
+// **Les obstacles bas comptent tous alors que la fenêtre n'en montre qu'une
+// part**, parce qu'un compte exact demanderait la taille de la vue, que le
+// moteur fixe après le montage. Le surplus est une tranche d'entités jamais
+// remplie, soit une cinquantaine d'octets par obstacle.
+func capaciteDeScene(attaches [sorteLisere + 1]*attache, bas []obstacleBas) int {
+	capacite := len(bas)
+	for _, a := range attaches {
+		capacite += len(a.poignees)
+	}
+	return capacite
 }
 
 // solder retire de la scène les entités qui n'ont pas été vues à ce tick.

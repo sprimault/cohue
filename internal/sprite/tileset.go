@@ -48,6 +48,10 @@ type Tile struct {
 	// Occludes dit que la forme peut passer devant ce qui se tient sur le sol,
 	// donc qu'elle dispute sa profondeur au lieu d'appartenir au sol.
 	Occludes bool
+	// LowObstacle dit que la forme arrête sans cacher, ce qui décide de la voie
+	// par laquelle le rendu la pose. Le manifeste en porte le critère, par
+	// `level.Shape.LowObstacle`.
+	LowObstacle bool
 }
 
 // Tileset porte les formes du décor, par nom.
@@ -101,6 +105,7 @@ func LoadTiles(fsys fs.FS, racine string, decor *level.Decor, atlas *raster.Atla
 			GroundHeight: hauteurSol(forme),
 			Masking:      forme.Masking,
 			Occludes:     occulte(forme),
+			LowObstacle:  forme.LowObstacle(),
 		}
 	}
 	if len(manques) > 0 {

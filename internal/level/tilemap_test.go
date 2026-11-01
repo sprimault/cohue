@@ -136,6 +136,41 @@ func TestUnThemeSansSolQuiEmploieUneFormeNueEstRefuse(t *testing.T) {
 	}
 }
 
+// TestUnThemeSansSolQuiEmploieUnObstacleBasEstRefuse garde la seconde moitié du
+// même refus, celle qu'une planche ne montre pas.
+//
+// **Le muret couvre sa case et réclame un sol quand même**, et c'est ce qui
+// sépare ce cas du précédent : le rendu ne le pose pas dans sa cellule mais
+// par-dessus, en entité, pour qu'il cache ce qui passe derrière lui. La cellule
+// qu'il quitte est alors aussi vide que sous une forme nue, et le trou est le
+// même — sauf que rien dans son dessin ne l'annonce.
+func TestUnThemeSansSolQuiEmploieUnObstacleBasEstRefuse(t *testing.T) {
+	fsys := fstest.MapFS{
+		"x/lieu.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "x", "jeu_pieces": "commun",
+			"pieces": [{"id": "salle", "u": 0, "v": 0}]
+		}`)},
+		"x/jeu.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "commun",
+			"palette": {".": "sol", "m": "muret"}
+		}`)},
+		"x/pieces/salle.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "salle", "jeu": "commun",
+			"taille": [2, 1], "grille": [".m"]
+		}`)},
+	}
+
+	_, err := chargeur(fsys).Load("x")
+	if err == nil {
+		t.Fatal("un thème qui pose un muret sans déclarer de sol se charge")
+	}
+	for _, attendu := range []string{"muret", "sol"} {
+		if !strings.Contains(err.Error(), attendu) {
+			t.Errorf("le refus ne dit pas « %s » : %v", attendu, err)
+		}
+	}
+}
+
 // TestUnSolQuiNeRemplitPasSaCaseEstRefuse garde la borne du comblement.
 //
 // Le refus au chargement plutôt qu'une récursion : combler un sol par un autre

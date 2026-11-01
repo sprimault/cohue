@@ -1409,13 +1409,14 @@
         37
       ],
       "elevation": 4,
-      "categorie": "obstacle_bas",
+      "categorie": "sol",
       "emprise": [
         0.1,
         2.0
       ],
       "couvrant": false,
-      "bloquant": true,
+      "bloquant": false,
+      "cout_traversee": 1,
       "masquant": false
     },
     "rangee_fauteuils_v": {
@@ -1613,13 +1614,14 @@
         31
       ],
       "elevation": 0,
-      "categorie": "obstacle_bas",
+      "categorie": "sol",
       "emprise": [
         1.0,
         1.0
       ],
       "couvrant": true,
-      "bloquant": true,
+      "bloquant": false,
+      "cout_traversee": 1,
       "masquant": false
     },
     "sol_sale": {

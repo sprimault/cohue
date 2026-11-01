@@ -383,19 +383,10 @@ func (s *Screen) pixelDe(x, y game.Fixed) (int32, int32) {
 // poserAuPoint pose un aspect en couche haute, son pied centré sur le pixel
 // donné, comme le moteur poserait une entité sur un point du monde.
 //
-// **Les deux voies de pose n'ont pas la même origine, et rien ne le dit.** Une
-// entité reçoit un point du sol, et le moteur y centre le pied de son image ;
-// un quad d'écran reçoit le **coin haut-gauche**. Passer le pixel projeté tel
-// quel décale donc d'une demi-largeur vers la droite et d'une hauteur entière
-// vers le bas tout ce qui se pose au-dessus d'une position — la silhouette d'un
-// personnage caché, un chiffre de dégâts, une gerbe d'étincelles.
-//
-// **L'ancre ne se refait pas ici, et c'est le piège de cette conversion.** La
-// pose l'ajoute d'elle-même au coin qu'on lui donne, sa godoc le dit en toutes
-// lettres : « les ajouter au calcul les compterait deux fois, et l'image
-// partirait du double de l'ancre ». Ce qui reste à faire est la seule chose
-// qu'elle ne fait pas — passer du pied au coin, soit une demi-largeur et une
-// hauteur.
+// **La conversion du pied au coin appartient au moteur**, dont les deux
+// familles de pose n'ont pas la même origine : `Aspect.CornerFromFoot` la fait
+// et porte le piège qui va avec, l'ancre que les voies de pose appliquent
+// d'elles-mêmes et qu'on compterait deux fois en la rajoutant ici.
 //
 // **La pose vise l'aire et non la surface, et c'est ce qui ferme le reste.**
 // `pixelDe` rend un pixel relatif à l'**aire de monde** ; `PlaceArea` attend
@@ -406,7 +397,8 @@ func (s *Screen) pixelDe(x, y game.Fixed) (int32, int32) {
 // Le découpage exact demandait de refaire celui du moteur, miroirs compris ;
 // c'est lui qui le fait.
 func (s *Screen) poserAuPoint(ex, ey int32, a scene.Aspect) {
-	s.scene.PlaceArea(ex-int32(a.Width)/2, ey-int32(a.Height), a)
+	cx, cy := a.CornerFromFoot(ex, ey)
+	s.scene.PlaceArea(cx, cy, a)
 }
 
 // teinteDuRappel rend la teinte sous laquelle une sorte se rappelle.

@@ -130,33 +130,12 @@ func (s *Screen) reveler() {
 		}
 
 		if o.CoveredByDecor == o.Covered && r.bord.Width != 0 {
-			s.poserRappel(r, r.forme, voiler(r.teinte, voileDuRappel))
+			s.poserRappel(r, r.forme, r.teinte.Scale(voileDuRappel))
 			s.poserRappel(r, r.bord, r.teinte)
 			continue
 		}
 		s.poserRappel(r, r.forme, r.teinte)
 	}
-}
-
-// voiler rend une teinte de planche à l'opacité demandée.
-//
-// **Ce n'est pas `Color.Scale`, et l'écart est un défaut du moteur.** Sa godoc
-// en fait « la seule façon d'atténuer » une couleur, et elle met les quatre
-// composantes à l'échelle, alpha compris — ce qui est juste pour une couleur
-// prémultipliée, et ce que fait le chemin de l'aplat uni. Mais le rastériseur
-// module un quad qui lit une planche par `product(product(src, teinte),
-// teinte.A)` : il applique l'alpha de la teinte une **seconde** fois aux
-// composantes de couleur, déjà prémultipliées. Le voile assombrit alors au lieu
-// d'éclaircir — relevé sur la planche `mur-sud-est`, 96 de luminance dans le
-// corps contre 116 pour le mur autour, là où un crème à 43 % doit en rendre 171.
-//
-// Sur ce chemin, les composantes de couleur sont donc un filtre et l'alpha
-// l'opacité. La teinte de base étant opaque, sa forme prémultipliée est sa forme
-// droite, et poser l'alpha suffit. **Le jour où le moteur accorde les deux
-// chemins, cette fonction disparaît au profit de `Scale`.**
-func voiler(c render.Color, opacite uint8) render.Color {
-	c.A = opacite
-	return c
 }
 
 // poserRappel pose un quad de rappel au-dessus de ce qui cachait.

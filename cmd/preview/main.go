@@ -33,7 +33,6 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"image/png"
 	"os"
 	"path/filepath"
 	"slices"
@@ -962,7 +961,7 @@ func (p *commun) vue(v vue) error {
 	// La fermeture est signalée, mais elle ne masque pas l'écriture : un encodage
 	// qui échoue dit ce qui ne va pas, là où la fermeture d'un fichier déjà
 	// fautif ne dirait que le symptôme.
-	err = png.Encode(f, agrandir(moteur.Frame(), echelle))
+	err = lozengine.WritePNG(agrandir(moteur.Frame(), echelle), f)
 	if cerr := f.Close(); err == nil {
 		err = cerr
 	}
@@ -985,36 +984,22 @@ func (p *commun) vue(v vue) error {
 	return nil
 }
 
-// agrandir recopie l'image du moteur dans une image de la bibliothèque
-// standard, chaque point y couvrant un carré du côté donné.
+// agrandir rend l'image du moteur agrandie d'un facteur entier, chaque point y
+// couvrant un carré du côté donné.
 //
-// **Au plus proche voisin par construction**, et il n'y a donc aucun filtre à
-// choisir : un lissage rendrait la planche inutilisable pour juger du pixel art,
-// qui est précisément ce qu'elle donne à relire.
+// **La sortie est dimensionnée au produit exact**, si bien qu'il ne reste
+// aucune marge et que le fond demandé ne paraît jamais. `Upscale` centre son
+// entrée dans la surface qu'on lui donne, ce dont une fenêtre a besoin ; une
+// planche, elle, n'a pas de bandes à montrer.
 //
-// Les composantes se recopient telles quelles. Le moteur les rend
-// prémultipliées, ce qu'`image.RGBA` déclare ; le PNG les stocke sans
-// prémultiplication, et les deux coïncident parce que l'image est opaque — le
-// fond l'est, et rien ne découpe le tampon.
-func agrandir(tampon *lozengine.Buffer, cote int) *image.RGBA {
-	largeur, hauteur := int(tampon.Width), int(tampon.Height)
-	img := image.NewRGBA(image.Rect(0, 0, largeur*cote, hauteur*cote))
-	for y := range hauteur {
-		for x := range largeur {
-			c := tampon.Pixels[y*largeur+x]
-			for dy := range cote {
-				i := img.PixOffset(x*cote, y*cote+dy)
-				for range cote {
-					img.Pix[i] = c.R
-					img.Pix[i+1] = c.G
-					img.Pix[i+2] = c.B
-					img.Pix[i+3] = c.A
-					i += 4
-				}
-			}
-		}
-	}
-	return img
+// **L'écriture reste exacte parce que la planche est opaque.** Le PNG stocke
+// des composantes non prémultipliées, et un alpha partiel y perdrait un cran
+// par composante au passage — le fond du rendu est opaque, et rien ne découpe
+// le tampon.
+func agrandir(tampon *lozengine.Buffer, cote uint16) *lozengine.Buffer {
+	sortie := lozengine.NewBuffer(tampon.Width*cote, tampon.Height*cote)
+	lozengine.Upscale(tampon, sortie, int(cote), render.Background)
+	return sortie
 }
 
 // enregistrer joue la suite de la partie en rendant une image par pas, et rend

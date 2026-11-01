@@ -42,6 +42,21 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Corrigé
+
+- **La silhouette d'un personnage caché par un mur s'éclaircit au lieu de
+  s'assombrir.** Le rappel se confondait avec la maçonnerie qu'il devait faire
+  voir au travers, au moment précis où il sert : quand on ne distingue plus où
+  l'on est.
+
+***
+
+### Fixed
+
+- **The silhouette of a character hidden by a wall now lightens instead of
+  darkening.** The cue blended into the masonry it was meant to show through,
+  at the very moment it matters: when you can no longer tell where you are.
+
 ## [0.7.3] — 2026-10-30 — Le rendu change de moteur
 
 ### Ajouté

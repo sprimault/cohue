@@ -331,6 +331,22 @@ type vue struct {
 	// abat aussitôt : c'est le seul chemin qui produise une déflagration sans
 	// forger un état que la partie ne connaît pas.
 	poseUneBaudruche bool
+	// cacheUneCreature pose un Arpenteur derrière le premier obstacle bas du
+	// lieu, et le joueur en avant pour cadrer.
+	//
+	// **C'est le seul cas de recouvrement qu'aucune vue ne montrait.** Les quatre
+	// vues `mur-*` posent le joueur contre l'enceinte, c'est-à-dire la seule
+	// chose du jeu qu'un rappel redessine quand elle est cachée : elles jugent la
+	// silhouette, jamais le tri qui la déclenche. Un ennemi n'a pas de rappel —
+	// la conception le refuse —, donc ce qui passe derrière un obstacle doit
+	// simplement disparaître, et rien ne le donnait à relire.
+	//
+	// **Un obstacle bas et non un mur, parce que c'est là que le cas est
+	// lisible.** Au-delà de vingt-quatre pixels la forme couvre un personnage en
+	// entier, et une créature absente ne dit pas si elle est cachée ou morte ; un
+	// muret de vingt-deux laisse le buste dépasser et les jambes seules
+	// disparaître, ce qui se juge d'un coup d'œil.
+	cacheUneCreature bool
 	// declencheLAimant lance la ruée après les pas joués, et dessine l'image en
 	// plein vol.
 	//
@@ -453,6 +469,11 @@ var vues = []vue{
 	{nom: "mur-nord-est", ou: murNordEst},
 	{nom: "mur-sud-est", ou: murSudEst},
 	{nom: "mur-sud-ouest", ou: murSudOuest},
+
+	// **Zéro pas joué, et c'est la seule façon d'y arriver.** La créature est
+	// posée à la main puis regardée telle quelle : un seul pas la ferait
+	// descendre vers le joueur, et `videLaHorde` la retirerait avec le reste.
+	{nom: "creature-cachee", cacheUneCreature: true},
 
 	{nom: "melee", ticks: 300 * game.TPS, jusquAuxDegats: true},
 
@@ -727,6 +748,11 @@ func (p *commun) vue(v vue) error {
 	}
 	if v.poseUneBaudruche {
 		if err := poserUneBaudruche(partie); err != nil {
+			return err
+		}
+	}
+	if v.cacheUneCreature {
+		if err := cacherUneCreature(partie); err != nil {
 			return err
 		}
 	}
@@ -1186,6 +1212,73 @@ func poserUneBaudruche(partie *session.Session) error {
 		return errors.New("vue souffle : le bassin refuse la Baudruche")
 	}
 	return nil
+}
+
+// cacherUneCreature pose un Arpenteur derrière le premier obstacle bas du lieu,
+// et le joueur devant pour que la caméra cadre les deux.
+//
+// **Le nord parce que c'est le côté qui cache** : la profondeur croît vers le
+// sud, donc ce qui se tient au nord d'une forme se peint avant elle. Sept
+// dixièmes de tuile, comme la vue de l'obstacle fragile — dans la case voisine,
+// et assez près pour que les deux dessins se chevauchent.
+//
+// **Le joueur est au sud et à l'écart**, à trois tuiles en diagonale : la caméra
+// le suit, donc il décide du cadrage, et le poser sur l'axe de l'obstacle
+// mettrait son propre sprite devant ce qu'on vient relire.
+func cacherUneCreature(partie *session.Session) error {
+	u, v, nom, trouve := caseDUnObstacleBas(partie)
+	if !trouve {
+		return errors.New("vue creature-cachee : le lieu ne pose aucun obstacle bas")
+	}
+
+	profil := -1
+	for i, p := range partie.Profiles.Enemies {
+		if p.Key == "flanqueur" {
+			profil = i
+		}
+	}
+	if profil < 0 {
+		return errors.New("vue creature-cachee : aucun profil « flanqueur » au manifeste")
+	}
+
+	x, y := game.FromInt(u)+game.One/2, game.FromInt(v)+game.One/2
+	if _, pose := partie.World.SpawnEnemy(profil, x, y-game.One*7/10); !pose {
+		return fmt.Errorf("vue creature-cachee : le bassin refuse l'Arpenteur derriere %q", nom)
+	}
+	partie.World.Place(x+game.FromInt(3), y+game.FromInt(3))
+	return nil
+}
+
+// caseDUnObstacleBas cherche une case portant une forme qui arrête sans cacher,
+// et rend sa position et le nom de la forme.
+//
+// **Elle parcourt la carte et non le catalogue**, pour deux raisons qui vont
+// dans le même sens : le parcours d'une `map` n'a pas d'ordre stable, et une
+// forme du catalogue que le lieu ne pose pas n'a aucune case à montrer. Les
+// couches se lisent de la plus haute à la plus basse, puisque c'est la dernière
+// posée qui se voit.
+func caseDUnObstacleBas(partie *session.Session) (int, int, string, bool) {
+	bas := func(nom string) bool {
+		forme, connue := partie.Decor.Shapes[nom]
+		return connue && forme.Blocking && !forme.Masking
+	}
+
+	formes := partie.Tiles.Shapes()
+	for v := range partie.Tiles.Height() {
+		for u := range partie.Tiles.Width() {
+			for couche := partie.Tiles.Layers() - 1; couche >= 0; couche-- {
+				i := partie.Tiles.LayerAt(couche, u, v)
+				if i < 0 || i >= len(formes) || !bas(formes[i]) {
+					continue
+				}
+				return u, v, formes[i], true
+			}
+			if i := partie.Tiles.At(u, v); i >= 0 && i < len(formes) && bas(formes[i]) {
+				return u, v, formes[i], true
+			}
+		}
+	}
+	return 0, 0, "", false
 }
 
 // semerDesAges pose une rangée de gemmes échelonnées sur toute leur durée de vie.

@@ -50,10 +50,17 @@ BANDE_JAUNE = (222, 186, 74)
 # vaut un détour de deux cases, et un ennemi la contournera plutôt que de la
 # traverser : c'est fort, et c'est voulu comme point de départ. Un ralentissement
 # qu'on ne voit pas ne se règle jamais.
+#
+# **Une variante d'axe franchit comme sa forme d'origine**, et l'oubli ne se
+# voit sur aucune planche : `sol_parking_v` et `rail_v` sont le même enrobé et
+# la même voie tournés d'un quart de tour, et les omettre ici en avait fait des
+# obstacles — un parking où l'on ne se gare pas, une voie qu'on ne traverse pas.
 FRANCHISSABLES = {
-    "sol": 1, "sol_use": 1, "sol_carrele": 1, "sol_parking": 1,
+    "sol": 1, "sol_use": 1, "sol_carrele": 1,
+    "sol_parking": 1, "sol_parking_v": 1,
     "sol_fissure": 2, "sol_sale": 2, "flaque": 2,
-    "bouche_egout": 1, "fleche_sol": 1, "trottoir": 1, "quai": 1, "rail": 1,
+    "bouche_egout": 1, "fleche_sol": 1, "trottoir": 1, "quai": 1,
+    "rail": 1, "rail_v": 1,
     "porte_ouverte": 1, "chaussee": 1,
     "herbe": 1, "passage_pieton": 1, "moquette": 1, "bande_eveil": 1,
     # Le ballast est le premier ralentisseur d'un thème : il rend la voie
@@ -78,8 +85,9 @@ FRANCHISSABLES = {
 # rien de ce qui est tenu à la main, donc la question du contour ne se pose
 # pas pour elle.
 REVETEMENTS = {
-    "sol", "sol_use", "sol_carrele", "sol_fissure", "sol_sale", "sol_parking",
-    "trottoir", "quai", "rail",
+    "sol", "sol_use", "sol_carrele", "sol_fissure", "sol_sale",
+    "sol_parking", "sol_parking_v",
+    "trottoir", "quai", "rail", "rail_v",
     "herbe", "passage_pieton", "moquette", "ballast", "bande_eveil",
 }
 

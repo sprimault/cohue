@@ -39,9 +39,17 @@ var decorDeTest = &Decor{
 		"sol": {Theme: "commun", Size: [2]int{64, 32}, Anchor: [2]int{32, 31},
 			Footprint: [2]float64{1, 1}, Covering: true, Cost: prix(int(game.Free))},
 		"mur": {Theme: "commun", Size: [2]int{64, 96}, Anchor: [2]int{32, 95},
-			Elevation: 64, Footprint: [2]float64{1, 1}, Covering: true, Blocking: true},
+			Elevation: 64, Footprint: [2]float64{1, 1}, Covering: true,
+			Blocking: true, Masking: true},
 		"pilier": {Theme: "commun", Size: [2]int{32, 80}, Anchor: [2]int{16, 79},
-			Elevation: 64, Footprint: [2]float64{0.5, 0.5}, Blocking: true},
+			Elevation: 64, Footprint: [2]float64{0.5, 0.5}, Blocking: true,
+			Masking: true},
+		// La cinquième nature, et la seule qui couvre sa case tout en réclamant un
+		// sol : un obstacle bas quitte sa cellule pour se poser en entité, donc le
+		// fond qu'il laisse est à peindre. Sans elle, le refus du sol manquant ne
+		// s'éprouverait que par une forme nue, où il tenait déjà.
+		"muret": {Theme: "commun", Size: [2]int{64, 54}, Anchor: [2]int{32, 53},
+			Elevation: 22, Footprint: [2]float64{1, 1}, Covering: true, Blocking: true},
 		// La quatrième nature, celle qui déborde : deux tuiles en u, une en v.
 		// Elle n'est posée que par le lieu « bloc », pour que les cas du lieu
 		// « essai » gardent l'égalité case par case qu'ils affirment.

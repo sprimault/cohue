@@ -197,6 +197,20 @@ func (s Shape) Block() [2]int {
 	}
 }
 
+// LowObstacle dit qu'une forme arrête sans cacher : un muret, un banc, une
+// gondole.
+//
+// C'est la catégorie `obstacle_bas` du manifeste, relue depuis ce qui la
+// produit plutôt que depuis le mot : `Category` sert la topologie d'un éditeur,
+// et comparer une chaîne ferait dépendre le rendu d'un libellé qu'on peut
+// traduire.
+//
+// **Trois paquets la demandent, et pour la même raison** : une telle forme se
+// pose par-dessus sa case et non dedans, si bien que sa case a besoin d'un fond.
+// Le rendu l'y pose, et le contrôle de palette exige du thème qu'il en déclare
+// un.
+func (s Shape) LowObstacle() bool { return s.Blocking && !s.Masking }
+
 // cout rend le prix de traversée de la forme, ou ce qui l'empêche de l'avoir.
 //
 // Le contrôle joue dans les deux sens, comme celui de `ressources.py` : un mur

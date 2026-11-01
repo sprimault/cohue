@@ -42,6 +42,29 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Corrigé
+
+- **Un obstacle bas cache ce qui s'abrite derrière lui.** Muret, banc, gondole
+  ou voiture laissaient voir par-dessus eux la créature de la case voisine, qui
+  se lisait alors comme debout sur la maçonnerie.
+- **Le sol de parking et la voie tournés d'un quart de tour cessent de
+  bloquer.** Les deux variantes d'axe livrées en 0.7.4 étaient déclarées
+  infranchissables, si bien qu'un lieu qui les posait fermait son parking et sa
+  voie au lieu de les ouvrir ; elles sont franchissables au prix d'un pas, comme
+  les formes dont elles sont la rotation.
+
+***
+
+### Fixed
+
+- **A low obstacle now hides whatever shelters behind it.** Walls, benches,
+  gondolas and cars let the creature on the next tile show over them, which read
+  as standing on top of the masonry.
+- **The quarter-turned car park surface and track no longer block.** Both axis
+  variants shipped in 0.7.4 were declared impassable, so a level laying them
+  closed off its car park and its track instead of opening them; they now cost
+  one step to cross, like the shapes they are a rotation of.
+
 ## [0.7.4] — 2026-11-01 — Le décor se dessine
 
 ### Ajouté

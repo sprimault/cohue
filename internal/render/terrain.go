@@ -75,6 +75,22 @@ type forme struct {
 	// sur cette case — ce sur quoi un marquage au sol se pose. Elle vient du
 	// manifeste par `sprite`, qui porte l'arithmétique et le test.
 	hauteurSol int
+	// bas dit que la forme arrête sans cacher : un muret, un banc, une gondole.
+	//
+	// **Ce sont les seules que le rendu pose en entité plutôt qu'en cellule**, et
+	// c'est ce qui les range ici. Une cellule se trie à la profondeur de son coin
+	// le plus lointain, soit une cellule de somme derrière son centre, pour ne
+	// jamais passer sur les pieds de ce qui se tient dedans ; mais ce recul la met
+	// aussi derrière tout ce qu'occupe la case voisine, si bien qu'une créature
+	// juste derrière un muret se peignait par-dessus lui et se lisait comme debout
+	// sur la maçonnerie. Une entité posée au centre de la case porte la profondeur
+	// de ce centre, et départage alors les quatre voisines dans le bon sens.
+	//
+	// Les masquantes restent en cellules : ce qu'elles cachent déborde largement
+	// de la case voisine, donc les avancer d'une demi-case ne réglerait pas leur
+	// cas, et le rappel de silhouette est ce qui le traite — `docs/conception.md`
+	// chapitre 10 porte les deux moitiés.
+	bas bool
 }
 
 // NewTerrain résout la carte assemblée d'un lieu en aspects posables.
@@ -125,6 +141,7 @@ func resoudre(tuiles *sprite.Tileset, nom string) (forme, error) {
 		aspect:     centrerSurLaCase(aspect, tuiles.TileSize()),
 		nue:        !tuile.Covers,
 		hauteurSol: tuile.GroundHeight,
+		bas:        tuile.LowObstacle,
 	}, nil
 }
 

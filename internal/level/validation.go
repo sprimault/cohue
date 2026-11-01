@@ -87,13 +87,19 @@ func valider(nom string, lieu *Level, jeu *Set, pieces []*Room, decor *Decor) []
 // valeur.** Un nom inconnu était muet — l'assemblage le traitait en mur, si bien
 // qu'une faute de frappe posait une enceinte que rien n'expliquait. Un sol qui
 // ne remplit pas sa case laisserait le trou qu'il existe pour combler, et le
-// refuser vaut mieux qu'une récursion. Et un thème qui emploie une forme non
-// couvrante **sans déclarer de sol** est le cas qui rouvrirait la question en
+// refuser vaut mieux qu'une récursion. Et un thème qui emploie une forme sans
+// fond **sans déclarer de sol** est le cas qui rouvrirait la question en
 // silence : le mécanisme serait correct et simplement pas employé.
 //
 // C'est le même geste que le refus d'un profil qu'une phase autorise sans
 // pouvoir le payer — ni le profil ni la pression ne sont invalides, leur
 // rapprochement l'est.
+//
+// **Deux natures de forme réclament ce sol, et la seconde ne se voit pas sur une
+// planche.** Une forme non couvrante laisse voir sous elle, ce que son dessin
+// montre ; un obstacle bas couvre peut-être son losange, mais le rendu le pose
+// par-dessus sa case au lieu de dedans — pour qu'il cache ce qui passe
+// derrière —, si bien que la cellule qu'il quitte est à combler comme l'autre.
 //
 // Le message nomme la forme fautive, parce qu'il s'adresse à un auteur de
 // thème : « sol manquant » l'enverrait chercher laquelle de ses tuiles l'exige.
@@ -112,7 +118,7 @@ func validerPalette(jeu *Set, decor *Decor) []string {
 		switch {
 		case !connue:
 			dire("%s.palette[« %s »] : « %s », forme absente du décor", jeu.ID, cle, nom)
-		case !forme.Covering:
+		case !forme.Covering, forme.LowObstacle():
 			nues = append(nues, fmt.Sprintf("« %s »", nom))
 		}
 	}
@@ -120,7 +126,7 @@ func validerPalette(jeu *Set, decor *Decor) []string {
 	switch sol, connu := decor.Shapes[jeu.Ground]; {
 	case jeu.Ground == "" && len(nues) > 0:
 		dire("%s.sol : le thème n'en déclare pas, alors que sa palette emploie %s, "+
-			"qui ne remplit pas sa case", jeu.ID, strings.Join(nues, ", "))
+			"qui ne peint pas le fond de sa case", jeu.ID, strings.Join(nues, ", "))
 	case jeu.Ground == "":
 	case !connu:
 		dire("%s.sol : « %s », forme absente du décor", jeu.ID, jeu.Ground)

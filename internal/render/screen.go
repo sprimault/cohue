@@ -275,6 +275,11 @@ type Screen struct {
 	// plus un critère de rang mais exactement cet aiguillage.
 	attaches [sorteLisere + 1]*attache
 
+	// bas porte les obstacles bas du lieu et la poignée de ceux que l'image
+	// montre. Relevée au montage, parcourue par image : ce qu'elle garde d'une
+	// image à l'autre est la poignée, et rien ne s'y alloue.
+	bas []obstacleBas
+
 	// demiTuile est l'abscisse du sommet dans l'image d'une face, ce que le
 	// manifeste appellera son ancrage quand les images viendront de lui.
 	demiTuile int
@@ -347,10 +352,16 @@ func projection(tuile [2]int) geometry.Matrix {
 // constante : le chargeur en exige le rapport de deux pour un, et c'est de lui
 // que la projection la tient. La recevoir à part du terrain qui la porte aurait
 // laissé deux appelants la prendre à deux endroits.
-// **La scène se monte ici parce que c'est l'écran qui la décrit.** Sa capacité
-// d'entités reste au défaut du moteur jusqu'à ce que les entités y entrent : la
-// fixer maintenant serait un chiffre qu'aucune pose n'exerce, et le majorant est
-// la somme des bassins, qu'on relève en les parcourant.
+// **La scène se monte ici parce que c'est l'écran qui la décrit**, et sa
+// capacité d'entités se relève au lieu de s'écrire : la somme des bassins, que
+// les attaches portent déjà, plus les obstacles bas du lieu. Le défaut du moteur
+// en vaut 4 096, assez pour les bassins seuls ; un lieu dense d'obstacles bas le
+// dépasserait, et la pose refusée serait alors celle du joueur aussi bien que
+// celle d'un muret.
+//
+// **Le majorant est large et c'est voulu** : la fenêtre n'en montre qu'une
+// centaine à la fois, mais un compte exact demanderait la taille de la vue, que
+// le moteur redimensionne après ce montage.
 //
 // **Le retrait est celui que les options du moteur reçoivent**, et c'est la
 // seule chose à ne pas laisser diverger entre les deux : il sert ici à cadrer la
@@ -360,7 +371,10 @@ func projection(tuile [2]int) geometry.Matrix {
 func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Cast,
 	objets *Stage, atlas *raster.Atlas, retrait scene.Inset) (*Screen, error) {
 	tuile := sol.TileSize()
-	sc, err := scene.New(carte.Width(), carte.Height(), projection(tuile), scene.Options{})
+	attaches := attacher(monde)
+	bas := releverLesObstaclesBas(sol)
+	sc, err := scene.New(carte.Width(), carte.Height(), projection(tuile),
+		scene.Options{Entities: capaciteDeScene(attaches, bas)})
 	if err != nil {
 		return nil, fmt.Errorf("scene du lieu : %w", err)
 	}
@@ -394,8 +408,9 @@ func NewScreen(monde *game.World, carte *game.CostGrid, sol *Terrain, troupe *Ca
 		aRevoir:       make([]revele, 0, 1+monde.EnemyShots().Cap()),
 		recouvrements: make(render.OverlapList, 0, 1+monde.EnemyShots().Cap()),
 		emprises:      make([]nappe, carte.Width()*carte.Height()),
+		attaches:      attaches,
+		bas:           bas,
 	}
-	s.attacher(monde)
 	s.cam.suivre(monde.Player())
 	if err := s.LeDecor(); err != nil {
 		return nil, err
@@ -627,6 +642,7 @@ func (s *Screen) Describe() {
 
 	s.releverEmprises()
 	s.poserLaNappe()
+	s.poserLesObstaclesBas()
 	s.poserEntites()
 	s.poserEffets()
 	s.poserDanger()

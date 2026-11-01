@@ -211,9 +211,22 @@ func hauteurSol(f level.Shape) int {
 //
 // **Un sol surélevé reste du sol.** Ce qui recouvre est ce qui cache — le
 // manifeste le déclare au-delà de vingt-quatre pixels — ou ce qui arrête, un
-// muret de vingt-deux masquant les jambes de qui passe derrière. La porte
-// ouverte est le seul cas où les deux se séparent : elle se franchit et culmine
-// à quarante-huit pixels, donc elle se trie sans bloquer.
+// muret de vingt-deux cachant le bas de qui passe derrière. La porte ouverte
+// est le seul cas où les deux se séparent : elle se franchit et culmine à
+// quarante-huit pixels, donc elle se trie sans bloquer.
+//
+// **« Derrière » commence au-delà d'une tuile, et c'est la moitié de la phrase
+// qu'on croit acquise.** Une cellule de décor porte la profondeur de son coin
+// le plus lointain — son centre reculé d'un demi sur chaque axe, pour qu'elle
+// ne passe jamais sur les pieds de ce qui se tient dedans —, si bien qu'elle ne
+// recouvre que ce dont la profondeur lui est *strictement* inférieure. Une
+// créature dans la case voisine est à égalité : le muret ne la cache pas, et
+// rien de ce que déclare ce fichier n'y changerait quoi que ce soit.
+//
+// Ce que ce critère achète reste entier pour autant, et c'est pourquoi
+// `Blocking` y figure : sans lui le muret tomberait à l'étage du sol, où il
+// passerait sous **toutes** les entités du lieu, y compris celles qu'il doit
+// cacher deux cases plus loin.
 //
 // L'élévation ne disparaît pas pour autant : elle dit à quelle hauteur se pose
 // ce qui marche sur la forme.

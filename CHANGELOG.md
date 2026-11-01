@@ -42,6 +42,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+## [0.7.4] — 2026-11-01 — Le décor se dessine
+
 ### Ajouté
 
 - **Cinq meubles hauts pour le supermarché** : rayon, rayon court, tête de

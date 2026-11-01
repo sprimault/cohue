@@ -405,6 +405,37 @@ def poser(base, *objets):
     return resultat
 
 
+def garnir(base, objets, colonnes, rangees, marge=0.12):
+    """Couvre la face supérieure d'une base d'objets rangés en grille.
+
+    Les objets se piochent en cycle dans la séquence donnée, ce qui garde la
+    composition déterministe : relancé, le générateur repose exactement les
+    mêmes à la même place.
+
+    **La marge est en fraction de tuile et se prend sur chaque bord**, pour que
+    rien ne déborde du losange. Sans elle, la dernière colonne tombe sur l'arête
+    et son contour mange le bord du socle, qui est ce qui dit où la forme
+    s'arrête.
+
+    **Une grille plutôt que des positions écrites** : c'est ce qui sépare un
+    meuble garni d'un plateau où l'on a posé trois choses. Un rayon de magasin
+    se lit à ce que ses produits sont serrés et alignés ; isolés sur une surface
+    vide, ils se lisent comme des caisses oubliées — c'est ce que montrait la
+    gondole avant cette fonction.
+    """
+    tx, ty = base.info.get("tx", 1), base.info.get("ty", 1)
+    pasu = (tx - 2 * marge) / colonnes
+    pasv = (ty - 2 * marge) / rangees
+    places = [
+        (objets[(j * colonnes + i) % len(objets)],
+         marge + (i + 0.5) * pasu,
+         marge + (j + 0.5) * pasv)
+        for j in range(rangees)
+        for i in range(colonnes)
+    ]
+    return poser(base, *places)
+
+
 # --- Détails ---------------------------------------------------------------
 # Ces fonctions posent ce qu'on ajouterait à la main : elles s'appliquent à un
 # volume avant empilement, en s'appuyant sur les masques de faces.

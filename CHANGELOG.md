@@ -49,6 +49,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   si bien qu'un lieu peut fermer une allée — tout le mobilier de ce thème se
   voyait par-dessus jusqu'ici. Les gondoles basses restent, et portent
   désormais des produits rangés plutôt que trois caisses posées.
+- **Cinq voitures particulières** : berline, break, SUV, monospace et
+  cabriolet. Le catalogue n'offrait que des bus, des camions et un pick-up, là
+  où un parking se remplit de voitures. Le cabriolet est le premier véhicule
+  qu'on voit par-dessus, capote baissée.
 
 ### Corrigé
 
@@ -66,6 +70,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   close off an aisle — until now all the furniture in that theme was seen over.
   The low gondolas remain, and now carry rows of goods rather than three boxes
   set on top.
+- **Five passenger cars**: saloon, estate, SUV, people carrier and
+  convertible. The catalogue only offered buses, lorries and a pick-up, where a
+  car park fills up with cars. The convertible is the first vehicle you can see
+  over, with its roof down.
 
 ### Fixed
 

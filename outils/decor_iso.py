@@ -743,6 +743,21 @@ DESSINES = {
     # `comptoir`, `frigo` — restent générées : elles doivent tenir sous les
     # vingt-quatre pixels de l'obstacle bas, et le modèle ne descend pas sous
     # trente et un quels que soient la consigne, le cadre ou le sujet.
+    # **Les voitures particulières sont dessinées et couchées sur `v`**, comme
+    # celles du quartier et pour la même raison : le modèle ne rend que cette
+    # diagonale. Elles ne remplacent pas les véhicules générés du parking, qui
+    # tiennent l'axe `u` et que rien d'autre ne tient — un miroir échangerait
+    # bien les deux axes, mais il garderait l'ombrage et mettrait la face claire
+    # du côté que le décor ombre.
+    #
+    # Le cabriolet est le seul véhicule du catalogue à passer sous les
+    # vingt-quatre pixels : capote baissée, on voit par-dessus, et il se range
+    # donc en obstacle bas sans qu'on l'ait décidé.
+    "berline": {"theme": "parking", "emprise": (0.8, 2.0)},
+    "break": {"theme": "parking", "emprise": (0.8, 2.2)},
+    "suv": {"theme": "parking", "emprise": (0.85, 2.1)},
+    "monospace": {"theme": "parking", "emprise": (0.85, 2.1)},
+    "cabriolet": {"theme": "parking", "emprise": (0.8, 2.0)},
     "rayon": {"theme": "supermarche", "emprise": (2.0, 0.7)},
     "rayon_court": {"theme": "supermarche", "emprise": (1.0, 0.7)},
     "rayon_tete": {"theme": "supermarche", "emprise": (1.0, 1.0)},

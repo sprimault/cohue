@@ -265,12 +265,6 @@ def trottoir():
     return joint(volume(elevation=6, matiere="beton", peinture=texture("beton_clair")))
 
 
-def banc():
-    assise = nervures(volume(tx=1.4, ty=0.5, elevation=8, matiere="bois"), pas=5)
-    dossier = volume(tx=1.4, ty=0.12, elevation=10, matiere="bois")
-    return empiler((assise, 0, 0), (dossier, 0, 8))
-
-
 def lampadaire():
     mat = volume(elevation=52, matiere="acier_sombre", largeur_tuile=8)
     tete = volume(tx=0.6, ty=0.3, elevation=4, matiere="jaune", largeur_tuile=20)
@@ -285,22 +279,6 @@ def moquette():
     # attend d'une moquette — comme d'un appareil de pierre, et à la différence
     # d'une tache.
     return joint(volume(peinture=texture("moquette")))
-
-
-def rangee_fauteuils():
-    assise = nervures(volume(tx=2, ty=0.8, elevation=10, matiere="tissu"), pas=11)
-    dossier = volume(tx=2, ty=0.2, elevation=12, matiere="tissu")
-    return empiler((assise, 0, 0), (dossier, 0, 10))
-
-
-def ecran():
-    return volume(tx=2.4, ty=0.15, elevation=46, matiere="verre")
-
-
-def comptoir_confiserie():
-    plan = volume(tx=2, ty=1, elevation=20, matiere="rouge")
-    vitrine = volume(tx=1.8, ty=0.8, elevation=10, matiere="verre", largeur_tuile=58)
-    return empiler((plan, 0, 0), (vitrine, 6, 22))
 
 
 # --- Station ---------------------------------------------------------------
@@ -460,10 +438,6 @@ def abribus():
     return creuser(volume(tx=1.6, ty=0.7, elevation=30, matiere="verre"),
                    depuis_haut=4, hauteur=22, largeur_relative=0.7,
                    couleur=(140, 172, 182))
-
-
-def conteneur():
-    return nervures(volume(tx=1, ty=0.7, elevation=22, matiere="vert"), pas=5)
 
 
 def feu_tricolore():
@@ -653,15 +627,12 @@ THEMES = {
     },
     "quartier": {
         "trottoir": trottoir, "herbe": herbe, "passage_pieton": passage_pieton,
-        "banc": banc,
         "lampadaire": lampadaire,
-        "boutique": boutique, "abribus": abribus, "conteneur": conteneur,
+        "boutique": boutique, "abribus": abribus,
         "feu_tricolore": feu_tricolore,
     },
     "cinema": {
         "moquette": moquette,
-        "rangee_fauteuils": rangee_fauteuils, "ecran": ecran,
-        "comptoir_confiserie": comptoir_confiserie,
     },
     "station": {
         "quai": quai, "bande_eveil": bande_eveil, "ballast": ballast,
@@ -747,6 +718,19 @@ DESSINES = {
     # Le dessin veut « vu de son côté » dans la consigne : sans cela le modèle
     # cadre la motrice de face, elle se ramasse, et son élévation passe de
     # trente-trois à soixante et onze pour la même emprise.
+    # **Le mobilier que le générateur ne sait pas creuser**, sur `v` à côté des
+    # générés sur `u`. Un banc a de l'air sous son assise, une rangée de
+    # fauteuils des dossiers séparés, une vitrine du vide derrière sa glace :
+    # une composition de volumes pleins ne rend aucun des trois.
+    #
+    # Le comptoir et l'écran masquent, comme le poste de caisse du supermarché,
+    # et c'est juste — une vitrine haute et un écran de projection cachent ce
+    # qui passe derrière.
+    "banc_v": {"theme": "quartier", "emprise": (0.5, 1.4)},
+    "conteneur_v": {"theme": "quartier", "emprise": (0.43, 0.61)},
+    "rangee_fauteuils_v": {"theme": "cinema", "emprise": (0.6, 1.52)},
+    "comptoir_confiserie_v": {"theme": "cinema", "emprise": (1.0, 2.0)},
+    "ecran_v": {"theme": "cinema", "emprise": (0.15, 2.4)},
     "wagon_v": {"theme": "station", "emprise": (0.94, 3.05)},
     "wagon_tete_v": {"theme": "station", "emprise": (0.94, 2.45)},
     "caddie": {"theme": "supermarche", "emprise": (0.5, 0.5)},

@@ -171,18 +171,18 @@
     "borne": {
       "theme": "parking",
       "taille": [
-        16,
-        26
+        12,
+        28
       ],
       "ancrage": [
-        8,
-        25
+        6,
+        27
       ],
-      "elevation": 18,
+      "elevation": 22,
       "categorie": "obstacle_bas",
       "emprise": [
-        0.25,
-        0.25
+        0.19,
+        0.19
       ],
       "couvrant": false,
       "bloquant": true,
@@ -313,13 +313,13 @@
       "theme": "supermarche",
       "taille": [
         32,
-        32
+        36
       ],
       "ancrage": [
         16,
-        31
+        35
       ],
-      "elevation": 16,
+      "elevation": 20,
       "categorie": "obstacle_bas",
       "emprise": [
         0.5,
@@ -675,20 +675,20 @@
     "frigo": {
       "theme": "supermarche",
       "taille": [
-        64,
-        54
+        38,
+        43
       ],
       "ancrage": [
-        32,
-        53
+        19,
+        42
       ],
-      "elevation": 22,
+      "elevation": 24,
       "categorie": "obstacle_bas",
       "emprise": [
-        1.0,
-        1.0
+        0.6,
+        0.6
       ],
-      "couvrant": true,
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -896,18 +896,18 @@
     "jardiniere": {
       "theme": "quartier",
       "taille": [
-        40,
-        42
+        34,
+        40
       ],
       "ancrage": [
-        20,
-        41
+        17,
+        39
       ],
-      "elevation": 22,
+      "elevation": 23,
       "categorie": "obstacle_bas",
       "emprise": [
-        0.625,
-        0.625
+        0.53,
+        0.53
       ],
       "couvrant": false,
       "bloquant": true,
@@ -1199,13 +1199,13 @@
       "theme": "parking",
       "taille": [
         12,
-        18
+        13
       ],
       "ancrage": [
         6,
-        17
+        12
       ],
-      "elevation": 12,
+      "elevation": 7,
       "categorie": "obstacle_bas",
       "emprise": [
         0.188,
@@ -1320,13 +1320,13 @@
       "theme": "cinema",
       "taille": [
         14,
-        29
+        19
       ],
       "ancrage": [
         7,
-        28
+        18
       ],
-      "elevation": 22,
+      "elevation": 12,
       "categorie": "obstacle_bas",
       "emprise": [
         0.219,
@@ -1339,18 +1339,18 @@
     "poubelle": {
       "theme": "quartier",
       "taille": [
-        26,
-        31
+        20,
+        33
       ],
       "ancrage": [
-        13,
-        30
+        10,
+        32
       ],
-      "elevation": 18,
+      "elevation": 23,
       "categorie": "obstacle_bas",
       "emprise": [
-        0.406,
-        0.406
+        0.32,
+        0.32
       ],
       "couvrant": false,
       "bloquant": true,
@@ -1668,19 +1668,19 @@
       "theme": "supermarche",
       "taille": [
         64,
-        47
+        56
       ],
       "ancrage": [
         32,
-        46
+        55
       ],
-      "elevation": 15,
+      "elevation": 24,
       "categorie": "obstacle_bas",
       "emprise": [
         1.0,
         1.0
       ],
-      "couvrant": true,
+      "couvrant": false,
       "bloquant": true,
       "masquant": false
     },
@@ -1688,13 +1688,13 @@
       "theme": "station",
       "taille": [
         34,
-        29
+        38
       ],
       "ancrage": [
         17,
-        28
+        37
       ],
-      "elevation": 12,
+      "elevation": 21,
       "categorie": "obstacle_bas",
       "emprise": [
         0.531,

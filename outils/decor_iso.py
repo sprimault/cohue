@@ -29,8 +29,8 @@ from primitives_iso import (HAUTEUR_PERSONNAGE, LARGEUR_TUILE, MATIERES,
                             PLAFOND_OBSTACLE_BAS, TRANSPARENT, aligner, appui,
                             bandeau, carrelage, categorie, contour, couvre,
                             creuser, decalque, elevation_reelle, empiler,
-                            eventrer, fenetres, grain, grener, joint, nervures,
-                            nuance,
+                            eventrer, fenetres, garnir, grain, grener, joint,
+                            nervures, nuance,
                             position, poser, reduire, rivets, surface, tache,
                             texture, volume)
 
@@ -168,19 +168,25 @@ def porte_sortie():
 
 # --- Supermarché -----------------------------------------------------------
 
+def _marchandises(largeur_tuile=14, elevation=6):
+    """Les produits d'un rayon : trois teintes qui alternent en cycle.
+
+    Petits et serrés plutôt que gros et espacés — ce qui dit « rayon » est la
+    répétition, et trois caisses isolées sur un plateau se lisent comme des
+    caisses oubliées.
+    """
+    return [contour(volume(elevation=elevation, matiere=m, largeur_tuile=largeur_tuile))
+            for m in ("carton", "rouge", "vert")]
+
+
 def gondole():
     socle = bandeau(nervures(volume(tx=2, ty=0.7, elevation=14, matiere="metal"), pas=7))
-    marchandises = [
-        (contour(volume(elevation=7, matiere=m, largeur_tuile=20)), 0.35 + i * 0.65, 0.35)
-        for i, m in enumerate(("carton", "rouge", "vert"))
-    ]
-    return poser(socle, *marchandises)
+    return garnir(socle, _marchandises(), colonnes=6, rangees=2)
 
 
 def gondole_courte():
     socle = bandeau(nervures(volume(tx=1, ty=0.7, elevation=14, matiere="metal"), pas=7))
-    caisse_ = contour(volume(elevation=7, matiere="carton", largeur_tuile=20))
-    return poser(socle, (caisse_, 0.5, 0.35))
+    return garnir(socle, _marchandises(), colonnes=3, rangees=2)
 
 
 def frigo():
@@ -522,10 +528,7 @@ def camionnette():
 
 def tete_gondole():
     socle = bandeau(nervures(volume(tx=1, ty=1, elevation=14, matiere="metal"), pas=7))
-    caisses = [(contour(volume(elevation=7, matiere=m, largeur_tuile=20)), u, v)
-               for m, u, v in (("rouge", 0.3, 0.3), ("carton", 0.7, 0.3),
-                               ("vert", 0.5, 0.7))]
-    return poser(socle, *caisses)
+    return garnir(socle, _marchandises(), colonnes=3, rangees=3)
 
 
 def portique_antivol():
@@ -733,6 +736,18 @@ DESSINES = {
     "immeuble_pierre": {"theme": "quartier", "emprise": (2.0, 2.0)},
     "immeuble_bureau": {"theme": "quartier", "emprise": (2.0, 2.0)},
     "immeuble_tour": {"theme": "quartier", "emprise": (2.0, 2.0)},
+    # **Les rayons du supermarché sont hauts, et c'est ce qui les met ici.** Un
+    # meuble à étagères garnies dépasse quarante pixels : aucune composition de
+    # volumes ne rend ses niveaux, leurs produits et leurs étiquettes à cette
+    # taille. Les formes basses du même thème — `gondole`, `tete_gondole`,
+    # `comptoir`, `frigo` — restent générées : elles doivent tenir sous les
+    # vingt-quatre pixels de l'obstacle bas, et le modèle ne descend pas sous
+    # trente et un quels que soient la consigne, le cadre ou le sujet.
+    "rayon": {"theme": "supermarche", "emprise": (2.0, 0.7)},
+    "rayon_court": {"theme": "supermarche", "emprise": (1.0, 0.7)},
+    "rayon_tete": {"theme": "supermarche", "emprise": (1.0, 1.0)},
+    "frigo_vitrine": {"theme": "supermarche", "emprise": (1.0, 1.0)},
+    "poste_caisse": {"theme": "supermarche", "emprise": (2.0, 1.0)},
 }
 
 CATALOGUE = {nom: fn for formes in THEMES.values() for nom, fn in formes.items()}

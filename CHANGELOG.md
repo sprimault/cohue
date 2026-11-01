@@ -42,6 +42,14 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Ajouté
+
+- **Cinq meubles hauts pour le supermarché** : rayon, rayon court, tête de
+  rayon, poste de caisse et frigo vitrine. Ils masquent ce qui passe derrière,
+  si bien qu'un lieu peut fermer une allée — tout le mobilier de ce thème se
+  voyait par-dessus jusqu'ici. Les gondoles basses restent, et portent
+  désormais des produits rangés plutôt que trois caisses posées.
+
 ### Corrigé
 
 - **La silhouette d'un personnage caché par un mur s'éclaircit au lieu de
@@ -50,6 +58,14 @@ publié, et explique les conventions du dépôt à qui y contribue.
   l'on est.
 
 ***
+
+### Added
+
+- **Five tall supermarket units**: aisle, short aisle, end cap, checkout desk
+  and display freezer. They mask whatever passes behind them, so a level can
+  close off an aisle — until now all the furniture in that theme was seen over.
+  The low gondolas remain, and now carry rows of goods rather than three boxes
+  set on top.
 
 ### Fixed
 

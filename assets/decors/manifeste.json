@@ -632,6 +632,26 @@
       "bloquant": true,
       "masquant": false
     },
+    "frigo_vitrine": {
+      "theme": "supermarche",
+      "taille": [
+        64,
+        91
+      ],
+      "ancrage": [
+        32,
+        90
+      ],
+      "elevation": 59,
+      "categorie": "haut",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
+    },
     "gondole": {
       "theme": "supermarche",
       "taille": [
@@ -656,13 +676,13 @@
       "theme": "supermarche",
       "taille": [
         54,
-        41
+        42
       ],
       "ancrage": [
         32,
-        40
+        41
       ],
-      "elevation": 14,
+      "elevation": 15,
       "categorie": "obstacle_bas",
       "emprise": [
         1.0,
@@ -1196,6 +1216,26 @@
       "bloquant": true,
       "masquant": true
     },
+    "poste_caisse": {
+      "theme": "supermarche",
+      "taille": [
+        96,
+        82
+      ],
+      "ancrage": [
+        64,
+        81
+      ],
+      "elevation": 34,
+      "categorie": "haut",
+      "emprise": [
+        2.0,
+        1.0
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
+    },
     "poteau_cordon": {
       "theme": "cinema",
       "taille": [
@@ -1297,6 +1337,66 @@
       "couvrant": false,
       "bloquant": true,
       "masquant": false
+    },
+    "rayon": {
+      "theme": "supermarche",
+      "taille": [
+        86,
+        91
+      ],
+      "ancrage": [
+        64,
+        90
+      ],
+      "elevation": 48,
+      "categorie": "haut",
+      "emprise": [
+        2.0,
+        0.7
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
+    },
+    "rayon_court": {
+      "theme": "supermarche",
+      "taille": [
+        54,
+        78
+      ],
+      "ancrage": [
+        32,
+        77
+      ],
+      "elevation": 51,
+      "categorie": "haut",
+      "emprise": [
+        1.0,
+        0.7
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
+    },
+    "rayon_tete": {
+      "theme": "supermarche",
+      "taille": [
+        64,
+        77
+      ],
+      "ancrage": [
+        32,
+        76
+      ],
+      "elevation": 45,
+      "categorie": "haut",
+      "emprise": [
+        1.0,
+        1.0
+      ],
+      "couvrant": false,
+      "bloquant": true,
+      "masquant": true
     },
     "scooter": {
       "theme": "quartier",

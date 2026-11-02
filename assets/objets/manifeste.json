@@ -54,17 +54,17 @@
     "palette": {
       "taille": [
         64,
-        38
+        41
       ],
       "ancrage": [
         32,
-        21
+        24
       ],
       "emprise": [
         1.0,
         1.0
       ],
-      "elevation": 6,
+      "elevation": 9,
       "categorie": "obstacle_bas",
       "masquant": false,
       "famille": "monde",
@@ -662,12 +662,12 @@
         20
       ],
       "taille_sol": [
-        16,
-        17
+        20,
+        18
       ],
       "ancrage_sol": [
-        8,
-        16
+        10,
+        17
       ],
       "famille": "arme",
       "bloquant": false,
@@ -679,12 +679,12 @@
         20
       ],
       "taille_sol": [
-        15,
-        16
+        20,
+        18
       ],
       "ancrage_sol": [
-        7,
-        15
+        10,
+        17
       ],
       "famille": "arme",
       "bloquant": false,
@@ -696,12 +696,12 @@
         20
       ],
       "taille_sol": [
-        15,
-        21
+        14,
+        24
       ],
       "ancrage_sol": [
         7,
-        20
+        23
       ],
       "famille": "arme",
       "bloquant": false,
@@ -714,11 +714,11 @@
       ],
       "taille_sol": [
         17,
-        17
+        24
       ],
       "ancrage_sol": [
         8,
-        16
+        23
       ],
       "famille": "arme",
       "bloquant": false,

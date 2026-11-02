@@ -960,7 +960,37 @@ ICONES = {"fiole": icone_fiole}
 DESSINES = {
     "caisse": (0.5, 0.5),
     "caisse_cassee": (0.5, 0.5),
+    # **La palette s'est choisie sur sa hauteur.** Les quatre candidates
+    # sortaient entre neuf et quinze pixels d'élévation, quand le volume généré
+    # en faisait six : à quinze, elle approche la caisse et cesse de se lire
+    # comme une chose posée à plat. Celle retenue est la seule à rester plate.
+    "palette": (1.0, 1.0),
 }
+
+
+# Les armes dont l'icône d'interface est dessinée. Un ensemble et non une table :
+# une icône n'a ni emprise ni ancrage au sol, rien ne s'y projette, et la case du
+# bandeau impose sa taille — c'est tout ce qu'il y aurait à déclarer.
+#
+# **Le dessin au sol n'en est pas**, et c'est ce qui borne la liste : il se
+# dérive de l'icône par `_arme_au_sol`, donc il suit le dessin et reste produit,
+# comme les deux cycles de la caisse suivent le sien.
+DESSINES_ARMES = {"fusil", "lance_flammes", "grenade", "tourelle"}
+
+
+def dessin_icone(dossier, nom):
+    """Charge l'icône tenue à la main d'une arme de `DESSINES_ARMES`.
+
+    Même règle que `dessin` : lue là où elle est versionnée, et son absence est
+    une erreur plutôt qu'un passage en silence — sans le fichier il n'y a pas de
+    taille à déclarer, et le dessin au sol n'aurait rien d'où se dériver.
+    """
+    chemin = Path(dossier) / "armes" / f"{nom}_icone.png"
+    if not chemin.exists():
+        raise SystemExit(f"{chemin} : dessin absent, {nom} est tenue à la main")
+    img = Image.open(chemin).convert("RGBA")
+    img.load()
+    return img
 
 
 def dessin(dossier, nom):
@@ -1204,8 +1234,10 @@ def main():
 
     (o.sortie / "armes").mkdir(exist_ok=True)
     for nom, fabrique in ARMES.items():
-        icone = fabrique()
-        icone.save(o.sortie / "armes" / f"{nom}_icone.png")
+        tenue = nom in DESSINES_ARMES
+        icone = dessin_icone(o.dessins, nom) if tenue else fabrique()
+        if not tenue:
+            icone.save(o.sortie / "armes" / f"{nom}_icone.png")
         au_sol = prim.reduire(prim.contour(_arme_au_sol(icone), force=0.40), couleurs=14)
         au_sol = au_sol.crop(au_sol.getbbox())
         au_sol.save(o.sortie / "armes" / f"{nom}_sol.png")

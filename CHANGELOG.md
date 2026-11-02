@@ -48,6 +48,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   et le tas gris par du bois à lattes ; les cycles d'écrasement et de rupture se
   dérivent du nouveau dessin, et la rupture ne fane plus, les deux dessins
   partageant leur matière.
+- **La palette et les quatre icônes d'armes sont dessinées.** La palette montre
+  ses lattes au lieu d'un pavé uni, et fusil, lance-flammes, grenade et tourelle
+  se reconnaissent dans le bandeau ; ce que chaque arme laisse au sol se dérive
+  de sa nouvelle icône.
 
 ### Corrigé
 
@@ -71,6 +75,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **The crate and its wreck are now drawn.** They replace the cardboard cube and
   the grey heap with slatted wood; the press and break cycles derive from the new
   drawing, and the break no longer fades, both drawings sharing their material.
+- **The pallet and the four weapon icons are now drawn.** The pallet shows its
+  slats instead of a plain slab, and shotgun, flamethrower, grenade and turret
+  are recognisable in the bar; what each weapon leaves on the ground derives from
+  its new icon.
 
 ### Fixed
 

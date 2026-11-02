@@ -52,6 +52,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   infranchissables, si bien qu'un lieu qui les posait fermait son parking et sa
   voie au lieu de les ouvrir ; elles sont franchissables au prix d'un pas, comme
   les formes dont elles sont la rotation.
+- **Les objets posés au sol reposent dessus.** Caisse, épave, palette, gemme et
+  les panneaux destructibles étaient peints au-dessus de leur case — de huit
+  pixels pour une caisse, seize pour une palette —, un liseré de sol restant
+  visible sous leur base.
 
 ***
 
@@ -64,6 +68,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
   variants shipped in 0.7.4 were declared impassable, so a level laying them
   closed off its car park and its track instead of opening them; they now cost
   one step to cross, like the shapes they are a rotation of.
+- **Ground objects now rest on the ground.** Crates, wrecks, pallets, gems and
+  destructible panels were drawn above their tile — by eight pixels for a crate,
+  sixteen for a pallet — leaving a sliver of floor visible under their base.
 
 ## [0.7.4] — 2026-11-01 — Le décor se dessine
 

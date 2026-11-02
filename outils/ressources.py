@@ -414,6 +414,40 @@ def objets(sortie):
     return defauts
 
 
+def ancrages(sortie):
+    """Exige qu'un ancrage tombe dans l'image qu'il situe.
+
+    **Le chargeur le refuse déjà, et c'est précisément pourquoi ce contrôle
+    manquait** : la garde du moteur a fait rougir trois tests de rendu, donc le
+    défaut a été vu — mais après coup, et sur un message qui parle du catalogue
+    livré plutôt que du script qui l'écrit. Le générateur, lui, avait écrit un
+    ancrage hors de son image sans broncher, et le contrôle annonçait « aucun
+    défaut » sur six cent soixante-cinq images.
+
+    Les deux bouts ont le même déclencheur — quelqu'un qui pose un objet par son
+    ancrage —, donc ils vont ensemble : celui-ci le montre à sa source, l'autre
+    protège d'un manifeste retouché à la main.
+
+    Les deux paires que le moteur valide sont tenues ici : l'image de monde avec
+    son ancrage, et le dessin au sol d'une arme avec le sien.
+    """
+    chemin = sortie / "objets" / "manifeste.json"
+    if not chemin.exists():
+        return []
+
+    defauts = []
+    for nom, info in _entrees(chemin).items():
+        for cle_taille, cle_ancre in (("taille", "ancrage"),
+                                      ("taille_sol", "ancrage_sol")):
+            taille, ancre = info.get(cle_taille), info.get(cle_ancre)
+            if taille is None or ancre is None:
+                continue
+            if not all(0 <= borne < taille[i] for i, borne in enumerate(ancre)):
+                defauts.append((nom, f"{cle_ancre} {ancre}, hors d'une image "
+                                     f"de {taille}"))
+    return defauts
+
+
 def teinte_reservee(sortie):
     """Vérifie que la teinte du projectile ennemi n'existe que sur lui.
 
@@ -863,6 +897,7 @@ def main():
     defauts += manifestes(options.sortie)
     defauts += profils(options.sortie)
     defauts += objets(options.sortie)
+    defauts += ancrages(options.sortie)
     defauts += teinte_reservee(options.sortie)
     defauts += renvois_d_objets(options.sortie)
     defauts += formes(options.sortie)

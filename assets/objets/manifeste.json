@@ -5,17 +5,17 @@
     "caisse": {
       "taille": [
         32,
-        32
+        34
       ],
       "ancrage": [
         16,
-        23
+        25
       ],
       "emprise": [
         0.5,
         0.5
       ],
-      "elevation": 16,
+      "elevation": 18,
       "categorie": "sol",
       "masquant": false,
       "famille": "monde",
@@ -35,17 +35,17 @@
     "caisse_cassee": {
       "taille": [
         32,
-        20
+        21
       ],
       "ancrage": [
         16,
-        11
+        12
       ],
       "emprise": [
         0.5,
         0.5
       ],
-      "elevation": 4,
+      "elevation": 5,
       "categorie": "sol",
       "masquant": false,
       "famille": "monde",
@@ -638,7 +638,7 @@
       "images": 3,
       "cote": [
         38,
-        32
+        34
       ],
       "duree_ms": 110,
       "boucle": false,
@@ -649,7 +649,7 @@
       "images": 3,
       "cote": [
         37,
-        32
+        34
       ],
       "duree_ms": 90,
       "boucle": false,

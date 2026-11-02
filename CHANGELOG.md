@@ -42,6 +42,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Modifié
+
+- **La caisse et son épave sont dessinées.** Elles remplacent le cube de carton
+  et le tas gris par du bois à lattes ; les cycles d'écrasement et de rupture se
+  dérivent du nouveau dessin, et la rupture ne fane plus, les deux dessins
+  partageant leur matière.
+
 ### Corrigé
 
 - **Un obstacle bas cache ce qui s'abrite derrière lui.** Muret, banc, gondole
@@ -58,6 +65,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
   visible sous leur base.
 
 ***
+
+### Changed
+
+- **The crate and its wreck are now drawn.** They replace the cardboard cube and
+  the grey heap with slatted wood; the press and break cycles derive from the new
+  drawing, and the break no longer fades, both drawings sharing their material.
 
 ### Fixed
 

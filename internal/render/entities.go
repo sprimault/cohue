@@ -38,7 +38,7 @@ func (s *Screen) poserEntites() {
 			if montre {
 				s.poserEclair(e, id, etatDe(c))
 				if c.Flash > 0 {
-					s.poserEtincelle(t, c.Flash)
+					s.poserEtincelle(objetEtincelle, t, c.Flash)
 				}
 			}
 			return e, t, montre
@@ -305,7 +305,17 @@ func (s *Screen) epave(e *game.Wreck, id int) (scene.Entity, trace, bool) {
 // obstacle décrit un obstacle fragile tant qu'il tient.
 func (s *Screen) obstacle(o *game.Breakable, id int) (scene.Entity, trace, bool) {
 	nom := s.objets.sens(s.monde.BreakableKey(o.Kind), o.Across)
-	return s.objet(nom, o.X, o.Y, id, nil)
+	e, t, montre := s.objet(nom, o.X, o.Y, id, nil)
+	// **Chaque touche éclaire l'obstacle**, ce que la conception demande au
+	// chapitre des destructibles : c'est le seul retour d'une frappe qui ne
+	// casse pas encore. La simulation comptait déjà l'éclair — `Flash` descend à
+	// chaque tick — et rien ne le dessinait, si bien qu'on ne savait pas qu'on
+	// tapait dessus. C'est l'étincelle des créatures, au même titre et pour la
+	// même raison.
+	if montre && o.Flash > 0 {
+		s.poserEtincelle(objetEtincelleLourde, t, o.Flash)
+	}
+	return e, t, montre
 }
 
 // caisse décrit une caisse, écrasée sous l'appui ou intacte.

@@ -596,8 +596,22 @@ def eclats(matiere):
     return planche
 
 
-def etincelle():
+# Ce qui se centre sur ce qu'il marque, par opposition à un cycle, qui
+# appartient à l'objet qui le cite et prend son ancrage. La liste était écrite
+# dans la ligne qui pose la famille, si bien qu'une étincelle de plus y entrait
+# en `cycle` sans que rien ne le dise — et le contrôle du recadrage, qui ne
+# s'applique qu'aux secondes, la refusait pour une raison sans rapport.
+EFFETS = {"etincelle", "etincelle_lourde", "souffle"}
+
+
+def etincelle(cote=10, depart=2):
     """Impact d'un projectile : trois images, très courtes, sans matière.
+
+    **Le côté est un paramètre parce que deux impacts coexistent**, et ils ne
+    disent pas la même chose : un projectile qui touche une créature, et une
+    frappe à la main sur un obstacle fragile. La seconde est un coup porté de
+    tout le corps sur de la tôle ou du plâtre — à la taille de la première, on
+    la voyait à peine.
 
     Elle ne dit pas ce qui a été touché, seulement que le tir a porté — c'est
     ce retour-là qui manque le plus quand on tire sans le voir.
@@ -612,12 +626,12 @@ def etincelle():
     troisième image, écrite à 115, sortait **entièrement vide** — trois images
     déclarées, deux dessinées. Ce qui s'éteint est la teinte.
     """
-    images, cote = 3, 10
+    images = 3
     planche = Image.new("RGBA", (cote * images, cote), TRANSPARENT)
     # Du plus vif au plus éteint : la gerbe s'élargit en refroidissant.
     teintes = ((255, 248, 214), (250, 226, 150), (214, 178, 108))
     for i in range(images):
-        rayon = 2 + i
+        rayon = depart + i
         for angle in range(0, 360, 45):
             dx = round(rayon * math.cos(math.radians(angle)))
             dy = round(rayon * math.sin(math.radians(angle)) * 0.5)
@@ -968,6 +982,56 @@ DESSINES = {
     # Leur volume n'en posait aucune — ils n'entrent dans aucune grille —, si
     # bien que `_ancrage` leur gardait le bas-centre et les peignait quatre
     # pixels au-dessus du sol. Les voici traités comme tout ce qui repose.
+    # **Les quatre panneaux, dans les deux sens.** L'axe se demande au modèle
+    # par le côté vu — `right` donne `u`, `left` donne `v` —, et la pente de
+    # l'arête supérieure le vérifie : elle vaut +11 sur `u` et −11 sur `v`.
+    #
+    # **La formulation commande aussi la hauteur**, ce qui est le vrai piège :
+    # nommer le côté vu dresse le panneau, nommer la direction de sa face longue
+    # le couche. Les trois masquants veulent la première, la grille de
+    # ventilation la seconde — elle seule doit rester sous vingt-quatre pixels.
+    "rideau_fer": (1.0, 0.18),
+    "rideau_fer_v": (0.18, 1.0),
+    "vitrine": (1.0, 0.18),
+    "vitrine_v": (0.18, 1.0),
+    "cloison_fragile": (1.0, 0.18),
+    "cloison_fragile_v": (0.18, 1.0),
+    # **La grille a vu son emprise baisser de 0,7 à 0,5**, et c'est le levier
+    # des neuf petits objets du décor : le bloc qu'une forme ferme est le
+    # **plafond** de son emprise, donc une case dans les deux cas — la
+    # passabilité ne bouge pas, seule la largeur du dessin, dont l'élévation
+    # découle.
+    #
+    # Elle est le seul panneau à devoir rester sous vingt-quatre pixels, et son
+    # élévation vaut `largeur × (ratio − 0,5)`. À 0,7 il lui aurait fallu un
+    # ratio de 1,37, quand le plancher du modèle sur un sujet dressé est 1,39 —
+    # deux centièmes d'écart. À 0,5 la même image tombe à vingt pixels.
+    #
+    # **Le ratio se commande par le sujet**, et c'est ce qui l'a amené là : lui
+    # demander une grille **carrée** l'a fait passer de 2,3 à 1,4. L'orientation
+    # ne le fait pas — elle ne choisit qu'entre couché et dressé.
+    "grille_ventilation": (0.5, 0.12),
+    "grille_ventilation_v": (0.12, 0.5),
+    # **Les huit ruines prennent la formulation couchée**, celle qui aplatit :
+    # une ruine doit être basse, donc l'axe et la hauteur tirent ici dans le même
+    # sens, là où ils se disputaient sur les panneaux. Et c'est l'**état** qu'on
+    # décrit, jamais ce qui reste — « only the low frame left » a rendu un objet
+    # entier mais debout, quand « crushed flat, nothing standing » couche le
+    # sujet du premier coup.
+    "rideau_fer_casse": (1.0, 0.18),
+    "rideau_fer_casse_v": (0.18, 1.0),
+    "vitrine_cassee": (1.0, 0.18),
+    "vitrine_cassee_v": (0.18, 1.0),
+    "cloison_fragile_cassee": (1.0, 0.18),
+    "cloison_fragile_cassee_v": (0.18, 1.0),
+    # **Dire que les morceaux se dispersent, pas seulement qu'ils sont à plat.**
+    # « Crushed flat » a rendu un petit bloc compact, bas donc accepté par la
+    # mesure : un cube de huit pixels passe le même test qu'une traînée de
+    # débris. Ce qui l'ouvre est `scattered loose, spread apart, nothing
+    # stacked` — chaque défaut de forme se bloque par l'affirmation qui le nie,
+    # le graphe n'ayant pas de consigne négative.
+    "grille_ventilation_cassee": (0.5, 0.12),
+    "grille_ventilation_cassee_v": (0.12, 0.5),
     "gemme": (0.156, 0.156),
     # **L'emprise de la fiole a servi de réglage**, comme pour les neuf petits
     # objets du décor : à un quart de tuile son dessin faisait vingt-six pixels
@@ -1216,6 +1280,7 @@ def main():
     caisse_base = bruts["caisse"]
     for nom, fabrique, duree, boucle in (
             ("etincelle", etincelle, 40, False),
+            ("etincelle_lourde", lambda: etincelle(cote=18, depart=4), 40, False),
             ("souffle", souffle, 60, False),
             ("flammes", flammes, 120, True),
             ("caisse_appui", lambda: caisse_appui(caisse_base), 110, False),
@@ -1235,7 +1300,7 @@ def main():
         # centre sur ce qu'il marque et n'appartient à personne.
         manifeste[nom] = {"images": planche.width // largeur, "cote": [largeur, hauteur],
                           "duree_ms": duree, "boucle": boucle,
-                          "famille": "effet" if nom in ("etincelle", "souffle") else "cycle",
+                          "famille": "effet" if nom in EFFETS else "cycle",
                           "bloquant": False}
         print(f"{nom:22} {planche.width // largeur} images de {largeur}x{hauteur}")
 

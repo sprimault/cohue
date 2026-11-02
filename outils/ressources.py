@@ -228,9 +228,15 @@ def controler(sortie, pentes=False):
 
         # Icônes d'interface et bandes d'objets : leur case est fixe et leurs
         # marges sont voulues, comme pour les créatures.
+        # **La liste des effets vient du générateur**, et n'est plus recopiée
+        # ici : un effet de plus était refusé pour n'avoir été ajouté que d'un
+        # côté, avec un message qui parlait de recadrage. Une gerbe isométrique
+        # est deux fois plus large que haute, donc sa cellule carrée a des
+        # marges par construction — c'est ce que « case fixe » veut dire.
         case_fixe = cote is not None or chemin in marges or chemin.stem.endswith(
-            ("_icone", "_scintille", "_appui", "_rupture")) or chemin.stem in (
-            "etincelle", "souffle", "flammes") or chemin.stem.startswith("eclats_")
+            ("_icone", "_scintille", "_appui", "_rupture")) or (
+            chemin.stem in objets_iso.EFFETS or chemin.stem == "flammes"
+            or chemin.stem.startswith("eclats_"))
 
         # Un anneau ou une gerbe de particules est creux par nature : chercher
         # une silhouette pleine n'a pas de sens sur un effet. Une planche de

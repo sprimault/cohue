@@ -48,6 +48,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
   et le tas gris par du bois à lattes ; les cycles d'écrasement et de rupture se
   dérivent du nouveau dessin, et la rupture ne fane plus, les deux dessins
   partageant leur matière.
+- **Les quatre obstacles destructibles sont dessinés, dans les deux sens.**
+  Rideau de fer, vitrine, cloison et grille de ventilation remplacent leurs
+  panneaux unis, et ce qu'ils laissent en cédant est de leur matière et se
+  traverse — tôle froissée, verre répandu, plaques de plâtre, lames éparses.
 - **La gemme, la fiole et l'aimant sont dessinés.** Un cristal facetté, un
   flacon bouché et un fer à cheval remplacent une pastille, un bloc rouge et une
   forme indistincte ; leur scintillement suit, et les trois reposent désormais
@@ -62,6 +66,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Corrigé
 
+- **Frapper un obstacle fragile se voit.** Chaque touche en éclaire la surface,
+  comme un coup porté à une créature ; rien ne le montrait, et l'on ne savait
+  pas si l'on tapait au bon endroit.
 - **Un obstacle bas cache ce qui s'abrite derrière lui.** Muret, banc, gondole
   ou voiture laissaient voir par-dessus eux la créature de la case voisine, qui
   se lisait alors comme debout sur la maçonnerie.
@@ -82,6 +89,10 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **The crate and its wreck are now drawn.** They replace the cardboard cube and
   the grey heap with slatted wood; the press and break cycles derive from the new
   drawing, and the break no longer fades, both drawings sharing their material.
+- **The four destructible obstacles are now drawn, in both directions.** Roller
+  shutter, shop window, partition and air vent replace their plain panels, and
+  what each leaves behind is of its own material and can be walked through —
+  crumpled sheet metal, spilled glass, plasterboard fragments, scattered slats.
 - **The gem, the vial and the magnet are now drawn.** A faceted crystal, a
   corked flask and a horseshoe magnet replace a pellet, a red block and an
   indistinct shape; their shimmer follows, and all three now rest on their tile
@@ -96,6 +107,9 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ### Fixed
 
+- **Hitting a fragile obstacle now shows.** Each blow lights up its surface, as
+  one landed on a creature does; nothing showed it, and there was no telling
+  whether you were striking the right spot.
 - **A low obstacle now hides whatever shelters behind it.** Walls, benches,
   gondolas and cars let the creature on the next tile show over them, which read
   as standing on top of the masonry.

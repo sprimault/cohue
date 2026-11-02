@@ -98,18 +98,18 @@
     },
     "cloison_fragile": {
       "taille": [
-        37,
-        59
+        38,
+        63
       ],
       "ancrage": [
-        18,
-        49
+        19,
+        53
       ],
       "emprise": [
         1.0,
         0.18
       ],
-      "elevation": 40,
+      "elevation": 44,
       "categorie": "haut",
       "masquant": true,
       "famille": "monde",
@@ -125,11 +125,11 @@
     },
     "cloison_fragile_cassee": {
       "taille": [
-        37,
+        38,
         29
       ],
       "ancrage": [
-        18,
+        19,
         19
       ],
       "emprise": [
@@ -145,18 +145,18 @@
     },
     "vitrine": {
       "taille": [
-        37,
-        53
+        38,
+        64
       ],
       "ancrage": [
-        18,
-        43
+        19,
+        54
       ],
       "emprise": [
         1.0,
         0.18
       ],
-      "elevation": 34,
+      "elevation": 45,
       "categorie": "haut",
       "masquant": true,
       "famille": "monde",
@@ -173,17 +173,17 @@
     "vitrine_cassee": {
       "taille": [
         37,
-        31
+        26
       ],
       "ancrage": [
         18,
-        21
+        16
       ],
       "emprise": [
         1.0,
         0.18
       ],
-      "elevation": 12,
+      "elevation": 7,
       "categorie": "sol",
       "masquant": false,
       "famille": "monde",
@@ -192,18 +192,18 @@
     },
     "grille_ventilation": {
       "taille": [
-        27,
-        36
+        20,
+        27
       ],
       "ancrage": [
-        13,
-        28
+        10,
+        21
       ],
       "emprise": [
-        0.7,
-        0.16
+        0.5,
+        0.12
       ],
-      "elevation": 22,
+      "elevation": 17,
       "categorie": "obstacle_bas",
       "masquant": false,
       "famille": "monde",
@@ -219,18 +219,18 @@
     },
     "grille_ventilation_cassee": {
       "taille": [
-        27,
-        22
+        20,
+        16
       ],
       "ancrage": [
-        13,
-        14
+        10,
+        10
       ],
       "emprise": [
-        0.7,
-        0.16
+        0.5,
+        0.12
       ],
-      "elevation": 8,
+      "elevation": 6,
       "categorie": "sol",
       "masquant": false,
       "famille": "monde",
@@ -239,18 +239,18 @@
     },
     "rideau_fer": {
       "taille": [
-        37,
-        65
+        38,
+        58
       ],
       "ancrage": [
-        18,
-        55
+        19,
+        48
       ],
       "emprise": [
         1.0,
         0.18
       ],
-      "elevation": 46,
+      "elevation": 39,
       "categorie": "haut",
       "masquant": true,
       "famille": "monde",
@@ -266,18 +266,18 @@
     },
     "rideau_fer_casse": {
       "taille": [
-        37,
-        32
+        38,
+        29
       ],
       "ancrage": [
-        18,
-        22
+        19,
+        19
       ],
       "emprise": [
         1.0,
         0.18
       ],
-      "elevation": 13,
+      "elevation": 10,
       "categorie": "sol",
       "masquant": false,
       "famille": "monde",
@@ -398,61 +398,23 @@
     "cloison_fragile_v": {
       "taille": [
         38,
-        59
+        62
       ],
       "ancrage": [
         19,
-        49
+        52
       ],
       "emprise": [
         0.18,
         1.0
       ],
-      "elevation": 40,
+      "elevation": 43,
       "categorie": "haut",
       "masquant": true,
       "famille": "monde",
       "bloquant": true
     },
     "cloison_fragile_cassee_v": {
-      "taille": [
-        38,
-        29
-      ],
-      "ancrage": [
-        19,
-        19
-      ],
-      "emprise": [
-        0.18,
-        1.0
-      ],
-      "elevation": 10,
-      "categorie": "sol",
-      "masquant": false,
-      "famille": "monde",
-      "bloquant": false
-    },
-    "vitrine_v": {
-      "taille": [
-        38,
-        53
-      ],
-      "ancrage": [
-        19,
-        43
-      ],
-      "emprise": [
-        0.18,
-        1.0
-      ],
-      "elevation": 34,
-      "categorie": "haut",
-      "masquant": true,
-      "famille": "monde",
-      "bloquant": true
-    },
-    "vitrine_cassee_v": {
       "taille": [
         38,
         31
@@ -471,20 +433,58 @@
       "famille": "monde",
       "bloquant": false
     },
-    "grille_ventilation_v": {
+    "vitrine_v": {
       "taille": [
-        28,
-        36
+        38,
+        68
       ],
       "ancrage": [
-        14,
-        28
+        19,
+        58
       ],
       "emprise": [
-        0.16,
-        0.7
+        0.18,
+        1.0
       ],
-      "elevation": 22,
+      "elevation": 49,
+      "categorie": "haut",
+      "masquant": true,
+      "famille": "monde",
+      "bloquant": true
+    },
+    "vitrine_cassee_v": {
+      "taille": [
+        38,
+        29
+      ],
+      "ancrage": [
+        19,
+        19
+      ],
+      "emprise": [
+        0.18,
+        1.0
+      ],
+      "elevation": 10,
+      "categorie": "sol",
+      "masquant": false,
+      "famille": "monde",
+      "bloquant": false
+    },
+    "grille_ventilation_v": {
+      "taille": [
+        20,
+        30
+      ],
+      "ancrage": [
+        10,
+        24
+      ],
+      "emprise": [
+        0.12,
+        0.5
+      ],
+      "elevation": 20,
       "categorie": "obstacle_bas",
       "masquant": false,
       "famille": "monde",
@@ -492,18 +492,18 @@
     },
     "grille_ventilation_cassee_v": {
       "taille": [
-        28,
-        22
+        20,
+        11
       ],
       "ancrage": [
-        14,
-        14
+        10,
+        5
       ],
       "emprise": [
-        0.16,
-        0.7
+        0.12,
+        0.5
       ],
-      "elevation": 8,
+      "elevation": 1,
       "categorie": "sol",
       "masquant": false,
       "famille": "monde",
@@ -512,17 +512,17 @@
     "rideau_fer_v": {
       "taille": [
         38,
-        65
+        66
       ],
       "ancrage": [
         19,
-        55
+        56
       ],
       "emprise": [
         0.18,
         1.0
       ],
-      "elevation": 46,
+      "elevation": 47,
       "categorie": "haut",
       "masquant": true,
       "famille": "monde",
@@ -531,17 +531,17 @@
     "rideau_fer_casse_v": {
       "taille": [
         38,
-        33
+        25
       ],
       "ancrage": [
         19,
-        23
+        15
       ],
       "emprise": [
         0.18,
         1.0
       ],
-      "elevation": 14,
+      "elevation": 6,
       "categorie": "sol",
       "masquant": false,
       "famille": "monde",
@@ -602,6 +602,17 @@
       "cote": [
         10,
         10
+      ],
+      "duree_ms": 40,
+      "boucle": false,
+      "famille": "effet",
+      "bloquant": false
+    },
+    "etincelle_lourde": {
+      "images": 3,
+      "cote": [
+        18,
+        18
       ],
       "duree_ms": 40,
       "boucle": false,

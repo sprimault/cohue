@@ -563,17 +563,19 @@ def dessins(sortie):
     rattache ces images à la licence du dépôt, et rien d'autre ne le porte.
     """
     defauts = []
-    racine = sortie / "decors"
-    if not racine.exists() or not decor_iso.DESSINES:
-        return defauts
+    for dossier, noms in (("decors", decor_iso.DESSINES), ("objets", objets_iso.DESSINES)):
+        racine = sortie / dossier
+        if not racine.exists() or not noms:
+            continue
 
-    if not (racine / "LICENSE.txt").exists():
-        defauts.append(("decors", "LICENSE.txt absent, alors que des formes y sont dessinées"))
-    catalogue = racine / "manifeste.json"
-    declarees = _entrees(catalogue) if catalogue.exists() else {}
-    for nom in sorted(decor_iso.DESSINES):
-        if nom not in declarees:
-            defauts.append((nom, "dessinée mais absente du manifeste"))
+        if not (racine / "LICENSE.txt").exists():
+            defauts.append((dossier,
+                            "LICENSE.txt absent, alors que des formes y sont dessinées"))
+        catalogue = racine / "manifeste.json"
+        declarees = _entrees(catalogue) if catalogue.exists() else {}
+        for nom in sorted(noms):
+            if nom not in declarees:
+                defauts.append((nom, "dessinée mais absente du manifeste"))
     return defauts
 
 
@@ -809,9 +811,18 @@ def _engendre(chemin):
     """
     if chemin.name == "LICENSE.txt":
         return False
-    if len(chemin.parts) > 1 and chemin.parts[0] == "personnages" and chemin.parts[1] in figurines.DESSINES:
+    if not chemin.parts:
         return False
-    if chemin.parts and chemin.parts[0] == "decors" and chemin.stem in decor_iso.DESSINES:
+    # **Ce qu'un générateur n'écrit plus**, parce que le dessin est tenu à la
+    # main. Les trois ne rangent pas pareil — un profil a son dossier, une forme
+    # de décor son thème, un objet son fichier à la racine —, donc la table dit
+    # pour chacun quel nom confronter plutôt que de recopier la question.
+    tenus = {
+        "personnages": lambda c: len(c.parts) > 1 and c.parts[1] in figurines.DESSINES,
+        "decors": lambda c: c.stem in decor_iso.DESSINES,
+        "objets": lambda c: c.stem in objets_iso.DESSINES,
+    }
+    if (dessine := tenus.get(chemin.parts[0])) and dessine(chemin):
         return False
     return bool(chemin.parts) and chemin.parts[0] in {d for _, _, d in GENERATEURS}
 

@@ -752,7 +752,7 @@ def _comprimer(img, tassement, elargissement):
     return fond
 
 
-def caisse_appui(images=3):
+def caisse_appui(base, images=3):
     """Jouée pendant que le joueur pousse : la caisse s'écrase en s'élargissant.
 
     **Elle ne boucle pas, et le manifeste le déclare.** Sa durée est celle du
@@ -764,8 +764,11 @@ def caisse_appui(images=3):
 
     L'écrasement est franc parce qu'il porte à lui seul l'information : sans lui,
     un joueur ralenti sur une caisse croit avoir buté sur un mur.
+
+    **La base vient de l'appelant**, parce que la caisse peut être dessinée : le
+    cycle se dérive de l'image qui entre dans le jeu, générée ou non, et suit
+    donc le dessin sans rien savoir de lui.
     """
-    base = caisse()
     cadres = []
     for i in range(images):
         avancement = i / max(1, images - 1)
@@ -782,20 +785,23 @@ def caisse_appui(images=3):
     return planche, (largeur, hauteur)
 
 
-def caisse_rupture(images=3):
+def caisse_rupture(base, images=3):
     """Éclatement, non bouclé : la dernière image s'achève sur l'épave.
 
-    **La matière fane au fil des images**, jusqu'à celle de l'épave à la
-    dernière. Elle ne fanait pas tant que l'épave gardait la couleur de la
-    caisse ; depuis qu'elle est éteinte, une rupture restée vive sautait d'un
-    carton clair à une dalle grise en une image, au moment précis où l'œil suit
-    la chose qui tombe.
+    **La matière ne fane plus, et c'est la prémisse qui a changé.** Le fanage
+    existait parce que l'épave générée était éteinte : une rupture restée vive
+    sautait d'un carton clair à une dalle grise en une image, au moment précis où
+    l'œil suit la chose qui tombe. La caisse et son épave étant désormais
+    dessinées, elles partagent leur matière — saturation moyenne de 0,37 et 0,50,
+    là où les générées allaient de 0,48 à 0,22. La continuité vient donc des
+    dessins, et faner par-dessus creuserait l'écart qu'on cherchait à combler.
+
+    **La base vient de l'appelant**, comme pour l'appui : le cycle se dérive de
+    l'image qui entre dans le jeu.
     """
     cadres = []
     for i in range(images):
         avancement = (i + 1) / images
-        base = caisse(_fane("carton", f"_o_carton_rupture_{i}",
-                            force=0.55 * avancement, assombrir=0.24 * avancement))
         morceau = _comprimer(base, round(6 * avancement), round(5 * avancement))
         prim.eventrer(morceau, densite=0.18 + 0.30 * avancement, graine=90 + i)
         cadres.append(morceau)
@@ -938,6 +944,51 @@ ICONES = {"fiole": icone_fiole}
 # à côté de ce qu'elle alimente, et régler une charge ne touche pas au dessin.
 # ressources.py refuse qu'elles reviennent sur un objet.
 
+# Les objets dont le dessin est tenu à la main, avec l'emprise qu'il occupe.
+# Ce script en écrit toujours l'entrée de manifeste — taille, ancrage, élévation,
+# catégorie et masquage se mesurent sur le dessin livré, comme ils se mesuraient
+# sur le volume qu'il remplace —, mais plus l'image, que `make objets`
+# écraserait.
+#
+# **L'emprise est la seule chose qu'un dessin ne porte pas**, et c'est la même
+# raison que pour le décor : la largeur d'un losange dit la somme de ses deux
+# côtés, jamais lequel est lequel. Elle sert en outre à centrer l'ancrage, ce que
+# `_ancrage` explique.
+#
+# Un dessin ne se régénère pas à l'identique : c'est ce qui range ces formes à
+# part, comme les personnages, et leur vaut le `LICENSE.txt` du dossier.
+DESSINES = {
+    "caisse": (0.5, 0.5),
+    "caisse_cassee": (0.5, 0.5),
+}
+
+
+def dessin(dossier, nom):
+    """Charge l'image tenue à la main d'un objet de `DESSINES`.
+
+    Elle est lue là où elle est versionnée et jamais dans le dossier de sortie :
+    la vérification régénère à côté, dans un répertoire vide, et y chercher le
+    dessin ferait échouer le contrôle au lieu de comparer les manifestes.
+
+    Son absence est une erreur et non un passage en silence — sans le fichier, il
+    n'y a ni taille, ni élévation à mesurer, et une entrée de manifeste écrite
+    sur des valeurs par défaut serait pire que pas d'entrée.
+
+    La hauteur du dessus se dérive de l'emprise, seule chose que le dessin ne
+    porte pas : c'est la hauteur qu'aurait son losange, et c'est d'elle que
+    `elevation_reelle` déduit ce qui dépasse du sol.
+    """
+    ex, ey = DESSINES[nom]
+    chemin = Path(dossier) / f"{nom}.png"
+    if not chemin.exists():
+        raise SystemExit(f"{chemin} : dessin absent, {nom} est tenu à la main")
+    img = Image.open(chemin).convert("RGBA")
+    img.load()
+    img.info["hauteur_dessus"] = round((ex + ey) * prim.LARGEUR_TUILE / 4)
+    img.info["emprise"] = (ex, ey)
+    return img
+
+
 def _ancrage(img, losange):
     """Le pixel de l'image qui tombe sur la position du monde.
 
@@ -998,6 +1049,9 @@ CATALOGUE = {
 def main():
     a = argparse.ArgumentParser(description=__doc__)
     a.add_argument("--sortie", type=Path, default=Path("assets/objets"))
+    # Là où les dessins tenus à la main sont versionnés, et non `--sortie` : la
+    # vérification régénère dans un répertoire vide, où ils n'existent pas.
+    a.add_argument("--dessins", default=Path("assets/objets"), type=Path)
     a.add_argument("--apercu", action="store_true")
     o = a.parse_args()
 
@@ -1008,8 +1062,17 @@ def main():
     for nom, pivote in PIVOTES.items():
         fabriques[pivote] = lambda f=CATALOGUE[nom]: f(axe="v")
 
+    # Un nom ne peut pas relever des deux tables : la fabrique gagnerait en
+    # silence, et l'on croirait régénérer une forme que plus rien ne dessine.
+    inconnus = sorted(set(DESSINES) - set(fabriques))
+    if inconnus:
+        raise SystemExit(f"dessiné sans entrée au catalogue : {', '.join(inconnus)}")
+
+    bruts = {}
     for nom, fabrique in fabriques.items():
-        brut = fabrique()
+        tenu = nom in DESSINES
+        brut = dessin(o.dessins, nom) if tenu else fabrique()
+        bruts[nom] = brut
         # Une emprise absente n'est pas une petite emprise. Elle se perd dès
         # qu'une forme recompose ses volumes dans une image neuve, et un défaut
         # silencieux poserait alors un carré d'un quart de tuile là où la
@@ -1034,14 +1097,22 @@ def main():
         # Le pourtour va vers un presque-noir sauf déclaration contraire : seul
         # ce qu'on doit voir arriver porte un liseré clair, et `contour` dit
         # pourquoi cette dérogation ne s'étend pas.
-        cible, force = brut.info.get("contour", ((24, 24, 28), 0.40))
-        img = prim.reduire(prim.contour(brut, force=force, cible=cible), couleurs=12)
+        # Un dessin entre tel quel : il porte déjà son contour et sa palette,
+        # et le repasser lui en ajouterait un second.
+        if tenu:
+            img = brut
+        else:
+            cible, force = brut.info.get("contour", ((24, 24, 28), 0.40))
+            img = prim.reduire(prim.contour(brut, force=force, cible=cible), couleurs=12)
         # Recadrage : le moteur pose un objet par son point d'appui, pas par le
         # coin d'une image. Des marges transparentes ne feraient que décaler la
         # position réelle sans que rien ne le signale.
         img = img.crop(img.getbbox())
         img.info.update(brut.info)
-        img.save(o.sortie / f"{nom}.png")
+        # Un dessin ne se réécrit pas : `make objets` l'écraserait par sa propre
+        # sortie, et le contrôle de régénération ne le compare pas.
+        if not tenu:
+            img.save(o.sortie / f"{nom}.png")
 
         # Les trois champs qui commandent le rendu et la topologie, dérivés
         # comme pour le décor et non saisis. Sans eux, le rideau de fer fait
@@ -1103,11 +1174,15 @@ def main():
                                           "famille": "particule", "bloquant": False}
         print(f"{'eclats_' + matiere:22} 3 formes de {cote} px")
 
-    for nom, fabrique, duree, boucle in (("etincelle", etincelle, 40, False),
-                                         ("souffle", souffle, 60, False),
-                                         ("flammes", flammes, 120, True),
-                                         ("caisse_appui", caisse_appui, 110, False),
-                                         ("caisse_rupture", caisse_rupture, 90, False)):
+    # Les deux cycles de la caisse reçoivent sa base : ils se dérivent de
+    # l'image qui entre dans le jeu, dessinée ou composée.
+    caisse_base = bruts["caisse"]
+    for nom, fabrique, duree, boucle in (
+            ("etincelle", etincelle, 40, False),
+            ("souffle", souffle, 60, False),
+            ("flammes", flammes, 120, True),
+            ("caisse_appui", lambda: caisse_appui(caisse_base), 110, False),
+            ("caisse_rupture", lambda: caisse_rupture(caisse_base), 90, False)):
         rendu = fabrique()
         if isinstance(rendu, tuple):
             planche, (largeur, hauteur) = rendu

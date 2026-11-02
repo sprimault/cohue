@@ -1607,7 +1607,7 @@ Le contenu de l'écran de réglages dépend de ce qu'il y aura à régler, et la
 
 ### La persistance
 
-Ce qui survit à une run est peu de chose : les déblocages, les meilleurs scores par lieu et par graine, les réglages, et le compteur de parties. Rien de tout cela n'a besoin d'un moteur de base de données, mais deux raisons peuvent en justifier un — l'historique des scores par graine, qui grossit, et l'habitude déjà prise sur [[jeu-fugitif]].
+Ce qui survit à une run est peu de chose : les déblocages, les meilleurs scores par lieu et par graine, les réglages, et le compteur de parties. Rien de tout cela n'a besoin d'un moteur de base de données, mais deux raisons peuvent en justifier un — l'historique des scores par graine, qui grossit, et l'habitude déjà prise sur un projet antérieur.
 
 **Un point à vérifier avant de s'engager, et il est bloquant** : la cible `js/wasm` est compilée par l'intégration continue, précisément pour qu'aucune dépendance n'introduise de cgo sans qu'on le voie. Un pilote SQLite qui ne se construit pas pour `js/wasm` casserait ce contrôle, et l'on découvrirait le problème sur le premier commit qui l'ajoute. À tester dans un bac à sable avant de l'inscrire dans `go.mod`.
 

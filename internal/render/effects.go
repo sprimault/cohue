@@ -336,8 +336,8 @@ const milieuDuCorps = 22
 // Une méthode pour un seul effet, et non une machinerie pour la famille : le
 // souffle d'une déflagration est le second, il vient avec son bassin, et c'est
 // alors qu'on saura ce que les deux partagent.
-func (s *Screen) poserEtincelle(sur trace, reste game.Tick) {
-	catalogue, i, montre := s.objets.effet(objetEtincelle, reste)
+func (s *Screen) poserEtincelle(nom string, sur trace, reste game.Tick) {
+	catalogue, i, montre := s.objets.effet(nom, reste)
 	if !montre {
 		return
 	}

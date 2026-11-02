@@ -40,7 +40,11 @@ const (
 	objetTir       = "projectile_base"
 	objetTirHorde  = "projectile_ennemi"
 	objetEtincelle = "etincelle"
-	objetSouffle   = "souffle"
+	// objetEtincelleLourde est l'impact d'une frappe à la main sur un obstacle
+	// fragile, presque deux fois plus large que celui d'un projectile : ce n'est
+	// pas le même geste, et à la taille de l'autre on le voyait à peine.
+	objetEtincelleLourde = "etincelle_lourde"
+	objetSouffle         = "souffle"
 	// Les flammes qu'une lourde pose. **Une bande par case et non une image par
 	// flaque** : le rayon vient du manifeste des armes et se règle, quand un
 	// dessin taillé pour lui se périmerait au premier réglage — et il ne suivrait
@@ -195,7 +199,7 @@ func NewStage(fsys fs.FS, racine, source string, objets *game.Objects,
 	// à chaque arme ajoutée.
 	noms := append([]string{
 		objetGemme, objetAimant, objetCaisse, objetFiole, objetTir, objetTirHorde,
-		objetEtincelle, objetSouffle, objetFlammes,
+		objetEtincelle, objetEtincelleLourde, objetSouffle, objetFlammes,
 	}, catalogue.Weapons()...)
 
 	// Ce qui se casse vient du catalogue pour la même raison : la clé

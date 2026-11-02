@@ -304,14 +304,6 @@ def icone_tourelle():
     return img
 
 
-def icone_fiole():
-    img = _icone()
-    _rect(img, 6, 7, 13, 17, "verre")
-    _rect(img, 7, 11, 12, 16, "vie")
-    _rect(img, 8, 4, 11, 7, "acier_sombre")
-    return img
-
-
 ARMES = {"fusil": icone_fusil, "lance_flammes": icone_lance_flammes,
          "grenade": icone_grenade, "tourelle": icone_tourelle}
 
@@ -928,15 +920,17 @@ VALEURS = {
     "fiole": {"soin": 30, "stock": 2},
 }
 
-# Les objets de monde qui portent aussi une icône d'interface, pour la case
-# d'emplacement qui les tient. C'est ce qui met le bandeau et le monde dans le
-# même langage visuel : ce que le joueur lit au-dessus d'une caisse est l'objet
-# qu'il tiendra.
+# **Un objet du monde n'a plus d'icône séparée**, et la fiole était la seule à
+# en porter une. Sa case du bandeau montre désormais son dessin de scène, ce qui
+# met les deux dans le même langage visuel — la conception le demande déjà de la
+# caisse, dont l'icône flottante annonce « l'objet qu'il tiendra ».
 #
-# **Son fichier est à côté de son dessin de monde, quand celui d'une arme vit
-# dans `armes/`.** Ce dossier porte ce qui est une arme, et une fiole n'en est
-# pas une ; ce qui suit le nom est le suffixe, dans les deux cas.
-ICONES = {"fiole": icone_fiole}
+# Deux dessins du même objet étaient deux descriptions à garder d'accord, et
+# l'aimant a montré ce qu'elles coûtent : le bandeau en peignait un aplat d'une
+# teinte écrite à la main, restée brune quand le sprite est devenu rouge.
+#
+# Une arme lourde garde la sienne, et ce n'est pas une exception : c'est son
+# dessin au sol qui se dérive de l'icône, donc il n'y a toujours qu'une source.
 
 # Les charges d'une arme lourde ne sont plus ici : elles ont déménagé dans
 # assets/armes/manifeste.json, tenu à la main, par le critère qui avait déjà fait
@@ -965,6 +959,23 @@ DESSINES = {
     # en faisait six : à quinze, elle approche la caisse et cesse de se lire
     # comme une chose posée à plat. Celle retenue est la seule à rester plate.
     "palette": (1.0, 1.0),
+    # **Les trois ramassables, et la gemme est le plus petit dessin du dépôt.**
+    # Soixante-quatre pixels opaques, sous le plot du parking qui en comptait
+    # quatre-vingt-deux et tenait le record : la mesure la donnait hors
+    # d'atteinte, la planche a montré l'inverse.
+    #
+    # **Déclarer leur emprise les recentre, et c'est le gain qui vient avec.**
+    # Leur volume n'en posait aucune — ils n'entrent dans aucune grille —, si
+    # bien que `_ancrage` leur gardait le bas-centre et les peignait quatre
+    # pixels au-dessus du sol. Les voici traités comme tout ce qui repose.
+    "gemme": (0.156, 0.156),
+    # **L'emprise de la fiole a servi de réglage**, comme pour les neuf petits
+    # objets du décor : à un quart de tuile son dessin faisait vingt-six pixels
+    # de haut et débordait de la case du bandeau, qui en tient vingt. À dix-neuf
+    # centièmes — l'emprise de la borne du parking — il en fait dix-neuf, et
+    # reste un petit objet au sol.
+    "fiole": (0.19, 0.19),
+    "aimant": (0.25, 0.25),
 }
 
 
@@ -1161,10 +1172,6 @@ def main():
                           **({} if cout is None else {"cout_traversee": cout})}
         if nom in VALEURS:
             manifeste[nom].update(VALEURS[nom])
-        if nom in ICONES:
-            icone = ICONES[nom]()
-            icone.save(o.sortie / f"{nom}_icone.png")
-            manifeste[nom]["taille_icone"] = list(icone.size)
         if nom in DESTRUCTION:
             manifeste[nom]["destruction"] = DESTRUCTION[nom]
         if nom in PIVOTES:

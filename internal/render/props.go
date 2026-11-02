@@ -115,7 +115,31 @@ func (s *Stage) sens(nom string, travers bool) string {
 // **Le bandeau ne charge aucune image et n'en cherche aucune** : il pose celle
 // qu'on lui donne, ce qui garde la frontière — il ne connaît pas le catalogue,
 // donc il ne peut pas savoir quelle icône va où.
-func (s *Stage) Icon(nom string) scene.Aspect { return s.icones[nom] }
+// Icon rend ce qui représente un objet hors de la scène : la case du bandeau qui
+// le tient, et l'annonce flottée au-dessus d'une caisse. Nulle si le catalogue
+// n'a ni icône ni dessin.
+//
+// **Elle se rabat sur le dessin de la scène, et ce n'est pas un repli.** Une
+// arme lourde garde une icône propre parce que c'est l'inverse qui s'y joue —
+// son dessin au sol en dérive, donc il n'y a qu'une source. Partout ailleurs,
+// deux dessins du même objet seraient deux descriptions à garder d'accord, et
+// l'aimant a montré ce qu'elles coûtent : sa case peignait un aplat d'une teinte
+// écrite à la main, restée brune quand le sprite est devenu rouge.
+//
+// Ce qui l'interdisait a cessé d'être vrai. Un sprite de monde était un volume
+// généré — en isométrie, et avec l'ombre que le générateur ajoute ; un objet
+// dessiné n'a ni l'une ni l'autre. Et la conception y gagne ce qu'elle demande
+// déjà de l'annonce : « ce que le joueur lit au-dessus d'une caisse est l'objet
+// qu'il tiendra ».
+func (s *Stage) Icon(nom string) scene.Aspect {
+	if icone, porte := s.icones[nom]; porte {
+		return icone
+	}
+	if p, porte := s.objets[nom]; porte && len(p.images) > 0 {
+		return p.images[0]
+	}
+	return scene.Aspect{}
+}
 
 // bordDIcone rend le liseré d'une icône. Sa valeur zéro ne montre rien, ce qui
 // est la façon dont la scène reconnaît déjà ce qu'elle n'a pas à dessiner.

@@ -73,17 +73,17 @@
     "gemme": {
       "taille": [
         10,
-        8
+        16
       ],
       "ancrage": [
         5,
-        5
+        13
       ],
       "emprise": [
         0.156,
         0.156
       ],
-      "elevation": 3,
+      "elevation": 11,
       "categorie": "sol",
       "masquant": false,
       "famille": "monde",
@@ -344,27 +344,23 @@
     "fiole": {
       "taille": [
         12,
-        13
+        19
       ],
       "ancrage": [
         6,
-        12
+        15
       ],
       "emprise": [
-        0.25,
-        0.25
+        0.19,
+        0.19
       ],
-      "elevation": 0,
+      "elevation": 13,
       "categorie": "sol",
       "masquant": false,
       "famille": "monde",
       "bloquant": false,
       "soin": 30,
       "stock": 2,
-      "taille_icone": [
-        20,
-        20
-      ],
       "son": "soin",
       "scintillement": {
         "images": 4,
@@ -375,18 +371,18 @@
     },
     "aimant": {
       "taille": [
-        18,
-        18
+        16,
+        14
       ],
       "ancrage": [
-        9,
-        17
+        8,
+        9
       ],
       "emprise": [
         0.25,
         0.25
       ],
-      "elevation": 0,
+      "elevation": 6,
       "categorie": "sol",
       "masquant": false,
       "famille": "monde",

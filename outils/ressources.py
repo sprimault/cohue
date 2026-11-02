@@ -563,7 +563,11 @@ def dessins(sortie):
     rattache ces images à la licence du dépôt, et rien d'autre ne le porte.
     """
     defauts = []
-    for dossier, noms in (("decors", decor_iso.DESSINES), ("objets", objets_iso.DESSINES)):
+    # Les deux familles d'`objets/` partagent un manifeste et un `LICENSE.txt`,
+    # donc elles se contrôlent ensemble : les séparer donnerait deux fois le même
+    # message sur le même dossier.
+    for dossier, noms in (("decors", decor_iso.DESSINES),
+                          ("objets", set(objets_iso.DESSINES) | objets_iso.DESSINES_ARMES)):
         racine = sortie / dossier
         if not racine.exists() or not noms:
             continue
@@ -820,7 +824,13 @@ def _engendre(chemin):
     tenus = {
         "personnages": lambda c: len(c.parts) > 1 and c.parts[1] in figurines.DESSINES,
         "decors": lambda c: c.stem in decor_iso.DESSINES,
-        "objets": lambda c: c.stem in objets_iso.DESSINES,
+        # Deux familles s'y rangent, et leurs noms ne se construisent pas pareil :
+        # une forme du monde porte le sien à la racine, l'icône d'une arme vit
+        # dans `armes/` avec son suffixe. Le dessin au sol d'une arme reste
+        # produit, puisqu'il se dérive de l'icône.
+        "objets": lambda c: (c.stem.removesuffix("_icone") in objets_iso.DESSINES_ARMES
+                             if c.parent.name == "armes" and c.stem.endswith("_icone")
+                             else c.stem in objets_iso.DESSINES),
     }
     if (dessine := tenus.get(chemin.parts[0])) and dessine(chemin):
         return False

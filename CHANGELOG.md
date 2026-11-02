@@ -48,6 +48,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
   et le tas gris par du bois à lattes ; les cycles d'écrasement et de rupture se
   dérivent du nouveau dessin, et la rupture ne fane plus, les deux dessins
   partageant leur matière.
+- **La gemme, la fiole et l'aimant sont dessinés.** Un cristal facetté, un
+  flacon bouché et un fer à cheval remplacent une pastille, un bloc rouge et une
+  forme indistincte ; leur scintillement suit, et les trois reposent désormais
+  sur leur case au lieu d'être peints quatre pixels au-dessus.
+- **Les cases du bandeau montrent le dessin de la scène.** Celle de l'aimant
+  peignait un aplat de couleur, celle des fioles un second dessin tenu à part :
+  les deux montrent maintenant l'objet qu'on a ramassé.
 - **La palette et les quatre icônes d'armes sont dessinées.** La palette montre
   ses lattes au lieu d'un pavé uni, et fusil, lance-flammes, grenade et tourelle
   se reconnaissent dans le bandeau ; ce que chaque arme laisse au sol se dérive
@@ -75,6 +82,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **The crate and its wreck are now drawn.** They replace the cardboard cube and
   the grey heap with slatted wood; the press and break cycles derive from the new
   drawing, and the break no longer fades, both drawings sharing their material.
+- **The gem, the vial and the magnet are now drawn.** A faceted crystal, a
+  corked flask and a horseshoe magnet replace a pellet, a red block and an
+  indistinct shape; their shimmer follows, and all three now rest on their tile
+  instead of being drawn four pixels above it.
+- **The bar's slots now show the drawing from the scene.** The magnet's slot
+  painted a flat colour and the vial's a second, separate drawing: both now show
+  the object that was picked up.
 - **The pallet and the four weapon icons are now drawn.** The pallet shows its
   slats instead of a plain slab, and shotgun, flamethrower, grenade and turret
   are recognisable in the bar; what each weapon leaves on the ground derives from

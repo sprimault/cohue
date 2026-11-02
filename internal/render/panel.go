@@ -129,6 +129,12 @@ type Readings struct {
 	Elapsed game.Tick
 	// Charged dit si le joueur tient un aimant.
 	Charged bool
+	// Magnet est le dessin que sa case montre, et c'est celui de la scène.
+	//
+	// **Un objet du monde y sert d'icône quand il n'en a pas de séparée**, ce
+	// que l'aplat précédent attendait. Il tenait une teinte écrite à la main,
+	// qui a divergé dès que l'aimant a été dessiné.
+	Magnet scene.Aspect
 	// Heavies sont les emplacements d'armes lourdes, dans l'ordre des touches.
 	Heavies [game.Slots]Held
 	// Vials est la case des fioles : leur nombre et leur dessin.
@@ -235,7 +241,7 @@ func (h *HUD) Panel(sc *scene.Scene, r Readings, souris pointeur) {
 	}
 
 	cases := h.casesDuBandeau(sc, r)
-	h.emplacement(sc, cases[caseAimant], r.Charged)
+	h.emplacement(sc, cases[caseAimant], r.Charged, r.Magnet)
 	h.lourdes(sc, cases, r)
 	h.fioles(sc, cases, r)
 
@@ -341,25 +347,26 @@ func (h *HUD) compteDansLaCase(sc *scene.Scene, x, bas, tenu int) {
 // La touche s'écrit dessous et non le nom, comme la conception l'exige d'un
 // emplacement : ce que le joueur cherche sous la case en jouant est ce qu'il doit
 // presser, et l'icône dira de quoi il s'agit quand elle existera.
-func (h *HUD) emplacement(sc *scene.Scene, z zone, chargee bool) {
+func (h *HUD) emplacement(sc *scene.Scene, z zone, chargee bool, aspect scene.Aspect) {
 	h.Slot(sc, z.x, z.y, contenuEmplacement, toucheAimant)
-	if !chargee {
+	if !chargee || aspect.Width == 0 {
 		return
 	}
 
-	// Un aplat centré tient lieu d'icône, dans la teinte de l'objet au sol : sans
-	// elle, rien ne dirait que la case et ce qu'on vient de ramasser sont la même
-	// chose.
+	// **Le sprite de la scène tient lieu d'icône**, et c'est ce que l'aplat
+	// attendait. Celui-ci portait une teinte tenue à la main, seconde
+	// description de la couleur du sprite : elle a divergé à l'instant où
+	// l'aimant a été dessiné, le bandeau restant brun quand l'objet au sol
+	// devenait rouge.
 	//
-	// **Il devait tomber avec les sprites, et il reste — parce que l'aimant n'a
-	// pas d'icône.** Le sprite du monde ne peut pas en tenir lieu : une icône
-	// d'emplacement se dessine de face, quand celui-là est en isométrie et porte
-	// son ombre au sol. Ce qui manque est donc un dessin, `aimant_icone` de vingt
-	// pixels comme ceux des armes, et il vient du générateur. Jusque-là cette
-	// teinte est une seconde description de la couleur du sprite, tenue à la
-	// main, et c'est ce que la ligne suivante coûte.
+	// Ce qui l'interdisait a cessé d'être vrai. Un sprite de monde était un
+	// volume généré — en isométrie, et avec l'ombre que le générateur lui
+	// ajoute ; un objet dessiné n'a ni l'une ni l'autre. Et reprendre celui de
+	// la scène dit ce qu'aucune icône séparée ne garantit : la case et ce qu'on
+	// vient de ramasser sont la même chose.
 	bord := (z.largeur - contenuEmplacement) / 2
-	h.Rect(sc, z.x+bord, z.y+bord, contenuEmplacement, contenuEmplacement, teinteAimant)
+	h.Sprite(sc, aspect, z.x+bord+(contenuEmplacement-int(aspect.Width))/2,
+		z.y+bord+(contenuEmplacement-int(aspect.Height))/2)
 }
 
 // libelle pose un texte du bandeau, aligné sur la jauge qu'il commente.
@@ -419,6 +426,7 @@ func (s *Screen) lectures() Readings {
 		Threshold:  s.monde.Threshold(),
 		Elapsed:    s.monde.Tick(),
 		Charged:    s.monde.Charged(),
+		Magnet:     s.objets.Icon(objetAimant),
 		Heavies:    s.emplacementsLourds(),
 		Vials: Held{
 			Icon:    s.objets.Icon(s.monde.VialKey()),

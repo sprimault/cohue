@@ -220,11 +220,6 @@ var (
 	// liseré clair, et ce qu'on lui demande est de se voir à travers ce qui le
 	// cache.
 	teinteTirHorde = render.Premultiply(186, 138, 232, 255)
-
-	// La teinte de l'aimant, qui ne sert plus qu'à la case du bandeau : au sol,
-	// c'est son sprite qu'on voit. Elle survit parce que l'objet n'a pas d'icône
-	// d'interface, et `HUD.emplacement` dit ce qu'il faudrait pour l'éteindre.
-	teinteAimant = render.Premultiply(198, 126, 78, 255)
 )
 
 // Screen est le jeu tel que `lozengine` le voit : une scène qu'il décrit, et non

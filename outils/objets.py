@@ -938,6 +938,41 @@ ICONES = {"fiole": icone_fiole}
 # à côté de ce qu'elle alimente, et régler une charge ne touche pas au dessin.
 # ressources.py refuse qu'elles reviennent sur un objet.
 
+def _ancrage(img, losange):
+    """Le pixel de l'image qui tombe sur la position du monde.
+
+    **Le moteur pose une image bas-centre sur le pixel visé**, l'ancrage n'étant
+    qu'un décalage depuis là : `sprite.AnchorFromFooting` rend
+    `(w/2 - ax, h - ay)`, si bien que le pixel déclaré est celui qui atterrit sur
+    la position. Or `internal/game` pose caisses, épaves et obstacles fragiles au
+    **centre de leur case**.
+
+    Pour un personnage, dont le pied est un point, ce pixel est le bas-centre.
+    Pour un volume isométrique, le bas-centre est la **pointe sud** du losange de
+    base, pas son centre : déclarée telle quelle, elle peignait l'objet au-dessus
+    du sol de la moitié de la hauteur du losange, et un liseré de sol restait
+    visible sous sa base.
+
+    Mesuré sur `cloison_fragile`, d'emprise 1 sur 0,18 : sa pointe sud tombait
+    sur le centre de la case quand elle devait tomber neuf pixels dessous. Deux
+    pixels pour une gemme, huit pour une caisse, seize pour une palette.
+
+    **L'abscisse n'a rien à corriger** : le losange est symétrique, donc son
+    centre tombe au milieu de l'image quel que soit l'axe du volume. C'est ce qui
+    a fait lire le défaut comme une hauteur, et c'est aussi le piège — déclarer
+    la pointe sud que `primitives_iso` calcule déplace de treize pixels en
+    abscisse, là où rien ne le demande.
+
+    `losange` est l'emprise que le volume a déclarée, et son absence est la
+    réponse plutôt qu'un cas à traiter : ce qui n'entre dans aucune grille — les
+    projectiles, qui volent — n'a pas de base au sol à centrer.
+    """
+    if losange is None:
+        return [img.width // 2, img.height - 1]
+    ex, ey = losange
+    return [img.width // 2, img.height - 1 - round((ex + ey) * prim.LARGEUR_TUILE / 8)]
+
+
 CATALOGUE = {
     "caisse": caisse,
     "caisse_cassee": caisse_cassee,
@@ -982,7 +1017,14 @@ def main():
         # chose que ce qui est dessiné. Ce qui entre dans la grille doit donc la
         # déclarer, qu'il l'arrête ou qu'il la fasse payer.
         bloquant, cout = _passabilite(nom)
-        emprise = brut.info.get("emprise")
+        # **L'emprise du volume se garde à part de celle qu'on déclare**, et les
+        # deux ne répondent pas à la même question : la seconde dit ce que
+        # l'objet ferme dans la grille, la première s'il a un losange posé au
+        # sol. Un projectile reçoit la valeur par défaut sans rien poser, et
+        # c'est ce que `_ancrage` lit pour ne pas lui centrer une base
+        # qu'il n'a pas.
+        losange = brut.info.get("emprise")
+        emprise = losange
         if emprise is None:
             if bloquant or cout is not None:
                 raise ValueError(f"{nom} entre dans la grille sans déclarer son emprise :"
@@ -1008,7 +1050,7 @@ def main():
         # manifeste-contrat.
         haut = prim.elevation_reelle(img) if "hauteur_dessus" in img.info else 0
         manifeste[nom] = {"taille": list(img.size),
-                          "ancrage": [img.width // 2, img.height - 1],
+                          "ancrage": _ancrage(img, losange),
                           "emprise": list(emprise),
                           "elevation": haut,
                           "categorie": prim.categorie(bloquant, haut),

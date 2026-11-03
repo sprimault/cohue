@@ -3,159 +3,169 @@
 
 # choisi pour un tir en vol et des gemmes au sol, avant que la horde ne grossisse
 tick 780
-joueur x=3511831 y=3342113 vie=100 niveau=1 xp=0 charge=false fioles=0
-ennemi 0 id=3 gen=1 profil=4 x=3386206 y=4569232 hits=3 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 1 id=1 gen=1 profil=4 x=3254568 y=3652823 hits=2 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 2 id=6 gen=1 profil=4 x=4260293 y=3249792 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 3 id=0 gen=2 profil=4 x=2880207 y=4119248 hits=3 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 4 id=4 gen=1 profil=4 x=2565882 y=4446494 hits=3 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 5 id=5 gen=1 profil=4 x=3677175 y=3341913 hits=3 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-tir 0 id=0 gen=8 x=3547876 y=3342045 reste=340788 hits=1 pas=13107,-17
-gemme 0 id=0 gen=2 x=3367256 y=3408288 ne=755 attiree=false
-caisse 0 id=0 gen=1 x=2326528 y=2326528 appui=20 butin=2,0
-caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,4
-caisse 2 id=2 gen=1 x=2326528 y=4161536 appui=20 butin=2,0
-caisse 3 id=3 gen=1 x=4161536 y=4161536 appui=20 butin=2,0
-caisse 4 id=4 gen=1 x=1998848 y=3244032 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,1
-caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
-caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
+joueur x=4008572 y=3205412 vie=100 niveau=1 xp=0 charge=false fioles=0
+ennemi 0 id=3 gen=1 profil=4 x=3647449 y=3524963 hits=3 pas=3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 1 id=2 gen=1 profil=4 x=3932496 y=3338436 hits=1 pas=0,-3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 2 id=1 gen=2 profil=4 x=3539291 y=4803370 hits=3 pas=0,-3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 3 id=0 gen=2 profil=4 x=2790645 y=4025911 hits=3 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 4 id=4 gen=1 profil=4 x=3007114 y=4333971 hits=3 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 5 id=5 gen=1 profil=4 x=4755025 y=3146854 hits=3 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+tir 0 id=1 gen=8 x=3945174 y=3291897 reste=301467 hits=1 pas=-4376,12355
+gemme 0 id=1 gen=1 x=3747058 y=4391230 ne=444 attiree=false
+caisse 0 id=0 gen=1 x=2916352 y=2523136 appui=20 butin=2,0
+caisse 1 id=1 gen=1 x=3506176 y=2457600 appui=20 butin=1,4
+caisse 2 id=2 gen=1 x=2457600 y=3964928 appui=20 butin=2,0
+caisse 3 id=3 gen=1 x=4554752 y=3506176 appui=20 butin=2,0
+caisse 4 id=4 gen=1 x=3506176 y=4554752 appui=20 butin=0,0
+caisse 5 id=5 gen=1 x=819200 y=2523136 appui=20 butin=1,1
+caisse 6 id=6 gen=1 x=5603328 y=360448 appui=20 butin=2,0
+caisse 7 id=7 gen=1 x=5603328 y=5603328 appui=20 butin=1,0
 frappe 0
-obstacle 0 id=0 gen=1 sorte=3 x=5341184 y=2981888 touches=5
-obstacle 1 id=1 gen=1 sorte=2 x=4947968 y=3440640 touches=12
-obstacle 2 id=2 gen=1 sorte=0 x=4816896 y=2981888 touches=8
-obstacle 3 id=3 gen=1 sorte=1 x=5865472 y=3440640 touches=3
-flux vagues=905137858 positions=847631723 butin=983279043 cartes=812551215
+obstacle 0 id=0 gen=1 sorte=1 x=1671168 y=1867776 touches=3
+obstacle 1 id=1 gen=1 sorte=2 x=4816896 y=1867776 touches=12
+obstacle 2 id=2 gen=1 sorte=0 x=2719744 y=3964928 touches=8
+obstacle 3 id=3 gen=1 sorte=3 x=5865472 y=3964928 touches=5
+obstacle 4 id=4 gen=1 sorte=1 x=3768320 y=6062080 touches=3
+flux vagues=905137858 positions=895311451 butin=983279043 cartes=812551215
 
 # choisi pour un aimant au sol, une montée franchie et la vie entamée
 tick 2700
-joueur x=2538388 y=3514861 vie=91 niveau=2 xp=4 charge=false fioles=0
-ennemi 0 id=14 gen=1 profil=4 x=2711126 y=3160933 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 1 id=11 gen=2 profil=4 x=1927758 y=4211500 hits=3 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 2 id=2 gen=2 profil=4 x=2756697 y=3734935 hits=1 pas=-3320,664 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 3 id=0 gen=3 profil=4 x=2802719 y=3648468 hits=2 pas=-802,-1491 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 4 id=4 gen=1 profil=4 x=2755482 y=3735994 hits=1 pas=-3320,664 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 5 id=5 gen=3 profil=4 x=2858507 y=3729307 hits=2 pas=-3320,-664 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 6 id=6 gen=4 profil=4 x=2705679 y=3660979 hits=3 pas=-1362,-1006 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 7 id=7 gen=1 profil=4 x=2740800 y=3729791 hits=1 pas=-2982,-1604 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 8 id=8 gen=2 profil=4 x=2757081 y=3680690 hits=3 pas=-3320,664 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 9 id=9 gen=1 profil=4 x=2834146 y=3710069 hits=3 pas=-3320,-664 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 10 id=1 gen=2 profil=4 x=2865827 y=3731489 hits=1 pas=-3320,-664 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 11 id=10 gen=2 profil=4 x=2751084 y=3593341 hits=2 pas=-1096,-1290 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 12 id=12 gen=1 profil=4 x=2782099 y=3640412 hits=3 pas=-802,-1491 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 13 id=3 gen=3 profil=4 x=2834841 y=3760373 hits=2 pas=-3065,-1439 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 14 id=13 gen=2 profil=4 x=1509500 y=4210280 hits=3 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-tir 0 id=1 gen=28 x=2630360 y=3553902 reste=314574 hits=1 pas=12754,3022
-gemme 0 id=1 gen=3 x=3321896 y=3258424 ne=2404 attiree=false
-gemme 1 id=3 gen=4 x=3056457 y=3801595 ne=2551 attiree=false
-caisse 0 id=0 gen=1 x=2326528 y=2326528 appui=20 butin=2,0
-caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,4
-caisse 2 id=2 gen=1 x=2326528 y=4161536 appui=20 butin=2,0
-caisse 3 id=3 gen=1 x=4161536 y=4161536 appui=20 butin=2,0
-caisse 4 id=4 gen=1 x=1998848 y=3244032 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,1
-caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
-caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
+joueur x=3561673 y=4012457 vie=92 niveau=2 xp=7 charge=false fioles=1
+ennemi 0 id=3 gen=1 profil=4 x=3855607 y=4111481 hits=1 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 1 id=5 gen=1 profil=4 x=4005739 y=4126697 hits=1 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 2 id=1 gen=2 profil=4 x=4082831 y=4127332 hits=1 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 3 id=9 gen=1 profil=4 x=4005769 y=4127193 hits=2 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 4 id=4 gen=1 profil=4 x=4082856 y=4127953 hits=2 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 5 id=17 gen=1 profil=4 x=3745282 y=4127302 hits=1 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 6 id=2 gen=3 profil=4 x=3873099 y=4115806 hits=1 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 7 id=16 gen=1 profil=4 x=3863664 y=4128754 hits=2 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 8 id=8 gen=1 profil=4 x=3948649 y=4126380 hits=1 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 9 id=13 gen=1 profil=4 x=3850121 y=4127490 hits=1 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 10 id=10 gen=1 profil=4 x=4106500 y=4126817 hits=1 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 11 id=7 gen=2 profil=4 x=3947979 y=4128148 hits=2 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 12 id=11 gen=2 profil=4 x=4130696 y=3395218 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 13 id=0 gen=4 profil=4 x=3844878 y=3869266 hits=3 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 14 id=14 gen=1 profil=4 x=3649068 y=4064515 hits=1 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 15 id=15 gen=1 profil=4 x=3984494 y=3410032 hits=3 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 16 id=6 gen=3 profil=4 x=3549235 y=4340289 hits=3 pas=0,-3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 17 id=12 gen=2 profil=4 x=3091963 y=4663943 hits=3 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 18 id=18 gen=1 profil=4 x=4276890 y=2997249 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+tir 0 id=0 gen=42 x=3597794 y=4260357 reste=196611 hits=1 pas=-939,13073
+gemme 0 id=0 gen=6 x=4681481 y=3850490 ne=2392 attiree=false
+gemme 1 id=2 gen=3 x=4718387 y=3859511 ne=2439 attiree=false
+gemme 2 id=3 gen=2 x=4612756 y=3864075 ne=2467 attiree=false
+caisse 0 id=0 gen=1 x=2916352 y=2523136 appui=20 butin=2,0
+caisse 1 id=1 gen=1 x=3506176 y=2457600 appui=20 butin=1,4
+caisse 2 id=2 gen=1 x=2457600 y=3964928 appui=20 butin=2,0
+caisse 3 id=7 gen=1 x=5603328 y=5603328 appui=20 butin=1,0
+caisse 4 id=4 gen=1 x=3506176 y=4554752 appui=20 butin=0,0
+caisse 5 id=5 gen=1 x=819200 y=2523136 appui=20 butin=1,1
+caisse 6 id=6 gen=1 x=5603328 y=360448 appui=20 butin=2,0
 frappe 0
-obstacle 0 id=0 gen=1 sorte=3 x=5341184 y=2981888 touches=5
-obstacle 1 id=1 gen=1 sorte=2 x=4947968 y=3440640 touches=12
-obstacle 2 id=2 gen=1 sorte=0 x=4816896 y=2981888 touches=8
-obstacle 3 id=3 gen=1 sorte=1 x=5865472 y=3440640 touches=3
-aimant 0 id=0 gen=1 x=4816896 y=884736
-flux vagues=450897158 positions=1036398020 butin=574803774 cartes=359676039
+obstacle 0 id=0 gen=1 sorte=1 x=1671168 y=1867776 touches=3
+obstacle 1 id=1 gen=1 sorte=2 x=4816896 y=1867776 touches=12
+obstacle 2 id=2 gen=1 sorte=0 x=2719744 y=3964928 touches=8
+obstacle 3 id=3 gen=1 sorte=3 x=5865472 y=3964928 touches=5
+obstacle 4 id=4 gen=1 sorte=1 x=3768320 y=6062080 touches=3
+aimant 0 id=0 gen=1 x=5341184 y=557056
+flux vagues=450897158 positions=530834621 butin=574803774 cartes=359676039
 
 # choisi pour le seul instant sans aucun tir en vol
 tick 3163
-joueur x=3284240 y=3370570 vie=91 niveau=2 xp=4 charge=false fioles=0
-ennemi 0 id=15 gen=1 profil=4 x=2326246 y=2910058 hits=3 pas=2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 1 id=11 gen=2 profil=4 x=3057012 y=3258688 hits=3 pas=2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 2 id=14 gen=2 profil=4 x=3388509 y=3042785 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 3 id=10 gen=3 profil=4 x=3475279 y=1936591 hits=3 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 4 id=4 gen=1 profil=4 x=3316355 y=3133209 hits=1 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 5 id=3 gen=3 profil=4 x=3291146 y=3164017 hits=1 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 6 id=6 gen=4 profil=4 x=3279846 y=3106583 hits=2 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 7 id=7 gen=1 profil=4 x=3277098 y=3145178 hits=1 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 8 id=8 gen=2 profil=4 x=3318182 y=3127281 hits=3 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 9 id=9 gen=1 profil=4 x=3312124 y=3154578 hits=2 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 10 id=13 gen=2 profil=4 x=2294256 y=3042906 hits=3 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 11 id=16 gen=1 profil=4 x=3869373 y=2714305 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 12 id=12 gen=1 profil=4 x=3318765 y=3161386 hits=2 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 13 id=5 gen=4 profil=4 x=4075826 y=2379180 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-tir 0 id=0 gen=54 x=3130980 y=3279537 reste=183504 hits=1 pas=-12958,-1969
-gemme 0 id=5 gen=1 x=3303043 y=3104505 ne=3127 attiree=false
-gemme 1 id=3 gen=5 x=2894663 y=2924442 ne=2971 attiree=false
-gemme 2 id=2 gen=7 x=3178937 y=2931220 ne=3059 attiree=false
-gemme 3 id=0 gen=3 x=3211339 y=2916970 ne=3082 attiree=false
-gemme 4 id=4 gen=1 x=3259584 y=3026059 ne=3102 attiree=false
-caisse 0 id=0 gen=1 x=2326528 y=2326528 appui=20 butin=2,0
-caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,4
-caisse 2 id=2 gen=1 x=2326528 y=4161536 appui=20 butin=2,0
-caisse 3 id=3 gen=1 x=4161536 y=4161536 appui=20 butin=2,0
-caisse 4 id=4 gen=1 x=1998848 y=3244032 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,1
-caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
-caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
+joueur x=4694255 y=3929702 vie=89 niveau=2 xp=7 charge=false fioles=1
+ennemi 0 id=3 gen=1 profil=4 x=4283725 y=3773985 hits=1 pas=2580,2193 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 1 id=5 gen=1 profil=4 x=4440768 y=3823810 hits=1 pas=3365,374 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 2 id=1 gen=2 profil=4 x=4553879 y=3802399 hits=1 pas=3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 3 id=9 gen=1 profil=4 x=4437991 y=3823408 hits=2 pas=3365,374 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 4 id=4 gen=1 profil=4 x=4555386 y=3801508 hits=1 pas=3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 5 id=17 gen=1 profil=4 x=4351861 y=3801603 hits=1 pas=3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 6 id=2 gen=3 profil=4 x=4222614 y=3804796 hits=1 pas=3365,374 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 7 id=16 gen=1 profil=4 x=4208433 y=3803557 hits=2 pas=3365,374 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 8 id=8 gen=1 profil=4 x=4457884 y=3817906 hits=1 pas=3365,374 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 9 id=13 gen=1 profil=4 x=4257724 y=3785367 hits=1 pas=2663,2091 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 10 id=19 gen=1 profil=4 x=3539929 y=3426978 hits=3 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 11 id=7 gen=2 profil=4 x=4454899 y=3817473 hits=2 pas=3365,374 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 12 id=18 gen=2 profil=4 x=4916932 y=2833089 hits=3 pas=0,3386 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 13 id=0 gen=4 profil=4 x=4459424 y=3768446 hits=3 pas=2580,2193 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 14 id=14 gen=1 profil=4 x=4445383 y=3767197 hits=1 pas=3190,1135 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 15 id=10 gen=2 profil=4 x=5107529 y=3464862 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 16 id=6 gen=3 profil=4 x=4176131 y=3805407 hits=3 pas=3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 17 id=12 gen=2 profil=4 x=4358219 y=3998649 hits=3 pas=3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 18 id=15 gen=2 profil=4 x=5485841 y=2988518 hits=3 pas=-2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+tir 0 id=0 gen=46 x=4484076 y=3784595 reste=91755 hits=1 pas=-11489,-6309
+gemme 0 id=3 gen=3 x=3905464 y=3448074 ne=2888 attiree=false
+gemme 1 id=2 gen=4 x=3967647 y=3603428 ne=2925 attiree=false
+gemme 2 id=0 gen=7 x=4320313 y=3492766 ne=3008 attiree=false
+gemme 3 id=4 gen=2 x=4719145 y=3831693 ne=3097 attiree=false
+gemme 4 id=5 gen=2 x=4657183 y=3644888 ne=3137 attiree=false
+caisse 0 id=0 gen=1 x=2916352 y=2523136 appui=20 butin=2,0
+caisse 1 id=1 gen=1 x=3506176 y=2457600 appui=20 butin=1,4
+caisse 2 id=2 gen=1 x=2457600 y=3964928 appui=20 butin=2,0
+caisse 3 id=7 gen=1 x=5603328 y=5603328 appui=20 butin=1,0
+caisse 4 id=4 gen=1 x=3506176 y=4554752 appui=20 butin=0,0
+caisse 5 id=5 gen=1 x=819200 y=2523136 appui=20 butin=1,1
+caisse 6 id=6 gen=1 x=5603328 y=360448 appui=20 butin=2,0
 frappe 0
-obstacle 0 id=0 gen=1 sorte=3 x=5341184 y=2981888 touches=5
-obstacle 1 id=1 gen=1 sorte=2 x=4947968 y=3440640 touches=12
-obstacle 2 id=2 gen=1 sorte=0 x=4816896 y=2981888 touches=8
-obstacle 3 id=3 gen=1 sorte=1 x=5865472 y=3440640 touches=3
-aimant 0 id=0 gen=1 x=4816896 y=884736
+obstacle 0 id=0 gen=1 sorte=1 x=1671168 y=1867776 touches=3
+obstacle 1 id=1 gen=1 sorte=2 x=4816896 y=1867776 touches=12
+obstacle 2 id=2 gen=1 sorte=0 x=2719744 y=3964928 touches=8
+obstacle 3 id=3 gen=1 sorte=3 x=5865472 y=3964928 touches=5
+obstacle 4 id=4 gen=1 sorte=1 x=3768320 y=6062080 touches=3
+aimant 0 id=0 gen=1 x=5341184 y=557056
 flux vagues=26261793 positions=287567265 butin=654727161 cartes=826903205
 
 # choisi pour les quatre profils que la run atteint, et le niveau le plus haut
 tick 15987
-joueur x=3394571 y=2302249 vie=42 niveau=7 xp=0 charge=false fioles=0
-ennemi 0 id=14 gen=8 profil=4 x=1787592 y=2176632 hits=3 pas=2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 1 id=37 gen=1 profil=4 x=3095245 y=2226189 hits=1 pas=2614,2152 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 2 id=8 gen=9 profil=0 x=2788586 y=2554473 hits=8 pas=2458,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 3 id=11 gen=11 profil=4 x=2235449 y=1621756 hits=3 pas=2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 4 id=22 gen=3 profil=6 x=3710463 y=2233564 hits=2 pas=0,0 flash=0 charge=1,29,0,0 tir=0 soin=0,0,0
-ennemi 5 id=3 gen=8 profil=4 x=3012499 y=2396599 hits=1 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 6 id=35 gen=2 profil=6 x=3031576 y=2139656 hits=1 pas=7101,1983 flash=3 charge=2,20,63121,17625 tir=0 soin=0,0,0
-ennemi 7 id=7 gen=12 profil=4 x=2890059 y=2367271 hits=2 pas=1110,-3199 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 8 id=23 gen=2 profil=4 x=2917188 y=2439217 hits=1 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 9 id=2 gen=8 profil=6 x=3031576 y=2139656 hits=2 pas=7101,1983 flash=0 charge=2,20,63121,17625 tir=0 soin=0,0,0
-ennemi 10 id=32 gen=1 profil=4 x=2910851 y=2466423 hits=1 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 11 id=1 gen=11 profil=4 x=3117456 y=2333364 hits=2 pas=3360,420 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 12 id=41 gen=2 profil=6 x=3031576 y=2139656 hits=2 pas=7101,1983 flash=0 charge=2,20,63121,17625 tir=0 soin=0,0,0
-ennemi 13 id=6 gen=14 profil=6 x=3710463 y=2233564 hits=2 pas=0,0 flash=0 charge=1,29,0,0 tir=0 soin=0,0,0
-ennemi 14 id=10 gen=13 profil=4 x=3127037 y=2233549 hits=1 pas=2893,1759 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 15 id=42 gen=1 profil=4 x=3074065 y=2282177 hits=2 pas=2152,2614 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 16 id=28 gen=2 profil=4 x=3010204 y=2376936 hits=1 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 17 id=30 gen=1 profil=4 x=3114295 y=2307292 hits=1 pas=3360,420 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 18 id=33 gen=2 profil=4 x=3005371 y=2378543 hits=1 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 19 id=36 gen=2 profil=4 x=2258816 y=2176163 hits=3 pas=2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 20 id=31 gen=2 profil=4 x=2990880 y=2437021 hits=2 pas=3199,-1110 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 21 id=34 gen=5 profil=6 x=3056364 y=2248937 hits=1 pas=4686,5692 flash=2 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 22 id=13 gen=9 profil=0 x=2884421 y=3447316 hits=12 pas=0,-2458 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 23 id=18 gen=10 profil=0 x=2626398 y=3600147 hits=12 pas=1738,-1738 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 24 id=16 gen=8 profil=4 x=2868792 y=2186858 hits=2 pas=2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
-ennemi 25 id=17 gen=9 profil=6 x=3710463 y=2233564 hits=2 pas=0,0 flash=0 charge=1,29,0,0 tir=0 soin=0,0,0
-tir 0 id=3 gen=208 x=3018513 y=2188057 reste=104862 hits=1 pas=-13056,-1153
-tir 1 id=1 gen=283 x=3009696 y=2141797 reste=91755 hits=1 pas=-12997,-1695
-tir 2 id=2 gen=214 x=3381680 y=2299882 reste=380109 hits=1 pas=-12891,-2367
-tir 3 id=4 gen=171 x=3387707 y=2267118 reste=380109 hits=1 pas=-12782,-2902
-tir 4 id=5 gen=154 x=3375674 y=2332650 reste=380109 hits=1 pas=-12979,-1828
-gemme 0 id=8 gen=16 x=2372365 y=2955616 ne=15669 attiree=false
-gemme 1 id=3 gen=31 x=2447178 y=2738752 ne=15722 attiree=false
-gemme 2 id=1 gen=19 x=2628597 y=2140826 ne=15857 attiree=false
-gemme 3 id=5 gen=26 x=3236745 y=2205645 ne=15967 attiree=false
-gemme 4 id=4 gen=24 x=3111956 y=2242716 ne=15978 attiree=false
-gemme 5 id=0 gen=20 x=3042306 y=2231861 ne=15983 attiree=false
-caisse 0 id=0 gen=1 x=2326528 y=2326528 appui=20 butin=2,0
-caisse 1 id=1 gen=1 x=4161536 y=2326528 appui=20 butin=1,4
-caisse 2 id=2 gen=1 x=2326528 y=4161536 appui=20 butin=2,0
-caisse 3 id=3 gen=1 x=4161536 y=4161536 appui=20 butin=2,0
-caisse 4 id=4 gen=1 x=1998848 y=3244032 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=4489216 y=3244032 appui=20 butin=1,1
-caisse 6 id=6 gen=1 x=3244032 y=1998848 appui=20 butin=2,0
-caisse 7 id=7 gen=1 x=3244032 y=4489216 appui=20 butin=1,0
+joueur x=4659497 y=3616030 vie=0 niveau=7 xp=14 charge=false fioles=1
+ennemi 0 id=6 gen=13 profil=4 x=4043044 y=3508809 hits=1 pas=2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 1 id=10 gen=11 profil=4 x=4308454 y=3531750 hits=1 pas=3103,1356 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 2 id=42 gen=2 profil=0 x=3559145 y=4114763 hits=12 pas=2458,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 3 id=36 gen=4 profil=3 x=4316442 y=3608587 hits=3 pas=4418,733 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 4 id=20 gen=10 profil=6 x=4281950 y=3455050 hits=2 pas=0,0 flash=0 charge=1,13,0,0 tir=0 soin=0,0,0
+ennemi 5 id=31 gen=2 profil=4 x=4258406 y=3521650 hits=1 pas=2152,2614 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 6 id=16 gen=8 profil=6 x=4289985 y=3546197 hits=1 pas=7373,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 7 id=5 gen=7 profil=4 x=3141586 y=3378278 hits=3 pas=2394,2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 8 id=39 gen=2 profil=6 x=4289985 y=3546197 hits=1 pas=7373,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 9 id=27 gen=4 profil=4 x=4234519 y=3492120 hits=1 pas=2152,2614 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 10 id=30 gen=1 profil=4 x=4258773 y=3522477 hits=1 pas=2152,2614 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 11 id=40 gen=2 profil=6 x=4281950 y=3455050 hits=2 pas=0,0 flash=0 charge=1,13,0,0 tir=0 soin=0,0,0
+ennemi 12 id=45 gen=1 profil=4 x=4313455 y=3538948 hits=2 pas=3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 13 id=26 gen=5 profil=4 x=4242238 y=3491977 hits=1 pas=2152,2614 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 14 id=24 gen=8 profil=6 x=4199548 y=3546239 hits=2 pas=7373,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 15 id=38 gen=2 profil=3 x=4607634 y=3599073 hits=1 pas=2927,3389 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 16 id=33 gen=3 profil=6 x=4199548 y=3546239 hits=2 pas=7373,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 17 id=43 gen=1 profil=4 x=4313566 y=3540645 hits=1 pas=3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 18 id=11 gen=9 profil=4 x=3952667 y=3539855 hits=2 pas=3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 19 id=41 gen=4 profil=0 x=4198641 y=3509214 hits=10 pas=1673,1801 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 20 id=9 gen=6 profil=6 x=4281950 y=3455050 hits=2 pas=0,0 flash=0 charge=1,13,0,0 tir=0 soin=0,0,0
+ennemi 21 id=35 gen=4 profil=0 x=3958632 y=4063128 hits=12 pas=2458,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 22 id=8 gen=7 profil=4 x=3956540 y=3787090 hits=2 pas=3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 23 id=44 gen=2 profil=6 x=4199548 y=3546239 hits=2 pas=7373,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 24 id=29 gen=3 profil=4 x=3719640 y=3405520 hits=3 pas=3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 25 id=34 gen=5 profil=6 x=4178048 y=2670298 hits=2 pas=5214,5214 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 26 id=7 gen=5 profil=6 x=4178048 y=2670298 hits=2 pas=5214,5214 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 27 id=14 gen=13 profil=6 x=4178048 y=2670298 hits=2 pas=5214,5214 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+ennemi 28 id=4 gen=7 profil=4 x=4128610 y=4452307 hits=3 pas=2394,-2394 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
+tir 0 id=2 gen=216 x=4220597 y=3729061 reste=36 hits=1 pas=-11284,6667
+tir 1 id=4 gen=152 x=4174157 y=3642469 reste=6 hits=1 pas=-11800,5706
+tir 2 id=1 gen=324 x=4197077 y=3685930 reste=6 hits=1 pas=-11552,6192
+tir 3 id=0 gen=311 x=4528415 y=3576012 reste=288360 hits=1 pas=-13006,-1623
+tir 4 id=3 gen=191 x=4533105 y=3539176 reste=288360 hits=1 pas=-12927,-2163
+gemme 0 id=17 gen=2 x=4145994 y=3392092 ne=15890 attiree=false
+gemme 1 id=13 gen=2 x=3929711 y=3758441 ne=15839 attiree=false
+caisse 0 id=0 gen=1 x=2916352 y=2523136 appui=20 butin=2,0
+caisse 1 id=1 gen=1 x=3506176 y=2457600 appui=20 butin=1,4
+caisse 2 id=2 gen=1 x=2457600 y=3964928 appui=20 butin=2,0
+caisse 3 id=7 gen=1 x=5603328 y=5603328 appui=20 butin=1,0
+caisse 4 id=4 gen=1 x=3506176 y=4554752 appui=20 butin=0,0
+caisse 5 id=5 gen=1 x=819200 y=2523136 appui=20 butin=1,1
+caisse 6 id=6 gen=1 x=5603328 y=360448 appui=20 butin=2,0
 frappe 0
-obstacle 0 id=0 gen=1 sorte=3 x=5341184 y=2981888 touches=5
-obstacle 1 id=1 gen=1 sorte=2 x=4947968 y=3440640 touches=12
-obstacle 2 id=2 gen=1 sorte=0 x=4816896 y=2981888 touches=8
-obstacle 3 id=3 gen=1 sorte=1 x=5865472 y=3440640 touches=3
-aimant 0 id=0 gen=1 x=4816896 y=884736
-flux vagues=253365204 positions=991019031 butin=963961342 cartes=225694613
+obstacle 0 id=0 gen=1 sorte=1 x=1671168 y=1867776 touches=3
+obstacle 1 id=1 gen=1 sorte=2 x=4816896 y=1867776 touches=12
+obstacle 2 id=2 gen=1 sorte=0 x=2719744 y=3964928 touches=8
+obstacle 3 id=3 gen=1 sorte=3 x=5865472 y=3964928 touches=5
+obstacle 4 id=4 gen=1 sorte=1 x=3768320 y=6062080 touches=3
+aimant 0 id=0 gen=1 x=5341184 y=557056
+flux vagues=253365204 positions=342007336 butin=963961342 cartes=225694613
 

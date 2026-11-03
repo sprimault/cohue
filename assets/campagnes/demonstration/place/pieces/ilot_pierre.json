@@ -1,0 +1,63 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · tenu à la main, aucun générateur ne l'écrit || Quatre immeubles sur un parvis, et les deux dispositions plus denses qu'on attendrait ici sont écartées pour la même raison. **Un bloc plein** ne dessert que ses bords : les immeubles du milieu n'ont aucun accès alors que leurs dessins portent des portes. **Une couronne autour d'une cour** les dessert tous, mais enferme : un espace clos de façades de cent trente-cinq pixels met le joueur en silhouette en permanence, or ce rappel existe pour un passage et non pour un séjour. || Quatre immeubles de deux cases, un parvis de trois tout autour : chacun touche le parvis sur deux côtés, rien n'est clos, et le parvis donne la place de tourner que les rues seules ne donnent pas. || Les murets sont sur la rangée extérieure du parvis, à trois cases des façades. Un obstacle bas collé à un volume haut se lit comme encastré dedans, et la distance est ce qui le sépare — la superposition franche, elle, est refusée au chargement.",
+  "version_format": 1,
+  "identifiant": "ilot_pierre",
+  "jeu": "quartier",
+  "taille": [16, 16],
+  "grille": [
+    "rrrrrrrpprrrrrrr",
+    "rrrrrrrpprrrrrrr",
+    "rr,,,,,,,,,,,,rr",
+    "rr,..........,rr",
+    "rr,..........,rr",
+    "rr,..........,rr",
+    "rr,..........,rr",
+    "pp,..........,pp",
+    "pp,..........,pp",
+    "rr,..........,rr",
+    "rr,..........,rr",
+    "rr,...ss.....,rr",
+    "rr,..........,rr",
+    "rr,,,,,,,,,,,,rr",
+    "rrrrrrrpprrrrrrr",
+    "rrrrrrrpprrrrrrr"
+  ],
+  "couches": [
+    [
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "      P P       ",
+      "                ",
+      "      K K       ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                "
+    ],
+    [
+      "                ",
+      "                ",
+      "                ",
+      "      mmmm      ",
+      "    l      l    ",
+      "    o           ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "    l      l    ",
+      "           k    ",
+      "      mmmm      ",
+      "                ",
+      "                ",
+      "                "
+    ]
+  ]
+}

@@ -42,6 +42,43 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Modifié
+
+- **Les salles sont refaites sur une maille de seize cases.** Six pièces par
+  axe au lieu de trois : l'écran en montre quatre à la fois, et la variété vient
+  de leurs combinaisons. Chaque pièce pose un anneau de chaussée, un trottoir et
+  un parvis autour de son bâti, si bien que tous les immeubles sont desservis et
+  qu'aucune aire close ne garde le joueur en silhouette. Les obstacles fragiles
+  passent au débouché sud des ruelles, le seul côté où la façade voisine ne les
+  recouvre pas.
+
+### Corrigé
+
+- **Deux formes bloquantes ne peuvent plus fermer la même case.** Le chargement
+  refuse l'empilement que la passabilité rendait invisible : le coût restait
+  juste, et le rendu dessinait un muret à l'intérieur d'une façade. Le refus
+  porte sur les emprises, donc il attrape aussi le cas où aucune ligne de la
+  pièce ne porte deux caractères au même rang.
+
+***
+
+### Changed
+
+- **Rooms are rebuilt on a sixteen-tile grid.** Six rooms per axis instead of
+  three: the screen shows four at a time, and variety comes from their
+  combinations. Each room lays a ring of roadway, a pavement and a forecourt
+  around its buildings, so every building is served and no enclosed area keeps
+  the player in silhouette. Breakable obstacles move to the southern end of
+  alleys, the only side where the neighbouring façade does not cover them.
+
+### Fixed
+
+- **Two blocking shapes can no longer close the same tile.** Loading rejects the
+  overlap that passability made invisible: the cost stayed correct while the
+  renderer drew a low wall inside a façade. The check works on footprints, so it
+  also catches the case where no row of the room carries two characters at the
+  same rank.
+
 ## [0.7.5] — 2026-11-03 — Les objets se dessinent
 
 ### Ajouté

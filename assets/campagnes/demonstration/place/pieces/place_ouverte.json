@@ -1,0 +1,70 @@
+{
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · tenu à la main, aucun générateur ne l'écrit || Une place de quartier, et son mobilier est rangé comme il le serait vraiment : l'abribus **le long de la chaussée** et non en travers du trottoir, les bancs alignés de part et d'autre de l'allée centrale plutôt qu'éparpillés, les jardinières dans le massif et non à côté. Les bouches d'égout vont au caniveau, pas au milieu d'une esplanade. || L'abribus en ferme deux cases pour une seule qui porte son jeton, et le lampadaire laisse donc une case libre à côté de lui : deux volumes sur la même case se dessinent l'un dans l'autre, ce que le chargement refuse désormais. || Le kiting y gagne : une jardinière et un banc arrêtent sans masquer, comme un muret, et l'allée centrale laisse la place de tourner.",
+  "version_format": 1,
+  "identifiant": "place_ouverte",
+  "jeu": "quartier",
+  "taille": [16, 16],
+  "ancrages": [
+    {
+      "$comment": "Au centre de l'allée : la seule pièce ouverte en porte un, les îlots gardant leur parvis dégagé pour qu'on y tourne.",
+      "type": "apparition",
+      "position": [8, 8]
+    }
+  ],
+  "grille": [
+    "rrrrrrrpprrrrrrr",
+    "rrrrrrrpprrrrrrr",
+    "rr,,,,,,,,,,,,rr",
+    "rr,...hhhh...,rr",
+    "rr,...hhhh...,rr",
+    "rr,...hhhh...,rr",
+    "rr,..........,rr",
+    "pp,..........,pp",
+    "pp,..........,pp",
+    "rr,..........,rr",
+    "rr,..........,rr",
+    "rr,...hhhh...,rr",
+    "rr,...hhhh...,rr",
+    "rr,,,,,,,,,,,,rr",
+    "rrrrrrrpprrrrrrr",
+    "rrrrrrrpprrrrrrr"
+  ],
+  "couches": [
+    [
+      "                ",
+      "                ",
+      "      l   l     ",
+      "      jj        ",
+      "      jj        ",
+      "        jj      ",
+      "    b      b    ",
+      "                ",
+      "                ",
+      "                ",
+      "    b      b    ",
+      "      jj        ",
+      "        jj      ",
+      "     l    l     ",
+      "                ",
+      "                "
+    ],
+    [
+      "                ",
+      "                ",
+      "   a            ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "            o   ",
+      "                ",
+      "                ",
+      "                ",
+      "                ",
+      "                "
+    ]
+  ]
+}

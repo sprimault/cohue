@@ -1,5 +1,5 @@
 {
-  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · tenu à la main, aucun générateur ne l'écrit · « sol » est ce qui se peint sous une case dont la forme ne remplit pas son losange, ici le pilier qui n'en occupe qu'un quart. Il appartient au thème et non à la forme : le même pilier se pose sur du carrelage dans un supermarché, et le dessiner sur son sol demanderait deux piliers.",
+  "$comment": "Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com> · SPDX-License-Identifier: Apache-2.0 · tenu à la main, aucun générateur ne l'écrit · « sol » est ce qui se peint sous une case dont la forme ne remplit pas son losange, ici le pilier qui n'en occupe qu'un quart. Il appartient au thème et non à la forme : le même pilier se pose sur du carrelage dans un supermarché, et le dessiner sur son sol demanderait deux piliers. || **Le mobilier de rue a été ajouté le 3 novembre 2026, et son absence se voyait** : une place ne pouvait porter que des piliers et des murets, or un pilier isolé appartient à un parking ou à une halle et jamais à une rue. Lampadaire, banc, jardinière, poubelle meublent un trottoir sans le fermer — tous font moins d'une case et aucun ne masque un personnage, à la différence de l'abribus et de la boutique, qui sont du bâti. || **La palette est une table de caractères et non une structure**, donc elle ne tolère pas de `$comment` : le chargeur le lirait comme un caractère de plus, et refuserait la forme introuvable qu'il nomme.",
   "version_format": 1,
   "identifiant": "quartier",
   "nom": "Quartier",
@@ -26,6 +26,22 @@
     "T": "immeuble_tour",
     "C": "citadine",
     "U": "pickup",
-    "L": "camion_livraison"
+    "L": "camion_livraison",
+
+    "l": "lampadaire",
+    "t": "feu_tricolore",
+    "n": "panneau",
+    "o": "poubelle",
+    "j": "jardiniere",
+    "b": "banc_v",
+    "k": "conteneur_v",
+    "a": "abribus",
+    "q": "boutique",
+    "e": "bouche_egout",
+    "s": "sol_sale",
+    "u": "sol_use",
+    "Z": "immeuble_bureau",
+    "G": "camion_ordures",
+    "D": "utilitaire"
   }
 }

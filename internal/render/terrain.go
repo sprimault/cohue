@@ -77,20 +77,29 @@ type forme struct {
 	hauteurSol int
 	// bas dit que la forme arrête sans cacher : un muret, un banc, une gondole.
 	//
-	// **Ce sont les seules que le rendu pose en entité plutôt qu'en cellule**, et
-	// c'est ce qui les range ici. Une cellule se trie à la profondeur de son coin
-	// le plus lointain, soit une cellule de somme derrière son centre, pour ne
-	// jamais passer sur les pieds de ce qui se tient dedans ; mais ce recul la met
-	// aussi derrière tout ce qu'occupe la case voisine, si bien qu'une créature
-	// juste derrière un muret se peignait par-dessus lui et se lisait comme debout
-	// sur la maçonnerie. Une entité posée au centre de la case porte la profondeur
-	// de ce centre, et départage alors les quatre voisines dans le bon sens.
-	//
-	// Les masquantes restent en cellules : ce qu'elles cachent déborde largement
-	// de la case voisine, donc les avancer d'une demi-case ne réglerait pas leur
-	// cas, et le rappel de silhouette est ce qui le traite — `docs/conception.md`
-	// chapitre 10 porte les deux moitiés.
+	// **Ce qu'elle décide ici est le fond de sa case**, et rien d'autre : une
+	// telle forme se pose par-dessus sa case et non dedans, si bien que celle-ci a
+	// besoin d'un sol sous elle — `level.Shape.LowObstacle` porte la raison, et le
+	// contrôle de palette exige du thème qu'il en déclare un.
 	bas bool
+	// debout dit que la forme se dresse sur le sol, donc que le rendu la pose en
+	// entité plutôt qu'en cellule.
+	//
+	// **Une cellule ne recouvre que ce qui est à plus d'une tuile derrière**, et
+	// c'est ce qui range ce champ ici. Elle porte la profondeur de son coin le plus
+	// lointain, soit une cellule de somme derrière son centre, pour ne jamais
+	// passer sur les pieds de ce qui se tient dedans ; mais ce recul la met du même
+	// coup derrière tout ce qu'occupe la case voisine. Deux choses s'y peignaient
+	// par-dessus ce qui devait les cacher : une créature abritée derrière un muret,
+	// et un obstacle fragile encastré dans une percée, par-dessus le mur qui le
+	// borde. Une entité posée au centre de la case porte la profondeur de ce
+	// centre, et départage alors les quatre voisines dans le bon sens.
+	//
+	// **Le critère est celui de l'étage, et les deux ne font qu'un** : ce qui
+	// appartient au sol reste en cellule, où une strate pleine ne coûte rien ; ce
+	// qui dispute sa profondeur en sort. Les séparer laissait le défaut entier à
+	// celles des deux catégories qui restait en cellule.
+	debout bool
 }
 
 // NewTerrain résout la carte assemblée d'un lieu en aspects posables.
@@ -126,6 +135,13 @@ func NewTerrain(carte *level.Tilemap, tuiles *sprite.Tileset) (*Terrain, error) 
 }
 
 // resoudre convertit une forme du catalogue en ce qu'une case pose.
+//
+// **Une forme de décor déclare qu'elle compte comme décor**, quelle que soit la
+// voie par laquelle elle finit posée. À défaut, le relevé de recouvrement classe
+// sur cette voie : tout ce que le rendu décrit en entités pour en corriger
+// l'ordre changerait de colonne, et un personnage que deux formes de décor
+// cachent ensemble cesserait de vérifier `CoveredByDecor == Covered` — il
+// recevrait l'aplat du rappel au lieu du voile qui laisse voir la maçonnerie.
 func resoudre(tuiles *sprite.Tileset, nom string) (forme, error) {
 	tuile, connue := tuiles.Tile(nom)
 	if !connue {
@@ -133,6 +149,7 @@ func resoudre(tuiles *sprite.Tileset, nom string) (forme, error) {
 	}
 
 	aspect := tuile.Aspect
+	aspect.Masks = scene.MaskAsDecor
 	aspect.Floor = etageSol
 	if tuile.Occludes {
 		aspect.Floor = etageDebout
@@ -142,6 +159,7 @@ func resoudre(tuiles *sprite.Tileset, nom string) (forme, error) {
 		nue:        !tuile.Covers,
 		hauteurSol: tuile.GroundHeight,
 		bas:        tuile.LowObstacle,
+		debout:     tuile.Occludes,
 	}, nil
 }
 

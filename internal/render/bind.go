@@ -141,7 +141,8 @@ func attacher(monde *game.World) [sorteLisere + 1]*attache {
 }
 
 // capaciteDeScene rend le nombre d'entités que la scène doit porter : tout ce
-// qu'un bassin peut poser en même temps, plus les obstacles bas du lieu.
+// qu'un bassin peut poser en même temps, plus tout ce qui se dresse dans le
+// lieu.
 //
 // **Elle se relève et ne s'écrit pas.** Un chiffre fixe ici serait un plafond
 // qu'une capacité de bassin relevée ailleurs dépasserait sans que rien ne le
@@ -149,12 +150,12 @@ func attacher(monde *game.World) [sorteLisere + 1]*attache {
 // laisse une entité hors de l'image, donc le joueur invisible pour un muret de
 // trop.
 //
-// **Les obstacles bas comptent tous alors que la fenêtre n'en montre qu'une
-// part**, parce qu'un compte exact demanderait la taille de la vue, que le
-// moteur fixe après le montage. Le surplus est une tranche d'entités jamais
-// remplie, soit une cinquantaine d'octets par obstacle.
-func capaciteDeScene(attaches [sorteLisere + 1]*attache, bas []obstacleBas) int {
-	capacite := len(bas)
+// **Les volumes comptent tous alors que la fenêtre n'en montre qu'une part**,
+// parce qu'un compte exact demanderait la taille de la vue, que le moteur fixe
+// après le montage. Le surplus est une tranche d'entités jamais remplie, soit
+// une cinquantaine d'octets par volume.
+func capaciteDeScene(attaches [sorteLisere + 1]*attache, debout []volumeDebout) int {
+	capacite := len(debout)
 	for _, a := range attaches {
 		capacite += len(a.poignees)
 	}

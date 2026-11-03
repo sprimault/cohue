@@ -528,12 +528,42 @@ func (s *Screen) Step(in Input) {
 	// **Au maintien, à la différence des emplacements** : on force un obstacle
 	// en tenant la touche, une frappe par cadence. Marteler douze fois un rideau
 	// de fer serait une corvée des doigts, pas une décision.
-	if tenue(in, interaction...) {
+	if tenue(in, interaction...) || s.clicDansLeMonde(in) {
 		s.monde.Interact()
 	}
 
 	s.monde.Step(voulu(in))
 	s.cam.suivre(s.monde.Player())
+}
+
+// clicDansLeMonde dit si le bouton gauche est tenu ailleurs que sur le bandeau.
+//
+// **Un second bouton et jamais un pointage.** Le clic ne désigne rien : une
+// frappe ne porte que sur l'obstacle le plus proche, à moins d'une tuile de son
+// centre, donc il n'y a jamais deux candidats à départager. Faire choisir une
+// chose du monde à la souris rouvrirait la visée, que le tir automatique ferme.
+//
+// **Au maintien comme la touche, et c'est ce qui fait converger les deux
+// gestes.** Le décompte de cadence descend que le bouton soit tenu ou non, si
+// bien qu'un clic d'une seule image frappe dès qu'elle le permet : marteler et
+// tenir ouvrent à la même vitesse. Sur l'enfoncement, tenir ne ferait plus rien
+// et douze clics deviendraient obligatoires — la corvée des doigts que la
+// conception écarte.
+//
+// **La bande du bandeau en est retirée, et non ses seules cases.** Un clic sur
+// une case déclenche une arme, et le joueur collé à un rideau est précisément
+// celui qui lance une grenade dessus : les deux partiraient du même geste. La
+// bande entière plutôt que les rectangles parce qu'elle est déjà ce que le
+// monde ne traverse pas — une seule description, celle que le moteur reçoit au
+// montage, là où les cases en seraient une seconde.
+func (s *Screen) clicDansLeMonde(in Input) bool {
+	if !in.ButtonHeld(input.ButtonLeft) || !s.souris.dedans {
+		return false
+	}
+	if s.hud == nil {
+		return true
+	}
+	return s.souris.y >= int(s.hud.Inset().Top)
 }
 
 // clicDansLeBandeau déclenche ce qu'une case ferait à sa touche.

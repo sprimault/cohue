@@ -42,6 +42,12 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Ajouté
+
+- **Un obstacle fragile se force aussi au clic.** Le bouton gauche tenu dans
+  l'aire de jeu vaut la touche d'interaction, et les deux gestes ouvrent à la
+  même vitesse ; cliquer le bandeau continue de déclencher ses emplacements.
+
 ### Modifié
 
 - **La caisse et son épave sont dessinées.** Elles remplacent le cube de carton
@@ -88,6 +94,13 @@ publié, et explique les conventions du dépôt à qui y contribue.
   qu'il touche, et non plus seulement à partir de la suivante.
 
 ***
+
+### Added
+
+- **A fragile obstacle can now be forced with the mouse.** Holding the left
+  button over the play area does what the interaction key does, and both
+  gestures break through at the same rate; clicking the bar still triggers its
+  slots.
 
 ### Changed
 

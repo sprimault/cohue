@@ -147,10 +147,14 @@ func TestLieuLivre(t *testing.T) {
 	}{
 		{0, 0, "enceinte du nord", game.Blocked},
 		{0, 50, "enceinte de l'ouest", game.Blocked},
-		{3, 9, "muret de la chicane de « carrefour »", game.Blocked},
-		{49, 13, "muret long d'« avenue »", game.Blocked},
-		{41, 54, "flaque d'« esplanade »", 2},
-		{49, 49, "sol au centre du lieu", game.Free},
+		{7, 7, "immeuble d'« ilot_pierre »", game.Blocked},
+		{7, 4, "muret du parvis d'« ilot_pierre »", game.Blocked},
+		{7, 12, "sol sale du parvis d'« ilot_pierre »", 2},
+		{11, 8, "parvis d'« ilot_pierre », côté est", game.Free},
+		{23, 4, "jardinière de « place_ouverte »", game.Blocked},
+		{22, 22, "immeuble bordant la « ruelle »", game.Blocked},
+		{24, 22, "passage sale de « ruelle »", 2},
+		{49, 49, "chaussée au centre du lieu", game.Free},
 	}
 	for _, c := range cases {
 		if a := grille.At(c.u, c.v); a != c.veut {

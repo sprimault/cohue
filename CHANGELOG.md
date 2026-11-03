@@ -42,6 +42,34 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Modifié
+
+- **Les salles sont refaites sur une maille de seize cases.** Six pièces par
+  axe au lieu de trois : l'écran en montre quatre à la fois, et la variété vient
+  de leurs combinaisons plutôt que d'une grande salle meublée.
+
+### Corrigé
+
+- **Deux formes bloquantes ne peuvent plus fermer la même case.** La passabilité
+  prenant le plus cher, l'empilement ne se voyait qu'au rendu — un muret planté
+  dans une façade. Le refus porte sur les emprises, donc aussi sur les cases
+  qu'une forme ferme sans qu'un caractère les désigne.
+
+***
+
+### Changed
+
+- **Rooms are rebuilt on a sixteen-tile grid.** Six rooms per axis instead of
+  three: the screen shows four at a time, and variety comes from their
+  combinations rather than from one large furnished room.
+
+### Fixed
+
+- **Two blocking shapes can no longer close the same tile.** Since passability
+  takes the highest cost, the overlap showed only in the rendering — a low wall
+  driven into a façade. The check works on footprints, so it also covers tiles a
+  shape closes without a character designating them.
+
 ## [0.7.5] — 2026-11-03 — Les objets se dessinent
 
 ### Ajouté

@@ -194,6 +194,48 @@ func TestManquementsListesEnUneFois(t *testing.T) {
 	}
 }
 
+// TestDeuxVolumesSurLaMemeCase vérifie qu'un lieu ne peut pas poser deux formes
+// bloquantes sur la même case.
+//
+// **Le défaut qu'il garde ne laisse aucune autre trace.** Les couches passent
+// par le maximum, donc le coût reste juste : la case est fermée, et elle l'était
+// déjà. Seul le rendu le montre, en dessinant les deux formes l'une dans
+// l'autre — un muret planté dans une façade.
+//
+// Le cas est monté sur l'emprise et non sur la case écrite, parce que c'est là
+// que l'auteur ne peut pas le voir : la gondole couvre deux tuiles, le muret est
+// posé sur la seconde, et aucune des deux lignes de la pièce ne porte deux
+// jetons au même rang. Un cas où les deux jetons se superposent passerait aussi
+// et n'éprouverait que la moitié du contrôle.
+func TestDeuxVolumesSurLaMemeCase(t *testing.T) {
+	fsys := fstest.MapFS{
+		"x/lieu.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "x", "jeu_pieces": "commun",
+			"pieces": [{"id": "salle", "u": 0, "v": 0}]
+		}`)},
+		"x/jeu.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "commun", "sol": "sol",
+			"palette": {".": "sol", "G": "gondole", "m": "muret"}
+		}`)},
+		"x/pieces/salle.json": &fstest.MapFile{Data: []byte(`{
+			"version_format": 1, "identifiant": "salle", "jeu": "commun",
+			"taille": [3, 1], "grille": ["..."],
+			"couches": [["G  "], [" m "]]
+		}`)},
+	}
+	_, err := chargeur(fsys).Load("x")
+	if err == nil {
+		t.Fatal("un muret posé dans l'emprise d'une gondole s'est chargé")
+	}
+	// Les deux noms et la case : « deux volumes ici » enverrait l'auteur
+	// chercher lesquels, et la case n'est écrite dans aucune des deux lignes.
+	for _, attendu := range []string{"gondole", "muret", "(1, 0)"} {
+		if !strings.Contains(err.Error(), attendu) {
+			t.Errorf("« %s » absent du refus : %v", attendu, err)
+		}
+	}
+}
+
 // TestDossierRenommeSansIdentifiant vérifie que le nom du dossier et
 // l'identifiant doivent s'accorder.
 //

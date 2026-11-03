@@ -73,6 +73,7 @@ func valider(nom string, lieu *Level, jeu *Set, pieces []*Room, decor *Decor) []
 			assiettes = false
 		}
 		manques = append(manques, validerGrille(ou, piece, jeu)...)
+		manques = append(manques, validerVolumes(ou, piece, jeu, decor)...)
 	}
 	if assiettes {
 		manques = append(manques, validerCouverture(lieu, pieces)...)
@@ -257,6 +258,80 @@ func validerGrille(ou string, piece *Room, jeu *Set) []string {
 				if _, connu := jeu.Palette[string(jeton)]; !connu && jeton != ' ' {
 					dire("%s.couches[%d][%d][%d] : « %c » absent de la palette de « %s »",
 						ou, couche, v, u, jeton, jeu.ID)
+				}
+			}
+		}
+	}
+	return manques
+}
+
+// validerVolumes refuse que deux formes bloquantes ferment la même case.
+//
+// **C'est le seul défaut de pose qui ne laisse aucune trace.** Les couches
+// passent par le maximum, si bien qu'un muret posé sur la case d'un immeuble
+// rend un coût juste : la case est fermée, et elle l'était déjà. Rien ne manque,
+// rien ne se contredit, aucun contrôle n'a de raison de parler. Mais le rendu
+// dessine les deux formes, et vingt-deux pixels de pierre plantés dans une
+// façade de cent trente-cinq se lisent comme un muret à l'intérieur de la
+// maison.
+//
+// **Il compte les blocs et non les caractères écrits.** Une forme de deux tuiles
+// ferme quatre cases dont une seule porte son jeton, et c'est sur les trois
+// autres que l'empilement arrive sans qu'aucune ligne de la pièce le montre :
+// relire le fichier ne suffit pas à le voir, il faut multiplier les emprises.
+//
+// **Un éditeur devra l'empêcher au geste et non à l'enregistrement.** Ce refus
+// lui est acquis — il écrit un lieu que ce même code relit —, mais découvrir à
+// la sauvegarde qu'une pose faite vingt minutes plus tôt est invalide est une
+// façon coûteuse de l'apprendre.
+//
+// Aucune dispense pour l'instant. L'élévation du manifeste est la hauteur d'un
+// volume et non sa garde au sol, donc rien n'y distingue une forme suspendue :
+// le jour où une enseigne se posera au-dessus d'un mur, la dispense s'écrira
+// avec ce cas sous les yeux plutôt que d'être devinée ici.
+func validerVolumes(ou string, piece *Room, jeu *Set, decor *Decor) []string {
+	largeur, hauteur := piece.Size[0], piece.Size[1]
+	if largeur <= 0 || hauteur <= 0 {
+		return nil
+	}
+
+	var manques []string
+	// Le premier occupant de chaque case, parce que le message nomme les deux
+	// formes : « deux volumes ici » enverrait l'auteur chercher lesquels.
+	occupant := make([]string, largeur*hauteur)
+	poser := func(u, v int, nom string) {
+		forme, connue := decor.Shapes[nom]
+		if !connue || !forme.Blocking {
+			return
+		}
+		bloc := forme.Block()
+		for dv := range bloc[1] {
+			for du := range bloc[0] {
+				x, y := u+du, v+dv
+				if x < 0 || y < 0 || x >= largeur || y >= hauteur {
+					continue
+				}
+				if deja := occupant[y*largeur+x]; deja != "" {
+					manques = append(manques, fmt.Sprintf(
+						"%s : « %s » et « %s » ferment tous deux la case (%d, %d)",
+						ou, deja, nom, x, y))
+					continue
+				}
+				occupant[y*largeur+x] = nom
+			}
+		}
+	}
+
+	for v, ligne := range piece.Rows {
+		for u, jeton := range []rune(ligne) {
+			poser(u, v, jeu.Palette[string(jeton)])
+		}
+	}
+	for _, lignes := range piece.Layers {
+		for v, ligne := range lignes {
+			for u, jeton := range []rune(ligne) {
+				if jeton != ' ' {
+					poser(u, v, jeu.Palette[string(jeton)])
 				}
 			}
 		}

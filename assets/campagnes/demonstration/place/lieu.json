@@ -5,27 +5,60 @@
   "jeu_pieces": "quartier",
   "pieces": [
     {
-      "$comment": "L'enceinte est posée à part parce que les neuf blocs sont ouverts sur leurs quatre côtés : sans elle, le lieu s'arrêterait sur le vide, que le rendu ne dessine pas.",
+      "$comment": "L'enceinte est posée à part parce que les trente-six blocs sont ouverts sur leurs quatre côtés : sans elle, le lieu s'arrêterait sur le vide, que le rendu ne dessine pas.",
       "id": "enceinte_u", "u": 0, "v": 0
     },
     { "id": "enceinte_u", "u": 0, "v": 97 },
     { "id": "enceinte_v", "u": 0, "v": 1 },
     { "id": "enceinte_v", "u": 97, "v": 1 },
 
-    { "id": "carrefour", "u": 1, "v": 1 },
-    { "id": "avenue", "u": 33, "v": 1 },
-    { "id": "esplanade", "u": 65, "v": 1 },
-
-    { "id": "avenue", "u": 1, "v": 33 },
-    { "id": "esplanade", "u": 33, "v": 33 },
     {
-      "$comment": "La ruelle est posée devant la porte, et c'est ce qui la fait rencontrer : le joueur qui cherche la sortie traverse ce bloc. Elle n'y est pas un passage obligé pour autant — les blocs du nord et du sud restent ouverts, si bien qu'un Vigile dans un goulot arrête celui qui s'y est engagé sans jamais fermer le lieu.",
-      "id": "ruelle", "u": 65, "v": 33
+      "$comment": "Six pièces par axe au lieu de trois, et c'est la maille de seize que la conception pose au chapitre 11. À trente-deux, une pièce couvrait un écran entier : on en voyait une à la fois, sa répétition sautait aux yeux, et dix cases sur seize restaient vides faute de savoir quoi mettre dans mille vingt-quatre. À seize, l'écran en montre quatre et la variété vient de leurs combinaisons. || Chaque pièce porte un anneau de chaussée de deux cases et un trottoir d'une : deux voisines forment donc une rue de quatre voies bordée de trottoirs, et la connexité est acquise par construction, sans attendre les connecteurs de l'étape 10. || **Entre le trottoir et le bâti vient un parvis**, trois cases autour d'un îlot de quatre, deux autour des six d'une ruelle. C'est lui qui dessert les immeubles — chacun le touche sur deux côtés — et qui donne la place de tourner. Sans lui, le bâti collait au trottoir : tous les immeubles du milieu étaient inaccessibles, et la seule aire ouverte était une cour que leurs façades mettaient en silhouette en permanence.",
+      "id": "ilot_pierre", "u": 1, "v": 1
     },
+    { "id": "place_ouverte", "u": 17, "v": 1 },
+    { "id": "ilot_pierre", "u": 33, "v": 1 },
+    { "id": "place_ouverte", "u": 49, "v": 1 },
+    { "id": "ilot_pierre", "u": 65, "v": 1 },
+    { "id": "place_ouverte", "u": 81, "v": 1 },
 
-    { "id": "esplanade", "u": 1, "v": 65 },
-    { "id": "carrefour", "u": 33, "v": 65 },
-    { "id": "avenue", "u": 65, "v": 65 }
+    { "id": "place_ouverte", "u": 1, "v": 17 },
+    {
+      "$comment": "Les ruelles sont les seules pièces qui percent leurs murs, et c'est ce qui leur vaut les obstacles fragiles : un obstacle ferme une ouverture, et un espace ouvert n'en a pas. Elles ne sont jamais un passage obligé — les rues qui les bordent restent libres, si bien que forcer est un raccourci qu'on paie et non une porte à ouvrir.",
+      "id": "ruelle", "u": 17, "v": 17
+    },
+    { "id": "ilot_pierre", "u": 33, "v": 17 },
+    { "id": "place_ouverte", "u": 49, "v": 17 },
+    { "id": "ruelle", "u": 65, "v": 17 },
+    { "id": "ilot_pierre", "u": 81, "v": 17 },
+
+    { "id": "ilot_pierre", "u": 1, "v": 33 },
+    { "id": "place_ouverte", "u": 17, "v": 33 },
+    { "id": "ilot_pierre", "u": 33, "v": 33 },
+    { "id": "place_ouverte", "u": 49, "v": 33 },
+    { "id": "ilot_pierre", "u": 65, "v": 33 },
+    { "id": "place_ouverte", "u": 81, "v": 33 },
+
+    { "id": "place_ouverte", "u": 1, "v": 49 },
+    { "id": "ilot_pierre", "u": 17, "v": 49 },
+    { "id": "ruelle", "u": 33, "v": 49 },
+    { "id": "ilot_pierre", "u": 49, "v": 49 },
+    { "id": "place_ouverte", "u": 65, "v": 49 },
+    { "id": "ruelle", "u": 81, "v": 49 },
+
+    { "id": "ilot_pierre", "u": 1, "v": 65 },
+    { "id": "place_ouverte", "u": 17, "v": 65 },
+    { "id": "ilot_pierre", "u": 33, "v": 65 },
+    { "id": "place_ouverte", "u": 49, "v": 65 },
+    { "id": "ilot_pierre", "u": 65, "v": 65 },
+    { "id": "place_ouverte", "u": 81, "v": 65 },
+
+    { "id": "place_ouverte", "u": 1, "v": 81 },
+    { "id": "ilot_pierre", "u": 17, "v": 81 },
+    { "id": "place_ouverte", "u": 33, "v": 81 },
+    { "id": "ruelle", "u": 49, "v": 81 },
+    { "id": "ilot_pierre", "u": 65, "v": 81 },
+    { "id": "place_ouverte", "u": 81, "v": 81 }
   ],
   "vagues": {
     "$comment": "Une pression par seconde, jamais des compteurs : le spawner achète dans ce budget, ce qui reste cohérent quelle que soit l'aire ouverte de la salle. Chaque profil a son coût — un Quidam vaut trois, un Vigile douze — dans assets/personnages/manifeste.json. || Les sept profils sont de retour, un par palier, du plus spatial au plus subtil. L'étape 3 avait ramené le lieu à un seul : sept créatures qu'aucune teinte ne distinguait mettaient dans la mesure une variable invisible, et le jalon demandait de pouvoir nommer ce qui avait produit une bascule. Cette raison est éteinte — le jalon est franchi, et chaque profil a maintenant ce qui le rend lisible. || Un profil entre par palier et jamais deux, sauf à 4:00 où le budget l'impose. **L'ordre n'est donc pas entièrement libre** : une meute de Molosse coûte douze, et une phase ne peut acheter que jusqu'à son plafond de report — la pression multipliée par les trois secondes de report. Trois donne neuf, quatre donne 11,99 parce que la conversion par tick arrondit vers le bas : la cinquième pression est la première qui paie une meute. Déplacer le Molosse plus tôt fera refuser le lieu au chargement, avec le message qui dit lequel des trois nombres changer ; ce n'est pas une préférence de progression qui l'a placé là. Les instants et les pointes n'ont pas bougé d'un chiffre, parce que leur placement tenait justement à l'ouverture d'un profil — doubler le débit juste après une rencontre neuve se lit comme un événement plutôt que comme du bruit. || La résistance monte à partir de la sixième minute, sans quoi la fin n'est qu'un tapis roulant : l'arme a doublé de cadence en six paliers, et un Quidam qui vaut trois touches au départ en vaut six à la fin. Ces multiplicateurs sont des chiffres de départ au même titre que la pression, à régler en jouant — ils vivent dans ce fichier, donc ils se changent sans toucher au code. || Le début est bas parce que la conception le demande : les trois premières minutes doivent être rapides à repasser, une mort au troisième lieu renvoyant au premier. Deux par seconde pour des Quidams à trois fait une créature toutes les seconde et demie, et la première salle doit se sentir vide. || La courbe monte ensuite d'environ un tiers par palier, ce qui suit à peu près la façon dont l'arme grossit : six paliers de cadence la font tirer deux fois plus vite, et la portée élargit ce qu'elle atteint. Au-delà de la dixième minute elle passe devant, et c'est voulu — une run se termine par une mort. || Ces chiffres ne sont pas jugés : ils sont calés contre une sonde qui tourne en cercle et prend toujours la première carte, c'est-à-dire un joueur médiocre. Le jugement est une séance de jeu, contre le critère du chapitre 2 — la bascule de puissance ressentie avant la minute 9.",
@@ -85,53 +118,58 @@
     {
       "$comment": "Des Passants, qui ne comptent nulle part : ni dans le budget de pression, ni dans le plafond d'effectif, ni dans ce qu'une graine rejoue. Ils sont ici pour que le chemin qui les pose soit celui qu'un lieu tiers empruntera, et parce qu'une place déserte avant l'arrivée de la horde ne ressemble à rien. || Chacun porte sa case, comme une pièce porte la sienne : un peuplement tiré au sort abandonnerait en silence ce qui tombe dans un mur, et sauterait d'un coin à l'autre entre deux relances. Ils sont répartis autour du carrefour central, où le joueur commence. || Leur nombre est celui d'une rue passante et non d'une foule : au-delà, ils masqueraient la horde sans rien coûter à personne, ce qui est le seul moyen qu'un décor gêne le jeu.",
       "profil": "civil",
-      "position": [45, 45]
+      "position": [48, 46]
     },
     { "profil": "civil", "position": [49, 45] },
     { "profil": "civil", "position": [53, 49] },
-    { "profil": "civil", "position": [45, 53] },
+    { "profil": "civil", "position": [48, 54] },
     { "profil": "civil", "position": [40, 49] },
     { "profil": "civil", "position": [58, 49] },
     { "profil": "civil", "position": [49, 40] },
     { "profil": "civil", "position": [49, 58] },
-    { "profil": "civil", "position": [36, 36] },
+    { "profil": "civil", "position": [34, 48] },
     { "profil": "civil", "position": [62, 62] },
     { "profil": "civil", "position": [36, 62] },
     { "profil": "civil", "position": [62, 36] }
   ],
   "caisses": [
     {
-      "$comment": "Des caisses posées, pas semées : chacune porte sa case, comme une pièce et comme un figurant. Ce qu'elles laissent n'est pas écrit ici — c'est un réglage de partie, dans assets/progression, pour qu'une caisse signifie la même chose d'un lieu à l'autre. || Elles sont loin du carrefour où le joueur commence, et réparties vers les quatre coins : casser doit être un détour qui coûte du temps pendant que la pression monte, et non un ramassage sur le chemin. C'est cette tension que la sonde existe pour faire sentir, avec la porte.",
-      "position": [35, 35]
+      "$comment": "Des caisses posées, pas semées : chacune porte sa case, comme une pièce et comme un figurant. Ce qu'elles laissent n'est pas écrit ici — c'est un réglage de partie, dans assets/progression, pour qu'une caisse signifie la même chose d'un lieu à l'autre. || Elles s'éloignent du carrefour par paliers — cinq entre douze et vingt cases, trois aux bords — plutôt que de gagner les quatre coins. Casser doit rester un détour qui coûte du temps pendant que la pression monte ; mais toutes au loin, aucune ne se rencontre, et comme une caisse sur deux laisse une fiole, un lieu sans caisse sur le trajet est un lieu sans soin. Un détour n'est un arbitrage que s'il y a quelque chose à arbitrer. || **Chacune est sur un parvis et aucune sur une chaussée**, qui est l'autre aire dégagée d'une pièce : une caisse au milieu d'une rue de quatre voies est ce qu'on ramasse en passant, et le détour qu'elle doit coûter disparaît.",
+      "position": [44, 38]
     },
-    { "position": [63, 35] },
-    { "position": [35, 63] },
-    { "position": [63, 63] },
-    { "position": [30, 49] },
-    { "position": [68, 49] },
-    { "position": [49, 30] },
-    { "position": [49, 68] }
+    { "position": [53, 37] },
+    { "position": [37, 60] },
+    { "position": [69, 53] },
+    { "position": [53, 69] },
+    { "position": [12, 38] },
+    { "position": [85, 5] },
+    { "position": [85, 85] }
   ],
   "destructibles": [
     {
-      "$comment": "Les quatre dans la ruelle, parce que c'est la seule pièce du jeu qui perce ses murs d'une case : un obstacle ferme une ouverture, et un espace ouvert n'en a pas. Ils sont sur le chemin de la porte sans le barrer — les marges de la ruelle restent libres, si bien que forcer est un raccourci qu'on paie et jamais un passage obligé. || **Chacun au débouché sud de sa percée, jamais au nord**, et c'est la vue qui l'a décidé : les passages sont creusés sur cinq cases entre des murs de soixante-quatre pixels, et un mur peint plus bas à l'écran recouvre ce qui est au-dessus de lui. Posée à l'entrée nord, la vitrine disparaissait entière derrière le reste du passage. || La vitrine ferme la percée nord : cinq touches, et l'on voit à travers ce qu'elle ouvre.",
-      "objet": "vitrine",
-      "position": [81, 45]
-    },
-    {
-      "$comment": "Le rideau de fer ferme la percée sud, la seconde moitié du raccourci : forcer les deux coûte plus de six secondes sous la horde, ce qui fait du trajet par les marges un vrai choix.",
-      "objet": "rideau_fer",
-      "position": [75, 52]
-    },
-    {
-      "$comment": "La cloison ferme le recoin nord : une réserve, un mur qui n'en était pas un.",
-      "objet": "cloison_fragile",
-      "position": [73, 45]
-    },
-    {
-      "$comment": "La grille ferme le recoin creusé au pied du bloc sud, trois touches à peine : ce qu'elle apprend est le geste, avant qu'un rideau le fasse payer. Le recoin ouvert au nord ne convenait pas, pour la raison qui pose les autres au débouché sud.",
+      "$comment": "Un par ruelle, et chacun prolonge le muret que sa pièce pose à côté de lui : le débouché sud fait deux cases, le muret en ferme une, l'obstacle l'autre. Forcer est alors un raccourci qu'on paie en secondes pendant que la horde arrive, jamais une porte obligatoire — les rues qui bordent l'îlot restent libres. || **Au sud du bâti, et c'est la projection qui l'impose.** Une case au nord-ouest d'un immeuble tombe pile sous lui à l'écran : la façade la recouvre entière, et le joueur est arrêté par ce qu'il ne voit pas. Au sud, l'obstacle passe devant. La règle vaut pour tout ce qui ferme une ouverture, et elle n'a rien d'une préférence de composition. || Les cinq ne font que quatre sortes : la grille se répète plutôt que d'inventer un cinquième dessin, et c'est celle dont le geste s'apprend le moins cher.",
       "objet": "grille_ventilation",
-      "position": [89, 52]
+      "position": [25, 28]
+    },
+    {
+      "$comment": "Le rideau fait payer en huit touches ce que la grille apprend en trois.",
+      "objet": "rideau_fer",
+      "position": [73, 28]
+    },
+    {
+      "$comment": "La cloison ferme la ruelle la plus proche du carrefour de départ, donc celle qu'on force quand on ne connaît pas encore le prix.",
+      "objet": "cloison_fragile",
+      "position": [41, 60]
+    },
+    {
+      "$comment": "Une devanture condamnée en fond de ruelle, ce qui est le seul endroit où une vitrine ferme quelque chose : sur la façade d'une boutique elle ne barrerait rien, et le thème n'en porte pas encore au rez-de-chaussée d'un immeuble.",
+      "objet": "vitrine",
+      "position": [89, 60]
+    },
+    {
+      "$comment": "La ruelle du sud est la plus loin de la porte, donc celle où le détour se paie le plus cher.",
+      "objet": "grille_ventilation",
+      "position": [57, 92]
     }
   ],
   "sortie": {

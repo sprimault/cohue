@@ -885,7 +885,11 @@ Bénéfice secondaire : aucun renderer iso à écrire pour l'éditeur.
 
 ### Deux granularités
 
-**Mode pièces** (par défaut). L'auteur glisse des pièces préfabriquées sur une grille : rayon de supermarché, zone de caisses, couloir large, salle de cinéma, palier d'escalator, réserve. Chaque pièce occupe un carré fixe de tuiles — 16×16 est une bonne base — et embarque son décor, sa passabilité, ses hauteurs et ses ancrages.
+**Mode pièces** (par défaut). L'auteur glisse des pièces préfabriquées sur une grille : rayon de supermarché, zone de caisses, couloir large, salle de cinéma, palier d'escalator, réserve. Chaque pièce occupe un carré fixe de tuiles — **16×16, et c'est tranché** — et embarque son décor, sa passabilité, ses hauteurs et ses ancrages.
+
+**Ce qui l'a décidé est la taille de l'écran.** La demi-étendue visible vaut 15,9 tuiles par axe, donc l'aire de jeu en montre une trentaine de côté : à 32×32 une pièce couvre un écran entier, on en voit une à la fois, sa répétition se lit d'un coup d'œil, et ses mille vingt-quatre cases se remplissent mal — le lieu livré y a passé une étape avec une esplanade vide pour cette seule raison. À 16×16 l'écran en montre quatre, et la variété vient de leurs combinaisons plutôt que de leur nombre. L'éditeur y gagne la sienne : poser neuf blocs n'est pas composer.
+
+**La maille est une convention de composition et non une contrainte de format.** `u` et `v` sont la case d'origine d'une pièce et jamais son rang dans une trame, si bien que des tailles différentes se posent dans un même lieu — l'enceinte du lieu livré n'a qu'une case d'épaisseur. Ce qui est tranché est la taille des pièces qu'on compose, pas ce que le format accepte.
 
 **Mode tuiles** (« ouvrir la pièce »), **différé**. Pour fabriquer des structures tordues, on entre dans une cellule et on peint tuile par tuile — avec les tuiles fournies par le jeu, jamais avec des images importées. Ce qui en sort est une pièce comme une autre, réutilisable, enregistrée dans le niveau.
 
@@ -983,6 +987,10 @@ Trois champs à prévoir dès la première version, sinon ils ne pourront plus �
 Une seule grille ne savait dire que « remplacer », jamais « poser ». Un bus écrit dans la grille prenait la case d'une chaussée, si bien que le rendu, ne sachant plus ce que cette case était, comblait avec le sol du thème et laissait un carré de béton clair sous chaque véhicule garé. C'est déjà ainsi que le jeu pose tout le reste — créatures, caisses et figurants ont leurs positions à part, et aucun n'a jamais effacé le sol sous lui.
 
 Ce qui suit des couches plutôt que de se décider à côté : la passabilité prend **le plus cher** de ce qu'elles empilent, le contrôle de couverture ne porte que sur la grille — un calque est troué par nature —, et leur nombre n'est pas borné, un revêtement, ce qui le marque et ce qui s'y tient en faisant déjà trois.
+
+**Mais deux formes bloquantes ne ferment jamais la même case, et le chargement le refuse.** C'est le maximum lui-même qui rend ce défaut muet : un muret posé sur la case d'un immeuble ferme une case qui l'était déjà, donc le coût reste juste, rien ne manque et aucun contrôle n'a de raison de parler. Le rendu, lui, dessine les deux, et vingt-deux pixels de pierre plantés dans une façade de cent trente-cinq se lisent comme un muret à l'intérieur de la maison. Le refus porte sur les **emprises** et non sur les caractères écrits : une forme de deux tuiles ferme quatre cases dont une seule porte son jeton, et c'est sur les trois autres que l'empilement arrive sans qu'aucune ligne de la pièce le montre — relire le fichier ne suffit pas à le voir. Un éditeur en hérite, puisqu'il écrit un lieu que ce même code relit, mais il devra l'empêcher au geste plutôt qu'à l'enregistrement.
+
+**Et ce qui ferme une ouverture se pose au sud du bâti qui la borde.** Une case au nord-ouest d'un volume haut tombe pile sous lui à l'écran — un pas en `u` et un en `v` s'annulent horizontalement et ne laissent que trente-deux pixels de dénivelé —, si bien qu'une façade de cent trente-cinq recouvre entièrement le rideau qu'on y aurait mis : l'obstacle arrête sans se montrer. Le tri n'y est pour rien, la façade est devant et elle a le droit de peindre ; c'est une contrainte de la projection, et un auteur de lieu a besoin de savoir qu'elle existe avant de chercher ce qui a mangé son dessin.
 
 Deux règles rendent la forme exploitable :
 
@@ -1651,7 +1659,6 @@ Note de prudence : survivor, roguelite, exploration, ressources et éditeur avec
 
 ## 17. Ce qui reste à trancher
 
-- **La taille de la maille des pièces** : 16×16 tuiles est la base proposée, elle conditionne tout le travail d'édition.
 - **La palette définitive** : le plafond de couleurs de `MATIERES`, et les teintes réservées — celle du personnage joueur et celle des projectiles ennemis, qui ne doivent apparaître nulle part ailleurs.
 - **La portée du tir de base**, qui remplace l'angle du cône comme réglage décisif du kiting : trop courte, il faut faire face pour toucher ; trop longue, la horde meurt avant d'être une menace.
 - **Le plafond de dégâts par seconde** et le rapport entre contact ordinaire et charge du Molosse : deux chiffres qui décident si l'encerclement est tendu ou injuste.
@@ -1661,7 +1668,7 @@ Note de prudence : survivor, roguelite, exploration, ressources et éditeur avec
 - **La courbe de résistance** au fil de la run, et le **temps de référence** de chaque lieu : c'est lui qui fixe le poids réel du bonus de temps face aux points d'ennemis.
 - **L'interface de l'éditeur** : une bibliothèque tierce ou tout dessiner à la main, le moteur n'en fournissant pas. À évaluer avant le chantier de l'éditeur, pas pendant.
 
-Tranché en cours de route : aucun asset importable dans le contenu utilisateur, mode tuiles différé après la première version de l'éditeur, et l'aimant gardé — avec son emplacement propre et l'effacement des gemmes pour contre-force.
+Tranché en cours de route : aucun asset importable dans le contenu utilisateur, mode tuiles différé après la première version de l'éditeur, l'aimant gardé — avec son emplacement propre et l'effacement des gemmes pour contre-force —, et la maille des pièces à 16×16, que le chapitre 11 motive par la taille de l'écran.
 
 Tranché faute d'usage, et daté : la rotation des pièces est absente jusqu'à l'étape 11, où l'éditeur dira combien de formes en réclament. C'est la seule décision de cette liste qu'attendre améliore, le catalogue complet étant ce qui la renseigne.
 

@@ -201,7 +201,7 @@ func garnirLesPassesDeLEtape4(t *testing.T, w *World, profils *Profiles) {
 		if _, ok := w.SpawnAmbient(civil, px+FromInt(2+i), py+FromInt(4)); !ok {
 			t.Fatal("bassin de figurants plein")
 		}
-		if _, ok := w.SpawnCrate(px-FromInt(2+i), py+FromInt(4), Free); !ok {
+		if _, ok := w.SpawnCrate(px-FromInt(2+i), py+FromInt(4), Free, nil); !ok {
 			t.Fatal("bassin de caisses plein")
 		}
 		if _, ok := w.SpawnEnemy(indexDuProfil(t, profils, "cracheur"),

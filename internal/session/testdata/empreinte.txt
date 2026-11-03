@@ -12,21 +12,21 @@ ennemi 4 id=4 gen=1 profil=4 x=3007114 y=4333971 hits=3 pas=2394,-2394 flash=0 c
 ennemi 5 id=5 gen=1 profil=4 x=4755025 y=3146854 hits=3 pas=-3386,0 flash=0 charge=0,0,0,0 tir=0 soin=0,0,0
 tir 0 id=1 gen=8 x=3945174 y=3291897 reste=301467 hits=1 pas=-4376,12355
 gemme 0 id=1 gen=1 x=3747058 y=4391230 ne=444 attiree=false
-caisse 0 id=0 gen=1 x=2916352 y=2523136 appui=20 butin=2,0
-caisse 1 id=1 gen=1 x=3506176 y=2457600 appui=20 butin=1,4
+caisse 0 id=0 gen=1 x=2916352 y=2523136 appui=20 butin=1,4
+caisse 1 id=1 gen=1 x=3506176 y=2457600 appui=20 butin=1,2
 caisse 2 id=2 gen=1 x=2457600 y=3964928 appui=20 butin=2,0
 caisse 3 id=3 gen=1 x=4554752 y=3506176 appui=20 butin=2,0
 caisse 4 id=4 gen=1 x=3506176 y=4554752 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=819200 y=2523136 appui=20 butin=1,1
-caisse 6 id=6 gen=1 x=5603328 y=360448 appui=20 butin=2,0
-caisse 7 id=7 gen=1 x=5603328 y=5603328 appui=20 butin=1,0
+caisse 5 id=5 gen=1 x=819200 y=2523136 appui=20 butin=1,4
+caisse 6 id=6 gen=1 x=5603328 y=360448 appui=20 butin=1,1
+caisse 7 id=7 gen=1 x=5603328 y=5603328 appui=20 butin=2,0
 frappe 0
 obstacle 0 id=0 gen=1 sorte=1 x=1671168 y=1867776 touches=3
 obstacle 1 id=1 gen=1 sorte=2 x=4816896 y=1867776 touches=12
 obstacle 2 id=2 gen=1 sorte=0 x=2719744 y=3964928 touches=8
 obstacle 3 id=3 gen=1 sorte=3 x=5865472 y=3964928 touches=5
 obstacle 4 id=4 gen=1 sorte=1 x=3768320 y=6062080 touches=3
-flux vagues=905137858 positions=895311451 butin=983279043 cartes=812551215
+flux vagues=905137858 positions=895311451 butin=138726860 cartes=812551215
 
 # choisi pour un aimant au sol, une montée franchie et la vie entamée
 tick 2700
@@ -54,13 +54,13 @@ tir 0 id=0 gen=42 x=3597794 y=4260357 reste=196611 hits=1 pas=-939,13073
 gemme 0 id=0 gen=6 x=4681481 y=3850490 ne=2392 attiree=false
 gemme 1 id=2 gen=3 x=4718387 y=3859511 ne=2439 attiree=false
 gemme 2 id=3 gen=2 x=4612756 y=3864075 ne=2467 attiree=false
-caisse 0 id=0 gen=1 x=2916352 y=2523136 appui=20 butin=2,0
-caisse 1 id=1 gen=1 x=3506176 y=2457600 appui=20 butin=1,4
+caisse 0 id=0 gen=1 x=2916352 y=2523136 appui=20 butin=1,4
+caisse 1 id=1 gen=1 x=3506176 y=2457600 appui=20 butin=1,2
 caisse 2 id=2 gen=1 x=2457600 y=3964928 appui=20 butin=2,0
-caisse 3 id=7 gen=1 x=5603328 y=5603328 appui=20 butin=1,0
+caisse 3 id=7 gen=1 x=5603328 y=5603328 appui=20 butin=2,0
 caisse 4 id=4 gen=1 x=3506176 y=4554752 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=819200 y=2523136 appui=20 butin=1,1
-caisse 6 id=6 gen=1 x=5603328 y=360448 appui=20 butin=2,0
+caisse 5 id=5 gen=1 x=819200 y=2523136 appui=20 butin=1,4
+caisse 6 id=6 gen=1 x=5603328 y=360448 appui=20 butin=1,1
 frappe 0
 obstacle 0 id=0 gen=1 sorte=1 x=1671168 y=1867776 touches=3
 obstacle 1 id=1 gen=1 sorte=2 x=4816896 y=1867776 touches=12
@@ -68,7 +68,7 @@ obstacle 2 id=2 gen=1 sorte=0 x=2719744 y=3964928 touches=8
 obstacle 3 id=3 gen=1 sorte=3 x=5865472 y=3964928 touches=5
 obstacle 4 id=4 gen=1 sorte=1 x=3768320 y=6062080 touches=3
 aimant 0 id=0 gen=1 x=5341184 y=557056
-flux vagues=450897158 positions=530834621 butin=574803774 cartes=359676039
+flux vagues=450897158 positions=530834621 butin=1015128673 cartes=359676039
 
 # choisi pour le seul instant sans aucun tir en vol
 tick 3163
@@ -98,13 +98,13 @@ gemme 1 id=2 gen=4 x=3967647 y=3603428 ne=2925 attiree=false
 gemme 2 id=0 gen=7 x=4320313 y=3492766 ne=3008 attiree=false
 gemme 3 id=4 gen=2 x=4719145 y=3831693 ne=3097 attiree=false
 gemme 4 id=5 gen=2 x=4657183 y=3644888 ne=3137 attiree=false
-caisse 0 id=0 gen=1 x=2916352 y=2523136 appui=20 butin=2,0
-caisse 1 id=1 gen=1 x=3506176 y=2457600 appui=20 butin=1,4
+caisse 0 id=0 gen=1 x=2916352 y=2523136 appui=20 butin=1,4
+caisse 1 id=1 gen=1 x=3506176 y=2457600 appui=20 butin=1,2
 caisse 2 id=2 gen=1 x=2457600 y=3964928 appui=20 butin=2,0
-caisse 3 id=7 gen=1 x=5603328 y=5603328 appui=20 butin=1,0
+caisse 3 id=7 gen=1 x=5603328 y=5603328 appui=20 butin=2,0
 caisse 4 id=4 gen=1 x=3506176 y=4554752 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=819200 y=2523136 appui=20 butin=1,1
-caisse 6 id=6 gen=1 x=5603328 y=360448 appui=20 butin=2,0
+caisse 5 id=5 gen=1 x=819200 y=2523136 appui=20 butin=1,4
+caisse 6 id=6 gen=1 x=5603328 y=360448 appui=20 butin=1,1
 frappe 0
 obstacle 0 id=0 gen=1 sorte=1 x=1671168 y=1867776 touches=3
 obstacle 1 id=1 gen=1 sorte=2 x=4816896 y=1867776 touches=12
@@ -112,7 +112,7 @@ obstacle 2 id=2 gen=1 sorte=0 x=2719744 y=3964928 touches=8
 obstacle 3 id=3 gen=1 sorte=3 x=5865472 y=3964928 touches=5
 obstacle 4 id=4 gen=1 sorte=1 x=3768320 y=6062080 touches=3
 aimant 0 id=0 gen=1 x=5341184 y=557056
-flux vagues=26261793 positions=287567265 butin=654727161 cartes=826903205
+flux vagues=26261793 positions=287567265 butin=280403509 cartes=826903205
 
 # choisi pour les quatre profils que la run atteint, et le niveau le plus haut
 tick 15987
@@ -153,13 +153,13 @@ tir 3 id=0 gen=311 x=4528415 y=3576012 reste=288360 hits=1 pas=-13006,-1623
 tir 4 id=3 gen=191 x=4533105 y=3539176 reste=288360 hits=1 pas=-12927,-2163
 gemme 0 id=17 gen=2 x=4145994 y=3392092 ne=15890 attiree=false
 gemme 1 id=13 gen=2 x=3929711 y=3758441 ne=15839 attiree=false
-caisse 0 id=0 gen=1 x=2916352 y=2523136 appui=20 butin=2,0
-caisse 1 id=1 gen=1 x=3506176 y=2457600 appui=20 butin=1,4
+caisse 0 id=0 gen=1 x=2916352 y=2523136 appui=20 butin=1,4
+caisse 1 id=1 gen=1 x=3506176 y=2457600 appui=20 butin=1,2
 caisse 2 id=2 gen=1 x=2457600 y=3964928 appui=20 butin=2,0
-caisse 3 id=7 gen=1 x=5603328 y=5603328 appui=20 butin=1,0
+caisse 3 id=7 gen=1 x=5603328 y=5603328 appui=20 butin=2,0
 caisse 4 id=4 gen=1 x=3506176 y=4554752 appui=20 butin=0,0
-caisse 5 id=5 gen=1 x=819200 y=2523136 appui=20 butin=1,1
-caisse 6 id=6 gen=1 x=5603328 y=360448 appui=20 butin=2,0
+caisse 5 id=5 gen=1 x=819200 y=2523136 appui=20 butin=1,4
+caisse 6 id=6 gen=1 x=5603328 y=360448 appui=20 butin=1,1
 frappe 0
 obstacle 0 id=0 gen=1 sorte=1 x=1671168 y=1867776 touches=3
 obstacle 1 id=1 gen=1 sorte=2 x=4816896 y=1867776 touches=12
@@ -167,5 +167,5 @@ obstacle 2 id=2 gen=1 sorte=0 x=2719744 y=3964928 touches=8
 obstacle 3 id=3 gen=1 sorte=3 x=5865472 y=3964928 touches=5
 obstacle 4 id=4 gen=1 sorte=1 x=3768320 y=6062080 touches=3
 aimant 0 id=0 gen=1 x=5341184 y=557056
-flux vagues=253365204 positions=342007336 butin=963961342 cartes=225694613
+flux vagues=253365204 positions=342007336 butin=465226912 cartes=225694613
 

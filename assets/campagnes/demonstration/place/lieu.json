@@ -134,16 +134,17 @@
   ],
   "caisses": [
     {
-      "$comment": "Des caisses posées, pas semées : chacune porte sa case, comme une pièce et comme un figurant. Ce qu'elles laissent n'est pas écrit ici — c'est un réglage de partie, dans assets/progression, pour qu'une caisse signifie la même chose d'un lieu à l'autre. || Elles s'éloignent du carrefour par paliers — cinq entre douze et vingt cases, trois aux bords — plutôt que de gagner les quatre coins. Casser doit rester un détour qui coûte du temps pendant que la pression monte ; mais toutes au loin, aucune ne se rencontre, et comme une caisse sur deux laisse une fiole, un lieu sans caisse sur le trajet est un lieu sans soin. Un détour n'est un arbitrage que s'il y a quelque chose à arbitrer. || **Chacune est sur un parvis et aucune sur une chaussée**, qui est l'autre aire dégagée d'une pièce : une caisse au milieu d'une rue de quatre voies est ce qu'on ramasse en passant, et le détour qu'elle doit coûter disparaît.",
-      "position": [44, 38]
+      "$comment": "Des caisses posées, pas semées : chacune porte sa case, comme une pièce et comme un figurant. Les gemmes qu'elles laissent ne sont pas écrites ici — c'est un réglage de partie, dans assets/progression, parce que leur rythme commande le métronome des choix et ne peut pas dépendre d'un auteur. Le supplément, lui, se déclare : « contenu » dit ce que la caisse a de plus que les autres, et son absence laisse le tirage décider. Il nomme l'objet ou sa sorte — « tourelle » pose cette lourde-là, « arme » en pose une que la table choisit, ce qui garde entre deux runs le contraste qu'une arme écrite éteint. || Elles s'éloignent du carrefour par paliers — cinq entre douze et vingt cases, trois aux bords — plutôt que de gagner les quatre coins. Casser doit rester un détour qui coûte du temps pendant que la pression monte ; mais toutes au loin, aucune ne se rencontre, et un lieu sans caisse sur le trajet est un lieu sans soin. Un détour n'est un arbitrage que s'il y a quelque chose à arbitrer. || **Chacune est sur un parvis et aucune sur une chaussée**, qui est l'autre aire dégagée d'une pièce : une caisse au milieu d'une rue de quatre voies est ce qu'on ramasse en passant, et le détour qu'elle doit coûter disparaît. || **Trois fioles écrites, et c'est une partie jouée qui donne le chiffre** : au tirage, le trajet du départ à la sortie n'en croisait qu'une, une caisse n'en portant qu'une sur quatre. Aucune dans les douze premières cases, où le joueur est à pleine vie et la gaspillerait — la première trouvaille est une arme, dont le chapitre 9 veut que la mécanique s'apprenne tôt. || **Trois caisses tirent, et le mot « tirage » l'écrit** plutôt que de laisser le champ absent en répondre : un lieu livré emprunte le même chemin qu'un niveau tiers, donc ce chemin doit être exercé à chaque partie — mais une caisse muette ne dit pas si son auteur voulait le hasard ou s'il l'a laissée en l'état.",
+      "position": [44, 38],
+      "contenu": "arme"
     },
-    { "position": [53, 37] },
-    { "position": [37, 60] },
-    { "position": [69, 53] },
-    { "position": [53, 69] },
-    { "position": [12, 38] },
-    { "position": [85, 5] },
-    { "position": [85, 85] }
+    { "position": [53, 37], "contenu": "tirage" },
+    { "position": [37, 60], "contenu": "fiole" },
+    { "position": [69, 53], "contenu": "fiole" },
+    { "position": [53, 69], "contenu": "tirage" },
+    { "position": [12, 38], "contenu": "tourelle" },
+    { "position": [85, 5], "contenu": "tirage" },
+    { "position": [85, 85], "contenu": "fiole" }
   ],
   "destructibles": [
     {

@@ -342,7 +342,18 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		return nil, err
 	}
 
-	charge, err := level.NewLoader(fsys, decor, profils, progression.CarryOver, obstacles).
+	// **Les armes précèdent le lieu depuis qu'une caisse peut nommer la sienne**,
+	// et c'est la même raison que les profils et les obstacles : le nom d'une
+	// lourde que la table ne porte pas est un défaut du fichier, pas de la
+	// partie. Elles étaient chargées après, du temps où un lieu ne les citait
+	// pas.
+	armes, err := game.LoadWeapons(fsys, cohue.WeaponManifest)
+	if err != nil {
+		return nil, err
+	}
+	slog.Info("armes chargées", "base", armes.Base.Key)
+
+	charge, err := level.NewLoader(fsys, decor, profils, progression.CarryOver, obstacles, armes).
 		Load(lieu)
 	if err != nil {
 		return nil, err
@@ -352,12 +363,6 @@ func Open(fsys fs.FS, campagne string, graine uint64) (*Session, error) {
 		"width", grille.Width(), "height", grille.Height(), "phases", len(scenario.Phases),
 		"ambient", len(charge.Ambient), "exit", charge.Exit != nil,
 		"crates", len(charge.Crates), "breakables", len(charge.Breakables))
-
-	armes, err := game.LoadWeapons(fsys, cohue.WeaponManifest)
-	if err != nil {
-		return nil, err
-	}
-	slog.Info("armes chargées", "base", armes.Base.Key)
 
 	// Le renvoi d'un manifeste vers l'autre se résout ici, comme les formes et
 	// les profils qu'un lieu cite : c'est le seul endroit qui tient les deux

@@ -486,13 +486,17 @@ Ce que cela établit est la cohérence entre un score et un journal, ce qui suff
 
 Le joueur casse une caisse **en la traversant**. Aucune touche, aucun conflit avec l'auto-visée, et ça le garde en mouvement.
 
-Ce que la caisse laisse est une volée de gemmes, une arme lourde de temps en temps, et une fiole sur ce qui reste.
+Ce que la caisse laisse est une volée de gemmes, une arme lourde de temps en temps, et une fiole sur ce qui reste — à moins que le lieu n'ait écrit ce qu'elle porte.
 
 **Elle n'est pas une cible**, et c'est la règle qui coûterait cher à rétablir plus tard. Rangée parmi les ennemis, elle détournerait la visée automatique — qui prend la plus proche sans que le joueur choisisse — et emporterait avec elle la mécanique du Secouriste ; c'est la même règle que pour le figurant, et pour la même raison.
 
 **Deux caisses ne se posent pas sur la même case**, et le chargeur le refuse. Elles étaient une redondance sans conséquence tant qu'une caisse n'écrivait rien dans la grille ; depuis qu'elle y écrit son coût, la première cassée rend la case au sol sous la seconde, qui cesse de ralentir ce qu'elle devrait ralentir.
 
-**Ce qu'une caisse laisse est un réglage de partie, pas de lieu.** Un auteur écrit où sont ses caisses, il n'écrit pas ce qu'elles donnent : sans cela il règle la difficulté de sa salle par son butin, et une caisse cesse de signifier la même chose d'un lieu à l'autre. C'est la règle qui vaut déjà pour la valeur d'une gemme.
+**Les gemmes d'une caisse sont un réglage de partie, son supplément un réglage de lieu.** La coupure passe là et non ailleurs : le rythme des gemmes commande le métronome des choix, dont le chapitre 9 fait une règle dure qui ne peut pas dépendre de ce qu'un auteur écrit — c'est celle qui vaut déjà pour la valeur d'une gemme. Ce qu'une caisse a **de plus que les autres**, en revanche, est ce que l'écran annonce au-dessus d'elle, et un auteur a besoin de pouvoir le poser : un soin laissé au tirage ne produit aucune décision, puisque le joueur ne sait pas qu'il y a quelque chose à aller chercher. Une partie l'a montré — une caisse ne porte une fiole qu'une fois sur quatre, et le trajet d'un lieu n'en croise que trois ou quatre.
+
+Le champ est donc **facultatif, et son absence laisse le tirage décider** — ce que le mot `tirage` demande aussi en clair, parce que l'implicite ne se lit pas : devant une caisse muette, rien ne distingue l'auteur qui veut le hasard de celui qui n'y a pas pensé. Le vocabulaire se ferme à quatre mots et au catalogue : `tirage`, `gemmes` pour rien de plus, `fiole`, `arme` pour une lourde que la table choisit, ou le nom d'une lourde pour celle-là.
+
+**Nommer l'arme ou la laisser choisir sont deux intentions distinctes, et les deux servent.** La seconde garde entre deux runs le contraste que ce document attend des lourdes ; la première sert la salle dont une arme fait le caractère. Une clé que le catalogue ne porte pas **arrête le chargement**, comme un profil ou un obstacle inconnus — c'est pourquoi la table des armes se lit désormais avant le lieu et non après.
 
 Trois règles rendent la mécanique juste :
 
@@ -890,6 +894,16 @@ Bénéfice secondaire : aucun renderer iso à écrire pour l'éditeur.
 **Ce qui l'a décidé est la taille de l'écran.** La demi-étendue visible vaut 15,9 tuiles par axe, donc l'aire de jeu en montre une trentaine de côté : à 32×32 une pièce couvre un écran entier, on en voit une à la fois, sa répétition se lit d'un coup d'œil, et ses mille vingt-quatre cases se remplissent mal — le lieu livré y a passé une étape avec une esplanade vide pour cette seule raison. À 16×16 l'écran en montre quatre, et la variété vient de leurs combinaisons plutôt que de leur nombre. L'éditeur y gagne la sienne : poser neuf blocs n'est pas composer.
 
 **La maille est une convention de composition et non une contrainte de format.** `u` et `v` sont la case d'origine d'une pièce et jamais son rang dans une trame, si bien que des tailles différentes se posent dans un même lieu — l'enceinte du lieu livré n'a qu'une case d'épaisseur. Ce qui est tranché est la taille des pièces qu'on compose, pas ce que le format accepte.
+
+**La palette porte tout ce qui se pose, et chaque famille par son type** : les décors — sols, murs, mobilier, véhicules, bâtiments —, les objets, les armes, et le figurant, qui porte sa case comme eux.
+
+**Les créatures ne se posent pas, elles se programment**, et l'éditeur en porte donc un second volet plutôt que rien : la section `vagues` du lieu, où chaque phase déclare son `debut`, sa `pression` et les `profils` qu'elle autorise. C'est la forme juste parce que c'est la mécanique du jeu — une horde arrive sous une pression qui monte, elle n'attend pas à des endroits qu'on a choisis —, et parce que poser une créature à la case serait une seconde façon de peupler un lieu, à tenir d'accord avec la première. Ce volet a ses propres refus, que le chargement fait déjà : une phase qui autorise un profil coûtant plus que le budget reporté ne le ferait jamais apparaître.
+
+**Mais les deux familles ne se posent pas au même étage, et c'est le format qui le dit.** Un décor est un caractère dans la `grille` ou les `couches` d'une **pièce** ; un objet et la porte ont leur position dans le **lieu**. Poser un bus à un endroit choisi revient donc à éditer la pièce qui le porte, c'est-à-dire au mode tuiles décrit plus bas — hors v1 — ou à composer une pièce de plus. Le mode pièces, lui, pose des pièces et des objets.
+
+**Le format fixe le plafond de l'éditeur** : un type qu'un fichier ne sait pas nommer est un type que la palette ne pourra pas offrir. C'est la raison de le décider tant qu'aucun niveau partagé n'oblige à écrire une migration.
+
+Deux objets demanderont une décision avant d'être posables, et elle porte sur leur mécanique plutôt que sur le format : l'aimant apparaît périodiquement, donc le poser demande de dire ce que devient cette période ; et une gemme s'efface six secondes après son apparition, si bien qu'une gemme posée serait perdue avant qu'on l'atteigne. Les projectiles et les éclats, eux, ne sont pas des objets de monde.
 
 **Mode tuiles** (« ouvrir la pièce »), **différé**. Pour fabriquer des structures tordues, on entre dans une cellule et on peint tuile par tuile — avec les tuiles fournies par le jeu, jamais avec des images importées. Ce qui en sort est une pièce comme une autre, réutilisable, enregistrée dans le niveau.
 

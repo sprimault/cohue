@@ -25,6 +25,30 @@ type CratePlacementSpec struct {
 	manifest.Commentable
 	// At est la case où la caisse repose, en coordonnées de lieu.
 	At *[2]int `json:"position"`
+	// Content est ce que la caisse portera en plus de ses gemmes, quand l'auteur
+	// le décide plutôt que de laisser le tirage le faire.
+	//
+	// **Il ne dit que le supplément, jamais le butin entier.** Les gemmes tombent
+	// de toute façon et ne se règlent pas ici : leur rythme commande le métronome
+	// des choix, dont la conception fait une règle dure qui ne peut pas dépendre
+	// de ce qu'un auteur écrit. Ce champ ne donne donc la main que sur ce qu'une
+	// caisse a de plus que les autres, c'est-à-dire sur ce que l'icône posée
+	// au-dessus d'elle annonce déjà.
+	//
+	// **Il nomme l'objet ou sa sorte**, et les deux servent : « fusil » pose
+	// cette lourde-là, « arme » en pose une que la table choisit — ce qui garde
+	// entre deux runs le contraste que la conception attend des lourdes, et
+	// qu'une arme écrite éteindrait.
+	//
+	// **Facultatif, donc `version_format` ne bouge pas** : une caisse sans
+	// contenu écrit tire comme avant, et c'est le cas de tout ce qui existe. Le
+	// tirage reste par là même exercé à chaque partie, au lieu de devenir un
+	// chemin que seuls les tests emprunteraient.
+	//
+	// Mais l'implicite ne se lit pas, d'où « tirage », qui demande en clair ce
+	// que l'absence fait : sans lui, rien ne distingue dans un fichier la caisse
+	// dont l'auteur veut le hasard de celle qu'il a laissée en l'état.
+	Content *string `json:"contenu"`
 }
 
 // CratePlacement est une caisse compilée : une position et le sol qu'elle
@@ -40,6 +64,22 @@ type CratePlacement struct {
 	// lirait sa case à l'apparition mémoriserait son propre coût comme étant
 	// celui du sol, et le lui rendrait en cédant.
 	Floor Cost
+	// Content est le butin que le lieu impose, nil quand il laisse le tirage
+	// décider.
+	Content *CrateLoot
+}
+
+// CrateLoot est le butin qu'un lieu impose à une caisse.
+//
+// **Deux champs et non un, parce qu'un lieu peut imposer la sorte sans le
+// rang** : « arme » dit qu'une lourde tombe et laisse la table choisir laquelle.
+// Un index à part, ou une sentinelle dans `Loot.Index`, ramènerait la valeur à
+// interpréter que `LootKind` existe précisément pour supprimer.
+type CrateLoot struct {
+	// Loot est ce que la caisse portera, son index ne valant que si Ranked.
+	Loot Loot
+	// Ranked dit que le lieu a nommé l'arme, donc que l'index est déjà résolu.
+	Ranked bool
 }
 
 // Crate est une caisse posée dans le lieu.
@@ -119,7 +159,7 @@ type Loot struct {
 //
 // La carte reçue est celle du lieu assemblé, avant qu'aucune caisse n'y ait écrit :
 // c'est de là que chaque placement tire le sol qu'il recouvre.
-func CompileCrates(brut CrateSpec, carte *CostGrid) ([]CratePlacement, []string) {
+func CompileCrates(brut CrateSpec, armes *Weapons, carte *CostGrid) ([]CratePlacement, []string) {
 	var manques []string
 	dire := func(format string, args ...any) {
 		manques = append(manques, fmt.Sprintf(format, args...))
@@ -129,6 +169,20 @@ func CompileCrates(brut CrateSpec, carte *CostGrid) ([]CratePlacement, []string)
 	pose := make([]CratePlacement, 0, len(brut))
 	for i, c := range brut {
 		ou := fmt.Sprintf("caisses[%d]", i)
+
+		var impose *CrateLoot
+		contenuSu := true
+		if c.Content != nil {
+			if b, connu := butinEcrit(*c.Content, armes); connu {
+				impose = b
+			} else {
+				dire("%s.contenu : « %s » ne nomme rien ; c'est « tirage », "+
+					"« gemmes », « arme », « fiole », ou une lourde du catalogue %v",
+					ou, *c.Content, clesDesLourdes(armes))
+				contenuSu = false
+			}
+		}
+
 		if c.At == nil {
 			dire("%s.position : absente, une caisse se place", ou)
 			continue
@@ -144,16 +198,72 @@ func CompileCrates(brut CrateSpec, carte *CostGrid) ([]CratePlacement, []string)
 		case occupee:
 			dire("%s.position : (%d, %d) porte déjà caisses[%d] ; la première cassée "+
 				"rendrait la case au sol sous la seconde", ou, u, v, premiere)
+		case !contenuSu:
+			// Le contenu a déjà été dit, et sa case ne se revendique pas : le
+			// chargement s'arrête de toute façon, et marquer la case ferait
+			// accuser à tort la caisse suivante qui s'y poserait.
 		default:
 			prises[[2]int{u, v}] = i
 			pose = append(pose, CratePlacement{
-				X:     FromInt(u) + One/2,
-				Y:     FromInt(v) + One/2,
-				Floor: carte.At(u, v),
+				X:       FromInt(u) + One/2,
+				Y:       FromInt(v) + One/2,
+				Floor:   carte.At(u, v),
+				Content: impose,
 			})
 		}
 	}
 	return pose, manques
+}
+
+// clesDesLourdes rend les noms que le contenu d'une caisse accepte, pour un
+// refus qui nomme ce qu'il attendait plutôt que de laisser chercher.
+func clesDesLourdes(armes *Weapons) []string {
+	cles := make([]string, 0, len(armes.Heavy))
+	for _, rang := range armes.Heavy {
+		cles = append(cles, armes.All[rang].Key)
+	}
+	return cles
+}
+
+// butinEcrit traduit le mot qu'un lieu écrit en butin imposé.
+//
+// **Le vocabulaire est fermé**, comme tout ce qu'un auteur compose, et il tient
+// en deux registres : trois mots de sorte, puis les clés des lourdes du
+// catalogue. « gemmes » ne désigne pas un contenu mais l'absence de supplément —
+// ce que l'écran dit déjà en ne posant aucune icône au-dessus de la caisse.
+//
+// **Les mots de sorte passent avant les clés.** Une table d'armes dont une
+// lourde porterait l'un de ces trois noms la rendrait inatteignable par son nom,
+// et c'est le bon sens de la précédence : « arme » doit garder son sens dans
+// tous les lieux, quelle que soit la table du moment.
+//
+// **Elle refuse une clé que la table ne porte pas**, et c'est ce qui rend ce
+// champ aussi sûr que les autres : une arme mal orthographiée arrête le
+// chargement au lieu de donner une caisse vide trois minutes plus tard.
+//
+// **« tirage » dit en clair ce que l'absence du champ fait**, et les deux
+// signifient la même chose. Le mot existe parce que l'implicite ne se lit pas :
+// devant une caisse sans contenu, rien ne distingue l'auteur qui veut le hasard
+// de celui qui n'y a pas pensé — et « gemmes » ne remplit pas ce rôle, puisqu'il
+// garantit qu'il n'y aura rien de plus.
+//
+// Le premier résultat est nil pour un tirage, et le second porte seul le refus :
+// nil avec « connu » laisse la caisse tirer, nil sans lui arrête la pose.
+func butinEcrit(mot string, armes *Weapons) (*CrateLoot, bool) {
+	switch mot {
+	case "tirage":
+		return nil, true
+	case "gemmes":
+		return &CrateLoot{Ranked: true}, true
+	case "arme":
+		return &CrateLoot{Loot: Loot{Kind: LootHeavy}}, true
+	case "fiole":
+		return &CrateLoot{Loot: Loot{Kind: LootVial}, Ranked: true}, true
+	}
+	if rang, lourde := armes.HeavyRank(mot); lourde {
+		return &CrateLoot{Loot: Loot{Kind: LootHeavy, Index: rang}, Ranked: true}, true
+	}
+	return nil, false
 }
 
 // StampCrates écrit le coût de traversée des caisses dans la grille.
@@ -184,7 +294,7 @@ func StampCrates(grille *CostGrid, caisses []CratePlacement, regles CrateRules) 
 // les caisses resteraient cassées après une mort ne serait pas la même salle.
 func (w *World) Stock(caisses []CratePlacement) {
 	for _, c := range caisses {
-		w.SpawnCrate(c.X, c.Y, c.Floor)
+		w.SpawnCrate(c.X, c.Y, c.Floor, c.Content)
 	}
 }
 
@@ -200,16 +310,46 @@ func (w *World) Stock(caisses []CratePlacement) {
 // L'appui part entier : une caisse qu'on trouve déjà entamée serait une caisse
 // que quelqu'un a poussée avant que la partie commence.
 //
-// **Le contenu se tire ici**, ce qui consomme le flux du butin au montage plutôt
-// qu'au fil de la partie. Une caisse qu'on ne casse jamais aura donc coûté un
-// tirage : c'est le prix de pouvoir l'annoncer, et il se paie une fois par run.
-func (w *World) SpawnCrate(x, y Fixed, sol Cost) (Handle, bool) {
+// **Le contenu se décide ici**, ce qui consomme le flux du butin au montage
+// plutôt qu'au fil de la partie. Une caisse qu'on ne casse jamais aura donc
+// coûté un tirage : c'est le prix de pouvoir l'annoncer, et il se paie une fois
+// par run.
+//
+// Le butin reçu est celui que le lieu impose, nil quand il laisse le tirage
+// décider.
+func (w *World) SpawnCrate(x, y Fixed, sol Cost, impose *CrateLoot) (Handle, bool) {
 	return w.caisses.Spawn(Crate{
 		X: x, Y: y,
 		Press:   w.appuiCaisse,
 		Floor:   sol,
-		Content: w.tirerLeButin(),
+		Content: w.butin(impose),
 	})
+}
+
+// butin rend ce qu'une caisse portera : ce que le lieu lui écrit, ou un tirage.
+//
+// **Une sorte imposée ne consomme pas le flux du butin, sauf celle d'une arme**,
+// dont le rang se tire encore. Un lieu qui déclare toutes ses caisses cesse donc
+// de dépendre de sa graine pour ce que le joueur y trouve, et lui en ajouter une
+// ne déplace pas ce que les autres portent — ce qu'un tirage faisait, puisqu'il
+// avance d'un cran pour chacune.
+//
+// **Une table d'armes vide rend « rien de plus » plutôt qu'un refus.** Elle est
+// un réglage de partie et non du lieu : arrêter le chargement d'un niveau
+// correct parce que la table du moment ne porte aucune lourde ferait dépendre sa
+// validité de ce qui ne lui appartient pas.
+func (w *World) butin(impose *CrateLoot) Loot {
+	switch {
+	case impose == nil:
+		return w.tirerLeButin()
+	case impose.Ranked:
+		return impose.Loot
+	}
+	// Une lourde sans nom : la sorte vient du lieu, le rang de la table.
+	if rang, choisie := w.choisirUneArme(); choisie {
+		return Loot{Kind: LootHeavy, Index: rang}
+	}
+	return Loot{}
 }
 
 // tirerLeButin décide ce qu'une caisse portera en plus de ses gemmes.

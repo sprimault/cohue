@@ -302,7 +302,10 @@ func TestUneCaisseLacheCeQuElleAnnonce(t *testing.T) {
 //
 // **Elle repose plutôt qu'elle n'écrit le champ**, ce qui garde le tirage dans
 // le chemin : une caisse forgée à la main éprouverait ce que la casse fait d'un
-// contenu, jamais l'accord entre ce qui est tiré et ce qui est lâché.
+// contenu, jamais l'accord entre ce qui est tiré et ce qui est lâché. Elle pose
+// donc sans sorte imposée, et l'arrivée de `contenu` dans le format ne lui offre
+// pas un raccourci — ce raccourci retirerait du chemin exactement ce qu'elle
+// existe pour éprouver.
 //
 // **Et elle est bornée**, ce qu'une mutation a montré : à contenu forcé à vide,
 // une boucle qui attend une arme ne s'arrête jamais, et le cas pendait au lieu
@@ -321,7 +324,7 @@ func reposerJusqua(t *testing.T, w *World, x, y Fixed, sorte LootKind) *Crate {
 			return c
 		}
 		w.Crates().RemoveAt(0)
-		if _, ok := w.SpawnCrate(x, y, Free); !ok {
+		if _, ok := w.SpawnCrate(x, y, Free, nil); !ok {
 			t.Fatal("bassin de caisses plein")
 		}
 	}

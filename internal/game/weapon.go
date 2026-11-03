@@ -280,6 +280,23 @@ type Weapons struct {
 	Passives *Passives
 }
 
+// HeavyRank rend le rang de la lourde que nomme une clé.
+//
+// **Elle ne cherche que parmi les lourdes**, si bien qu'une clé valide pour une
+// autre catégorie est refusée : un lieu qui nommerait l'arme de base dans une
+// caisse demanderait qu'on y trouve ce que le joueur tient déjà.
+//
+// Le second résultat porte l'absence, et c'est ce qui permet au chargement de
+// refuser un lieu qui nomme une arme que la table ne porte pas.
+func (w *Weapons) HeavyRank(cle string) (int, bool) {
+	for _, rang := range w.Heavy {
+		if w.All[rang].Key == cle {
+			return rang, true
+		}
+	}
+	return 0, false
+}
+
 // LoadWeapons lit le manifeste des armes.
 //
 // L'un des deux de `assets/` qui ne sortent d'aucun générateur, avec celui de la

@@ -91,7 +91,13 @@ func TestLieuLivre(t *testing.T) {
 	if err != nil {
 		t.Fatalf("obstacles livrés : %v", err)
 	}
-	charge, err := NewLoader(cohue.Assets, decor, profils, progression.CarryOver, obstacles).
+	// Les armes livrées, comme la progression : le lieu nomme une lourde dans
+	// une de ses caisses, et c'est la table réelle qui doit la porter.
+	armes, err := game.LoadWeapons(cohue.Assets, "assets/armes/manifeste.json")
+	if err != nil {
+		t.Fatalf("armes livrées : %v", err)
+	}
+	charge, err := NewLoader(cohue.Assets, decor, profils, progression.CarryOver, obstacles, armes).
 		Load("assets/campagnes/demonstration/place")
 	if err != nil {
 		t.Fatalf("chargement du lieu : %v", err)

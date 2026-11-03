@@ -79,6 +79,21 @@ func (w *World) tirerUneArme() (int, bool) {
 	if w.hasard.Loot.IntN(chance) != 0 {
 		return 0, false
 	}
+	return w.choisirUneArme()
+}
+
+// choisirUneArme tire le rang d'une lourde, sans décider si elle tombe.
+//
+// **La moitié de `tirerUneArme` qu'une caisse déclarée « arme » emprunte** : son
+// lieu a déjà décidé qu'elle en porte une, et repasser par la chance la ferait
+// mentir une fois sur deux. Le rang reste tiré, parce que choisir laquelle tombe
+// appartient à la table des armes et non au niveau.
+//
+// Le second résultat est faux quand la table ne porte aucune lourde.
+func (w *World) choisirUneArme() (int, bool) {
+	if len(w.armes.Heavy) == 0 {
+		return 0, false
+	}
 	return w.armes.Heavy[w.hasard.Loot.Pick(len(w.armes.Heavy))], true
 }
 

@@ -78,9 +78,20 @@ const reportDeTest = 3 * game.TPS
 // se résout ou se refuse, pas ce que le catalogue livré en dit.
 var obstaclesDeTest = []game.BreakableKind{{Key: "vitrine", Hits: 5}}
 
+// armesDeTest est la table que le contenu d'une caisse peut citer.
+//
+// Forgée plutôt que lue, pour la raison des obstacles, et réduite à une lourde :
+// ce qui se vérifie ici est qu'un nom se résout ou se refuse. Le rang zéro est
+// pris par une arme de base, sans quoi « lourde » et « première de la table »
+// se confondraient et un défaut d'indice passerait.
+var armesDeTest = &game.Weapons{
+	All:   []game.Weapon{{Key: "reglementaire"}, {Key: "grenade"}},
+	Heavy: []int{1},
+}
+
 // chargeur monte un chargeur de test sur un système de fichiers.
 func chargeur(fsys fs.FS) *Loader {
-	return NewLoader(fsys, decorDeTest, profils, reportDeTest, obstaclesDeTest)
+	return NewLoader(fsys, decorDeTest, profils, reportDeTest, obstaclesDeTest, armesDeTest)
 }
 
 // chargeurDeTest monte un chargeur sur les fichiers de testdata.

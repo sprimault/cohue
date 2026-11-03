@@ -28,25 +28,41 @@ import (
 // l'atteint.
 func salleAvecCaisse(t *testing.T) (*World, Fixed, Fixed) {
 	t.Helper()
+	w, pose := salleAvecSemis(t, CrateSpec{{At: &[2]int{10, 10}}}, graineDeTest)
+	return w, pose[0].X, pose[0].Y
+}
+
+// salleAvecSemis monte une salle sur le semis et la graine qu'on lui donne.
+//
+// La graine est un paramètre et non la constante du paquet parce que le contenu
+// d'une caisse en dépend : un cas qui éprouve ce que le lieu impose doit pouvoir
+// rejouer la même pose sur plusieurs graines, ce qui est la seule façon de
+// distinguer un contenu écrit d'un tirage qui serait tombé juste.
+func salleAvecSemis(t *testing.T, semis CrateSpec, graine uint64) (*World, []CratePlacement) {
+	t.Helper()
 	profils, err := LoadProfiles(cohue.Assets, manifestePersonnages)
 	if err != nil {
 		t.Fatalf("profils livrés : %v", err)
 	}
 	regles := caissesLivrees(t)
+	armes := armesInertes(t)
 
 	g := NewCostGrid(48, 48)
-	pose, manques := CompileCrates(CrateSpec{{At: &[2]int{10, 10}}}, g)
+	pose, manques := CompileCrates(semis, armes, g)
 	if len(manques) > 0 {
 		t.Fatalf("semis d'essai refusé : %v", manques)
 	}
 	StampCrates(g, pose, regles)
 
-	w := NewWorld(profils, armesInertes(t), progressionLivree(t), regles, fiolesLivrees(t),
-		vagueUnique(0), g, graineDeTest, capacitesDeTest)
+	w := NewWorld(profils, armes, progressionLivree(t), regles, fiolesLivrees(t),
+		vagueUnique(0), g, graine, capacitesDeTest)
 	w.Place(FromInt(24)+One/2, FromInt(24)+One/2)
 	w.Stock(pose)
-	return w, pose[0].X, pose[0].Y
+	return w, pose
 }
+
+// contenu rend l'adresse d'un mot de contenu, le champ du format étant facultatif.
+func contenu(mot string) *string { return &mot }
 
 // casserLaCaisse pousse le joueur sur la caisse jusqu'à ce qu'elle cède.
 //
@@ -278,7 +294,7 @@ func TestUnSemisMalEcritSeRefuse(t *testing.T) {
 	}
 	for _, c := range cas {
 		t.Run(c.nom, func(t *testing.T) {
-			pose, manques := CompileCrates(c.brut, carte)
+			pose, manques := CompileCrates(c.brut, armesInertes(t), carte)
 			if len(pose) > 0 {
 				t.Error("une caisse a été posée là où le fichier est faux")
 			}
@@ -300,7 +316,7 @@ func TestUnSemisMalEcritSeRefuse(t *testing.T) {
 // sans quoi l'auteur d'un semis de trente ne saurait pas laquelle déplacer.
 func TestDeuxCaissesSurUneCaseSeRefusent(t *testing.T) {
 	brut := CrateSpec{{At: &[2]int{2, 2}}, {At: &[2]int{9, 9}}, {At: &[2]int{2, 2}}}
-	_, manques := CompileCrates(brut, NewCostGrid(16, 16))
+	_, manques := CompileCrates(brut, armesInertes(t), NewCostGrid(16, 16))
 
 	if !contient(manques, "caisses[2]") || !contient(manques, "caisses[0]") {
 		t.Errorf("le refus ne nomme pas les deux rangs en cause : %v", manques)
@@ -320,7 +336,8 @@ func TestUnSemisEcritSeCompile(t *testing.T) {
 	const boue Cost = 2
 	carte.Set(9, 2, boue)
 
-	pose, manques := CompileCrates(CrateSpec{{At: &[2]int{4, 4}}, {At: &[2]int{9, 2}}}, carte)
+	pose, manques := CompileCrates(CrateSpec{{At: &[2]int{4, 4}}, {At: &[2]int{9, 2}}},
+		armesInertes(t), carte)
 	if len(manques) > 0 {
 		t.Fatalf("un semis bien écrit est refusé : %v", manques)
 	}
@@ -342,8 +359,106 @@ func TestUnSemisEcritSeCompile(t *testing.T) {
 
 // TestUnLieuSansCaisseNeSeRefusePas vérifie que l'absence n'est pas une faute.
 func TestUnLieuSansCaisseNeSeRefusePas(t *testing.T) {
-	pose, manques := CompileCrates(nil, NewCostGrid(16, 16))
+	pose, manques := CompileCrates(nil, armesInertes(t), NewCostGrid(16, 16))
 	if len(pose) > 0 || len(manques) > 0 {
 		t.Errorf("un lieu sans caisse est refusé : %v, %v", pose, manques)
+	}
+}
+
+// TestUnContenuEcritNeDependPasDeLaGraine est le cas du lot : ce qu'un lieu
+// déclare est ce que la caisse porte, et aucune graine ne le déplace.
+//
+// **Vingt graines, parce qu'une seule ne prouverait rien.** « gemmes » est une
+// sortie que le tirage produit une fois sur quatre, si bien qu'un contenu ignoré
+// passerait inaperçu sur un seul essai ; la produire vingt fois d'affilée par
+// chance demande une chance sur mille milliards.
+func TestUnContenuEcritNeDependPasDeLaGraine(t *testing.T) {
+	semis := CrateSpec{
+		{At: &[2]int{10, 10}, Content: contenu("fiole")},
+		{At: &[2]int{12, 10}, Content: contenu("gemmes")},
+		{At: &[2]int{14, 10}, Content: contenu("arme")},
+		{At: &[2]int{16, 10}, Content: contenu("fusil")},
+	}
+	attendu := []LootKind{LootVial, LootNothing, LootHeavy, LootHeavy}
+
+	for graine := uint64(1); graine <= 20; graine++ {
+		w, _ := salleAvecSemis(t, semis, graine)
+		for i, veut := range attendu {
+			if sorte := w.Crates().At(i).Content.Kind; sorte != veut {
+				t.Fatalf("graine %d : la caisse %d porte la sorte %d, attendu %d",
+					graine, i, sorte, veut)
+			}
+		}
+		// La quatrième nomme son arme, la troisième non : seul le rang de celle
+		// qui la nomme doit tenir d'une graine à l'autre.
+		rang, lourde := w.armes.HeavyRank("fusil")
+		if !lourde {
+			t.Fatal("la table livrée ne porte pas de fusil")
+		}
+		if porte := w.Crates().At(3).Content.Index; porte != rang {
+			t.Fatalf("graine %d : la caisse nommée porte le rang %d, attendu %d",
+				graine, porte, rang)
+		}
+	}
+}
+
+// TestUnTirageEcritVautLeChampAbsent garde l'équivalence des deux écritures.
+//
+// Le mot n'existe que pour la lecture d'un fichier, donc le cas qui compte est
+// qu'il ne change rien : sur la même graine, une caisse qui le porte doit tirer
+// exactement ce que tire la caisse qui n'a pas de contenu du tout.
+func TestUnTirageEcritVautLeChampAbsent(t *testing.T) {
+	ecrit, _ := salleAvecSemis(t, CrateSpec{
+		{At: &[2]int{10, 10}, Content: contenu("tirage")},
+	}, graineDeTest)
+	absent, _ := salleAvecSemis(t, CrateSpec{{At: &[2]int{10, 10}}}, graineDeTest)
+
+	if a, b := ecrit.Crates().At(0).Content, absent.Crates().At(0).Content; a != b {
+		t.Errorf("« tirage » donne %v, le champ absent %v", a, b)
+	}
+}
+
+// TestUneCaisseDeclareeArmeTireSonRang garde la moitié que le lieu ne décide pas.
+//
+// Choisir laquelle des lourdes tombe appartient à la table des armes : « arme »
+// dit la sorte, et le rang doit désigner une lourde de la table plutôt que la
+// valeur zéro qu'un champ oublié porterait.
+func TestUneCaisseDeclareeArmeTireSonRang(t *testing.T) {
+	w, _ := salleAvecSemis(t, CrateSpec{
+		{At: &[2]int{10, 10}, Content: contenu("arme")},
+	}, graineDeTest)
+
+	rang := w.Crates().At(0).Content.Index
+	for _, lourde := range w.armes.Heavy {
+		if rang == lourde {
+			return
+		}
+	}
+	t.Errorf("rang %d hors des lourdes de la table %v", rang, w.armes.Heavy)
+}
+
+// TestUnContenuInconnuSeRefuse garde le vocabulaire fermé, et la pose avec lui.
+func TestUnContenuInconnuSeRefuse(t *testing.T) {
+	carte := NewCostGrid(16, 16)
+	pose, manques := CompileCrates(CrateSpec{
+		{At: &[2]int{4, 4}, Content: contenu("fioles")},
+		{At: &[2]int{6, 4}, Content: contenu("bazooka")},
+	}, armesInertes(t), carte)
+
+	if len(pose) > 0 {
+		t.Errorf("%d caisse(s) posées malgré un contenu refusé", len(pose))
+	}
+	if len(manques) != 2 {
+		t.Fatalf("%d manquement(s) pour deux contenus inconnus : %v", len(manques), manques)
+	}
+	// Le pluriel et l'arme imaginaire sont les deux erreurs probables, et le refus
+	// doit rendre les deux registres du vocabulaire : un ensemble fermé qu'on ne
+	// nomme pas se devine à l'essai.
+	for _, mot := range []string{
+		"fioles", "bazooka", "tirage", "gemmes", "arme", "fiole", "grenade",
+	} {
+		if !contient(manques, mot) {
+			t.Errorf("« %s » absent du refus : %v", mot, manques)
+		}
 	}
 }

@@ -42,11 +42,20 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+### Ajouté
+
+- **Une caisse peut déclarer ce qu'elle porte.** `contenu` nomme son supplément —
+  `tirage`, `gemmes`, `fiole`, `arme`, ou une lourde précise —, et son absence
+  laisse le tirage décider. Un nom que le catalogue ne porte pas arrête le
+  chargement ; les gemmes, elles, restent un réglage de partie.
+
 ### Modifié
 
 - **Les salles sont refaites sur une maille de seize cases.** Six pièces par
   axe au lieu de trois : l'écran en montre quatre à la fois, et la variété vient
   de leurs combinaisons plutôt que d'une grande salle meublée.
+- **Le lieu livré pose trois fioles sur le trajet**, contre une seule qu'un
+  joueur y trouvait : une caisse n'en portait une qu'une fois sur quatre.
 
 ### Corrigé
 
@@ -57,11 +66,20 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ***
 
+### Added
+
+- **A crate can declare what it carries.** `contenu` names its extra — `tirage`,
+  `gemmes`, `fiole`, `arme`, or a specific heavy weapon — and leaving it out lets
+  the draw decide. A name the catalogue does not carry stops loading; gems stay a
+  game-wide setting.
+
 ### Changed
 
 - **Rooms are rebuilt on a sixteen-tile grid.** Six rooms per axis instead of
   three: the screen shows four at a time, and variety comes from their
   combinations rather than from one large furnished room.
+- **The delivered place now lays three vials along the route**, where a player
+  found one: a crate carried one only a quarter of the time.
 
 ### Fixed
 

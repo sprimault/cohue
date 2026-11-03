@@ -91,13 +91,19 @@ type Loader struct {
 	// qu'un lieu cite par leur nom. Elles entrent pour la raison des profils :
 	// refuser un nom inconnu fait partie de la validation du fichier.
 	obstacles []game.BreakableKind
+	// armes sert à résoudre la lourde qu'une caisse déclare porter.
+	//
+	// La table entière plutôt que ses seules clés, comme pour les profils : c'est
+	// elle qui donne le rang, et un lieu ne retient jamais un nom là où une
+	// entité retient une place dans une table.
+	armes *game.Weapons
 }
 
 // NewLoader monte un chargeur sur un système de fichiers et les catalogues
-// qu'un lieu cite : les formes du décor, les profils de créatures et les
-// obstacles fragiles.
+// qu'un lieu cite : les formes du décor, les profils de créatures, les obstacles
+// fragiles et les armes.
 func NewLoader(fsys fs.FS, decor *Decor, profils *game.Profiles, report game.Tick,
-	obstacles []game.BreakableKind) *Loader {
+	obstacles []game.BreakableKind, armes *game.Weapons) *Loader {
 	return &Loader{
 		fsys:      fsys,
 		decor:     decor,
@@ -105,6 +111,7 @@ func NewLoader(fsys fs.FS, decor *Decor, profils *game.Profiles, report game.Tic
 		profils:   profils,
 		report:    report,
 		obstacles: obstacles,
+		armes:     armes,
 	}
 }
 
@@ -171,7 +178,7 @@ func (l *Loader) Load(dossier string) (*Loaded, error) {
 	scenario, ecarts := game.CompileScenario(lieu.Waves, l.profils, l.report)
 	ambiance, ecartsAmbiance := game.CompileAmbient(lieu.Ambient, l.profils, grille)
 	sortie, ecartsSortie := game.CompileExit(lieu.Exit, grille)
-	caisses, ecartsCaisses := game.CompileCrates(lieu.Crates, grille)
+	caisses, ecartsCaisses := game.CompileCrates(lieu.Crates, l.armes, grille)
 	obstacles, ecartsObstacles := game.CompileBreakables(lieu.Breakables, l.obstacles,
 		grille, caisses, ambiance)
 	manques := append(valider(nom, lieu, jeu, pieces, l.decor), ecarts...)

@@ -46,19 +46,14 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 - **Les salles sont refaites sur une maille de seize cases.** Six pièces par
   axe au lieu de trois : l'écran en montre quatre à la fois, et la variété vient
-  de leurs combinaisons. Chaque pièce pose un anneau de chaussée, un trottoir et
-  un parvis autour de son bâti, si bien que tous les immeubles sont desservis et
-  qu'aucune aire close ne garde le joueur en silhouette. Les obstacles fragiles
-  passent au débouché sud des ruelles, le seul côté où la façade voisine ne les
-  recouvre pas.
+  de leurs combinaisons plutôt que d'une grande salle meublée.
 
 ### Corrigé
 
-- **Deux formes bloquantes ne peuvent plus fermer la même case.** Le chargement
-  refuse l'empilement que la passabilité rendait invisible : le coût restait
-  juste, et le rendu dessinait un muret à l'intérieur d'une façade. Le refus
-  porte sur les emprises, donc il attrape aussi le cas où aucune ligne de la
-  pièce ne porte deux caractères au même rang.
+- **Deux formes bloquantes ne peuvent plus fermer la même case.** La passabilité
+  prenant le plus cher, l'empilement ne se voyait qu'au rendu — un muret planté
+  dans une façade. Le refus porte sur les emprises, donc aussi sur les cases
+  qu'une forme ferme sans qu'un caractère les désigne.
 
 ***
 
@@ -66,18 +61,14 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 - **Rooms are rebuilt on a sixteen-tile grid.** Six rooms per axis instead of
   three: the screen shows four at a time, and variety comes from their
-  combinations. Each room lays a ring of roadway, a pavement and a forecourt
-  around its buildings, so every building is served and no enclosed area keeps
-  the player in silhouette. Breakable obstacles move to the southern end of
-  alleys, the only side where the neighbouring façade does not cover them.
+  combinations rather than from one large furnished room.
 
 ### Fixed
 
-- **Two blocking shapes can no longer close the same tile.** Loading rejects the
-  overlap that passability made invisible: the cost stayed correct while the
-  renderer drew a low wall inside a façade. The check works on footprints, so it
-  also catches the case where no row of the room carries two characters at the
-  same rank.
+- **Two blocking shapes can no longer close the same tile.** Since passability
+  takes the highest cost, the overlap showed only in the rendering — a low wall
+  driven into a façade. The check works on footprints, so it also covers tiles a
+  shape closes without a character designating them.
 
 ## [0.7.5] — 2026-11-03 — Les objets se dessinent
 

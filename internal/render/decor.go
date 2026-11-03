@@ -202,16 +202,21 @@ func poserLeDecor(sc *scene.Scene, sol *Terrain, monde *game.World, carte *game.
 // l'ordonne au lieu de l'ordre des appels : une forme qui ne remplit pas son
 // losange laisserait voir le fond sans lui.
 //
-// **Un obstacle bas ne prend pas de cellule et laisse le comblement seul**,
-// parce que `poserLesObstaclesBas` le pose en entité. Sa case serait sinon
-// peinte deux fois, et ses pixels translucides s'assombriraient de leur propre
-// double.
+// **Ce qui se dresse ne prend pas de cellule**, parce que
+// `poserLesVolumesDebout` le pose en entité. Sa case serait sinon peinte deux
+// fois, et ses pixels translucides s'assombriraient de leur propre double.
+//
+// **Le comblement ne suit pas ce critère-là mais le sien** : il porte le sol du
+// thème sous ce qui ne remplit pas son losange, et sous un obstacle bas, dont la
+// case a besoin d'un fond. Une masquante qui couvre sa case n'en demande aucun —
+// son dessin la remplit —, et lui en exiger un réclamerait du thème un sol que
+// le contrôle de palette ne lui demande pas.
 //
 // **Une couche ne comble pas, et c'est tout l'objet des couches.** Ce qu'il y a
 // dessous est déjà posé : y remettre le sol du thème effacerait la chaussée
 // avant d'y poser le véhicule, ce qui est exactement le défaut que le calque
-// existe pour fermer. Un obstacle bas d'une couche laisse donc sa strate vide et
-// rien d'autre — ce qui est sous lui est déjà peint.
+// existe pour fermer. Ce qui s'y dresse laisse donc sa strate vide et rien
+// d'autre — ce qui est sous lui est déjà peint.
 func poserLaCase(sc *scene.Scene, sol *Terrain, monde *game.World, u, v int) {
 	f, posee := sol.formeDe(u, v)
 	if !posee {
@@ -221,13 +226,13 @@ func poserLaCase(sc *scene.Scene, sol *Terrain, monde *game.World, u, v int) {
 	if (f.nue || f.bas) && sol.sol != nil {
 		sc.PlaceCell(u, v, strateComblement, sol.sol.aspect)
 	}
-	if !f.bas {
+	if !f.debout {
 		sc.PlaceCell(u, v, strateTerrain, teinterLaPorte(f.aspect, monde, u, v))
 	}
 
 	for couche := range sol.Couches() {
 		g, posee := sol.coucheDe(couche, u, v)
-		if !posee || g.bas {
+		if !posee || g.debout {
 			continue
 		}
 		// #nosec G115 -- le nombre de couches est borné par `MaxTiers` au montage
@@ -235,19 +240,21 @@ func poserLaCase(sc *scene.Scene, sol *Terrain, monde *game.World, u, v int) {
 	}
 }
 
-// obstacleBas est un obstacle du lieu que le rendu pose en entité : sa case, son
-// dessin, et la poignée sous laquelle la scène le connaît quand l'image le
-// montre.
+// volumeDebout est une forme du lieu qui se dresse sur le sol et que le rendu
+// pose en entité : sa case, son dessin, et la poignée sous laquelle la scène le
+// connaît quand l'image le montre.
 //
-// **La liste des obstacles plutôt qu'une table par case**, et c'est ce qui rend
-// la passe bon marché : le lieu livré en porte deux cent vingt-cinq pour les
-// neuf mille six cents cases de sa carte, donc le balayage suit ce qui existe au
-// lieu de suivre la carte. Elle porte aussi la poignée, si bien qu'aucune
-// seconde tranche n'a à rester d'accord avec elle.
-type obstacleBas struct {
+// **La liste de ce qui se dresse plutôt qu'une table par case**, et c'est ce qui
+// rend la passe bon marché : le lieu livré en dresse neuf cent quarante-sept —
+// sept cent vingt-deux masquantes, le reste en obstacles bas — pour les neuf
+// mille six cents cases de sa carte, donc le balayage suit ce qui existe au lieu
+// de suivre la carte. `TestToutCeQuiSeDresseEstReleve` rejoue ces deux comptes.
+// Elle porte aussi la poignée, si bien qu'aucune seconde tranche n'a à rester
+// d'accord avec elle.
+type volumeDebout struct {
 	u, v   int
 	aspect scene.Aspect
-	// poignee est zéro quand l'obstacle n'est pas dans la scène, les générations
+	// poignee est zéro quand la forme n'est pas dans la scène, les générations
 	// du moteur partant à un.
 	poignee scene.Handle
 }
@@ -264,7 +271,7 @@ type obstacleBas struct {
 // d'autre champ où porter le sien, donc le moteur la projette à la hauteur de son
 // étage ; une entité somme les deux, et ajouter ici l'un ou l'autre lèverait le
 // décor au-dessus du sol qu'il touche.
-func (o obstacleBas) entite(a scene.Aspect) scene.Entity {
+func (o volumeDebout) entite(a scene.Aspect) scene.Entity {
 	return scene.Entity{
 		X:      float64(o.u) + 0.5,
 		Y:      float64(o.v) + 0.5,
@@ -272,57 +279,59 @@ func (o obstacleBas) entite(a scene.Aspect) scene.Entity {
 	}
 }
 
-// releverLesObstaclesBas énumère les obstacles bas du lieu, terrain et couches
-// confondus.
+// releverLesVolumesDebout énumère ce qui se dresse dans le lieu, terrain et
+// couches confondus.
 //
 // Une fois au montage : ce qu'une case porte ne change pas en cours de partie, et
 // seule la fenêtre visible le fait.
-func releverLesObstaclesBas(sol *Terrain) []obstacleBas {
-	var bas []obstacleBas
+func releverLesVolumesDebout(sol *Terrain) []volumeDebout {
+	var debout []volumeDebout
 	for v := range sol.carte.Height() {
 		for u := range sol.carte.Width() {
-			if f, posee := sol.formeDe(u, v); posee && f.bas {
-				bas = append(bas, obstacleBas{u: u, v: v, aspect: f.aspect})
+			if f, posee := sol.formeDe(u, v); posee && f.debout {
+				debout = append(debout, volumeDebout{u: u, v: v, aspect: f.aspect})
 			}
 			for couche := range sol.Couches() {
-				if g, posee := sol.coucheDe(couche, u, v); posee && g.bas {
-					bas = append(bas, obstacleBas{u: u, v: v, aspect: g.aspect})
+				if g, posee := sol.coucheDe(couche, u, v); posee && g.debout {
+					debout = append(debout, volumeDebout{u: u, v: v, aspect: g.aspect})
 				}
 			}
 		}
 	}
-	return bas
+	return debout
 }
 
-// poserLesObstaclesBas pose en entités les obstacles bas que l'image montre, et
-// retire ceux qu'elle ne montre plus.
+// poserLesVolumesDebout pose en entités ce qui se dresse et que l'image montre,
+// et retire ce qu'elle ne montre plus.
 //
 // **Une entité pour que la case voisine ne passe pas devant.** Une cellule se
 // trie à la profondeur de son coin le plus lointain, ce qui la met derrière tout
-// ce que la case du nord contient : une créature qui s'abrite derrière un muret
-// se peignait par-dessus la maçonnerie, et se lisait comme debout dessus. Posée
-// au centre de sa case, l'entité porte la profondeur de ce centre, qui départage
-// les quatre voisines dans le bon sens — le dessin ne bouge pas d'un pixel, le
-// moteur projetant une cellule depuis ce même centre.
+// ce que la case du nord contient. Deux choses s'y peignaient par-dessus ce qui
+// devait les cacher : une créature abritée derrière un muret, qui se lisait comme
+// debout dessus, et un obstacle fragile encastré dans une percée, par-dessus le
+// mur qui le borde. Posée au centre de sa case, l'entité porte la profondeur de
+// ce centre, qui départage les quatre voisines dans le bon sens — le dessin ne
+// bouge pas d'un pixel, le moteur projetant une cellule depuis ce même centre.
 //
 // **Bornée à la fenêtre, parce que c'est ce qui borne la scène.** Le décor en
 // cellules ne coûte rien à poser une fois pour toutes, là qu'une entité occupe
 // une place de la capacité tant qu'elle est là : la suivre à la fenêtre fait que
 // le nombre d'entités de décor suit l'écran et jamais la taille du lieu, et
-// qu'un lieu tiers chargé de murets ne prend pas la place du joueur.
+// qu'un lieu tiers chargé de murs ne prend pas la place du joueur.
 //
-// **Les obstacles bas comptent dans la mesure de recouvrement comme des
-// entités, et c'est le prix de cette voie.** `render.Overlap` sépare ce que le
-// décor cache de ce que les entités cachent par la voie de pose, qu'un hôte ne
-// peut pas déclarer : un joueur qu'un mur et un muret cachent ensemble reçoit
-// donc l'aplat du rappel plutôt que son voile. Les marquer `Uncounted` fermerait
-// ce cas et en ouvrirait un pire — le muret ne compterait plus du tout, et le
-// seuil de rappel ne serait plus atteint pour un joueur réellement caché.
-func (s *Screen) poserLesObstaclesBas() {
+// **Le relevé de recouvrement ne change pas de colonne pour autant**, et c'est
+// ce que `resoudre` déclare sur chaque aspect de décor. Sans cette déclaration,
+// `render.Overlap` classe sur la voie de pose : tout ce que cette passe déplace
+// compterait comme entité, un joueur qu'un mur cache cesserait de vérifier
+// `CoveredByDecor == Covered`, et il recevrait l'aplat du rappel au lieu du
+// voile. Les marquer `Uncounted` fermerait ce cas en ouvrant pire — ils ne
+// compteraient plus du tout, et le seuil ne serait plus atteint pour un joueur
+// réellement caché.
+func (s *Screen) poserLesVolumesDebout() {
 	u0, v0, u1, v1 := s.cam.casesVisibles()
 
-	for i := range s.bas {
-		o := &s.bas[i]
+	for i := range s.debout {
+		o := &s.debout[i]
 		if o.u < u0 || o.u > u1 || o.v < v0 || o.v > v1 {
 			if o.poignee != 0 {
 				s.scene.Remove(o.poignee)
@@ -331,8 +340,10 @@ func (s *Screen) poserLesObstaclesBas() {
 			continue
 		}
 
-		// La sortie peut tomber sur une case d'obstacle bas — rien ne l'interdit à
-		// un lieu, et la teinte est ce qui la signale au joueur.
+		// La sortie tombe sur une case qui se dresse — un mur, le cas ordinaire,
+		// mais rien n'interdit à un lieu d'y mettre un obstacle bas. La teinte est
+		// ce qui la signale au joueur, et `Screen.LaPorte` tient l'autre moitié,
+		// celle d'une sortie posée sur une case restée en cellule.
 		aspect := teinterLaPorte(o.aspect, s.monde, o.u, o.v)
 		if o.poignee != 0 {
 			s.scene.SetAspect(o.poignee, aspect)

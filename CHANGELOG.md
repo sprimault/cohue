@@ -81,6 +81,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
   les panneaux destructibles étaient peints au-dessus de leur case — de huit
   pixels pour une caisse, seize pour une palette —, un liseré de sol restant
   visible sous leur base.
+- **Un mur cache l'objet encastré dans sa percée.** Rideau de fer, vitrine,
+  cloison et grille de ventilation se peignaient par-dessus la maçonnerie qui
+  les borde, et se lisaient comme posés sur le mur au lieu d'y être enchâssés.
+  Un personnage collé à un mur reçoit du même coup sa silhouette dès la case
+  qu'il touche, et non plus seulement à partir de la suivante.
 
 ***
 
@@ -120,6 +125,11 @@ publié, et explique les conventions du dépôt à qui y contribue.
 - **Ground objects now rest on the ground.** Crates, wrecks, pallets, gems and
   destructible panels were drawn above their tile — by eight pixels for a crate,
   sixteen for a pallet — leaving a sliver of floor visible under their base.
+- **A wall now hides the obstacle set into its opening.** Roller shutters, shop
+  windows, partitions and air vents were painted over the masonry bordering
+  them, and read as sitting on the wall rather than being set into it. A
+  character pressed against a wall now gets its silhouette from the tile it
+  touches, and no longer only from the next one.
 
 ## [0.7.4] — 2026-11-01 — Le décor se dessine
 

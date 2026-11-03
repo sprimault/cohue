@@ -1,7 +1,7 @@
 // Copyright 2026 Stéphane Primault <sprimault@users.noreply.github.com>
 // SPDX-License-Identifier: Apache-2.0
 
-// Ce que la pose d'un obstacle bas en entité garde : le dessin ne bouge pas d'un
+// Ce que la pose d'un volume en entité garde : le dessin ne bouge pas d'un
 // pixel, et l'ordre change — ce qui s'abrite derrière lui disparaît derrière lui,
 // ce qui passe devant reste entier.
 
@@ -152,7 +152,7 @@ func TestUnObstacleBasSePeintAuMemePixelQuUneCellule(t *testing.T) {
 	}
 
 	parEntite, u, v := sceneDEssai(t)
-	if _, pose := parEntite.Place(obstacleBas{u: u, v: v}.entite(muret)); !pose {
+	if _, pose := parEntite.Place(volumeDebout{u: u, v: v}.entite(muret)); !pose {
 		t.Fatal("l'entité n'a pas été posée")
 	}
 	obtenu, _, _ := imageDe(t, parEntite, atlas)
@@ -190,7 +190,7 @@ func TestUnObstacleBasCacheLaCaseDuNordEtLaisseCelleDuSud(t *testing.T) {
 			atlas, plancheDecor, plancheCreature := planchesDEssai(t)
 			sc, u, v := sceneDEssai(t)
 
-			if _, pose := sc.Place(obstacleBas{u: u, v: v}.entite(
+			if _, pose := sc.Place(volumeDebout{u: u, v: v}.entite(
 				imageDEssai(plancheDecor, muretLargeurDEssai, muretHauteurDEssai),
 			)); !pose {
 				t.Fatal("l'obstacle bas n'a pas été posé")

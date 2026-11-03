@@ -42,6 +42,8 @@ publié, et explique les conventions du dépôt à qui y contribue.
 
 ## [Non publié]
 
+## [0.7.5] — 2026-11-03 — Les objets se dessinent
+
 ### Ajouté
 
 - **Un obstacle fragile se force aussi au clic.** Le bouton gauche tenu dans

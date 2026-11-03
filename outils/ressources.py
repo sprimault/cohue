@@ -17,6 +17,7 @@ cas un défaut, puisque les images doivent être reproductibles à l'identique.
 import argparse
 import filecmp
 import json
+import struct
 import subprocess
 import sys
 import tempfile
@@ -34,6 +35,7 @@ OUTILS = Path(__file__).parent
 sys.path.insert(0, str(OUTILS))
 import objets as objets_iso  # noqa: E402  — après l'ajout au chemin, faute de paquet
 import decor_iso  # noqa: E402  — pour la liste des formes dessinées
+import entetes  # noqa: E402  — le marqueur de licence vit là, et nulle part ailleurs
 import figurines  # noqa: E402  — pour la liste des profils dessinés
 
 GENERATEURS = (
@@ -49,6 +51,12 @@ COULEURS_MAX = 26          # le contour et le grain en fabriquent vite des dizai
 TROUS_TOLERES = 4          # quelques pixels isolés sur une forme éventrée
 PENTE_ATTENDUE = 0.5       # projection 2:1
 ECART_PENTE = 0.12
+
+# Ce qu'un PNG du dépôt a le droit de porter : son dessin, et trois champs de
+# mention. Tout le reste est refusé — voir `mentions_png` pour ce que ça garde.
+SIGNATURE_PNG = b"\x89PNG\r\n\x1a\n"
+CHUNKS_IMAGE = {b"IHDR", b"PLTE", b"tRNS", b"IDAT", b"IEND"}
+CLES_DE_MENTION = {b"Author", b"Copyright", b"License"}
 
 
 def generer(sortie, silencieux=False):
@@ -589,6 +597,62 @@ def dessins(sortie):
     return defauts
 
 
+def mentions_png(sortie):
+    """Refuse ce qu'une image porte en plus de son dessin et de sa mention.
+
+    **Ce que ce contrôle garde est invisible partout ailleurs.** Un PNG porte
+    autant de champs de texte qu'on veut y mettre, et `.gitattributes` le classe
+    en binaire : ni un diff, ni une relecture de pull request, ni une visionneuse
+    ne les montrent. Ce qui entre par là dans un dépôt public y reste sans que
+    personne ne l'ait jamais lu, et un outil qui écrit des images en pose
+    volontiers. Le dépôt n'en veut aucun.
+
+    **Il refuse ce qu'il ne reconnaît pas plutôt que de l'ignorer**, et c'est
+    délibéré. Une image reçue d'un tiers porterait les champs de son auteur, que
+    nous n'avons pas à écraser ; elle fera donc rougir ce contrôle, et c'est le
+    bon moment pour écrire sa dispense — avec le cas réel sous les yeux plutôt
+    qu'une liste vide écrite d'avance, qui serait une anticipation et se
+    révélerait fausse au premier fichier.
+
+    **Les clés sont vérifiées, leur contenu ne l'est pas**, sauf la licence dont
+    le marqueur vit ici. Redire l'auteur ferait la seconde description que
+    `docs/go.md` proscrit, et il se déclare déjà là où les mentions se posent.
+    """
+    defauts = []
+    for chemin in sorted(sortie.rglob("*.png")):
+        octets = chemin.read_bytes()
+        nom = chemin.relative_to(sortie)
+        if octets[:8] != SIGNATURE_PNG:
+            defauts.append((nom, "signature PNG absente"))
+            continue
+
+        i, portes = 8, {}
+        while i + 8 <= len(octets):
+            (taille,) = struct.unpack(">I", octets[i:i + 4])
+            type_ = octets[i + 4:i + 8]
+            if type_ == b"tEXt":
+                cle, _, texte = octets[i + 8:i + 8 + taille].partition(b"\x00")
+                portes[cle] = texte.decode("latin-1")
+            elif type_ not in CHUNKS_IMAGE:
+                defauts.append((nom, f"chunk {type_.decode('latin-1')} étranger :"
+                                     " une image ne porte que son dessin et sa mention"))
+            i += 12 + taille
+            if type_ == b"IEND":
+                break
+
+        for cle in sorted(portes.keys() - CLES_DE_MENTION):
+            defauts.append((nom, f"champ {cle.decode('latin-1')} inattendu :"
+                                 f" {portes[cle][:60]!r}"))
+        if manquantes := CLES_DE_MENTION - portes.keys():
+            noms = ", ".join(sorted(c.decode("latin-1") for c in manquantes))
+            defauts.append((nom, f"mention incomplète : {noms} absent"))
+        licence = portes.get(b"License")
+        if licence is not None and licence != entetes.MARQUEUR:
+            defauts.append((nom, f"licence déclarée {licence!r},"
+                                 f" attendu {entetes.MARQUEUR!r}"))
+    return defauts
+
+
 def manifestes(sortie):
     """Vérifie que chaque manifeste décrit bien ce qui est sur le disque."""
     defauts = []
@@ -921,6 +985,7 @@ def main():
         generer(options.sortie)
 
     controlees, defauts = controler(options.sortie, pentes=options.pentes)
+    defauts += mentions_png(options.sortie)
     defauts += manifestes(options.sortie)
     defauts += profils(options.sortie)
     defauts += objets(options.sortie)

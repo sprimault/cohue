@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/sprimault/lozengine"
+	"github.com/sprimault/lozengine/input"
 
 	"github.com/sprimault/cohue"
 	"github.com/sprimault/cohue/internal/session"
@@ -137,5 +138,56 @@ func TestDeuxMontagesPeignentLesMemesOctets(t *testing.T) {
 			t.Fatalf("les deux images divergent au pixel %d sur %d : %v puis %v",
 				i, len(premier), premier[i], second[i])
 		}
+	}
+}
+
+// TestLeClicForceDansLeMondeEtPasDansLeBandeau garde la frontière du clic qui
+// force un obstacle.
+//
+// **Le cas qui la motive est réel** : un clic sur une case du bandeau déclenche
+// une arme, et le joueur collé à un rideau de fer est précisément celui qui
+// lance une grenade dessus. Sans cette frontière, le même geste ferait les deux.
+//
+// **Les deux positions encadrent la bande à un pixel**, et c'est ce qui éprouve
+// la borne : la dernière ligne du bandeau et la première du monde. Un cas posé
+// au milieu de l'écran passerait sur n'importe quelle comparaison.
+//
+// Les entrées se fabriquent par `input.State`, que le moteur expose pour cela —
+// une valeur d'`Input` ne porte aucun bouton qu'on puisse poser à la main.
+func TestLeClicForceDansLeMondeEtPasDansLeBandeau(t *testing.T) {
+	ecran, _ := monter(t)
+	bande := int16(ecran.hud.Inset().Top)
+	if bande == 0 {
+		t.Fatal("le bandeau ne retire aucune bande : le cas ne pose pas la question")
+	}
+
+	for _, cas := range []struct {
+		nom     string
+		y       int16
+		tenu    bool
+		dehors  bool
+		attendu bool
+	}{
+		{nom: "dernière ligne du bandeau", y: bande - 1, tenu: true},
+		{nom: "première ligne du monde", y: bande, tenu: true, attendu: true},
+		{nom: "bouton relâché dans le monde", y: bande},
+		{nom: "pointeur sorti de la fenêtre", y: bande, tenu: true, dehors: true},
+	} {
+		t.Run(cas.nom, func(t *testing.T) {
+			var etat input.State
+			if cas.tenu {
+				etat.PressButton(input.ButtonLeft)
+			}
+			etat.Move(Width/2, cas.y)
+			if cas.dehors {
+				etat.Leave()
+			}
+
+			in := etat.Frame()
+			ecran.souris = pointeurDe(in)
+			if obtenu := ecran.clicDansLeMonde(in); obtenu != cas.attendu {
+				t.Errorf("clic en y=%d : %v, attendu %v", cas.y, obtenu, cas.attendu)
+			}
+		})
 	}
 }
